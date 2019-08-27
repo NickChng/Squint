@@ -1,0 +1,211 @@
+﻿<UserControl x:Class="SquintScript.Controls.TestViewGrid"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:SquintScript.Controls"
+             xmlns:global="clr-namespace:SquintScript"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="800">
+    <UserControl.DataContext>
+        <local:TestList_ViewModel/>
+    </UserControl.DataContext>
+    <UserControl.Resources>
+        <global:TestConverter x:Key="TestConverter"/>
+        <global:WidthConverter x:Key="WidthConverter"/>
+        <global:CollimatorAngleCheckConverter x:Key="CollimatorAngleCheckConverter"/>
+        <global:TypeToBooleanConverter x:Key="TypeToBooleanConverter"/>
+        <global:VisibilityConverter x:Key="VisibilityConverter"/>
+        <global:TypeToStringConverter x:Key="TypeToStringConverter"/>
+        <global:TypeToColorConverter x:Key="TypeToColorConverter"/>
+        <SolidColorBrush x:Key="ListBorder" Color="#828790"/>
+        <Style TargetType="ListViewItem">
+            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+        </Style>
+        <Style x:Key="TestListViewStyle" TargetType="{x:Type ListView}">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderBrush" Value="{StaticResource ListBorder}"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Foreground" Value="{DynamicResource {x:Static SystemColors.ControlTextBrushKey}}"/>
+            <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Auto"/>
+            <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Auto"/>
+            <Setter Property="ScrollViewer.CanContentScroll" Value="true"/>
+            <Setter Property="ScrollViewer.PanningMode" Value="Both"/>
+            <Setter Property="Stylus.IsFlicksEnabled" Value="False"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type ListView}">
+                        <Border x:Name="Bd" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Background="{TemplateBinding Background}" Padding="1" SnapsToDevicePixels="true">
+                            <ScrollViewer Grid.Row="1" Focusable="false" Padding="{TemplateBinding Padding}">
+                                <ItemsControl SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"/>
+                            </ScrollViewer>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsEnabled" Value="false">
+                                <Setter Property="Background" TargetName="Bd" Value="{DynamicResource {x:Static SystemColors.ControlBrushKey}}"/>
+                            </Trigger>
+                            <MultiTrigger>
+                                <MultiTrigger.Conditions>
+                                    <Condition Property="IsGrouping" Value="true"/>
+                                    <Condition Property="VirtualizingPanel.IsVirtualizingWhenGrouping" Value="false"/>
+                                </MultiTrigger.Conditions>
+                                <Setter Property="ScrollViewer.CanContentScroll" Value="false"/>
+                            </MultiTrigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </UserControl.Resources>
+    <Grid Background="White" VerticalAlignment="Top" HorizontalAlignment="Stretch">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        <StackPanel Grid.Row="0" Orientation="Vertical" Grid.ColumnSpan="2" Margin="15,5,0,0">
+            <TextBlock FontWeight="Bold" Name="TitleBlock" Text="Default" FontSize="13" Margin="0,5,0,5"/>
+            <Border  Background="Black" CornerRadius="1,1,1,1" Height="2" Margin="0,3,10,5" HorizontalAlignment="Stretch"/>
+        </StackPanel>
+        <ListView Grid.Row="1" Name="MainTestListView" Margin ="15,5,0,0" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch" AlternationCount="2" BorderThickness="0">
+            <ListView.View>
+                <GridView>
+                    <GridViewColumn Header="Property" Width="200">
+                        <GridViewColumn.HeaderContainerStyle>
+                            <Style TargetType="GridViewColumnHeader">
+                                <Setter Property="Template">
+                                    <Setter.Value>
+                                        <ControlTemplate TargetType="GridViewColumnHeader">
+                                            <Grid Margin="0,0,0,5">
+                                                 <TextBlock Text="{TemplateBinding Content}" FontSize="13" FontWeight="Bold" Margin="0,3,0,3"/>
+                                            </Grid>
+                                        </ControlTemplate>
+                                    </Setter.Value>
+                                </Setter>
+                            </Style>
+                        </GridViewColumn.HeaderContainerStyle>
+                        <GridViewColumn.CellTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding TestName, FallbackValue=TestName}" TextAlignment="Left" Margin="0,5,0,5" Foreground="Black"/>
+                            </DataTemplate>
+                        </GridViewColumn.CellTemplate>
+                    </GridViewColumn>
+                    <GridViewColumn Header="Check Value" Width="200">
+                        <GridViewColumn.HeaderContainerStyle>
+                            <Style TargetType="GridViewColumnHeader">
+                                <Setter Property="Template">
+                                    <Setter.Value>
+                                        <ControlTemplate TargetType="GridViewColumnHeader">
+                                            <Grid Margin="0,0,0,5">
+                                                 <TextBlock Text="{TemplateBinding Content}" FontSize="13" FontWeight="Bold" Margin="0,3,0,3"/>
+                                            </Grid>
+                                        </ControlTemplate>
+                                    </Setter.Value>
+                                </Setter>
+                            </Style>
+                        </GridViewColumn.HeaderContainerStyle>
+                        <GridViewColumn.CellTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding Value, FallbackValue=TestName}" TextAlignment="Left" Margin="0,5,0,5"/>
+                            </DataTemplate>
+                        </GridViewColumn.CellTemplate>
+                    </GridViewColumn>
+                    <GridViewColumn Header="Reference Value" Width="100">
+                        <GridViewColumn.HeaderContainerStyle>
+                            <Style TargetType="GridViewColumnHeader">
+                                <Setter Property="Template">
+                                    <Setter.Value>
+                                        <ControlTemplate TargetType="GridViewColumnHeader">
+                                            <Grid Margin="0,0,0,5">
+                                               <TextBlock Text="{TemplateBinding Content}" FontSize="13" FontWeight="Bold" Margin="0,3,0,3"/>
+                                            </Grid>
+                                        </ControlTemplate>
+                                    </Setter.Value>
+                                </Setter>
+                            </Style>
+                        </GridViewColumn.HeaderContainerStyle>
+                        <GridViewColumn.CellTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding ReferenceValue, FallbackValue=TestName}" TextAlignment="Left" Margin="0,5,0,5"/>
+                            </DataTemplate>
+                        </GridViewColumn.CellTemplate>
+                    </GridViewColumn>
+                    <GridViewColumn Header="" Width="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type ListView} }, Converter={StaticResource WidthConverter}, FallbackValue=200}">
+                        <GridViewColumn.HeaderContainerStyle>
+                            <Style TargetType="GridViewColumnHeader">
+                                <Setter Property="Template">
+                                    <Setter.Value>
+                                        <ControlTemplate TargetType="GridViewColumnHeader">
+                                            <Grid Margin="0,0,0,5">
+                                                <TextBlock Text="{TemplateBinding Content}" FontSize="13" FontWeight="Bold" Margin="0,3,0,3"/>
+                                            </Grid>
+                                        </ControlTemplate>
+                                    </Setter.Value>
+                                </Setter>
+                            </Style>
+                        </GridViewColumn.HeaderContainerStyle>
+                        <GridViewColumn.CellTemplate>
+                            <DataTemplate>
+                                <Grid HorizontalAlignment="Stretch">
+                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Visibility="{Binding CheckVisibility, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}">
+                                        <TextBlock Text="{Binding WarningString, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" Foreground="Tomato" HorizontalAlignment="Right" Margin="0,0,100,0" Visibility="{Binding Warning, Converter={StaticResource VisibilityConverter}, UpdateSourceTrigger=PropertyChanged}"/>
+                                        <local:CircleCheck Grid.Column="4" Pass="{Binding Warning, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" CheckHeight="20" CheckWidth="20"
+                                                            HorizontalAlignment="Right"/>
+                                    </StackPanel>
+                                </Grid>
+                            </DataTemplate>
+                        </GridViewColumn.CellTemplate>
+                    </GridViewColumn>
+                </GridView>
+            </ListView.View>
+            <ListView.ItemContainerStyle>
+                <Style TargetType="ListViewItem">
+                    <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                    <Setter Property="Template">
+                        <Setter.Value>
+                            <ControlTemplate TargetType="{x:Type ListViewItem}">
+                                <Grid>
+                                    <Grid.Style>
+                                        <Style TargetType="Grid">
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding RelativeSource={RelativeSource AncestorType={x:Type ListViewItem}}, Path=(ItemsControl.AlternationIndex), UpdateSourceTrigger=PropertyChanged}" Value="0">
+                                                    <Setter Property="Background" Value="AliceBlue"/>
+                                                </DataTrigger>
+                                                <DataTrigger Binding="{Binding RelativeSource={RelativeSource AncestorType={x:Type ListViewItem}}, Path=(ItemsControl.AlternationIndex), UpdateSourceTrigger=PropertyChanged}" Value="1">
+                                                    <Setter Property="Background" Value="Transparent"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Grid.Style>
+                                    <GridViewRowPresenter Name="CP" Content="{TemplateBinding Content}" Columns="{TemplateBinding GridView.ColumnCollection}" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
+                                </Grid>
+                            </ControlTemplate>
+                        </Setter.Value>
+                    </Setter>
+                </Style>
+            </ListView.ItemContainerStyle>
+            <!--<ListView.ItemTemplate>
+                <DataTemplate>
+                    <Grid HorizontalAlignment="Stretch">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="200"/>
+                            <ColumnDefinition Width="200"/>
+                            <ColumnDefinition Width="200"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="0" Text="{Binding TestName, Mode=OneTime, UpdateSourceTrigger=PropertyChanged}" FontWeight="Bold" VerticalAlignment="Center"/>
+                        <TextBlock Grid.Column="1" Text="{Binding Value, Mode=OneTime, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Center"/>
+                        <TextBlock Grid.Column="2" Text="{Binding ReferenceValue, Mode=OneTime, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Center"/>
+                        <StackPanel Grid.Column="3" Orientation="Horizontal" HorizontalAlignment="Right" Visibility="{Binding CheckVisibility, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}">
+                            <TextBlock Text="{Binding WarningString, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" Foreground="Tomato" HorizontalAlignment="Right" Margin="0,0,10,0" Visibility="{Binding Warning, Converter={StaticResource VisibilityConverter}, UpdateSourceTrigger=PropertyChanged}"/>
+                            <local:CircleCheck Grid.Column="4" Pass="{Binding Warning, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" CheckHeight="20" CheckWidth="20"
+                                                            HorizontalAlignment="Right"/>
+                        </StackPanel>
+                    </Grid>
+                </DataTemplate>
+            </ListView.ItemTemplate>-->
+        </ListView>
+    </Grid>
+</UserControl>
+

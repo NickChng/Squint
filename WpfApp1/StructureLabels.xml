@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<StructureLabels xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <version>1</version>
+  <Structures>
+    <Structure Label="Unset" StructureType="Unset" AlphaBetaRatio="0" Description="Default unassigned structure label" />
+    <Structure Label="Bladder" StructureType="Organ" AlphaBetaRatio="5" Description="" />
+    <Structure Label="Brachial Plexus" StructureType="Organ" AlphaBetaRatio="2" Description="" />
+    <Structure Label="Brain" StructureType="Organ" AlphaBetaRatio="2" Description="" />
+    <Structure Label="Brainstem" StructureType="Organ" AlphaBetaRatio="2" Description="" />
+    <Structure Label="CTVn" StructureType="CTV" AlphaBetaRatio="0" Description="" />
+    <Structure Label="CTVp" StructureType="CTV" AlphaBetaRatio="0" Description="" />
+    <Structure Label="PTVp" StructureType="PTV" AlphaBetaRatio="0" Description="" />
+    <Structure Label="Esophagus" StructureType="Organ" AlphaBetaRatio="3" Description="" />
+    <Structure Label="External Genitalia" StructureType="Organ" AlphaBetaRatio="3" Description="" />
+    <Structure Label="Eye" StructureType="Organ" AlphaBetaRatio="2" Description="" />
+    <Structure Label="Femur" StructureType="Bone" AlphaBetaRatio="1" Description="" />
+    <Structure Label="GTV" StructureType="Target" AlphaBetaRatio="0" Description="" />
+    <Structure Label="Heart" StructureType="Organ" AlphaBetaRatio="3" Description="" />
+    <Structure Label="Iliac Crest" StructureType="Bone" AlphaBetaRatio="1" Description="" />
+    <Structure Label="Laryngopharynx" StructureType="Organ" AlphaBetaRatio="1" Description="" />
+    <Structure Label="Lens" StructureType="Organ" AlphaBetaRatio="2" Description="" />
+    <Structure Label="Liver" StructureType="Organ" AlphaBetaRatio="5" Description="" />
+    <Structure Label="Lung" StructureType="Organ" AlphaBetaRatio="2" Description="" />
+    <Structure Label="Mandible" StructureType="Bone" AlphaBetaRatio="3" Description="" />
+    <Structure Label="Optics" StructureType="Target" AlphaBetaRatio="2" Description="" />
+    <Structure Label="Oral Cavity" StructureType="Organ" AlphaBetaRatio="1" Description="" />
+    <Structure Label="Parotid" StructureType="Organ" AlphaBetaRatio="3" Description="" />
+    <Structure Label="PTVn" StructureType="Target" AlphaBetaRatio="0" Description="" />
+    <Structure Label="PTVp2" StructureType="Target" AlphaBetaRatio="0" Description="" />
+    <Structure Label="Rectum" StructureType="Organ" AlphaBetaRatio="3" Description="" />
+    <Structure Label="Small Bowel" StructureType="Organ" AlphaBetaRatio="3" Description="" />
+    <Structure Label="Spinal Cord" StructureType="Organ" AlphaBetaRatio="2" Description="" />
+    <Structure Label="Submandibular" StructureType="Organ" AlphaBetaRatio="3" Description="" />
+    <Structure Label="Large Bowel" StructureType="Organ" AlphaBetaRatio="3" Description="" />
+    <Structure Label="Kidney" StructureType="Organ" AlphaBetaRatio="3" Description="" />
+    <Structure Label="Sacral Canal" StructureType="Organ" AlphaBetaRatio="2" Description="" />
+  </Structures>
+</StructureLabels>

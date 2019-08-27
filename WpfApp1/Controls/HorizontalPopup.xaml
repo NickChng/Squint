@@ -1,0 +1,164 @@
+﻿<UserControl x:Class="SquintScript.Controls.HorizontalPopup"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:main="clr-namespace:SquintScript"
+             xmlns:local="clr-namespace:SquintScript.Controls"
+             mc:Ignorable="d" 
+             x:Name="SessionPopup"
+             Height="Auto" Width="AUto">
+    <UserControl.Resources>
+        <main:TestConverter x:Key="TestConverter"/>
+        <main:Color2Brush x:Key="Color2Brush"/>
+        <Style x:Key="RoundedButton" TargetType="{x:Type Button}">
+            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="Padding" Value="1"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type Button}">
+                        <Grid x:Name="grid">
+                            <Border x:Name="border" CornerRadius="8" BorderBrush="Black" BorderThickness="0">
+                                <Border.Background>
+                                    <RadialGradientBrush GradientOrigin="0.496,1.052">
+                                        <RadialGradientBrush.RelativeTransform>
+                                            <TransformGroup>
+                                                <ScaleTransform CenterX="0.5" CenterY="0.5" 
+                                                        ScaleX="1.5" ScaleY="1.5"/>
+                                                <TranslateTransform X="0.02" Y="0.3"/>
+                                            </TransformGroup>
+                                        </RadialGradientBrush.RelativeTransform>
+                                        <GradientStop Offset="1" Color="CornflowerBlue"/>
+                                        <GradientStop Offset="0.3" Color="LightSlateGray"/>
+                                    </RadialGradientBrush>
+                                </Border.Background>
+                                <ContentPresenter HorizontalAlignment="Center"
+                                          VerticalAlignment="Center"
+                                          TextElement.FontWeight="Bold">
+                                </ContentPresenter>
+                            </Border>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter Property="Background" TargetName="border">
+                                    <Setter.Value>
+                                        <RadialGradientBrush GradientOrigin="0.496,1.052">
+                                            <RadialGradientBrush.RelativeTransform>
+                                                <TransformGroup>
+                                                    <ScaleTransform CenterX="0.5" CenterY="0.5" ScaleX="1.5" ScaleY="1.5"/>
+                                                    <TranslateTransform X="0.02" Y="0.3"/>
+                                                </TransformGroup>
+                                            </RadialGradientBrush.RelativeTransform>
+                                            <GradientStop Color="LightSteelBlue" Offset="1"/>
+                                            <GradientStop Color="LightSlateGray" Offset="0.3"/>
+                                        </RadialGradientBrush>
+                                    </Setter.Value>
+                                </Setter>
+                            </Trigger>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="BorderBrush" TargetName="border" Value="#FF33962B"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Opacity" TargetName="grid" Value="0.25"/>
+                            </Trigger>
+
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="ListViewItemStyle" TargetType="ListViewItem">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <!-- Trun off default selection-->
+                    <ControlTemplate TargetType="{x:Type ListViewItem}">
+                        <Grid>
+                            <Border x:Name="Bd" BorderBrush="Transparent" BorderThickness="1" 
+                                Margin="2,2,2,2"
+                                CornerRadius="5,5,5,5"
+                            Background="Transparent"
+                            Padding="{TemplateBinding Padding}" 
+                            SnapsToDevicePixels="true">
+                            </Border>
+                            <ContentPresenter Name="CP" Margin="8,2,8,2"
+                            HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" 
+                            SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" 
+                            VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter TargetName="Bd" Property="BorderBrush" Value="{Binding Path=DataContext.Color, RelativeSource={RelativeSource AncestorType=ListViewItem}, Converter={StaticResource Color2Brush}, UpdateSourceTrigger=PropertyChanged}"/>
+                                <Setter TargetName="Bd" Property="Effect">
+                                    <Setter.Value>
+                                        <DropShadowEffect ShadowDepth="0.2" Color="{Binding Path=DataContext.Color, RelativeSource={RelativeSource AncestorType=ListViewItem}, Converter={StaticResource Color2Brush}, UpdateSourceTrigger=PropertyChanged}" Opacity="0.3" BlurRadius="1"/>
+                                    </Setter.Value>
+                                </Setter>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding RelativeSource={RelativeSource AncestorLevel=3, AncestorType=Grid}, Path=IsMouseOver}" Value="false">
+                    <DataTrigger.Setters>
+                        <Setter Property="IsSelected" Value="false"></Setter>
+                        <!--unselects all items after leaving control so they aren't expanded when focus returns-->
+                    </DataTrigger.Setters>
+                </DataTrigger>
+                <DataTrigger Binding="{Binding Path=Pinned, UpdateSourceTrigger=PropertyChanged}" Value="True">
+                    <Setter Property="FontWeight" Value="Bold" />
+                </DataTrigger>
+                <Trigger Property="IsSelected" Value="True">
+                    <Setter Property="FontWeight" Value="Bold" />
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+    </UserControl.Resources>
+    <Grid Panel.ZIndex="2" MinHeight="30" MinWidth="100">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition/>
+            <ColumnDefinition Width="Auto" MinWidth="11"/>
+        </Grid.ColumnDefinitions>
+        <Border Grid.Column="0" Background="PapayaWhip" CornerRadius="10,10,10,10" BorderThickness="0">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                    <TextBlock Grid.Column="0" Text="Select session: " FontSize="13" FontFamily="Arial" VerticalAlignment="Center" TextAlignment="Center" Margin="10,2,0,0" />
+                <ListView Grid.Column ="1" Background="PapayaWhip" BorderThickness="0" Margin="5,5,10,5" HorizontalContentAlignment="Stretch"
+                          ItemsSource="{Binding DataContext.SessionsPresenter.SessionViews, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource TestConverter}, FallbackValue=Test}" 
+                          ItemContainerStyle="{DynamicResource ListViewItemStyle}" MinWidth="50">
+                        <ListView.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <StackPanel Orientation="Vertical"/>
+                            </ItemsPanelTemplate>
+                        </ListView.ItemsPanel>
+                        <ListView.ItemTemplate>
+                            <DataTemplate>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <Button Grid.Column="0" Background="Transparent" BorderThickness="0" Style="{DynamicResource RoundedButton}" ToolTip="{Binding SessionComment}"
+                                        Command="{Binding DataContext.LoadSelectedSessionCommand, RelativeSource={RelativeSource AncestorType=Window}}" CommandParameter="{Binding}">
+                                    <TextBlock Text="{Binding SessionDisplay}" FontSize="13" VerticalAlignment="Center" Margin="5,3,5,3" HorizontalAlignment="Left" Foreground="Black"/>
+                                </Button>
+                                <Button Grid.Column="1" Style="{DynamicResource ButtonStyle_Small}" VerticalAlignment="Center" Height="25"  
+                                        Command="{Binding DataContext.DeleteSelectedSessionCommand, RelativeSource={RelativeSource AncestorType=Window}}" CommandParameter="{Binding}">
+                                    <Image Source="/Resources/x_trans.png"></Image>
+                                </Button>
+                            </Grid>
+                        </DataTemplate>
+                        </ListView.ItemTemplate>
+                    </ListView>
+            </Grid>
+        </Border>
+        <Grid Grid.Column="1" VerticalAlignment="Top" Margin="0,10,0,0" Height="10">
+            <Path  StrokeThickness="0" Data="M 0,0 L 10,5 L 0,10" Fill="PapayaWhip"/>
+        </Grid>
+
+    </Grid>
+</UserControl>

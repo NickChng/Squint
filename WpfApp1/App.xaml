@@ -1,0 +1,79 @@
+﻿<Application x:Class="WpfApp1.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="clr-namespace:SquintScript"
+             DispatcherUnhandledException="App_DispatcherUnhandledException"
+             StartupUri="MainWindow.xaml">
+    <Application.Resources>
+        <local:ResultFlagColorConverter x:Key="ResultFlagColorConverter"/>
+        <local:ColumnHeaderColorConverter x:Key="ColumnHeaderColorConverter"/>
+        <local:ResultConverter x:Key="ResultConverter"/>
+        <local:ColumnHeaderConverter x:Key="ColumnHeaderConverter"/>
+        <Style x:Key="SquintColumnHeaderStyle" TargetType="{x:Type DataGridColumnHeader}">
+            <Setter Property="HorizontalContentAlignment" Value="Center" />
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+            <Setter Property="FontWeight" Value="Black" />
+            <Setter Property="SeparatorBrush" Value="Transparent"></Setter>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate>
+                        <Grid Background="White" HorizontalAlignment="Stretch">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="10"/>
+                            </Grid.RowDefinitions>
+                               <TextBlock Text="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type DataGridColumnHeader}}, Converter={StaticResource ColumnHeaderConverter}, UpdateSourceTrigger=PropertyChanged}"
+                                    Foreground="Black"
+                                    HorizontalAlignment="Center"
+                                    Background="Transparent"  
+                                           Margin="{Binding ElementName=SquintWindow, Path=DataContext.AssessmentPresenter.ColHeaderMargin, UpdateSourceTrigger=PropertyChanged}" FontSize="{Binding ElementName=SquintWindow, UpdateSourceTrigger=PropertyChanged, Path=DataContext.AssessmentPresenter.FontSize}"/>
+                            <Border Grid.Row="1" Background="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type DataGridColumnHeader}}, Converter={StaticResource ColumnHeaderColorConverter}, ConverterParameter='Background', UpdateSourceTrigger=PropertyChanged}" 
+                                    CornerRadius="1,1,1,1" Height="2" Margin="10,3,10,5"/>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="SquintCellStyle" TargetType="{x:Type DataGridCell}">
+            <Setter Property="Foreground" Value="Black" />
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="BorderBrush" Value="Transparent"></Setter>
+            <Style.Triggers>
+                <Trigger Property="IsSelected" Value="True">
+                    <Setter Property="Background" Value="White" />
+                    <Setter Property="BorderBrush" Value="{x:Null}" />
+                </Trigger>
+                <!--<DataTrigger Binding="{Binding Path=flag, UpdateSourceTrigger =PropertyChanged}" Value="true">
+                        <Setter Property="Background" Value="Red"></Setter>
+                    </DataTrigger>-->
+            </Style.Triggers>
+
+        </Style>
+        <DataTemplate x:Key="SquintCellTemplate" x:Name="SquintCellTemplate">
+            <Grid Width="Auto">
+                <Border BorderThickness="0" CornerRadius="5,5,5,5" Margin="2,2,2,2" HorizontalAlignment="Stretch">
+                    <Border.Background>
+                        <MultiBinding Converter="{StaticResource ResultFlagColorConverter}" UpdateSourceTrigger="PropertyChanged">
+                            <Binding UpdateSourceTrigger="PropertyChanged" Mode="TwoWay"></Binding>
+                            <Binding RelativeSource="{RelativeSource Mode=FindAncestor, AncestorType={x:Type DataGridCell}}" UpdateSourceTrigger="PropertyChanged"/>
+                            <Binding Path="RefreshFlag" UpdateSourceTrigger="PropertyChanged"/>
+                        </MultiBinding>
+                    </Border.Background>
+                    <TextBlock Foreground="Black" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="{Binding ElementName=SquintWindow, UpdateSourceTrigger=PropertyChanged, Path=DataContext.AssessmentPresenter.FontSize}">
+                        <TextBlock.Text>
+                            <MultiBinding Converter="{StaticResource ResultConverter}">
+                                <Binding UpdateSourceTrigger="PropertyChanged" Mode="OneWay"></Binding>
+                                <Binding RelativeSource="{RelativeSource Mode=FindAncestor, AncestorType={x:Type DataGridCell}}"/>
+                                <Binding Path="RefreshFlag" UpdateSourceTrigger="PropertyChanged"/>
+                                <!--Only reason the last binding is needed is to trigger a cell refresh when the assessment changes-->
+                            </MultiBinding>
+                        </TextBlock.Text>
+                    </TextBlock>
+                </Border>
+            </Grid>
+        </DataTemplate>
+    </Application.Resources>
+    
+</Application>
