@@ -33,7 +33,7 @@ namespace SquintScript.Controls
         public ObservableCollection<TestListItem> TestItems
         {
             get { return (ObservableCollection<TestListItem>)GetValue(TestItemsProperty); }
-            set { SetValue(TestListTitleProperty, value); }
+            set { SetValue(TestItemsProperty, value); }
         }
 
         private static void OnSetTestItems(DependencyObject d,
@@ -48,27 +48,27 @@ namespace SquintScript.Controls
             MainTestListView.ItemsSource = (ObservableCollection<TestListItem>)e.NewValue;
         }
 
-        public static readonly DependencyProperty TestListTitleProperty =
-           DependencyProperty.Register("TestListTitle", typeof(string), typeof(TestView), new
-              PropertyMetadata("", new PropertyChangedCallback(OnSetTextChanged)));
+       //public static readonly DependencyProperty TestListTitleProperty =
+       //    DependencyProperty.Register("TestListTitle", typeof(string), typeof(TestView), new
+       //       PropertyMetadata("", new PropertyChangedCallback(OnSetTextChanged)));
 
-        public string TestListTitle
-        {
-            get { return (string)GetValue(TestListTitleProperty); }
-            set { SetValue(TestListTitleProperty, value); }
-        }
+       // public string TestListTitle
+       // {
+       //     get { return (string)GetValue(TestListTitleProperty); }
+       //     set { SetValue(TestListTitleProperty, value); }
+       // }
 
-        private static void OnSetTextChanged(DependencyObject d,
-           DependencyPropertyChangedEventArgs e)
-        {
-            TestView UserControl1Control = d as TestView;
-            UserControl1Control.OnSetTextChanged(e);
-        }
+       // private static void OnSetTextChanged(DependencyObject d,
+       //    DependencyPropertyChangedEventArgs e)
+       // {
+       //     TestView UserControl1Control = d as TestView;
+       //     UserControl1Control.OnSetTextChanged(e);
+       // }
 
-        private void OnSetTextChanged(DependencyPropertyChangedEventArgs e)
-        {
-            TitleBlock.Text = e.NewValue.ToString();
-        }
+       // private void OnSetTextChanged(DependencyPropertyChangedEventArgs e)
+       // {
+       //     TitleBlock.Text = e.NewValue.ToString();
+       // }
 
         public static readonly DependencyProperty ReferenceHeaderProperty =
            DependencyProperty.Register("ReferenceHeaderProperty", typeof(string), typeof(TestView), new
@@ -91,5 +91,32 @@ namespace SquintScript.Controls
         {
             ReferenceHeader.Text = e.NewValue.ToString();
         }
+
+        private void MainTestListView_SelectionChanged()
+        {
+
+        }
+
+        //public static readonly DependencyProperty TargetItemListProperty =
+        //   DependencyProperty.Register("TargetItemListProperty", typeof(ObservableCollection<string>), typeof(TestView), new
+        //      PropertyMetadata("", new PropertyChangedCallback(OnTargetItemsChanged)));
+
+        //public ObservableCollection<string> SetTargetItems
+        //{
+        //    get { return (ObservableCollection<string>)GetValue(TargetItemListProperty); }
+        //    set { SetValue(TargetItemListProperty, value); }
+        //}
+
+        //private static void OnTargetItemsChanged(DependencyObject d,
+        //   DependencyPropertyChangedEventArgs e)
+        //{
+        //    TestView UserControl1Control = d as TestView;
+        //    UserControl1Control.OnTargetItemsChanged(e);
+        //}
+
+        //private void OnTargetItemsChanged(DependencyPropertyChangedEventArgs e)
+        //{
+        //    TargetCombo.SelectedItem = e.NewValue.ToString();
+        //}
     }
 }

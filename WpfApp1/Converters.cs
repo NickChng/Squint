@@ -129,7 +129,7 @@ namespace SquintScript
             if (V == true)
                 return Visibility.Visible;
             else
-                return Visibility.Hidden;
+                return Visibility.Collapsed;
         }
         public object ConvertBack(object value, Type targetTypes,
                object parameter, System.Globalization.CultureInfo culture)
@@ -710,7 +710,7 @@ namespace SquintScript
                object parameter, System.Globalization.CultureInfo culture)
         {
             Visibility? V = value as Visibility?;
-            if (V == Visibility.Hidden)
+            if (V == Visibility.Collapsed)
                 return false;
             else
                 return true;

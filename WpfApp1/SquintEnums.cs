@@ -11,6 +11,14 @@ using System.ComponentModel.DataAnnotations;
 namespace SquintScript
 {
     //Type Definitions
+    public enum Energies
+    {
+        [Description("Unset")] Unset = 1,
+        [Description("6X")] Photons6 = 2,
+        [Description("10X")] Photons10 = 3,
+        [Description("15X")] Photons15 = 4,
+        [Description("10XFFF")] Photons10FFF = 5
+    }
     public enum ParameterOptions
     {
         [Description("Unset")] Unset,
@@ -165,6 +173,14 @@ namespace SquintScript
         [Description("can retire assessment")] CanRetireAssessment,
         [Description("can overwrite assessment")] CanOverwriteAssessment
 
+    }
+
+    public enum ChangeStatus
+    {
+        [Description("Unset")] Unset,
+        [Description("Unchanged")] Unchanged,
+        [Description("Modified")] Modified,
+        [Description("Deleted")] Deleted,
     }
 
     public enum ExceptionTypes

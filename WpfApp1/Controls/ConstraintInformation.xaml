@@ -119,54 +119,58 @@
         <main:ConstraintSelector/>
     </UserControl.DataContext>-->
     <Grid Panel.ZIndex="2" MinHeight="100" MinWidth="200">
-        <Border Grid.Column="0" Background="White" CornerRadius="10,10,10,10" BorderBrush="SteelBlue" BorderThickness="1" >
+        <Border Grid.Column="0" CornerRadius="10,10,10,10" Background="AntiqueWhite">
+            <Border Background="White" CornerRadius="10,10,10,10" BorderBrush="AliceBlue" BorderThickness="2" Margin="5,5,5,5">
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"></RowDefinition>
                     <RowDefinition Height="Auto"></RowDefinition>
                     <RowDefinition Height="*"></RowDefinition>
+                    <!--<RowDefinition Height="*"></RowDefinition>-->
                 </Grid.RowDefinitions>
-                <TextBlock Grid.Row="0" Text="Constraint History " FontSize="14" FontFamily="Arial" Foreground="Black" VerticalAlignment="Center" TextAlignment="Center" Margin="10,10,10,10" />
-                <Grid Grid.Row="1" MaxHeight="300">
-                    <ScrollViewer Grid.Row="1" Margin="0,0,10,0" Focusable="true" VerticalAlignment="Stretch" VerticalScrollBarVisibility="Auto" Template="{DynamicResource ScrollViewerControlTemplate1}" CanContentScroll="True" Background="Transparent">
-                    <ListView Style="{DynamicResource ListViewStyle_NoScroll}" HorizontalContentAlignment="Stretch" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
-                                  BorderThickness="0" Background="Transparent" ItemsSource="{Binding ConstraintChangelogs, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" FontSize="13" FontFamily="Arial" Margin="10,2,10,0" MinWidth="50">
-                        <ListView.ItemTemplate>
-                            <DataTemplate>
-                                <Grid Width="650" MinHeight="100">
-                                    <Border Grid.Row="0" Background="PapayaWhip" CornerRadius="3,3,3,3" Margin="5,5,0,5">
-                                        <Grid>
-                                            <Grid.RowDefinitions>
-                                                <RowDefinition Height="50"/>
-                                                <RowDefinition Height="*"/>
-                                            </Grid.RowDefinitions>
-                                            <Grid Grid.Row="0">
-                                                <Grid.ColumnDefinitions>
-                                                    <ColumnDefinition Width="*"/>
-                                                    <ColumnDefinition Width="2*"/>
-                                                    <ColumnDefinition Width="*"/>
-                                                </Grid.ColumnDefinitions>
-                                                <TextBlock Grid.Column="0" Text="{Binding DateString}" Margin="5,5,5,5" Foreground="Black" HorizontalAlignment="Left" VerticalAlignment="Center" TextWrapping="Wrap"/>
-                                                <TextBlock Grid.Column="1" Text="{Binding ConstraintString}"  Margin="5,5,5,5" FontWeight="Bold" Foreground="Black" HorizontalAlignment="Center" VerticalAlignment="Center" TextWrapping="Wrap"/>
-                                                <TextBlock Grid.Column="2" Text="{Binding ChangeAuthor}"  Margin="5,5,5,5" Foreground="Black" HorizontalAlignment="Center" VerticalAlignment="Center" TextWrapping="Wrap"/>
+                <TextBlock Grid.Row="0" Text="Constraint History " FontSize="15" FontFamily="Arial" FontWeight="Bold" Foreground="Black" VerticalAlignment="Center" TextAlignment="Center" Margin="10,15,10,15" />
+                <Border Grid.Row="1" CornerRadius="2,2,2,2" Height="2" Background="CornflowerBlue" HorizontalAlignment="Stretch" Margin="10,5,10,5"/>
+                <Grid Grid.Row="2" MaxHeight="300" Margin="10,0,10,10">
+                    <ScrollViewer Grid.Row="1" Margin="5,0,5,0" Focusable="true" VerticalAlignment="Stretch" VerticalScrollBarVisibility="Auto" Template="{DynamicResource ScrollViewerControlTemplate1}" CanContentScroll="True" Background="Transparent">
+                        <ListView Style="{DynamicResource ListViewStyle_NoScroll}" HorizontalContentAlignment="Stretch" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
+                                  BorderThickness="0" Background="Transparent" ItemsSource="{Binding ConstraintChangelogs, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" FontSize="13" FontFamily="Arial" Margin="10,2,10,0" MinWidth="50">
+                            <ListView.ItemTemplate>
+                                <DataTemplate>
+                                    <Grid Width="650" MinHeight="100" Margin="0,5,0,0">
+                                        <Border Grid.Row="0" Background="PapayaWhip" CornerRadius="3,3,3,3">
+                                            <Grid>
+                                                <Grid.RowDefinitions>
+                                                    <RowDefinition Height="50"/>
+                                                    <RowDefinition Height="*"/>
+                                                </Grid.RowDefinitions>
+                                                <Grid Grid.Row="0">
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="*"/>
+                                                        <ColumnDefinition Width="2*"/>
+                                                        <ColumnDefinition Width="*"/>
+                                                    </Grid.ColumnDefinitions>
+                                                    <TextBlock Grid.Column="0" Text="{Binding DateString}" Margin="10,5,5,5" Foreground="Black" HorizontalAlignment="Left" VerticalAlignment="Center" TextWrapping="Wrap"/>
+                                                    <TextBlock Grid.Column="1" Text="{Binding ConstraintString}"  Margin="5,5,5,5" FontWeight="Bold" Foreground="Black" HorizontalAlignment="Center" VerticalAlignment="Center" TextWrapping="Wrap"/>
+                                                    <TextBlock Grid.Column="2" Text="{Binding ChangeAuthor}"  Margin="5,5,10,5" Foreground="Black" HorizontalAlignment="Center" VerticalAlignment="Center" TextWrapping="Wrap"/>
+                                                </Grid>
+                                                <Grid Grid.Row="1">
+                                                    <TextBlock Text="{Binding ChangeDescription}"  Margin="5,5,5,5" Foreground="Black" HorizontalAlignment="Center" VerticalAlignment="Center" TextWrapping="Wrap"/>
+                                                </Grid>
                                             </Grid>
-                                            <Grid Grid.Row="1">
-                                                <TextBlock Text="{Binding ChangeDescription}"  Margin="5,5,5,5" Foreground="Black" HorizontalAlignment="Center" VerticalAlignment="Center" TextWrapping="Wrap"/>
-                                            </Grid>
-                                        </Grid>
-                                    </Border>
-                                </Grid>
-                            </DataTemplate>
-                        </ListView.ItemTemplate>
-                    </ListView>
-                        </ScrollViewer>
+                                        </Border>
+                                    </Grid>
+                                </DataTemplate>
+                            </ListView.ItemTemplate>
+                        </ListView>
+                    </ScrollViewer>
                 </Grid>
-                
-                <Button Grid.Row="2" Grid.Column="2" Style="{DynamicResource ButtonStyle_Small}" VerticalAlignment="Center" Height="23" Margin="0,5,10,5" RenderOptions.BitmapScalingMode="HighQuality" 
+
+                <!--<Button Grid.Row="2" Grid.Column="2" Style="{DynamicResource ButtonStyle_Small}" VerticalAlignment="Center" Height="23" Margin="0,5,10,5" RenderOptions.BitmapScalingMode="HighQuality" 
                         Command="{Binding DataContext.SaveSessionCommand, RelativeSource={RelativeSource AncestorType=Window}}" HorizontalAlignment="Right">
                     <Image Source="/Resources/check_trans.png"></Image>
-                </Button>
+                </Button>-->
             </Grid>
+        </Border>
         </Border>
     </Grid>
 </UserControl>

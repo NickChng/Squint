@@ -27,7 +27,7 @@ namespace SquintScript
     {
         //<add name="SquintdBModel.config" connectionString="Server=sprtqacn001;Port=5432;Database=Squint_v05_April_Clinical;User Id=postgres;Password=bccacn;" providerName="Npgsql" />
         private static string providerName = "Npgsql"; //Get this
-        private static string databaseName = "Squint_v05_April_Dev";
+        private static string databaseName = "Squint_Dev";
         private static string userName = "postgres";
         private static string password = "bccacn";
         private static string host = "sprtqacn001";
@@ -437,6 +437,10 @@ namespace SquintScript
                 }
             }
             public ComponentTypes ComponentType { get { return SC.ComponentType; } }
+            public List<Beam> GetBeams()
+            {
+                return DataCache.GetBeams(ID);
+            }
             public string ComponentName
             {
                 get { return SC.ComponentName; }
@@ -459,6 +463,11 @@ namespace SquintScript
             {
                 get { return SC.NumFractions; }
             }
+
+            public int NumIsocentres { get { return SC.NumIso; } }
+            public int MinBeams { get { return SC.MinBeams; } }
+            public int MaxBeams { get { return SC.MaxBeams; } }
+            public int MinColOffset { get { return SC.MinColOffset; } }
             public double ReferenceDose
             {
                 get { return SC.ReferenceDose; }
@@ -493,37 +502,6 @@ namespace SquintScript
                 if (Field != null)
                 {
                     Id = Field.Id;
-                    GantryAngle = Field.ControlPoints.FirstOrDefault().GantryAngle;
-                    GantryEnd = Field.ControlPoints.LastOrDefault().GantryAngle;
-                    CollimatorAngle = Field.ControlPoints.FirstOrDefault().CollimatorAngle;
-                    Xmin = Field.ControlPoints.Select(x => (x.JawPositions.X1 + x.JawPositions.X2)).Min();
-                    Ymin = Field.ControlPoints.Select(x => (x.JawPositions.Y1 + x.JawPositions.Y2)).Min();
-                    foreach (Bolus Bolus in Field.Boluses)
-                    {
-                        BolusInfo BI = new BolusInfo();
-                        BI.Id = Bolus.Id;
-                        BI.HU = Bolus.MaterialCTValue;
-                        BolusInfos.Add(BI);
-                    }
-                    Orientation = O;
-                    var CP = Field.ControlPoints;
-                    if (CP.Count > 0)
-                    {
-                        X1max = CP.Max(x => Math.Abs(x.JawPositions.X1));
-                        X2max = CP.Max(x => x.JawPositions.X2);
-                        Y1max = CP.Max(x => Math.Abs(x.JawPositions.Y1));
-                        Y2max = CP.Max(x => x.JawPositions.Y2);
-                        X1min = CP.Min(x => Math.Abs(x.JawPositions.X1));
-                        X2min = CP.Min(x => x.JawPositions.X2);
-                        Y1min = CP.Min(x => Math.Abs(x.JawPositions.Y1));
-                        Y2min = CP.Min(x => x.JawPositions.Y2);
-                        Xmax = CP.Max(x => Math.Abs(x.JawPositions.X1) + x.JawPositions.X2);
-                        Ymax = CP.Max(x => Math.Abs(x.JawPositions.Y1) + x.JawPositions.Y2);
-                        Xmin = CP.Min(x => Math.Abs(x.JawPositions.X1) + x.JawPositions.X2);
-                        Ymin = CP.Min(x => Math.Abs(x.JawPositions.Y1) + x.JawPositions.Y2);
-                    }
-                    MU = Field.MetersetPerGy;
-
                     switch (Field.Technique.Id)
                     {
                         case "ARC":
@@ -536,6 +514,62 @@ namespace SquintScript
                             Type = FieldType.STATIC;
                             break;
                     }
+                    switch (Field.EnergyModeDisplayName)
+                    {
+                        case "6X":
+                            Energy = Energies.Photons6;
+                            break;
+                        case "10X-FFF":
+                            Energy = Energies.Photons10FFF;
+                            break;
+                        case "15X":
+                            Energy = Energies.Photons15;
+                            break;
+                        case "10X":
+                            Energy = Energies.Photons10;
+                            break;
+                    }
+                    GantryDirection = Field.GantryDirection;
+                    Isocentre = Field.IsocenterPosition;
+                    CouchRotation = Field.ControlPoints.FirstOrDefault().PatientSupportAngle;
+                    GantryStart = Field.ControlPoints.FirstOrDefault().GantryAngle;
+                    GantryEnd = Field.ControlPoints.LastOrDefault().GantryAngle;
+                    CollimatorAngle = Field.ControlPoints.FirstOrDefault().CollimatorAngle;
+                    ToleranceTable = Field.ToleranceTableLabel;
+                    foreach (Bolus Bolus in Field.Boluses)
+                    {
+                        BolusInfo BI = new BolusInfo();
+                        BI.Id = Bolus.Id;
+                        BI.HU = Bolus.MaterialCTValue;
+                        BolusInfos.Add(BI);
+                    }
+                    Orientation = O;
+                    var CP = Field.ControlPoints;
+                    if (CP.Count > 0)
+                    {
+                        X1max = CP.Max(x => Math.Abs(x.JawPositions.X1)) / 10; // cm
+                        X2max = CP.Max(x => x.JawPositions.X2) / 10;
+                        Y1max = CP.Max(x => Math.Abs(x.JawPositions.Y1)) / 10;
+                        Y2max = CP.Max(x => x.JawPositions.Y2) / 10;
+                        X1min = CP.Min(x => Math.Abs(x.JawPositions.X1)) / 10;
+                        X2min = CP.Min(x => x.JawPositions.X2) / 10;
+                        Y1min = CP.Min(x => Math.Abs(x.JawPositions.Y1)) / 10;
+                        Y2min = CP.Min(x => x.JawPositions.Y2) / 10;
+                        Xmax = CP.Max(x => Math.Abs(x.JawPositions.X1) + x.JawPositions.X2) / 10;
+                        Ymax = CP.Max(x => Math.Abs(x.JawPositions.Y1) + x.JawPositions.Y2) / 10;
+                        Xmin = CP.Min(x => Math.Abs(x.JawPositions.X1) + x.JawPositions.X2) / 10;
+                        Ymin = CP.Min(x => Math.Abs(x.JawPositions.Y1) + x.JawPositions.Y2) / 10;
+                        if ((Math.Abs(X1max - X1min) > 1E-5) || (Math.Abs(X2max - X2min) > 1E-5) || (Math.Abs(Y1max - Y1min) > 1E-5) || (Math.Abs(Y2max - Y2min) > 1E-5))
+                            isJawTracking = true;
+
+                    }
+                    if (Field.Meterset.Unit == DosimeterUnit.MU)
+                        MU = Field.Meterset.Value;
+                    else
+                    {
+                        throw new Exception(@"Meterset unit is not MU");
+                    }
+
                 }
                 if (Type == FieldType.Unset)
                 {
@@ -557,11 +591,16 @@ namespace SquintScript
             }
             public string CourseId;
             public string PlanId;
+            public GantryDirection GantryDirection { get; set; }
+            public Energies Energy { get; set; }
             public string Id { get; set; } = "Default Field";
             public double MU { get; set; } = 0;
             public double GantryEnd { get; set; }
-            public double GantryAngle { get; set; } = 0;
+            public double GantryStart { get; set; } = 0;
             public double CollimatorAngle { get; set; } = 0;
+            public double CouchRotation { get; set; }
+
+            public VVector Isocentre { get; set; }
             public double Xmax { get; set; }
             public double Ymax { get; set; }
             public double Ymin { get; set; }
@@ -574,9 +613,11 @@ namespace SquintScript
             public double Y1min { get; set; }
             public double X2min { get; set; }
             public double Y2min { get; set; }
+            public string ToleranceTable { get; set; }
             public List<BolusInfo> BolusInfos { get; set; } = new List<BolusInfo>();
             public bool Warning { get; set; } = false;
             public string WarningMessage { get; set; } = "";
+            public bool isJawTracking { get; set; } = false;
         }
         public class ImagingFieldItem
         {
@@ -685,7 +726,7 @@ namespace SquintScript
             public bool Warning { get; set; } = false;
             public string WarningMessage { get; set; } = "";
         }
-        
+
 
         [AddINotifyPropertyChangedInterface]
         public class ConstraintView : INotifyPropertyChanged, IComparable<ConstraintView>
@@ -747,6 +788,7 @@ namespace SquintScript
             public string ReferenceConstraintDefinition { get; private set; }
             public string ShortConstraintDefinition { get; private set; }
             public string ConstraintDefinition { get; private set; }
+            public string ChangeDescription { get; set; } = "";
             public int ID { get; private set; }
             private int _DisplayOrder;
             public int DisplayOrder
@@ -770,7 +812,7 @@ namespace SquintScript
                 }
             }
             public int DisplayOrderComponent { get; private set; }
-            public string PrimaryStructureName { get; private set; }
+            public string PrimaryStructureName { get; set; }
             public List<System.Windows.Media.Color> StructureColors
             {
                 get
@@ -897,6 +939,7 @@ namespace SquintScript
                 set
                 {
                     Con.PrimaryStructureID = value; // Con will notify ConstraintView to update the private field
+                    Con.ProtocolStructureName = DataCache.GetECSID(value).ProtocolStructureName;
                 }
             }
             public ConstraintResultView GetResult(int AssessmentID)
@@ -906,6 +949,10 @@ namespace SquintScript
             private List<ConstraintResultView> GetAllResults()
             {
                 return Con.GetAllResults();
+            }
+            public List<ConstraintChangelog> GetChangeLogs()
+            {
+                return Con.GetChangeLogs();
             }
             public bool isBestResult(double testval)
             {
@@ -1057,6 +1104,10 @@ namespace SquintScript
                     case "SecondaryStructureName":
                         ConstraintDefinition = Con.GetConstraintString(false);
                         PrimaryStructureName = Con.PrimaryStructureName;
+                        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("ConstraintDefinition"));
+                        break;
+                    case "ProtocolStructureName":
+                        ConstraintDefinition = Con.GetConstraintString(false);
                         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("ConstraintDefinition"));
                         break;
                     default:
@@ -1619,12 +1670,12 @@ namespace SquintScript
                 var TxFields = await p.GetTxFields();
                 foreach (ImagingFieldItem I in ImagingFields)
                 {
-                    if (I.Type == FieldType.Ant_kv && ((Isocentre.x - PatientCentre.x) < -50 || TxFields.All(x => (x.GantryAngle < 40 || x.GantryAngle > 180) && (x.GantryEnd < 40 || x.GantryEnd > 180))))
+                    if (I.Type == FieldType.Ant_kv && ((Isocentre.x - PatientCentre.x) < -50 || TxFields.All(x => (x.GantryStart < 40 || x.GantryStart > 180) && (x.GantryEnd < 40 || x.GantryEnd > 180))))
                     {
                         I.Warning = true;
                         I.WarningMessage = "Posterior preferred?";
                     }
-                    if (I.Type == FieldType.Post_kv && ((Isocentre.x - PatientCentre.x) > 50 || TxFields.All(x => (x.GantryAngle > 320 || x.GantryAngle < 180) && (x.GantryEnd > 320 || x.GantryEnd < 180))))
+                    if (I.Type == FieldType.Post_kv && ((Isocentre.x - PatientCentre.x) > 50 || TxFields.All(x => (x.GantryStart > 320 || x.GantryStart < 180) && (x.GantryEnd > 320 || x.GantryEnd < 180))))
                     {
                         I.Warning = true;
                         I.WarningMessage = "Anterior preferred?";
@@ -2004,32 +2055,6 @@ namespace SquintScript
             ComponentView CompView = new ComponentView(Comp);
             return CompView;
         }
-        //public static async Task<ComponentView> DuplicateComponent(int ComponentID)
-        //{
-        //    // will report work done as percentage of DataCache.Constraints created
-        //    if (DataCache.CurrentProtocol == null)
-        //        return null;
-        //    // Set up progress report
-        //    double total = GetConstraintViewList(ComponentID).Count;
-        //    int count = 1;
-        //    Progress<int> LocalProgress = new Progress<int>((update) =>
-        //    {
-        //        int percent = Convert.ToInt32(count++ / total * 100);
-        //        (ProgressBar as IProgress<int>).Report(percent);
-        //    });
-        //    Component Comp = new Component(DataCache.GetComponent(ComponentID), LocalProgress))
-        //    ComponentAdded?.Invoke(null, Comp.ID);
-        //    foreach (Constraint Con in DataCache.GetConstraintsInComponent(Comp.ID)) 
-        //    {
-        //        ConstraintView CV = new ConstraintView(Con);
-        //        if (SynchronizationContext.Current == null)
-        //            RaiseEventOnUIThread(ConstraintAdded, new object[] { CV, CV.ID });
-        //        else
-        //            ConstraintAdded?.Invoke(CV, CV.ID);
-        //    }
-        //    ComponentView CompView = new ComponentView(Comp);
-        //    return CompView;
-        //}
         public static StructureView AddNewStructure()
         {
             if (DataCache.CurrentProtocol == null)
@@ -2543,7 +2568,109 @@ namespace SquintScript
                             LocalContext.DbImagings.Add(DbI);
                         }
                     }
+                    if (comp.Beams.Beam != null)
+                    {
+                        C.MinBeams = comp.Beams.MinBeams;
+                        C.MaxBeams = comp.Beams.MaxBeams;
+                        C.NumIso = comp.Beams.NumIso;
+                        C.MinColOffset = comp.Beams.MinColOffset;
+                        foreach (var b in comp.Beams.Beam)
+                        {
+                            DbBeam B = LocalContext.DbBeams.Create();
+                            LocalContext.DbBeams.Add(B);
+                            foreach (var Alias in b.EclipseAliases.EclipseId)
+                            {
+                                DbBeamAlias DbBA = LocalContext.DbBeamAliases.Create();
+                                DbBA.EclipseFieldId = Alias.Id;
+                                DbBA.DbBeam = B;
+                                LocalContext.DbBeamAliases.Add(DbBA);
+                            }
+                            foreach (var ArcG in b.ValidGeometries.Geometry)
+                            {
+                                DbBeamGeometry DbAG = LocalContext.DbBeamGeometries.Create();
+                                DbAG.DbBeam = B;
+                                DbAG.GeometryName = ArcG.GeometryName;
+                                if (ArcG.MinStartAngle > -1)
+                                    DbAG.MinStartAngle = ArcG.MinStartAngle;
+                                else
+                                    DbAG.MinStartAngle = ArcG.MaxStartAngle-1E-5;
+                                if (ArcG.MinEndAngle > -1)
+                                    DbAG.MinEndAngle = ArcG.MinEndAngle;
+                                else
+                                    DbAG.MinEndAngle = DbAG.MaxEndAngle-1E-5;
+                                if (ArcG.MaxStartAngle > -1)
+                                    DbAG.MaxStartAngle = ArcG.MaxStartAngle;
+                                else
+                                    DbAG.MaxStartAngle = DbAG.MinStartAngle +1E-5;
+                                if (ArcG.MaxEndAngle > -1)
+                                    DbAG.MaxEndAngle = ArcG.MaxEndAngle;
+                                else
+                                    DbAG.MaxEndAngle = DbAG.MinEndAngle + 1E-5;
+                                LocalContext.DbBeamGeometries.Add(DbAG);
+                            }
+                            B.DbComponent = C;
+                            B.ProtocolBeamName = b.ProtocolBeamName;
+                            B.CouchRotation = b.CouchRotation;
+                            B.MaxColRotation = b.MaxColRotation;
+                            B.MinColRotation = b.MinColRotation;
+                            B.MaxMUWarning = b.MaxMUWarning;
+                            B.MinMUWarning = b.MinMUWarning;
+                            B.MinX = b.MinX;
+                            B.MaxX = b.MaxX;
+                            B.MinY = b.MinY;
+                            B.MaxY = b.MaxY;
+                            B.ToleranceTable = b.ToleranceTable;
+                            B.BolusClinicalHU = b.RefBolusHU;
+                            bool UnsetEnergyAdded = false;
+                            foreach (var E in b.Energies.Energy)
+                            {
+                                DbEnergy DbEn = LocalContext.DbEnergies.FirstOrDefault(x => x.EnergyString == E.Mode);
+                                if (DbEn != null)
+                                {
+                                    if (B.DbEnergies == null)
+                                        B.DbEnergies = new List<DbEnergy>() { DbEn };
+                                    else
+                                        B.DbEnergies.Add(DbEn);
+                                }
+                                else
+                                {
+                                    if (!UnsetEnergyAdded)
+                                    {
+                                        if (B.DbEnergies == null)
+                                            B.DbEnergies = new List<DbEnergy>() { LocalContext.DbEnergies.Find((int)Energies.Unset) };
+                                        else
+                                            B.DbEnergies.Add(LocalContext.DbEnergies.Find((int)Energies.Unset));
+                                        UnsetEnergyAdded = true;
+                                    }
+                                }
+                            }
+                            ParameterOptions BolusIndication;
+                            if (Enum.TryParse(b.Bolus.Indication, out BolusIndication))
+                            {
+                                B.BolusClinicalIndication = (int)BolusIndication;
+                                B.BolusClinicalHU = b.Bolus.HU;
+                                B.BolusClinicalMinThickness = b.Bolus.MinThickness;
+                                B.BolusClinicalMaxThickness = b.Bolus.MaxThickness;
+                            }
+                            else
+                                B.BolusClinicalIndication = (int)ParameterOptions.Unset;
 
+                            FieldType Technique;
+                            if (Enum.TryParse(b.Technique, out Technique))
+                            {
+                                B.Technique = (int)Technique;
+                            }
+                            else
+                                B.Technique = (int)FieldType.Unset;
+                            ParameterOptions VMAT_JawTracking;
+                            if (Enum.TryParse(b.VMAT_JawTracking, out VMAT_JawTracking))
+                            {
+                                B.VMAT_JawTracking = (int)VMAT_JawTracking;
+                            }
+                            else
+                                B.VMAT_JawTracking = (int)ParameterOptions.Unset;
+                        }
+                    }
                     // Add checklist 
                     if (_XMLProtocol.ComponentDefaults != null) // import default component checklist
                     {
@@ -2589,25 +2716,15 @@ namespace SquintScript
                             Checklist.PNVMin = _XMLProtocol.ComponentDefaults.Prescription.PNVMin;
                             Checklist.PrescribedPercentage = _XMLProtocol.ComponentDefaults.Prescription.PrescribedPercentage;
                         }
-                        if (_XMLProtocol.ComponentDefaults.Bolus != null)
-                        {
-                            ParameterOptions BolusIndication;
-                            if (Enum.TryParse(_XMLProtocol.ComponentDefaults.Bolus.Indication, out BolusIndication))
-                            {
-                                Checklist.BolusClinicalIndication = (int)BolusIndication;
-                            }
-                            else
-                                Checklist.BolusClinicalIndication = (int)ParameterOptions.Unset;
-                            Checklist.BolusClinicalHU = _XMLProtocol.ComponentDefaults.Bolus.HU;
-                            Checklist.BolusClinicalThickness = _XMLProtocol.ComponentDefaults.Bolus.Thickness;
-                        }
+
                         if (_XMLProtocol.ComponentDefaults.Artifacts != null)
                         {
-                            foreach (SquintProtocolXML.ArtifactDefintiion A in _XMLProtocol.ComponentDefaults.Artifacts.Artifact)
+                            foreach (SquintProtocolXML.ArtifactDefinition A in _XMLProtocol.ComponentDefaults.Artifacts.Artifact)
                             {
                                 DbArtifact DbA = LocalContext.DbArtifacts.Create();
                                 LocalContext.DbArtifacts.Add(DbA);
                                 DbA.HU = A.HU;
+                                DbA.ToleranceHU = A.ToleranceHU;
                                 DbA.DbComponentChecklist = Checklist;
                                 DbA.ECSID_ID = ProtocolStructureNameToID[A.ProtocolStructureName];
                             }
@@ -2749,6 +2866,7 @@ namespace SquintScript
                     DbConstraintChangelog DbCC = LocalContext.DbConstraintChangelogs.Create();
                     LocalContext.DbConstraintChangelogs.Add(DbCC);
                     DbCC.ChangeDescription = con.Description;
+                    DbCC.ConstraintString = con.GetConstraintString();
                     DbCC.ChangeAuthor = Ctr.SquintUser;
                     DbCC.Date = DateTime.Now.ToBinary();
                     DbCC.DbConstraint = dBconDVH;
@@ -2788,9 +2906,6 @@ namespace SquintScript
                             break;
                     }
 
-                    //string StructureLabel = _XMLProtocol.Structures.Structure.Where(x => x.EclipseID == con.PrimaryStructureName).Single().Label;
-                    //int DbStructureLabelID = LocalContext.DbStructureLabels.Where(x => x.StructureLabel == StructureLabel).SingleOrDefault().ID;
-                    //LocalContext.SaveChanges();
                     DbConstraint DbConCI = LocalContext.DbConstraints.Create();
                     DbConCI.DbComponent = CompName2DB[con.ComponentName];
                     DbConCI.ConstraintType = (int)ConstraintType;
@@ -2822,7 +2937,6 @@ namespace SquintScript
                             DbConThresholdDef = LocalContext.DbConThresholdDefs.Where(x => x.Threshold == (int)ConstraintThresholdNames.MajorViolation).Single()
                         };
                         LocalContext.DbConThresholds.Add(DbConThreshold);
-                        //LocalContext.SaveChanges();
                     }
                     if (con.MinorViolation != null)
                     {
@@ -2833,7 +2947,6 @@ namespace SquintScript
                             DbConThresholdDef = LocalContext.DbConThresholdDefs.Where(x => x.Threshold == (int)ConstraintThresholdNames.MinorViolation).Single()
                         };
                         LocalContext.DbConThresholds.Add(DbConThreshold);
-                        //LocalContext.SaveChanges();
                     }
                     if (con.Stop != null)
                     {
@@ -2844,8 +2957,16 @@ namespace SquintScript
                             DbConThresholdDef = LocalContext.DbConThresholdDefs.Where(x => x.Threshold == (int)ConstraintThresholdNames.Stop).Single()
                         };
                         LocalContext.DbConThresholds.Add(DbConThreshold);
-                        //LocalContext.SaveChanges();
                     }
+                    // Create initial log
+                    DbConstraintChangelog DbCC = LocalContext.DbConstraintChangelogs.Create();
+                    LocalContext.DbConstraintChangelogs.Add(DbCC);
+                    DbCC.ChangeDescription = con.Description;
+                    DbCC.ConstraintString = con.GetConstraintString();
+                    DbCC.ChangeAuthor = Ctr.SquintUser;
+                    DbCC.Date = DateTime.Now.ToBinary();
+                    DbCC.DbConstraint = DbConCI;
+                    DbCC.ParentLogID = 1; // the root dummy log
                 }
                 //Commit changes
                 try
@@ -2972,7 +3093,6 @@ namespace SquintScript
                     IdToPlanName.Add(ECP.ID, ECP.LinkedPlan.Id); // plan id to eclipse hash id
                     IdToCourseName.Add(ECP.ID, ECP.LinkedPlan.Course.Id);
                 }
-                //ClearLoadedCourses();
                 DataCache.RefreshPatient();
                 try
                 {

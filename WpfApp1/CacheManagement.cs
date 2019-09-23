@@ -48,6 +48,7 @@ namespace SquintScript
             public static Session CurrentSession { get; private set; }
             public static Protocol CurrentProtocol { get; private set; }
             public static AsyncPatient Patient { get; private set; }
+            private static Dictionary<int, Beam> _Beams = new Dictionary<int, Beam>(); // lookup Beam by its key
             private static Dictionary<int, Constraint> _Constraints = new Dictionary<int, Constraint>(); // lookup constraint by its key
             private static Dictionary<int, ECPlan> _Plans = new Dictionary<int, ECPlan>();
             private static Dictionary<int, Component> _Components = new Dictionary<int, Component>(); // lookup component by key
@@ -150,7 +151,20 @@ namespace SquintScript
             {
                 _Plans.Clear();
             }
-
+            public static List<Beam> GetBeams(int CompID)
+            {
+                return new List<Beam>(_Beams.Values.Where(x => x.ComponentID == CompID));
+            }
+            public static void AddBeam(Beam B)
+            {
+                _Beams.Add(B.ID, B);
+                B.BeamDeleted += OnBeamDeleted;
+            }
+            public static void OnBeamDeleted(object sender, int ID)
+            {
+                _Beams[ID].BeamDeleted -= OnBeamDeleted;
+                _Beams.Remove(ID);
+            }
             public static void AddConstraint(Constraint C)
             {
                 _Constraints.Add(C.ID, C);
@@ -176,6 +190,18 @@ namespace SquintScript
                         return C;
                     }
                 }
+            }
+            public static List<ConstraintChangelog> GetConstraintChangelogs(int ID)
+            {
+                var L = new List<ConstraintChangelog>();
+                using (var Context = new SquintdBModel())
+                {
+                    foreach (DbConstraintChangelog DbCL in Context.DbConstraints.Find(ID).DbConstraintChangelogs.OrderByDescending(x => x.Date))
+                    {
+                        L.Add(new ConstraintChangelog(DbCL));
+                    }
+                }
+                return L;
             }
             public static IEnumerable<Constraint> GetConstraintsInComponent(int CompID)
             {
@@ -576,6 +602,10 @@ namespace SquintScript
                                     SC.ImagingProtocolsAttached.Add((ImagingProtocols)I.ImagingProtocol);
                                 }
                             }
+                            foreach (DbBeam DbB in DbC.DbBeams)
+                            {
+                                AddBeam(new Beam(DbB));
+                            }
                             if (DbC.Checklists != null)
                             {
                                 var DbChecklist = DbC.Checklists.FirstOrDefault(x => x.ProtocolDefault == false);
@@ -632,8 +662,8 @@ namespace SquintScript
                     C.Delete();
                 foreach (Component Comp in _Components.Values.ToList())
                     Comp.Delete();
-                //foreach (Constituent Cons in _Constituents.Values.ToList())
-                //    Cons.Delete();
+                foreach (Beam B in _Beams.Values.ToList())
+                    B.Delete();
                 foreach (ECPlan P in _Plans.Values.ToList())
                     P.Delete();
                 CurrentProtocol = null;
@@ -704,7 +734,7 @@ namespace SquintScript
                                     AddConstraint(Con);
                                     if (DbCon.DbConThresholds != null) // ensure there is at least a major violation defined.
                                         if (DbCon.DbConThresholds.Count > 0)
-                                            foreach (DbConThreshold DbConThresh in DbCon.DbConThresholds)
+                                            foreach (DbSessionConThreshold DbConThresh in DbCon.DbConThresholds)
                                             {
                                                 ConstraintThreshold CT = LoadConstraintThreshold(DbConThresh, Con.ID);
                                             }
@@ -847,12 +877,8 @@ namespace SquintScript
                             DbCC.TreatmentTechniqueType = (int)C.TreatmentTechniqueType;
                             DbCC.MinFields = C.MinFields;
                             DbCC.MaxFields = C.MaxFields;
-                            DbCC.MinMU = C.MinMU;
-                            DbCC.MaxMU = C.MaxMU;
-                            DbCC.VMAT_MinColAngle = C.VMAT_MinColAngle;
                             DbCC.VMAT_MinFieldColSeparation = C.VMAT_MinFieldColSeparation;
                             DbCC.NumIso = C.NumIso;
-                            DbCC.VMAT_SameStartStop = C.VMAT_SameStartStop;
                             DbCC.MinXJaw = C.MinXJaw;
                             DbCC.MaxXJaw = C.MaxXJaw;
                             DbCC.MinYJaw = C.MinYJaw;
@@ -869,10 +895,6 @@ namespace SquintScript
                             DbCC.SupportIndication = (int)C.SupportIndication;
                             DbCC.CouchSurface = C.CouchSurface;
                             DbCC.CouchInterior = C.CouchInterior;
-                            //Bolus
-                            DbCC.BolusClinicalIndication = (int)C.BolusClinicalIndication;
-                            DbCC.BolusClinicalHU = C.BolusClinicalHU;
-                            DbCC.BolusClinicalThickness = C.BolusClinicalThickness;
                             //Artifact
                             foreach (Artifact A in C.Artifacts)
                             {
@@ -882,6 +904,43 @@ namespace SquintScript
                                 DbA.ECSID_ID = SessionECSID_Lookup[A.E.ID]; // will have been duplicated above;
                                 DbA.HU = A.CheckHU;
                                 DbA.DbComponentChecklist = DbCC;
+                            }
+                        }
+                        foreach (Beam B in SC.Beams())
+                        {
+                            var DbB = Context.DbBeams.Create();
+                            Context.DbBeams.Add(DbB);
+                            DbB.BolusClinicalHU = B.RefBolusHU;
+                            DbB.BolusClinicalIndication = (int)B.BolusParameter;
+                            DbB.BolusClinicalMaxThickness = B.BolusClinicalMaxThickness;
+                            DbB.BolusClinicalMinThickness = B.BolusClinicalMinThickness;
+                            DbB.ComponentID = DbC.ID;
+                            DbB.CouchRotation = B.CouchRotation;
+                            foreach (string Alias in B.EclipseAliases)
+                            {
+                                var DbBA = Context.DbBeamAliases.Create();
+                                Context.DbBeamAliases.Add(DbBA);
+                                DbBA.DbBeam = DbB;
+                                DbBA.EclipseFieldId = Alias;
+                            }
+                            foreach (BeamGeometry BG in B.ValidGeometries)
+                            {
+                                var DbBG = Context.DbBeamGeometries.Create();
+                                Context.DbBeamGeometries.Add(DbBG);
+                                DbBG.DbBeam = DbB;
+                                DbBG.GeometryName = BG.GeometryName;
+                                DbBG.MaxEndAngle = BG.MaxEndAngle;
+                                DbBG.MaxStartAngle = BG.MaxStartAngle;
+                                DbBG.MinEndAngle = BG.MinEndAngle;
+                                DbBG.MinStartAngle = BG.MinStartAngle;
+                            }
+                            if (DbB.DbEnergies == null && B.ValidEnergies.Count>0)
+                            {
+                                DbB.DbEnergies = new List<DbEnergy>();
+                            }
+                            foreach (var VE in B.ValidEnergies)
+                            {
+                                DbB.DbEnergies.Add(Context.DbEnergies.Find((int)VE));
                             }
                         }
                     }
@@ -921,6 +980,16 @@ namespace SquintScript
                                 DbCR.ResultValue = CRV.ResultValue;
                             }
                         }
+                    }
+                    foreach (ConstraintThreshold CT in _ConstraintThresholds.Values)
+                    {
+                        DbSessionConThreshold DbCT = Context.DbSessionConThresholds.Create();
+                        Context.DbSessionConThresholds.Add(DbCT);
+                        DbCT.ConstraintID = CT.ConstraintID;
+                        DbCT.DbConThresholdDef = Context.DbConThresholdDefs.Where(x => x.Threshold == (int)CT.ThresholdName).SingleOrDefault();
+                        DbCT.DbSession = DbS;
+                        DbCT.ThresholdValue = CT.ThresholdValue;
+                        DbCT.ParentConstraintThresholdID = CT.ID;
                     }
                     try
                     {
@@ -977,34 +1046,50 @@ namespace SquintScript
                             DbO = Context.DbConstraints.Create();
                             Context.DbConstraints.Add(DbO);
                             DbO.ID = Con.ID;
-                            // Update
-                            DbO.PrimaryStructureID = Con.PrimaryStructureID;
-                            DbO.ReferenceScale = (int)Con.ReferenceScale;
-                            DbO.ReferenceType = (int)Con.ReferenceType;
-                            DbO.ReferenceValue = Con.ReferenceValue;
-                            DbO.SecondaryStructureID = Con.SecondaryStructureID;
-                            DbO.ComponentID = Con.ComponentID;
-                            DbO.ConstraintScale = (int)Con.ConstraintScale;
-                            DbO.ConstraintType = (int)Con.ConstraintType;
-                            DbO.ConstraintValue = Con.ConstraintValue;
-                            DbO.DisplayOrder = Con.DisplayOrder;
-                            DbO.Fractions = Con.NumFractions;
                         }
                         else
                         {
                             DbO = Context.DbConstraints.Find(Con.ID);
-                            // Update
-                            DbO.PrimaryStructureID = Con.PrimaryStructureID;
-                            DbO.ReferenceScale = (int)Con.ReferenceScale;
-                            DbO.ReferenceType = (int)Con.ReferenceType;
-                            DbO.ReferenceValue = Con.ReferenceValue;
-                            DbO.SecondaryStructureID = Con.SecondaryStructureID;
-                            DbO.ComponentID = Con.ComponentID;
-                            DbO.ConstraintScale = (int)Con.ConstraintScale;
-                            DbO.ConstraintType = (int)Con.ConstraintType;
-                            DbO.ConstraintValue = Con.ConstraintValue;
-                            DbO.DisplayOrder = Con.DisplayOrder;
-                            DbO.Fractions = Con.NumFractions;
+                        }
+                        // Update
+                        DbO.PrimaryStructureID = Con.PrimaryStructureID;
+                        DbO.ReferenceScale = (int)Con.ReferenceScale;
+                        DbO.ReferenceType = (int)Con.ReferenceType;
+                        DbO.ReferenceValue = Con.ReferenceValue;
+                        DbO.SecondaryStructureID = Con.SecondaryStructureID;
+                        DbO.ComponentID = Con.ComponentID;
+                        DbO.ConstraintScale = (int)Con.ConstraintScale;
+                        DbO.ConstraintType = (int)Con.ConstraintType;
+                        DbO.ConstraintValue = Con.ConstraintValue;
+                        DbO.DisplayOrder = Con.DisplayOrder;
+                        DbO.Fractions = Con.NumFractions;
+                        // Update constraint log
+                        if (Con.isModified() || Con.isCreated)
+                        {
+                            int DbCC_ParentID = Context.DbConstraintChangelogs.Where(x => x.ConstraintID == Con.ID).Select(x => x.ID).OrderBy(x => x).First();
+                            DbConstraintChangelog DbCC = Context.DbConstraintChangelogs.Create();
+                            DbCC.ChangeDescription = GetConstraintView(Con.ID).ChangeDescription;
+                            DbCC.ChangeAuthor = SquintUser;
+                            DbCC.ConstraintID = Con.ID;
+                            DbCC.ConstraintString = Con.GetConstraintString();
+                            DbCC.ParentLogID = DbCC_ParentID;
+                            DbCC.Date = DateTime.Now.ToBinary();
+                            Context.DbConstraintChangelogs.Add(DbCC);
+                        }
+                        // Update constraint thresholds
+                        foreach (ConstraintThreshold CT in _ConstraintThresholds.Values.Where(x => x.ConstraintID == Con.ID))
+                        {
+                            DbConThreshold DbCT;
+                            if (CT.isCreated)
+                            {
+                                DbCT = Context.DbConThresholds.Create();
+                                Context.DbConThresholds.Add(DbCT);
+                                DbCT.ConstraintID = Con.ID;
+                                DbCT.DbConThresholdDef = Context.DbConThresholdDefs.Where(x => x.Threshold == (int)CT.ThresholdName).SingleOrDefault();
+                            }
+                            else
+                                DbCT = Context.DbConThresholds.Find(CT.ID); // at this point there is no mechanism for the user to create new thresholds for existing constraints
+                            DbCT.ThresholdValue = CT.ThresholdValue;
                         }
                     }
                     try

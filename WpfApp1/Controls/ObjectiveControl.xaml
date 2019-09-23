@@ -50,6 +50,29 @@
                 </Setter.Value>
             </Setter>
         </Style>
+        <ControlTemplate x:Key="ScrollViewerControlTemplate" TargetType="{x:Type ScrollViewer}">
+            <Grid x:Name="Grid" Background="{TemplateBinding Background}">
+                <!--<Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>-->
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                <!--<Rectangle x:Name="Corner" Grid.Column="1" Fill="{DynamicResource {x:Static SystemColors.ControlBrushKey}}" Grid.Row="1"/>-->
+                <ScrollContentPresenter x:Name="PART_ScrollContentPresenter" CanContentScroll="{TemplateBinding CanContentScroll}" CanHorizontallyScroll="False" CanVerticallyScroll="False" ContentTemplate="{TemplateBinding ContentTemplate}" Content="{TemplateBinding Content}" Grid.Column="0" Margin="{TemplateBinding Padding}" Grid.Row="0"/>
+                <!--<ScrollBar x:Name="PART_VerticalScrollBar" AutomationProperties.AutomationId="VerticalScrollBar" Cursor="Arrow" Grid.Column="1" Maximum="{TemplateBinding ScrollableHeight}" Minimum="0" Grid.Row="0" Visibility="{TemplateBinding ComputedVerticalScrollBarVisibility}" Value="{Binding VerticalOffset, Mode=OneWay, RelativeSource={RelativeSource TemplatedParent}}" ViewportSize="{TemplateBinding ViewportHeight}"/>-->
+                <ScrollBar x:Name="PART_HorizontalScrollBar" Style="{DynamicResource ScrollBarStyleHorizontal}" Margin="10,5,0,0"
+                           AutomationProperties.AutomationId="HorizontalScrollBar" Cursor="Arrow" Grid.Column="0" Maximum="{TemplateBinding ScrollableWidth}" Minimum="0" Orientation="Horizontal" Grid.Row="1" Visibility="{TemplateBinding ComputedHorizontalScrollBarVisibility}" Value="{Binding HorizontalOffset, Mode=OneWay, RelativeSource={RelativeSource TemplatedParent}}" ViewportSize="{TemplateBinding ViewportWidth}"/>
+            </Grid>
+        </ControlTemplate>
+        <LinearGradientBrush x:Key="WarningBackground" EndPoint="1,0" StartPoint="0,0">
+            <GradientStop Color="White" Offset="0"/>
+            <!--<GradientStop Color="#EDEDED" Offset="0.20"/>
+            <GradientStop Color="#EDEDED" Offset="0.80"/>-->
+            <GradientStop Color="OrangeRed" Offset="1.5"/>
+        </LinearGradientBrush>
     </UserControl.Resources>
     <UserControl.DataContext>
         <local:Control_ViewModel/>
@@ -58,10 +81,13 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
-        <Grid Grid.Row="0" Margin="10,10,10,10">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="40"/>
+        </Grid.ColumnDefinitions>
+        <Grid Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" Margin="10,10,10,10">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="2*"/>
                 <ColumnDefinition Width="5*"/>
@@ -109,127 +135,140 @@
                 <TextBlock Grid.Column="1" Grid.Row="5" Text="{Binding NTO.FallOff}" Foreground="Black" HorizontalAlignment="Left"/>
             </Grid>
         </Grid>
-        <StackPanel  Grid.Row="1" Orientation="Vertical">
+        <StackPanel Grid.Column="0" Grid.Row="1"  Grid.ColumnSpan="2" Orientation="Vertical">
             <TextBlock FontWeight="Bold" Text="Dose Volume Objectives:" FontSize="13" Margin="10,5,0,5"/>
-            <Border Grid.Row="1" Background="Black" CornerRadius="1,1,1,1" Height="2" Margin="10,3,10,5" HorizontalAlignment="Stretch"/>
+            <Border Background="Black" CornerRadius="1,1,1,1" Height="2" Margin="10,3,10,5" HorizontalAlignment="Stretch"/>
         </StackPanel>
-        <Grid Grid.Row="2" Grid.Column="1" Margin="15,10,3,0">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="110"/>
-                <ColumnDefinition Width="215"/>
-                <ColumnDefinition Width="110"/>
-                <ColumnDefinition Width="155"/>
-                <ColumnDefinition Width="200"/>
-            </Grid.ColumnDefinitions>
-            <TextBlock Grid.Column="0" Text="Structure Id" FontWeight="Bold" FontSize="13" HorizontalAlignment="Left"/>
-            <TextBlock Grid.Column="1" Text="Objective" FontWeight="Bold" FontSize="13" HorizontalAlignment="Left" Margin="0,0,0,0"/>
-            <TextBlock Grid.Column="2" Text="Priority" FontWeight="Bold" FontSize="13" HorizontalAlignment="Left" Margin="0,0,0,0"/>
-            <TextBlock Grid.Column="3" Text="Achieved" FontWeight="Bold" FontSize="13" HorizontalAlignment="Left" Margin="0,0,0,0"/>
-            <TextBlock Grid.Column="4" Text="Distance" FontWeight="Bold" FontSize="13" HorizontalAlignment="Left" Margin="0,0,0,0"/>
-        </Grid>
-        <Grid Grid.Row="3" Margin="10,15,10,15" Visibility="{Binding NoObjectives, Mode=OneWay, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource VisibilityConverter}}">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="*"/>
-            </Grid.ColumnDefinitions>
-            <Separator Grid.Column="0" HorizontalAlignment="Stretch" Margin="10,10,10,10"/>
-            <TextBlock Grid.Column="1" Text="No objectives" FontSize="14" FontStyle="Italic" HorizontalAlignment="Center" />
-            <Separator Grid.Column="2" HorizontalAlignment="Stretch" Margin="10,10,10,10" />
-        </Grid>
-        
-        <ListView Grid.Row="3" Margin ="10,5,0,0" ItemsSource="{Binding Objectives, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ObjectiveListViewStyle}" HorizontalContentAlignment="Stretch" BorderThickness="0" AlternationCount="2" Visibility="{Binding NoObjectives, Mode=OneWay, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource VisibilityInverseConverter}}">
-            <ListView.ItemContainerStyle>
-                <Style TargetType="ListViewItem">
-                    <Setter Property="Template">
-                        <Setter.Value>
-                            <!-- Trun off default selection-->
-                            <ControlTemplate TargetType="{x:Type ListViewItem}">
-                                <Grid>
-                                    <!--<Border x:Name="Bd" BorderBrush="LightSteelBlue" BorderThickness="1" Margin="2,2,2,2" CornerRadius="5,5,5,5" Background="Transparent" Padding="{TemplateBinding Padding}" SnapsToDevicePixels="true"/>-->
-                                    <Grid.Style>
-                                        <Style TargetType="Grid">
-                                            <Style.Triggers>
-                                                <DataTrigger Binding="{Binding RelativeSource={RelativeSource AncestorType={x:Type ListViewItem}}, Path=(ItemsControl.AlternationIndex), UpdateSourceTrigger=PropertyChanged, Converter={StaticResource TestConverter}}" Value="0">
-                                                    <Setter Property="Background" Value="AliceBlue"/>
-                                                </DataTrigger>
-                                                <DataTrigger Binding="{Binding RelativeSource={RelativeSource AncestorType={x:Type ListViewItem}}, Path=(ItemsControl.AlternationIndex), UpdateSourceTrigger=PropertyChanged, Converter={StaticResource TestConverter}}" Value="1">
-                                                    <Setter Property="Background" Value="Transparent"/>
-                                                </DataTrigger>
-                                            </Style.Triggers>
+        <ScrollViewer Name="sv" Grid.Column="0" Grid.Row="2" Margin="15,10,3,0" Template="{StaticResource ScrollViewerControlTemplate}" Background="Transparent" HorizontalScrollBarVisibility="Auto">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+                <Grid Grid.Row="0" >
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="100"/>
+                        <ColumnDefinition Width="180"/>
+                        <ColumnDefinition Width="100"/>
+                        <ColumnDefinition Width="150"/>
+                        <ColumnDefinition Width="150"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Grid.Column="0" Text="Structure Id" FontWeight="Bold" FontSize="13" HorizontalAlignment="Left"/>
+                    <TextBlock Grid.Column="1" Text="Objective" FontWeight="Bold" FontSize="13" HorizontalAlignment="Left" Margin="0,0,0,0"/>
+                    <TextBlock Grid.Column="2" Text="Priority" FontWeight="Bold" FontSize="13" HorizontalAlignment="Left" Margin="0,0,0,0"/>
+                    <TextBlock Grid.Column="3" Text="Achieved" FontWeight="Bold" FontSize="13" HorizontalAlignment="Left" Margin="0,0,0,0"/>
+                    <TextBlock Grid.Column="4" Text="Distance" FontWeight="Bold" FontSize="13" HorizontalAlignment="Left" Margin="0,0,0,0"/>
+                    <TextBlock Grid.Column="5" Text="Result" FontWeight="Bold" FontSize="13" HorizontalAlignment="Left" Margin="0,0,0,0"/>
+                </Grid>
+                <Grid Grid.Row="1" Margin="10,15,10,15" Visibility="{Binding NoObjectives, Mode=OneWay, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource VisibilityConverter}}">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Separator Grid.Column="0" HorizontalAlignment="Stretch" Margin="10,10,10,10"/>
+                    <TextBlock Grid.Column="1" Text="No objectives" FontSize="14" FontStyle="Italic" HorizontalAlignment="Center" />
+                    <Separator Grid.Column="2" HorizontalAlignment="Stretch" Margin="10,10,10,10" />
+                </Grid>
+                <ListView Grid.Row="2" Margin ="0,5,0,0" ScrollViewer.HorizontalScrollBarVisibility="Disabled" 
+                  ItemsSource="{Binding Objectives, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ObjectiveListViewStyle}" HorizontalContentAlignment="Stretch" BorderThickness="0" AlternationCount="2" Visibility="{Binding NoObjectives, Mode=OneWay, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource VisibilityInverseConverter}}">
+                    <ListView.ItemContainerStyle>
+                        <Style TargetType="ListViewItem">
+                            <Setter Property="Template">
+                                <Setter.Value>
+                                    <!-- Trun off default selection-->
+                                    <ControlTemplate TargetType="{x:Type ListViewItem}">
+                                        <Grid>
+                                            <!--<Border x:Name="Bd" BorderBrush="LightSteelBlue" BorderThickness="1" Margin="2,2,2,2" CornerRadius="5,5,5,5" Background="Transparent" Padding="{TemplateBinding Padding}" SnapsToDevicePixels="true"/>-->
+                                            <Grid.Style>
+                                                <Style TargetType="Grid">
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding RelativeSource={RelativeSource AncestorType={x:Type ListViewItem}}, Path=(ItemsControl.AlternationIndex), UpdateSourceTrigger=PropertyChanged, Converter={StaticResource TestConverter}}" Value="0">
+                                                            <Setter Property="Background" Value="AliceBlue"/>
+                                                        </DataTrigger>
+                                                        <DataTrigger Binding="{Binding RelativeSource={RelativeSource AncestorType={x:Type ListViewItem}}, Path=(ItemsControl.AlternationIndex), UpdateSourceTrigger=PropertyChanged, Converter={StaticResource TestConverter}}" Value="1">
+                                                            <Setter Property="Background" Value="Transparent"/>
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </Grid.Style>
+                                            <ContentPresenter Name="CP" Margin="0,8,0,8" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
+                                        </Grid>
+                                    </ControlTemplate>
+                                </Setter.Value>
+                            </Setter>
+                        </Style>
+                    </ListView.ItemContainerStyle>
+                    <ListView.ItemTemplate>
+                        <DataTemplate>
+                            <Grid HorizontalAlignment="Stretch">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="100"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="{Binding StructureId}" VerticalAlignment="Center"/>
+                                <ListView Grid.Column="1" ItemsSource="{Binding ObjectiveDefinitions}" ScrollViewer.HorizontalScrollBarVisibility="Disabled" 
+                                  BorderThickness="0" VerticalContentAlignment="Stretch" HorizontalContentAlignment="Stretch" Background="Transparent">
+                                    <ListView.ItemContainerStyle>
+                                        <Style TargetType="ListViewItem">
+                                            <Setter Property="Focusable" Value="False"/>
                                         </Style>
-                                    </Grid.Style>
-                                    <ContentPresenter Name="CP" Margin="8,8,8,8" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
-                                </Grid>
-                            </ControlTemplate>
-                        </Setter.Value>
-                    </Setter>
-                </Style>
-            </ListView.ItemContainerStyle>
-            <ListView.ItemTemplate>
-                <DataTemplate>
-                    <Grid HorizontalAlignment="Stretch">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="100"/>
-                            <ColumnDefinition Width="*"/>
-                        </Grid.ColumnDefinitions>
-                        <TextBlock Grid.Column="0" Text="{Binding StructureId}" VerticalAlignment="Center"/>
-                        <ListView Grid.Column="1" ItemsSource="{Binding ObjectiveDefinitions}" BorderThickness="0" VerticalContentAlignment="Stretch" HorizontalContentAlignment="Stretch" Background="Transparent">
-                            <ListView.ItemContainerStyle>
-                                <Style TargetType="ListViewItem">
-                                    <Setter Property="Focusable" Value="False"/>
-                                </Style>
-                            </ListView.ItemContainerStyle>
-                            <ListView.ItemTemplate>
-                                <DataTemplate>
-                                    <Grid Margin="0,5,0,0">
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="180"/>
-                                            <ColumnDefinition Width="150"/>
-                                            <ColumnDefinition Width="150"/>
-                                            <ColumnDefinition Width="Auto"/>
-                                            <ColumnDefinition Width="*"/>
-                                        </Grid.ColumnDefinitions>
-                                        <StackPanel Grid.Column="0" Orientation="Horizontal">
-                                            <Image RenderOptions.BitmapScalingMode="HighQuality" Height="18" Width="20">
-                                                <Image.Style>
-                                                    <Style TargetType="Image">
-                                                        <Setter Property="Source" Value="/Resources/upper_constraint.png"/>
-                                                        <Style.Triggers>
-                                                            <DataTrigger Binding="{Binding Type, Mode=OneWay, Converter={StaticResource TypeToBooleanConverter}}" Value="True">
-                                                                <Setter Property="Source" Value="/Resources/lower_constraint.png"/>
-                                                            </DataTrigger>
-                                                        </Style.Triggers>
-                                                    </Style>
-                                                </Image.Style>
-                                            </Image>
-                                            <TextBlock Text="{Binding Definition, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}"  VerticalAlignment="Center" Margin="5,0,0,0" IsHitTestVisible="False"/>
-                                        </StackPanel>
-                                        <Border Grid.Column="1" Width="{Binding PriorityWidth, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}"  IsHitTestVisible="False" HorizontalAlignment="Left" Background="LightSalmon" Margin ="40,0,0,0" CornerRadius="3,3,3,3">
-                                            <TextBlock Text="{Binding Priority, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" Foreground="White" TextAlignment="Center"/>
-                                        </Border>
-                                        <StackPanel Grid.Column="2" Orientation="Horizontal" IsHitTestVisible="False">
-                                            <TextBlock  Text="{Binding ResultString, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" HorizontalAlignment="Left" />
-                                        </StackPanel>
-                                        <StackPanel Grid.Column="3" Orientation="Horizontal" IsHitTestVisible="False">
-                                            <TextBlock Text="{Binding DoseDifferenceString, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" Margin="5,0,0,0"/>
-                                            <TextBlock Text="{Binding VolDifferenceString, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,5,0"/>
-                                        </StackPanel>
-                                        <StackPanel Orientation="Horizontal" Grid.Column="4" HorizontalAlignment="Right">
-                                            <TextBlock Text="{Binding WarningText, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" HorizontalAlignment="Center" Padding="0,0,10,0" VerticalAlignment="Center" Foreground="Tomato" />
-                                            <local:CircleCheck  Pass="{Binding isInactive, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" CheckHeight="20" CheckWidth="20"/>
-                                        </StackPanel>
-                                        <!--<Grid Grid.Column="4" Visibility="{Binding isInactive, Converter={StaticResource VisibilityConverter}, UpdateSourceTrigger=PropertyChanged}" IsHitTestVisible="True" HorizontalAlignment="Right" Margin="0,-2,0,0">
-                                            <Polygon Points="0,17 8,0 17,17" Fill="Transparent"  Grid.Column="1" Width="17" Height="17" Stroke="DarkOrange" StrokeThickness="2" ToolTip="Potential room for improvement" Margin="0,-2,0,0"/>
-                                            
-                                        </Grid>-->
-                                    </Grid>
-                                </DataTemplate>
-                            </ListView.ItemTemplate>
-                        </ListView>
-                    </Grid>
-                </DataTemplate>
-            </ListView.ItemTemplate>
-        </ListView>
+                                    </ListView.ItemContainerStyle>
+                                    <ListView.ItemTemplate>
+                                        <DataTemplate>
+                                            <Grid Margin="0,5,0,0">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="180"/>
+                                                    <ColumnDefinition Width="100"/>
+                                                    <ColumnDefinition Width="150"/>
+                                                    <ColumnDefinition Width="150"/>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                </Grid.ColumnDefinitions>
+                                                <StackPanel Grid.Column="0" Orientation="Horizontal">
+                                                    <Image RenderOptions.BitmapScalingMode="HighQuality" Height="18" Width="20">
+                                                        <Image.Style>
+                                                            <Style TargetType="Image">
+                                                                <Setter Property="Source" Value="/Resources/upper_constraint.png"/>
+                                                                <Style.Triggers>
+                                                                    <DataTrigger Binding="{Binding Type, Mode=OneWay, Converter={StaticResource TypeToBooleanConverter}}" Value="True">
+                                                                        <Setter Property="Source" Value="/Resources/lower_constraint.png"/>
+                                                                    </DataTrigger>
+                                                                </Style.Triggers>
+                                                            </Style>
+                                                        </Image.Style>
+                                                    </Image>
+                                                    <TextBlock Text="{Binding Definition, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}"  VerticalAlignment="Center" Margin="5,0,0,0" IsHitTestVisible="False"/>
+                                                </StackPanel>
+                                                <Border Grid.Column="1" Width="{Binding PriorityWidth, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}"  IsHitTestVisible="False" HorizontalAlignment="Left" Background="LightSalmon" Margin ="0,0,0,0" CornerRadius="3,3,3,3">
+                                                    <TextBlock Text="{Binding Priority, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" Foreground="White" TextAlignment="Center"/>
+                                                </Border>
+                                                <StackPanel Grid.Column="2" Orientation="Horizontal" IsHitTestVisible="False">
+                                                    <TextBlock  Text="{Binding ResultString, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" HorizontalAlignment="Left" />
+                                                </StackPanel>
+                                                <StackPanel Grid.Column="3" Orientation="Horizontal" IsHitTestVisible="False">
+                                                    <TextBlock Text="{Binding DoseDifferenceString, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,0"/>
+                                                    <TextBlock Text="{Binding VolDifferenceString, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,5,0"/>
+                                                </StackPanel>
+                                                <StackPanel Orientation="Horizontal" Grid.Column="4" HorizontalAlignment="Left">
+                                                    <local:CircleCheck  Pass="{Binding isInactive, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" CheckHeight="20" CheckWidth="20" HorizontalAlignment="Left"/>
+                                                    <TextBlock Text="{Binding WarningText, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" HorizontalAlignment="Left" Padding="10,0,10,0" VerticalAlignment="Center" Foreground="Tomato" />
+                                                </StackPanel>
+                                            </Grid>
+                                        </DataTemplate>
+                                    </ListView.ItemTemplate>
+                                </ListView>
+                            </Grid>
+                        </DataTemplate>
+                    </ListView.ItemTemplate>
+                </ListView>
+            </Grid>
+        </ScrollViewer>
+        <Rectangle Grid.Column="1" Grid.Row="2" Grid.RowSpan="2" Opacity="0.5" Fill="{DynamicResource WarningBackground}" Width="Auto" Visibility="{Binding ComputedHorizontalScrollBarVisibility, ElementName=sv}" Margin="0,30,5,20">
+            <Rectangle.Effect>
+                <BlurEffect Radius="5"/>
+            </Rectangle.Effect>
+        </Rectangle>
     </Grid>
 </UserControl>

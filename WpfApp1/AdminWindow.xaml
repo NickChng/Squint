@@ -1760,7 +1760,7 @@
                                                     <StackPanel Grid.Column="2" Orientation="Horizontal">
                                                         <TextBlock VerticalAlignment="Center" Text="{Binding ShortConstraintDefinition, UpdateSourceTrigger=PropertyChanged, Mode=OneWay}" Margin="5,0,10,0"></TextBlock>
                                                         <TextBlock VerticalAlignment="Center" Text="{Binding IsAddedStatus, UpdateSourceTrigger=PropertyChanged, Mode=OneWay}" Foreground="ForestGreen" FontStyle="Italic" Margin="5,0,10,0"></TextBlock>
-                                                        <TextBlock VerticalAlignment="Center" Text="{Binding IsModified, UpdateSourceTrigger=PropertyChanged, Mode=OneWay}" Foreground="DarkOrange" FontStyle="Italic" Margin="5,0,10,0"></TextBlock>
+                                                        <TextBlock VerticalAlignment="Center" Text="{Binding ChangeStatusString, UpdateSourceTrigger=PropertyChanged, Mode=OneWay}" Foreground="DarkOrange" FontStyle="Italic" Margin="5,0,10,0"></TextBlock>
                                                     </StackPanel>
                                                     <ComboBox  Grid.Column="3" HorizontalAlignment="Right" MinWidth="50" Margin="0,0,0,0" VerticalAlignment="Center" ItemsSource="{Binding Components}" SelectedItem="{Binding Component}" Style="{StaticResource ConstraintComboBoxStyle}">
                                                         <ComboBox.ItemTemplate>
@@ -1819,7 +1819,11 @@
                                                             </Style.Triggers>
                                                         </Style>
                                                     </Grid.Style>
-                                                    <GroupBox Header="Edit Constraint" Background="Transparent" Margin="0,10,0,0">
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="Auto"/>
+                                                        <ColumnDefinition Width="*"/>
+                                                    </Grid.ColumnDefinitions>
+                                                    <GroupBox Grid.Column="0" Header="Edit Constraint" Background="Transparent" Margin="0,10,0,0">
                                                         <Grid>
                                                             <Grid.RowDefinitions>
                                                                 <RowDefinition Height="Auto"/>
@@ -1884,6 +1888,9 @@
                                                                 </Border>
                                                             </StackPanel>
                                                         </Grid>
+                                                    </GroupBox>
+                                                    <GroupBox Grid.Column="1" Header="Change Description (Mandatory)" Background="Transparent" Margin="5,10,5,0">
+                                                        <TextBox Background="AliceBlue" BorderThickness="0" Margin="3,3,3,3" Text="{Binding ChangeDescription, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
                                                     </GroupBox>
                                                 </Grid>
                                             </Grid>

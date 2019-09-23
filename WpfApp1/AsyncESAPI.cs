@@ -868,11 +868,11 @@ namespace SquintScript
                 if (S != null & B != null)
                 {
                     int Rate = 1;
-                    if (B.Volume > 100000)
+                    if (B.Volume > 50000)
                     {
                         Rate = 50;
                     }
-                    else if (B.Volume > 50000)
+                    else if (B.Volume > 10000)
                         Rate = 10;
                     var thickness = SquintStructure.SquintStructureHelper.GetThickness(S.MeshGeometry, B.MeshGeometry, Rate);
                     return thickness;

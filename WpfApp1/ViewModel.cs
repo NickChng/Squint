@@ -222,7 +222,31 @@ namespace SquintScript
         public bool RefreshFlag { get; set; } // this is the ID of the assessment to update
         public bool RefreshRowHeader { get; set; }
         public bool ConstraintInfoVisibility { get; set; } = false;
-        public ObservableCollection<Ctr.ConstraintChangelog> ConstraintChangelogs { get; set; } = new ObservableCollection<Ctr.ConstraintChangelog>() { new Ctr.ConstraintChangelog(null), new Ctr.ConstraintChangelog(null) };
+        public string ChangeDescription
+        {
+            get
+            {
+                return CV.ChangeDescription;
+            }
+            set
+            {
+                CV.ChangeDescription = value;
+            }
+        } // only used for entry when users changes constraint within the AdminWindow.
+        public ObservableCollection<Ctr.ConstraintChangelog> ConstraintChangelogs
+        {
+            get
+            {
+                if (CV == null)
+                {
+                    return new ObservableCollection<Ctr.ConstraintChangelog>() { new Ctr.ConstraintChangelog(), new Ctr.ConstraintChangelog() };
+                }
+                else
+                {
+                    return new ObservableCollection<Ctr.ConstraintChangelog>(CV.GetChangeLogs());
+                }
+            }
+        }
         private Ctr.ConstraintView CV;
         private StructureSelector _SS;
         public StructureSelector SS
@@ -417,14 +441,21 @@ namespace SquintScript
                     return "";
             }
         }
-        public string IsModified
+        public string ChangeStatusString
         {
             get
             {
                 if (CV.isModified() && !CV.isCreated)
-                    return "Modified";
+                    return ChangeStatus.Modified.Display();
                 else
                     return "";
+            }
+        }
+        public bool isModified
+        {
+            get
+            {
+                return (CV.isModified());
             }
         }
         public ReferenceTypes ReferenceType
@@ -549,7 +580,7 @@ namespace SquintScript
                     break;
                 case "ConstraintDefinition":
                     RefreshRowHeader = !RefreshRowHeader;
-                    RaisePropertyChangedEvent("IsModified");
+                    RaisePropertyChangedEvent("ChangeStatusString");
                     //                    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("RefreshRowHeader"));
                     //                  PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("ShortConstraintDefinition"));
                     RaisePropertyChangedEvent("RefreshRowHeader");
@@ -563,6 +594,7 @@ namespace SquintScript
                     RaisePropertyChangedEvent("ConstraintValue");
                     break;
                 case "Threshold":
+                    RaisePropertyChangedEvent("ChangeStatusString");
                     RaisePropertyChangedEvent("StopValue");
                     RaisePropertyChangedEvent("MinorViolation");
                     RaisePropertyChangedEvent("MajorViolation");
@@ -696,9 +728,8 @@ namespace SquintScript
             get { return _SelectedCourse; }
             set
             {
-
                 RaisePropertyChangedEvent("EnableCourseSelection");
-                if (_SelectedCourse != value) // refresh available plans
+                if (_SelectedCourse != value && value != null) // refresh available plans
                 {
                     _SelectedCourse = value;
                     EnableCourseSelection = false;
@@ -952,17 +983,17 @@ namespace SquintScript
         }
         private void UpdateConstraintOrder(object sender, EventArgs e)
         {
-            ObservableCollection<ConstraintSelector> CSReorder = new ObservableCollection<ConstraintSelector>();
-            foreach (ConstraintSelector CS in Constraints.OrderBy(x => x.DisplayOrder))
-                CSReorder.Add(CS);
-            for (int c = 0; c < CSReorder.Count; c++) // only re-bind collection if necessary
-            {
-                if (CSReorder[c] != Constraints[c])
-                {
-                    Constraints = CSReorder;
-                    break;
-                }
-            }
+            //ObservableCollection<ConstraintSelector> CSReorder = new ObservableCollection<ConstraintSelector>();
+            //foreach (ConstraintSelector CS in Constraints.OrderBy(x => x.DisplayOrder))
+            //    CSReorder.Add(CS);
+            //for (int c = 0; c < CSReorder.Count; c++) // only re-bind collection if necessary
+            //{
+            //    if (CSReorder[c] != Constraints[c])
+            //    {
+            //        Constraints = CSReorder;
+            //        break;
+            //    }
+            //}
         }
         private void OnConstraintAdded(object sender, int Id)
         {
@@ -1562,8 +1593,8 @@ namespace SquintScript
                 var CouchInteriorWarning = false;
                 var CouchSurfaceWarningMessage = "";
                 var CouchInteriorWarningMessage = "";
-                var CheckCouchSurfaceString = CheckCouchSurface.ToString();
-                var CheckCouchInteriorString = CheckCouchInterior.ToString();
+                var CheckCouchSurfaceString = string.Format("{0:0.#}", CheckCouchSurface);
+                var CheckCouchInteriorString = string.Format("{0:0.#}", CheckCouchInterior);
                 var RefCouchSurfaceString = RefCouchSurface.ToString();
                 var RefCouchInteriorString = RefCouchInterior.ToString();
                 bool CouchFound = true;
@@ -1630,13 +1661,13 @@ namespace SquintScript
                 {
                     var ArtifactWarning = false;
                     var ArtifactWarningString = "";
-                    var RefHUString = string.Format("{0:0.#} HU", A.RefHU);
+                    var RefHUString = string.Format("{0:0.#} \u00B1{1:0.#} HU", A.RefHU, A.ToleranceHU);
                     var CheckHUString = string.Format("{0:0.#} HU", A.CheckHU);
                     if (Double.IsNaN(A.CheckHU))
                         CheckHUString = "No artifact structure";
                     else
                     {
-                        if (Math.Abs(A.RefHU - A.CheckHU) > 0.1)
+                        if (Math.Abs(A.RefHU - A.CheckHU) > A.ToleranceHU)
                         {
                             ArtifactWarning = true;
                             ArtifactWarningString = "Assigned HU deviates from protocol";
@@ -1676,7 +1707,7 @@ namespace SquintScript
                 if (CheckRxDose != null)
                 {
                     CheckRxDoseString = string.Format("{0:0.##}", CheckRxDose);
-                    if (Math.Abs((double)CheckRxDose - CV.ReferenceDose) > 1E-5)
+                    if (Math.Abs((double)CheckRxDose - CV.ReferenceDose) > 1E-2)
                     {
                         RxDoseWarning = true;
                         RxDoseWarningString = "Plan dose different from protocol";
@@ -1713,15 +1744,48 @@ namespace SquintScript
                 Prescription_ViewModel.Tests = new ObservableCollection<Controls.TestListItem>() { RxCheck, FxCheck, CourseIntentTest, PNVCheck, PlanRxPc };
                 // Beam checks
                 Beam_ViewModel.Beams.Clear();
+                Beam_ViewModel.GroupTests.Tests.Clear();
                 var Fields = await Ctr.GetTxFieldItems(p.CourseId, p.PlanId);
-                foreach (var Field in Fields)
+                foreach (var Beam in CV.GetBeams())
                 {
-                    var BLI = new Controls.BeamListItem(Field);
-                    BLI.AddBolusHUCheck(CV.Checklist.BolusClinicalHU);
-                    await BLI.AddBolusThickCheck(CV.Checklist.BolusClinicalThickness);
+                    var BLI = new Controls.BeamListItem(Beam, Fields);
                     Beam_ViewModel.Beams.Add(BLI);
+                    BLI.FieldChanged += new EventHandler((s, e) => BLI_PropertyChanged(s, e, CV)); // this updates the MinColOffsetCheck if the field assignments on any reference beam are changed
                 }
-
+                // Iso Check
+                var IsoCentreWarning = Fields.Select(x => x.Isocentre).Distinct().Count() != CV.NumIsocentres;
+                var NumIsoDetected = Fields.Select(x => x.Isocentre).Distinct().Count();
+                Controls.TestListItem NumIsoCheck = new Controls.TestListItem("Number of isocentres", string.Format("{0:0}", NumIsoDetected), string.Format("{0:0}", CV.NumIsocentres), IsoCentreWarning, "Additional isocentres");
+                Beam_ViewModel.GroupTests.Tests.Add(NumIsoCheck);
+                // Num Fields Check
+                var NumFieldsWarning = Fields.Count() > CV.MaxBeams || Fields.Count() < CV.MinBeams;
+                string NumFieldsWarningString = "";
+                if (NumFieldsWarning)
+                    NumFieldsWarningString = "Out of range";
+                if (CV.MinBeams > -1)
+                {
+                    Controls.TestListItem FieldCountCheck = new Controls.TestListItem("Number of fields", string.Format("{0:0}", Fields.Count()), string.Format("{0:0} - {1:0}", CV.MinBeams, CV.MaxBeams),
+                    IsoCentreWarning, NumFieldsWarningString);
+                    Beam_ViewModel.GroupTests.Tests.Add(FieldCountCheck);
+                }
+                // Min Col Offset
+                Controls.TestListItem MinColOffsetCheck;
+                if (CV.MaxBeams > 1 && !double.IsNaN(CV.MinColOffset) && Fields.Count>1)
+                {
+                    if (Beam_ViewModel.Beams.Any(x => x.Field == null))
+                    {
+                        MinColOffsetCheck = new Controls.TestListItem("Min collimator offset", "", string.Format("{0:0.#}", CV.MinColOffset), true, "Protocol fields not assigned");
+                    }
+                    else
+                    {
+                        var ColOffset = Beam_ViewModel.Beams.Select(x => x.Field).Select(x => x.CollimatorAngle);
+                        var MinColOffset = findMinDiff(ColOffset.ToArray());
+                        var MinColOFfsetWarning = MinColOffset < CV.MinColOffset;
+                        MinColOffsetCheck = new Controls.TestListItem("Min collimator offset", string.Format("{0:0.#}", MinColOffset), string.Format("{0:0.#}", CV.MinColOffset),
+                            MinColOFfsetWarning, "");
+                    }
+                    Beam_ViewModel.GroupTests.Tests.Add(MinColOffsetCheck);
+                }
                 // Target Structure Checks
                 Targets_ViewModel.Tests.Clear();
                 foreach (Ctr.StructureView SV in Ctr.GetStructureViewList())
@@ -1739,7 +1803,6 @@ namespace SquintScript
                             string RefValString = string.Format("{0:0.##} cc", C.PointContourVolumeThreshold);
                             string CheckValString = "";
                             string WarningString = "";
-
                             var NumDetectedParts = await SV.EclipseStructure.NumParts();
                             var VMS_NumParts = await SV.EclipseStructure.VMS_NumParts();
 
@@ -1771,6 +1834,57 @@ namespace SquintScript
 
                 isPlanCheckCalculating = false;
             }
+        }
+
+        private void BLI_PropertyChanged(object sender, EventArgs e, Ctr.ComponentView CV)
+        {
+            //Refresh Field col separation check
+
+            if (Beam_ViewModel.Beams.Any(x => x.Field == null) || CV.MaxBeams < 2 || double.IsNaN(CV.MinColOffset))
+            {
+                return;
+            }
+            var ColOffset = Beam_ViewModel.Beams.Select(x => x.Field).Select(x => x.CollimatorAngle).ToList();
+            var MinColOffset = findMinDiff(ColOffset.ToArray());
+            var OldTest = Beam_ViewModel.GroupTests.Tests.Where(x => x.TestName == "Min collimator offset").FirstOrDefault();
+            Beam_ViewModel.GroupTests.Tests.Remove(OldTest);
+            var MinColOFfsetWarning = MinColOffset < CV.MinColOffset;
+            Controls.TestListItem MinColOffsetCheck = new Controls.TestListItem("Min collimator offset", string.Format("{0:0.#}", MinColOffset), string.Format("{0:0.#}", CV.MinColOffset),
+                MinColOFfsetWarning, "");
+            Beam_ViewModel.GroupTests.Tests.Add(MinColOffsetCheck);
+
+        }
+
+        private double findMinDiff(double[] arr)
+        {
+            // Sort array in  
+            // non-decreasing order 
+            Array.Sort(arr);
+            var n = arr.Length;
+            // Initialize difference 
+            // as infinite 
+            double diff = double.MaxValue;
+
+            // Find the min diff by  
+            // comparing adjacent pairs 
+            // in sorted array 
+            for (int i = 0; i < n - 1; i++)
+                if (arr[i + 1] - arr[i] > 180)
+                {
+                    var val = ((360 - arr[i + 1]) + arr[i]);
+                    if (val > 90)
+                        val = 180 - val;
+                    if (val < diff)
+                    {
+                            diff = val;
+                    }
+                }
+                else
+                    if (arr[i + 1] - arr[i] < diff)
+                    diff = arr[i + 1] - arr[i];
+
+            // Return min diff 
+            return diff;
         }
         private async void DeleteSelectedSession(object param = null)
         {
@@ -1940,6 +2054,23 @@ namespace SquintScript
         }
         private async void UpdateProtocol(object param = null)
         {
+            LoadingString = "Validating changes...";
+            bool areChangeDescriptionsComplete = true;
+            List<string> IncompleteChangeDefinitions = new List<string>() { "Please enter Change Descriptions for the following modified constraints:" };
+            foreach (ConstraintSelector CS in Protocol.Constraints.Where(x => x.isModified == true))
+            {
+                if (CS.ChangeDescription == "")
+                {
+                    areChangeDescriptionsComplete = false;
+                    IncompleteChangeDefinitions.Add(CS.ShortConstraintDefinition);
+                }
+            }
+            if (!areChangeDescriptionsComplete)
+            {
+                MessageBox.Show(string.Join(Environment.NewLine, IncompleteChangeDefinitions));
+                return;
+            }
+
             LoadingString = "Updating Protocol...";
             isLoading = true;
             await Task.Run(() => Ctr.Save_UpdateProtocol());
@@ -1981,9 +2112,9 @@ namespace SquintScript
                     var Result = MessageBox.Show("Close current patient and all assessments?", "Close Patient?", MessageBoxButton.OKCancel);
                     if (Result == MessageBoxResult.Cancel)
                         return;
+                    CloseCheckList();
                     Ctr.ClosePatient();
                     AssessmentPresenter = new AssessmentsView();
-
                     Protocol.Unsubscribe();
                     Ctr.CloseProtocol();
                     Protocol = new ProtocolView();
@@ -2025,7 +2156,7 @@ namespace SquintScript
             {
                 foreach (AssessmentComponentView ACV in AV.ACVs)
                 {
-                    ACV.DisableAutomaticAssociation = true; // this kludge stops the setting of the SelectedPlan field from recalculating dose, which is otherwise baked into the setter.  
+                    //ACV.DisableAutomaticAssociation = true; // this kludge stops the setting of the SelectedPlan field from recalculating dose, which is otherwise baked into the setter.  
                     ObservableCollection<CourseSelector> UpdatedCourses = new ObservableCollection<CourseSelector>();
                     foreach (string CourseName in Ctr.GetCourseNames())
                     {
@@ -2042,7 +2173,7 @@ namespace SquintScript
                         ACV.SelectedCourse = UpdatedCourses.FirstOrDefault(x => PrevSelectedCourseId == x.CourseId);
                     if (PrevSelectedPlanId != null)
                         ACV.SelectedPlan = ACV.Plans.FirstOrDefault(x => PrevSelectedPlanId == x.PlanId);
-                    ACV.DisableAutomaticAssociation = false;
+                    //ACV.DisableAutomaticAssociation = false;
                 }
             }
             W.Close();

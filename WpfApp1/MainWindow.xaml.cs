@@ -16,6 +16,7 @@ using System.ComponentModel;
 using System.Collections.ObjectModel;
 using VMS.TPS.Common.Model;
 using VMS.TPS.Common.Model.API;
+using System.IO;
 using System.Windows.Controls.Primitives;
 using ESAPI = VMS.TPS.Common.Model.API.Application;
 
@@ -33,8 +34,18 @@ namespace SquintScript
         {
             try
             {
-                Ctr.Initialize("nchng", "iXaidis3cure");
-                //Ctr.Initialize(null, null);
+                string[] Creds = new string[2];
+                if (File.Exists(@"C:\LocalSwap\EclipseAPI\LocalCred.Txt"))
+                {
+                    using (StreamReader CredFile = new StreamReader(@"C:\LocalSwap\EclipseAPI\LocalCred.Txt"))
+                    {
+                        Creds[0] = CredFile.ReadLine();
+                        Creds[1] = CredFile.ReadLine();
+                    }
+                    Ctr.Initialize(Creds[0], Creds[1]);
+                }
+                else
+                    Ctr.Initialize(null, null);
                 InitializeComponent();
             }
             catch (Exception ex)

@@ -126,6 +126,60 @@ namespace SquintScript
                     };
                     context.DbUsers.Add(U);
                 }
+                foreach (Energies item in Enum.GetValues(typeof(Energies)))
+                {
+                    DbEnergy DbEnergy;
+                    switch (item)
+                    {
+                        case Energies.Unset:
+                            DbEnergy = new DbEnergy()
+                            {
+                                ID = (int)Energies.Unset,
+                                Energy = Energies.Unset.Display(),
+                                EnergyString = @"Unset"
+
+                            };
+                            context.DbEnergies.Add(DbEnergy);
+                            break;
+                        case Energies.Photons6:
+                            DbEnergy = new DbEnergy()
+                            {
+                                ID = (int)Energies.Photons6,
+                                Energy = Energies.Photons6.Display(),
+                                EnergyString = @"6X"
+
+                            };
+                            context.DbEnergies.Add(DbEnergy);
+                            break;
+                        case Energies.Photons10:
+                            DbEnergy = new DbEnergy()
+                            {
+                                ID = (int)Energies.Photons10,
+                                Energy = Energies.Photons10.Display(),
+                                EnergyString = @"10X"
+                            };
+                            context.DbEnergies.Add(DbEnergy);
+                            break;
+                        case Energies.Photons10FFF:
+                            DbEnergy = new DbEnergy()
+                            {
+                                ID = (int)Energies.Photons10FFF,
+                                Energy = Energies.Photons10FFF.Display(),
+                                EnergyString = @"10XFFF"
+                            };
+                            context.DbEnergies.Add(DbEnergy);
+                            break;
+                        case Energies.Photons15:
+                            DbEnergy = new DbEnergy()
+                            {
+                                ID = (int)Energies.Photons15,
+                                Energy = Energies.Photons15.Display(),
+                                EnergyString = @"15X"
+                            };
+                            context.DbEnergies.Add(DbEnergy);
+                            break;
+                    }
+                }
                 foreach (ConstraintThresholdNames item in Enum.GetValues(typeof(ConstraintThresholdNames)))
                 {
                     DbConThresholdDef DbCTdef;
@@ -135,6 +189,7 @@ namespace SquintScript
                             {
                                 DbCTdef = new DbConThresholdDef()
                                 {
+                                    ID = (int)ConstraintThresholdNames.MajorViolation,
                                     Threshold = (int)ConstraintThresholdNames.MajorViolation,
                                     ThresholdType = (int)ConstraintThresholdTypes.Violation,
                                     ThresholdName = ConstraintThresholdNames.MajorViolation.Display()
@@ -146,6 +201,7 @@ namespace SquintScript
                             {
                                 DbCTdef = new DbConThresholdDef()
                                 {
+                                    ID = (int)ConstraintThresholdNames.MinorViolation,
                                     Threshold = (int)ConstraintThresholdNames.MinorViolation,
                                     ThresholdType = (int)ConstraintThresholdTypes.Violation,
                                     ThresholdName = ConstraintThresholdNames.MinorViolation.Display()
@@ -157,6 +213,7 @@ namespace SquintScript
                             {
                                 DbCTdef = new DbConThresholdDef()
                                 {
+                                    ID = (int)ConstraintThresholdNames.Unset,
                                     Threshold = (int)ConstraintThresholdNames.Unset,
                                     ThresholdType = (int)ConstraintThresholdTypes.Unset,
                                     ThresholdName = ConstraintThresholdNames.Unset.Display()
@@ -168,6 +225,7 @@ namespace SquintScript
                             {
                                 DbCTdef = new DbConThresholdDef()
                                 {
+                                    ID = (int)ConstraintThresholdNames.None,
                                     Threshold = (int)ConstraintThresholdNames.None,
                                     ThresholdType = (int)ConstraintThresholdTypes.Unset,
                                     ThresholdName = ConstraintThresholdNames.None.Display()
@@ -179,6 +237,7 @@ namespace SquintScript
                             {
                                 DbCTdef = new DbConThresholdDef()
                                 {
+                                    ID = (int)ConstraintThresholdNames.Stop,
                                     Threshold = (int)ConstraintThresholdNames.Stop,
                                     ThresholdType = (int)ConstraintThresholdTypes.Goal,
                                     ThresholdName = ConstraintThresholdNames.Stop.Display()
@@ -360,6 +419,8 @@ namespace SquintScript
                 base.Seed(context);
             }
         }
+        // Types
+        public DbSet<DbEnergy> DbEnergies { get; set; }
         // Structures
         public DbSet<DbStructureLabelGroup> DbStructureLabelGroups { get; set; }
         public DbSet<DbStructureLabelException> DbStructureLabelExceptions { get; set; }
@@ -385,8 +446,13 @@ namespace SquintScript
         public DbSet<DbSessionConstraint> DbSessionConstraints { get; set; }
         public DbSet<DbSessionComponent> DbSessionComponents { get; set; }
         public DbSet<DbSessionECSID> DbSessionECSIDs { get; set; }
+        public DbSet<DbSessionConThreshold> DbSessionConThresholds { get; set; }
         //Component
         public DbSet<DbComponent> DbComponents { get; set; }
+        //Beams
+        public DbSet<DbBeamGeometry> DbBeamGeometries { get; set; }
+        public DbSet<DbBeam> DbBeams { get; set; }
+        public DbSet<DbBeamAlias> DbBeamAliases { get; set; }
         //Constraints
         public DbSet<DbConstraint> DbConstraints { get; set; }
         public DbSet<DbConstraintChangelog> DbConstraintChangelogs { get; set; }
@@ -461,6 +527,16 @@ namespace SquintScript
         public string ProtocolTypeName { get; set; }
         public int ProtocolType { get; set; }
         public virtual ICollection<DbProtocol> DbProtocols { get; set; }
+    }
+
+    public class DbEnergy
+    {
+        [Key]
+        public int ID { get; set; }
+        public string Energy { get; set; }
+        public string EnergyString { get; set; }
+        public virtual ICollection<DbBeam> DbBeams { get; set; }
+
     }
 
     public class DbApprovalLevel
@@ -542,7 +618,51 @@ namespace SquintScript
         public virtual DbComponent DbComponent { get; set; }
         public virtual ICollection<DbImaging> Imaging { get; set; }
     }
+    public class DbBeam
+    {
+        [Key]
+        public int ID { get; set; }
+        [ForeignKey("DbComponent")]
+        public int ComponentID { get; set; }
+        public virtual DbComponent DbComponent { get; set; }
+        public string ProtocolBeamName { get; set; }
+        public int Technique { get; set; }
+        public int Energy { get; set; }
+        public string ToleranceTable { get; set; }
+        public double MinMUWarning { get; set; }
+        public double MaxMUWarning { get; set; }
+        public double MinColRotation { get; set; }
+        public double MaxColRotation { get; set; }
+        public double CouchRotation { get; set; }
+        public double MinX { get; set; }
+        public double MaxX { get; set; }
+        public double MinY { get; set; }
+        public double MaxY { get; set; }
+        public int BolusClinicalIndication { get; set; }
+        public double BolusClinicalHU { get; set; }
+        public double BolusClinicalToleranceHU { get; set; }
+        public double BolusClinicalMinThickness { get; set; }
+        public double BolusClinicalMaxThickness { get; set; }
+        public int VMAT_JawTracking { get; set; }
+        public virtual ICollection<DbEnergy> DbEnergies { get; set; }
+        public virtual ICollection<DbBeamAlias> DbBeamAliases { get; set; }
+        public virtual ICollection<DbBeamGeometry> DbBeamGeometries { get; set; }
+    }
 
+    public class DbBeamGeometry
+    {
+        [Key]
+        public int ID { get; set; }
+
+        [ForeignKey("DbBeam")]
+        public int BeamID { get; set; }
+        public virtual DbBeam DbBeam { get; set; }
+        public string GeometryName { get; set; }
+        public double MinStartAngle { get; set; } = -1;
+        public double MinEndAngle { get; set; } = -1;
+        public double MaxStartAngle { get; set; } = -1;
+        public double MaxEndAngle { get; set; } = -1;
+    }
     public class DbTreatmentTechnique
     {
         [Key]
@@ -553,10 +673,7 @@ namespace SquintScript
         public int TreatmentTechniqueType { get; set; }
         public double MinFields { get; set; }
         public double MaxFields { get; set; }
-        public double MinMU { get; set; }
-        public double MaxMU { get; set; }
-        public double VMAT_MinColAngle { get; set; }
-        public double VMAT_MinFieldColSeparation { get; set; }
+
         public int NumIso { get; set; }
         public bool VMAT_SameStartStop { get; set; }
         public double MinXJaw { get; set; }
@@ -571,12 +688,13 @@ namespace SquintScript
         [Key]
         public int ID { get; set; }
         public double HU { get; set; }
+        public double ToleranceHU { get; set; }
         [ForeignKey("DbECSID")]
         public int ECSID_ID { get; set; }
         public virtual DbECSID DbECSID { get; set; }
         [ForeignKey("DbComponentChecklist")]
         public int ComponentChecklistID { get; set; }
-        public virtual DbComponentChecklist DbComponentChecklist {get;set;}
+        public virtual DbComponentChecklist DbComponentChecklist { get; set; }
     }
 
     public class DbStructureChecklist
@@ -599,12 +717,8 @@ namespace SquintScript
         public int TreatmentTechniqueType { get; set; }
         public double MinFields { get; set; }
         public double MaxFields { get; set; }
-        public double MinMU { get; set; }
-        public double MaxMU { get; set; }
-        public double VMAT_MinColAngle { get; set; }
-        public double VMAT_MinFieldColSeparation { get; set; }
         public int NumIso { get; set; }
-        public bool VMAT_SameStartStop { get; set; }
+        public double VMAT_MinFieldColSeparation { get; set; }
         public double MinXJaw { get; set; }
         public double MaxXJaw { get; set; }
         public double MinYJaw { get; set; }
@@ -626,15 +740,12 @@ namespace SquintScript
         public double CouchInterior { get; set; }
         //Artifacts
         public virtual ICollection<DbArtifact> Artifacts { get; set; }
-        //Bolus
-        public int BolusClinicalIndication { get; set; }
-        public double BolusClinicalHU { get; set; }
-        public double BolusClinicalThickness { get; set; }
+
 
         // Methods
         public DbComponentChecklist Clone(DbComponentChecklist DbO)
         {
-            var Clone =  (DbComponentChecklist)this.MemberwiseClone();
+            var Clone = (DbComponentChecklist)this.MemberwiseClone();
             Clone.ID = Ctr.IDGenerator();
             return Clone;
         }
@@ -736,6 +847,8 @@ namespace SquintScript
         [ForeignKey("DbLibraryProtocol")]
         public int ProtocolID { get; set; }
         public virtual DbProtocol DbLibraryProtocol { get; set; }
+
+        public virtual ICollection<DbBeam> DbBeams { get; set; }
         public virtual ICollection<DbSessionComponent> DbSessionComponents { get; set; }
         public virtual ICollection<DbConstraint> Constraints { get; set; }
         public virtual ICollection<DbComponentImaging> ImagingProtocols { get; set; }
@@ -748,6 +861,12 @@ namespace SquintScript
         public int ExceptionType { get; set; }
         public double ReferenceDose { get; set; }
         public string ComponentName { get; set; }
+
+        // Beam Group Parameters
+        public int MinBeams { get; set; } = -1;
+        public int MaxBeams { get; set; } = -1;
+        public int NumIso { get; set; } = 1;
+        public int MinColOffset { get; set; } = 0;
     }
 
     public class DbSessionComponent : DbComponent
@@ -826,6 +945,7 @@ namespace SquintScript
         public virtual DbConstraint DbConstraint { get; set; }
         [ForeignKey("DbConstraintChangelog_Parent")]
         public int ParentLogID { get; set; }
+        public string ConstraintString { get; set; }
         public virtual DbConstraintChangelog DbConstraintChangelog_Parent { get; set; }
         public long Date { get; set; } // created using DateTime.Now.ToBinary
         public string ChangeDescription { get; set; }
@@ -857,6 +977,15 @@ namespace SquintScript
         public string Description { get; set; }
 
     }
+
+    public class DbSessionConThreshold : DbConThreshold
+    {
+        [ForeignKey("DbSession")]
+        public int SessionID { get; set; }
+        public virtual DbSession DbSession { get; set; }
+        public int ParentConstraintThresholdID { get; set; }
+    }
+
     public class DbConThresholdDef
     {
         [Key]
@@ -871,6 +1000,15 @@ namespace SquintScript
 
     }
 
+    public class DbBeamAlias
+    {
+        [Key]
+        public int ID { get; set; }
+        [ForeignKey("DbBeam")]
+        public int BeamID { get; set; }
+        public virtual DbBeam DbBeam { get; set; }
+        public string EclipseFieldId { get; set; }
+    }
     public class DbECSID
     {
         [Key]

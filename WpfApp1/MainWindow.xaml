@@ -13,7 +13,7 @@
         xmlns:SC ="clr-namespace:SquintScript.Controls"
         x:Name="SquintWindow"
         Icon="/Resources/squint_icon.ico"
-        Title="Squint v0.5.1" Height="700" Width="1500" Closing="OnClosing" MinWidth="1500">
+        Title="Squint v0.5.2" Height="900" Width="1250" Closing="OnClosing" MinWidth="1250">
     <Window.DataContext>
         <local:Presenter/>
     </Window.DataContext>
@@ -76,7 +76,7 @@
                             SnapsToDevicePixels="true">
                             </Border>
                             <ContentPresenter Name="CP"
-                                Margin="8,8,8,8"
+                                Margin="8,5,8,5"
                             HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" 
                             SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" 
                             VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
@@ -317,7 +317,7 @@
                             SnapsToDevicePixels="true">
                             </Border>
                             <ContentPresenter Name="CP"
-                                Margin="8,8,8,8"
+                                Margin="8,2,8,2"
                             HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" 
                             SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" 
                             VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
@@ -905,7 +905,7 @@
             </Setter>
         </Style>
         <Style x:Key="ListViewStyle1" TargetType="{x:Type ListView}">
-            <Setter Property="Background" Value="{DynamicResource {x:Static SystemColors.WindowBrushKey}}"/>
+            <!--<Setter Property="Background" Value="{DynamicResource {x:Static SystemColors.WindowBrushKey}}"/>-->
             <Setter Property="BorderBrush" Value="{StaticResource ListBorder}"/>
             <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
@@ -923,9 +923,9 @@
                             <!--<ScrollViewer Focusable="false" Padding="{TemplateBinding Padding}">
                                 <ItemsPresenter SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"/>
                             </ScrollViewer>-->
-                            <ScrollViewer Focusable="false" Padding="{TemplateBinding Padding}" Template="{DynamicResource ScrollViewerControlTemplate1}">
+                            <!--<ScrollViewer Focusable="false" Padding="{TemplateBinding Padding}" Template="{DynamicResource ScrollViewerControlTemplate1}">-->
                                 <ItemsPresenter SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"/>
-                            </ScrollViewer>
+                            <!--</ScrollViewer>-->
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsEnabled" Value="false">
@@ -1254,7 +1254,7 @@
             <RowDefinition Height="288*"/>
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="510"/>
+            <ColumnDefinition Width="570"/>
             <ColumnDefinition Width="*"/>
             <ColumnDefinition Width="Auto"/>
         </Grid.ColumnDefinitions>
@@ -1329,7 +1329,7 @@
                         <RowDefinition Height="Auto"></RowDefinition>
                         <RowDefinition Height="*"></RowDefinition>
                     </Grid.RowDefinitions>
-                    <Grid Name="AssessmentGrid" Grid.Row="0">
+                    <Grid Name="AssessmentGrid" Grid.Row="0" Background="Transparent">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="*"/>
@@ -1370,11 +1370,7 @@
                                 <Image Source="/Resources/plus.png"></Image>
                             </Button>
                         </Grid>
-                        <Grid Grid.Row="1" Background="Transparent">
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="*"></RowDefinition>
-                                <RowDefinition Height="Auto"></RowDefinition>
-                            </Grid.RowDefinitions>
+                        <Grid Grid.Row="1">
                             <Grid.Tag>
                                 <sys:Double>0.0</sys:Double>
                             </Grid.Tag>
@@ -1398,18 +1394,16 @@
                                     </Style.Triggers>
                                 </Style>
                             </Grid.Style>
-                            <!--<ScrollViewer Grid.Row="0" Focusable="true" VerticalAlignment="Stretch" VerticalScrollBarVisibility="Auto" Template="{DynamicResource ScrollViewerControlTemplate1}" CanContentScroll="True" Background="Transparent" PreviewMouseWheel="ScrollViewer_PreviewMouseWheel">-->
                            <ListView HorizontalAlignment="Stretch" Name="listView_AssessmentList" ItemsSource="{Binding AssessmentPresenter.Assessments, UpdateSourceTrigger=PropertyChanged}" Margin="5,5,5,5" BorderThickness="0" VerticalAlignment="Stretch" ItemContainerStyle="{DynamicResource ListViewItemStyle}"
-                                          HorizontalContentAlignment="Stretch" SelectedItem ="{Binding SelectedAssessment, UpdateSourceTrigger=PropertyChanged}" Style="{DynamicResource ListViewStyle1}" Background="Transparent">
+                                          HorizontalContentAlignment="Stretch" SelectedItem ="{Binding SelectedAssessment, UpdateSourceTrigger=PropertyChanged}" Style="{DynamicResource ListViewStyle1}">
                                     <ListView.ItemTemplate>
                                         <DataTemplate>
-                                            <Grid>
+                                            <Grid >
                                                 <Grid.RowDefinitions>
                                                     <RowDefinition Height="Auto"/>
                                                     <RowDefinition Height="*"/>
                                                 </Grid.RowDefinitions>
-                                                <Grid Grid.Row="0" Height="Auto">
-                                                    <Grid>
+                                                <Grid Grid.Row="0" Height="Auto" >
                                                         <Grid.ColumnDefinitions>
                                                             <ColumnDefinition Width="*"/>
                                                             <ColumnDefinition Width="Auto"/>
@@ -1441,7 +1435,6 @@
                                                                 <Image Source="/Resources/x.png"></Image>
                                                             </ContentControl>
                                                         </Button>
-                                                    </Grid>
                                                 </Grid>
                                                 <Grid Grid.Row="1">
                                                     <Grid.Tag>
@@ -1465,7 +1458,7 @@
                                                                     </DataTrigger.ExitActions>
                                                                 </DataTrigger>
                                                             </Style.Triggers>
-                                                        </Style>
+                                                    </Style>
                                                     </Grid.Style>
                                                     <Grid.MaxHeight>
                                                         <MultiBinding Converter="{StaticResource ExpanderConverter}" UpdateSourceTrigger="PropertyChanged" ConverterParameter="120">
@@ -1473,11 +1466,11 @@
                                                             <Binding RelativeSource="{RelativeSource AncestorLevel=1, AncestorType=ListViewItem}" UpdateSourceTrigger="PropertyChanged" Path="DataContext.ComponentCount" />
                                                         </MultiBinding>
                                                     </Grid.MaxHeight>
-                                                    <ListView  HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch" Name="listView_AssessmentComponentList" ScrollViewer.VerticalScrollBarVisibility="Disabled" Background="Transparent" ItemContainerStyle="{DynamicResource ListViewItemStyle2}" 
+                                                    <ListView  HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch" Name="listView_AssessmentComponentList" ItemContainerStyle="{DynamicResource ListViewItemStyle2}" 
                                                               BorderThickness ="0" ItemsSource="{Binding ACVs}">
                                                         <ListView.ItemTemplate>
                                                             <DataTemplate>
-                                                                <Grid>
+                                                                <Grid >
                                                                     <Grid.RowDefinitions>
                                                                         <RowDefinition></RowDefinition>
                                                                         <RowDefinition></RowDefinition>
@@ -1497,7 +1490,7 @@
                                                                     <ComboBox Grid.Column="2" Grid.Row="1" VerticalAlignment="Center" HorizontalAlignment="Center" Style="{DynamicResource ConstraintComboBoxStyle}" 
                                                                            IsEnabled="{Binding EnableCourseSelection, UpdateSourceTrigger=PropertyChanged}"
                                                                           MinWidth="100" SelectedItem="{Binding SelectedPlan}" DisplayMemberPath="PlanId" ItemsSource="{Binding Plans, UpdateSourceTrigger=PropertyChanged}"></ComboBox>
-                                                                    <Button Grid.Column="3" Grid.Row="1" Margin="0,0,0,0" Background="Transparent"  ToolTip="View optimization objectives" Style="{StaticResource ButtonStyle_Medium}" HorizontalAlignment="Left" VerticalAlignment="Center"
+                                                                    <Button Grid.Column="3" Grid.Row="1" Margin="0,0,0,0" Background="Transparent"  ToolTip="Check plan" Style="{StaticResource ButtonStyle_Medium}" HorizontalAlignment="Left" VerticalAlignment="Center"
                                                                      Command="{Binding DataContext.ViewOptimizationObjectivesCommand, ElementName=SquintWindow}" CommandParameter="{Binding SelectedPlan}">
                                                                         <ContentControl>
                                                                             <Image Source="/Resources/check_plan.png"></Image>
@@ -1512,7 +1505,7 @@
                                         </DataTemplate>
                                     </ListView.ItemTemplate>
                                 </ListView>
-                            <!--</ScrollViewer>-->
+                            
                         </Grid>
                     </Grid>
                     <Grid Name="ProtocolGrid" Grid.Row="1">
@@ -1863,31 +1856,6 @@
                                         </Grid>
                                     </DataTemplate>
                                 </ListView.ItemTemplate>
-                                <!--<TreeView.ItemTemplate>
-                                    <DataTemplate>
-                                        <TreeViewItem Foreground="Black" Tag="{Binding}" ItemContainerStyle="{StaticResource TreeViewItemExpandedStyle}">
-                                            <TreeViewItem.Header>
-                                                <TextBlock Text="{Binding StructureId, UpdateSourceTrigger=PropertyChanged}" FontSize="13" IsHitTestVisible="False" Focusable="False" Background="Transparent"></TextBlock>
-                                            </TreeViewItem.Header>
-                                            <TreeViewItem IsExpanded="True" ItemContainerStyle="{StaticResource TreeViewItemExpandedStyle}">
-                                                <GroupBox Header="Structure Properties" Margin="5,-15,5,10" DockPanel.Dock="Top" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
-                                                    <StackPanel>
-                                                        <DockPanel>
-                                                            <Label DockPanel.Dock="Left"  Content="Structure Id:"></Label>
-                                                            <ComboBox DockPanel.Dock="Left" HorizontalAlignment="Stretch" Width="Auto" Margin="10,5,10,5" SelectedItem="{Binding RelativeSource={RelativeSource FindAncestor, AncestorLevel=2, AncestorType={x:Type TreeViewItem}}, Path=DataContext, Mode=OneWay}"
-                                                                      SelectionChanged="ComboBox_SelectionChanged" ItemsSource="{Binding ElementName=SquintWindow, Path=DataContext.Protocol.Structures}" DisplayMemberPath="StructureId" Background="AliceBlue"/>
-                                                        </DockPanel>
-                                                        <DockPanel>
-                                                            <Label DockPanel.Dock="Left"  Content="Structure Label:"></Label>
-                                                            <ComboBox DockPanel.Dock="Left" HorizontalAlignment="Stretch" Width="Auto" Margin="10,5,10,5" ItemsSource="{Binding Protocol.Structures}" DisplayMemberPath="LabelName" Background="AliceBlue"/>
-                                                        </DockPanel>
-                                                    </StackPanel>
-                                                </GroupBox>
-                                            </TreeViewItem>
-                                        </TreeViewItem>
-
-                                    </DataTemplate>
-                                </TreeView.ItemTemplate>-->
                             </ListView>
                             <Grid Grid.Row="5">
                                 <Grid.ColumnDefinitions>
@@ -1909,7 +1877,6 @@
                                         <Grid>
                                             <Grid.RowDefinitions>
                                                 <RowDefinition Height="Auto"/>
-                                                <RowDefinition Height="Auto"/>
                                                 <RowDefinition Height="*"/>
                                             </Grid.RowDefinitions>
                                             <Grid Grid.Row="0">
@@ -1926,7 +1893,12 @@
                                                                   MaxDropDownHeight="100" 
                                                                   VerticalAlignment="Center" 
                                                           SelectedItem="{Binding RelativeSource={RelativeSource FindAncestor, AncestorLevel=1, AncestorType={x:Type ListViewItem}}, Path=DataContext.SS, Converter={StaticResource GetConstraintStructureConverter}, Mode=TwoWay}"/>
-                                                <TextBlock  Grid.Column="2" VerticalAlignment="Center" Text="{Binding ShortConstraintDefinition, UpdateSourceTrigger=PropertyChanged, Mode=OneWay}" Margin="5,0,10,0"></TextBlock>
+                                                <!--<TextBlock  Grid.Column="2" VerticalAlignment="Center" Text="{Binding ShortConstraintDefinition, UpdateSourceTrigger=PropertyChanged, Mode=OneWay}" Margin="5,0,10,0"></TextBlock>-->
+                                                <StackPanel Grid.Column="2" Orientation="Horizontal">
+                                                    <TextBlock VerticalAlignment="Center" Text="{Binding ShortConstraintDefinition, UpdateSourceTrigger=PropertyChanged, Mode=OneWay}" Margin="5,0,0,0"></TextBlock>
+                                                    <TextBlock VerticalAlignment="Center" Text="{Binding IsAddedStatus, UpdateSourceTrigger=PropertyChanged, Mode=OneWay}" Foreground="ForestGreen" FontStyle="Italic" Margin="5,0,0,0"></TextBlock>
+                                                    <TextBlock VerticalAlignment="Center" Text="{Binding ChangeStatusString, UpdateSourceTrigger=PropertyChanged, Mode=OneWay}" Foreground="DarkOrange" FontStyle="Italic" Margin="5,0,0,0"></TextBlock>
+                                                </StackPanel>
                                                 <ComboBox  Grid.Column="3" HorizontalAlignment="Right" MinWidth="50" Margin="0,0,0,0" VerticalAlignment="Center" ItemsSource="{Binding Components}" SelectedItem="{Binding Component}" Style="{StaticResource ConstraintComboBoxStyle}">
                                                     <ComboBox.ItemTemplate>
                                                         <DataTemplate>
@@ -1998,7 +1970,8 @@
                                                         </Grid.RowDefinitions>
                                                         <StackPanel Grid.Row="0" Orientation="Horizontal">
                                                             <ComboBox ItemsSource ="{Binding Path=ConstraintTypes, UpdateSourceTrigger=PropertyChanged}" SelectedItem="{Binding ConstraintType}" Width="50" HorizontalAlignment="Left" Style="{StaticResource ConstraintComboBoxStyle}"></ComboBox>
-                                                            <TextBox Text ="{Binding ConstraintValue, Mode=TwoWay}" Style="{StaticResource ConstraintTextBoxStyle}" Width="50" local:TextBoxExtensions.UpdateSourceOnKey="Return"></TextBox>
+                                                            <TextBox Text ="{Binding ConstraintValue, Mode=TwoWay}" Style="{StaticResource ConstraintTextBoxStyle}" Width="50" local:TextBoxExtensions.UpdateSourceOnKey="Return"
+                                                                        Foreground="{Binding ConstraintValueColor, UpdateSourceTrigger=PropertyChanged}"></TextBox>
                                                             <ComboBox ItemsSource ="{Binding Path=ConstraintUnitTypes, UpdateSourceTrigger=PropertyChanged}" SelectedItem="{Binding ConstraintUnit}" Width="50" HorizontalAlignment="Left" Style="{StaticResource ConstraintComboBoxStyle}">
                                                                 <ComboBox.ItemTemplate>
                                                                     <DataTemplate>
@@ -2013,7 +1986,8 @@
                                                                     </DataTemplate>
                                                                 </ComboBox.ItemTemplate>
                                                             </ComboBox>
-                                                            <TextBox Text ="{Binding ReferenceValue, Mode=TwoWay}" Style="{StaticResource ConstraintTextBoxStyle}" Width="50" local:TextBoxExtensions.UpdateSourceOnKey="Return"></TextBox>
+                                                            <TextBox Text ="{Binding ReferenceValue, Mode=TwoWay}" Style="{StaticResource ConstraintTextBoxStyle}" Foreground="{Binding ReferenceValueColor, UpdateSourceTrigger=PropertyChanged}"
+                                                                     Width="50" local:TextBoxExtensions.UpdateSourceOnKey="Return"></TextBox>
                                                             <ComboBox ItemsSource ="{Binding Path=AvailableReferenceUnitTypes, UpdateSourceTrigger=PropertyChanged}" SelectedItem="{Binding ReferenceUnit}" Width="50" HorizontalAlignment="Left" Style="{StaticResource ConstraintComboBoxStyle}">
                                                                 <ComboBox.ItemTemplate>
                                                                     <DataTemplate>
@@ -2063,7 +2037,7 @@
                     </Grid>
                 </Grid>
             </ScrollViewer>
-            <Grid Grid.Row="1" >
+            <Grid Grid.Row="1" Margin="0,10,0,10">
                 <Grid.Visibility>
                     <MultiBinding Converter="{StaticResource VisibilityMultiConverter}">
                         <Binding ElementName="SquintWindow" Path="DataContext.AssessmentPresenter.WaitingForUpdate" UpdateSourceTrigger="PropertyChanged" Mode="OneWay"/>
@@ -2133,27 +2107,45 @@
                     <Border Grid.Row="0" CornerRadius="5,5,5,5" Background="CornflowerBlue" Margin="0,5,0,0">
                         <TextBlock Text="Simulation" Foreground="White" FontSize="14" Margin="10,5,5,5"/>
                     </Border>
-                    <SC:TestView Grid.Row="1" DataContext="{Binding Simulation_ViewModel}" TestListTitle="CT Details" TestItems="{Binding Tests}" SetReferenceHeader="Reference Value"/>
+                    <StackPanel Grid.Row="1" Orientation="Vertical" >
+                        <TextBlock Grid.Column="0" FontWeight="Bold" Text="CT Details" FontSize="13" Margin="5,5,0,5"/>
+                        <Border  Background="Black" CornerRadius="1,1,1,1" Height="2" Margin="5,3,10,5" HorizontalAlignment="Stretch"/>
+                        <SC:TestView DataContext="{Binding Simulation_ViewModel}" TestItems="{Binding Tests}" SetReferenceHeader="Reference Value"/>
+                    </StackPanel>
                     <Border Grid.Row="2" CornerRadius="5,5,5,5" Background="CornflowerBlue" Margin="0,15,0,10">
                         <TextBlock Text="Calculation" Foreground="White" FontSize="14" Margin="10,5,5,5"/>
                     </Border>
-                    <SC:TestView Grid.Row="3"  DataContext="{Binding Calculation_ViewModel}"  TestItems ="{Binding Tests}" TestListTitle="Calculation Details" SetReferenceHeader="Reference Value" />
+                    <StackPanel Grid.Row="3" Orientation="Vertical">
+                        <TextBlock Grid.Column="0" FontWeight="Bold" Text="Calculation Details" FontSize="13" Margin="5,5,0,5"/>
+                        <Border  Background="Black" CornerRadius="1,1,1,1" Height="2" Margin="5,3,10,5" HorizontalAlignment="Stretch"/>
+                        <SC:TestView DataContext="{Binding Calculation_ViewModel}"  TestItems ="{Binding Tests}" SetReferenceHeader="Reference Value" />
+                    </StackPanel>
                     <Border Grid.Row="4" CornerRadius="5,5,5,5" Background="CornflowerBlue" Margin="0,15,0,10">
                         <TextBlock Text="Prescription" Foreground="White" FontSize="14" Margin="10,5,5,5"/>
                     </Border>
-                    <SC:TestView Grid.Row="5" DataContext="{Binding Prescription_ViewModel}" TestItems ="{Binding Tests}"  TestListTitle="Prescription Details" SetReferenceHeader="Reference Value" />
+                    <StackPanel Grid.Row="5" Orientation="Vertical">
+                        <TextBlock Grid.Column="0" FontWeight="Bold" Text="Prescription Details" FontSize="13" Margin="5,5,0,5"/>
+                        <Border  Background="Black" CornerRadius="1,1,1,1" Height="2" Margin="5,3,10,5" HorizontalAlignment="Stretch"/>
+                        <SC:TestView DataContext="{Binding Prescription_ViewModel}" TestItems ="{Binding Tests}"  SetReferenceHeader="Reference Value" />
+                    </StackPanel>
                     <Border Grid.Row="6" CornerRadius="5,5,5,5" Background="CornflowerBlue" Margin="0,15,0,10">
                         <TextBlock Text="Target Structures" Foreground="White" FontSize="14" Margin="10,5,5,5"/>
                     </Border>
-                    <SC:TestView Grid.Row="7" DataContext="{Binding Targets_ViewModel}" TestItems ="{Binding Tests}"  TestListTitle="Target Structure Checks" SetReferenceHeader="Reference Value" />
+                    <StackPanel Grid.Row="7" Orientation="Vertical">
+                        <TextBlock Grid.Column="0" FontWeight="Bold" Text="Target Structure Checks" FontSize="13" Margin="5,5,0,5"/>
+                        <Border  Background="Black" CornerRadius="1,1,1,1" Height="2" Margin="5,3,10,5" HorizontalAlignment="Stretch"/>
+                        <SC:TestView DataContext="{Binding Targets_ViewModel}" TestItems ="{Binding Tests}" SetReferenceHeader="Reference Value" />
+                    </StackPanel>
                     <Border Grid.Row="8" CornerRadius="5,5,5,5" Background="CornflowerBlue" Margin="0,10,0,0">
                         <TextBlock Text="Optimization" Foreground="White" FontSize="14" Margin="10,5,5,5"/>
                     </Border>
-                    <SC:ObjectiveControl Grid.Row="9" DataContext="{Binding Objectives_ViewModel}" Background="Transparent" />
+                    <StackPanel Grid.Row="9" Orientation="Vertical">
+                        <SC:ObjectiveControl  DataContext="{Binding Objectives_ViewModel}" Background="Transparent" />
+                    </StackPanel>
                     <Border Grid.Row="10" CornerRadius="5,5,5,5" Background="CornflowerBlue" Margin="0,15,0,10">
                         <TextBlock Text="Beams" Foreground="White" FontSize="14" Margin="10,5,5,5"/>
                     </Border>
-                    <SC:BeamCheckView Grid.Row="11" DataContext="{Binding Beam_ViewModel, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" Background="Transparent" />
+                    <SC:BeamCheckView Grid.Row="11" DataContext="{Binding Beam_ViewModel}" Background="Transparent" />
                     <Border Grid.Row="12" CornerRadius="5,5,5,5" Background="CornflowerBlue" Margin="0,15,0,10">
                         <TextBlock Text="Imaging" Foreground="White" FontSize="14" Margin="10,5,5,5"/>
                     </Border>

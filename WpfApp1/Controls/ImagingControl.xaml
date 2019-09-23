@@ -105,12 +105,12 @@
                         <Grid HorizontalAlignment="Stretch">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto"/>
-                                <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
                             <TextBlock Grid.Column="0" Text="{Binding ImagingProtocolName,Mode=OneTime, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Center"/>
-                            <ListView Grid.Column="1" Style="{StaticResource ImagingListViewStyle}" ItemsSource ="{Binding WarningMessages}" Foreground="Tomato" HorizontalContentAlignment="Center" HorizontalAlignment="Right" Margin="0,0,10,0"/>
-                                <local:CircleCheck Grid.Column="3" Pass="{Binding isWarning, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" CheckHeight="20" CheckWidth="20" HorizontalAlignment="Right"/>
+                            <ListView Grid.Column="1" Style="{StaticResource ImagingListViewStyle}" ItemsSource ="{Binding WarningMessages}" Foreground="Tomato" HorizontalContentAlignment="Center" HorizontalAlignment="Right" Margin="10,0,10,0"/>
+                            <local:CircleCheck Grid.Column="2" Pass="{Binding isWarning, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" CheckHeight="20" CheckWidth="20" HorizontalAlignment="Left"/>
                         </Grid>
                     </DataTemplate>
                 </ListView.ItemTemplate>

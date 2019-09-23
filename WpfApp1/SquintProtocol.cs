@@ -164,12 +164,20 @@ namespace SquintScript
             {
                 if (DbCC != null)
                 {
-                    DateString = DateTime.FromBinary(DbCC.Date).ToShortDateString();
+                    DateString = string.Join(" ", DateTime.FromBinary(DbCC.Date).ToShortDateString(), DateTime.FromBinary(DbCC.Date).ToShortTimeString());
                     ChangeDescription = DbCC.ChangeDescription;
                     ChangeAuthor = DbCC.ChangeAuthor;
                     ConstraintID = DbCC.ConstraintID;
-                    ConstraintString = DataCache.GetConstraint(ConstraintID).GetConstraintString();
+                    ConstraintString = DbCC.ConstraintString;
                 }
+            }
+            public ConstraintChangelog(Constraint C)
+            {
+                DateString = string.Join(" ", DateTime.Now.ToShortDateString(), DateTime.Now.ToShortTimeString());
+                ChangeDescription = @"Ad-hoc constraint";
+                ChangeAuthor = SquintUser;
+                ConstraintID = C.ID;
+                ConstraintString = "";
             }
         }
 
@@ -700,18 +708,22 @@ namespace SquintScript
             public event EventHandler<int> ConstraintDeleted;
             public event EventHandler<int> ConstraintEvaluating; //argument is the assessment ID
             public event EventHandler<int> ConstraintEvaluated;
-            public event EventHandler ConstraintExceptionLoaded;
+            //public event EventHandler ConstraintExceptionLoaded;
             public event EventHandler AssociatedThresholdChanged;
-            public event EventHandler EvaluatedParameterChanged;
+            //public event EventHandler EvaluatedParameterChanged;
             /*public void SetInvocationList(EventHandler subscribers)
             {
                 ConstraintPropertyChanged = subscribers;
             } */
             //Properties
             private Dictionary<int, ConstraintResult> ConstraintResults = new Dictionary<int, ConstraintResult>();
-            //private bool ReturnReferenceValues = false; // this flag is used to force the constraint to return the original values with which it was loaded.  this is used to track user changes/exceptions
-            //General constraint properties
-            //private Dictionary<int, EventHandler> _DbCEUpdateHandler = new Dictionary<int, EventHandler>();
+            public List<ConstraintChangelog> GetChangeLogs()
+            {
+                if (ID > 0)
+                    return DataCache.GetConstraintChangelogs(ID);
+                else
+                    return new List<ConstraintChangelog>() { new ConstraintChangelog(this)};
+            }
             public bool isCreated { get; private set; } = false;
             public bool isModified(string propertyname = "")
             {
@@ -770,7 +782,8 @@ namespace SquintScript
             private int _OriginalComponentID;
             public int ComponentID { get; set; }
             private int _OriginalPrimaryStructureID;
-            public int PrimaryStructureID { get; set; }// the primary structure to which this constraint applies
+            private int _PrimaryStructureID;
+            public int PrimaryStructureID { get; set; }
             private int _OriginalSecondaryStructureID;
             public int SecondaryStructureID { get; set; }
             private double _OriginalReferenceValue;
@@ -989,7 +1002,7 @@ namespace SquintScript
                 if (PrimaryStructureID == 1)
                     return "Not assigned to structure";
                 if (!isValid())
-                    return "Incomplete constraint definition";
+                    return "(Invalid Definition)";
                 string ReturnString = null;
                 //string ConString = null;
                 switch (ConstraintType)
@@ -1220,7 +1233,7 @@ namespace SquintScript
                             NumFractions = SC.NumFractions;
                         }
 
-                        NotifyPropertyChanged("ConstraintValue");
+                        //NotifyPropertyChanged("ConstraintValue");
                     }
                     else if (isReferenceValueDose())
                     {
@@ -1234,7 +1247,7 @@ namespace SquintScript
                             ReferenceValue = Math.Round(BED(_OriginalNumFractions, SC.NumFractions, _OriginalReferenceValue, abRatio) / 100) * 100;
                             NumFractions = SC.NumFractions;
                         }
-                        NotifyPropertyChanged("ReferenceValue");
+                       // NotifyPropertyChanged("ReferenceValue");
                         foreach (ConstraintThreshold CT in DataCache.GetConstraintThresholdByConstraintId(ID).ToList())
                         {
                             switch (CT.ThresholdName)
@@ -1302,7 +1315,12 @@ namespace SquintScript
                     return true;
                 if (ConstraintValue != _OriginalConstraintValue)
                     return true;
-                else return false;
+                foreach (ConstraintThreshold CT in DataCache.GetConstraintThresholdByConstraintId(ID))
+                {
+                    if (CT.isModified)
+                        return true;
+                };
+                return false;
             }
             public void RegisterAssessment(Assessment SA)
             {
@@ -1960,6 +1978,7 @@ namespace SquintScript
                 ID = DbO_in.ID;
                 Con = Con_in;
                 ThresholdValue = DbO_in.ThresholdValue;
+                _OriginalThresholdValue = DbO_in.ThresholdValue;
                 ThresholdName = (ConstraintThresholdNames)DbO_in.DbConThresholdDef.Threshold;
                 ThresholdType = (ConstraintThresholdTypes)DbO_in.DbConThresholdDef.ThresholdType;
             }
@@ -1967,7 +1986,9 @@ namespace SquintScript
             {
                 ID = Ctr.IDGenerator();
                 Con = Constraint;
+                isCreated = true;
                 ThresholdValue = ThresholdValue_in;
+                _OriginalThresholdValue = ThresholdValue_in;
                 ThresholdName = (ConstraintThresholdNames)DbCTdef.Threshold;
                 ThresholdType = (ConstraintThresholdTypes)DbCTdef.ThresholdType;
             }
@@ -1975,7 +1996,9 @@ namespace SquintScript
             {
                 ID = Ctr.IDGenerator();
                 Con = Constraint;
+                isCreated = true;
                 ThresholdValue = ThresholdValue_in;
+                _OriginalThresholdValue = ThresholdValue_in;
                 ThresholdName = Name;
                 ThresholdType = Type;
             }
@@ -1983,8 +2006,20 @@ namespace SquintScript
             public int ConstraintID { get { return Con.ID; } }
             public ConstraintThresholdNames ThresholdName { get; set; }
             public ConstraintThresholdTypes ThresholdType { get; set; }
+            private double _OriginalThresholdValue;
             public double ThresholdValue { get; set; }
             public string Description { get; set; }
+            public bool isCreated { get; private set; } = false;
+            public bool isModified
+            {
+                get
+                {
+                    if (Math.Abs(_OriginalThresholdValue - ThresholdValue) > 1E-5)
+                        return true;
+                    else
+                        return false;
+                }
+            }
         }
         [AddINotifyPropertyChangedInterface]
         public class Artifact
@@ -1992,9 +2027,11 @@ namespace SquintScript
             public Artifact(DbArtifact DbA)
             {
                 RefHU = DbA.HU;
+                ToleranceHU = DbA.ToleranceHU;
                 E = DataCache.GetECSID(DbA.DbECSID.ID);
             }
             public double RefHU { get; set; }
+            public double ToleranceHU { get; set; }
             public double CheckHU
             {
                 get
@@ -2014,12 +2051,8 @@ namespace SquintScript
                 TreatmentTechniqueType = (TreatmentTechniques)DbO.TreatmentTechniqueType;
                 MinFields = DbO.MinFields;
                 MaxFields = DbO.MaxFields;
-                MinMU = DbO.MinMU;
-                MaxMU = DbO.MaxMU;
-                VMAT_MinColAngle = DbO.VMAT_MinColAngle;
                 VMAT_MinFieldColSeparation = DbO.VMAT_MinFieldColSeparation;
                 NumIso = DbO.NumIso;
-                VMAT_SameStartStop = DbO.VMAT_SameStartStop;
                 MinXJaw = DbO.MinXJaw;
                 MaxXJaw = DbO.MaxXJaw;
                 MinYJaw = DbO.MinYJaw;
@@ -2036,10 +2069,6 @@ namespace SquintScript
                 SupportIndication = (ParameterOptions)DbO.SupportIndication;
                 CouchSurface = DbO.CouchSurface;
                 CouchInterior = DbO.CouchInterior;
-                //Bolus
-                BolusClinicalIndication = (ParameterOptions)DbO.BolusClinicalIndication;
-                BolusClinicalHU = DbO.BolusClinicalHU;
-                BolusClinicalThickness = DbO.BolusClinicalThickness;
                 //Artifact
                 foreach (DbArtifact DbA in DbO.Artifacts)
                 {
@@ -2108,6 +2137,9 @@ namespace SquintScript
             public Component(DbComponent DbO)
             {
                 ID = DbO.ID;
+                MinColOffset = DbO.MinColOffset;
+                MinBeams = DbO.MinBeams;
+                MaxBeams = DbO.MaxBeams;
                 ComponentName = DbO.ComponentName;
                 ComponentType = (ComponentTypes)DbO.ComponentType;
                 NumFractions = DbO.NumFractions;
@@ -2145,6 +2177,10 @@ namespace SquintScript
             public int ProtocolID { get; private set; }
             public string ComponentName { get; set; }
             public ComponentTypes ComponentType { get; set; }
+            public int MinBeams { get; set; } = -1;
+            public int MaxBeams { get; set; } = -1;
+            public int NumIso { get; set; } = 1;
+            public int MinColOffset { get; set; } = 0;
             public bool isTDFmodified { get; private set; }
             private double _ReferenceDose;
             public double ReferenceDose
@@ -2181,6 +2217,10 @@ namespace SquintScript
             }
             // Component Calc Overrides
             public List<ImagingProtocols> ImagingProtocolsAttached { get; set; } = new List<ImagingProtocols>();
+            public List<Beam> Beams()
+            {
+                return DataCache.GetBeams(ID);
+            }
             public ComponentChecklist Checklist { get; set; }
             private Dictionary<int, EventHandler> HandlerRegister = new Dictionary<int, EventHandler>();
             //public List<Constituent> GetConstituents()
@@ -2291,10 +2331,6 @@ namespace SquintScript
                     ConToEvaluate = DataCache.GetConstraintsInComponent(ComponentID);
                 int total = ConToEvaluate.Count();
                 List<Task> CalculationTasks = new List<Task>();
-                foreach (Constraint Con in ConToEvaluate)
-                {
-                    //CalculationTasks.Add(Task.Run(() => Con.EvaluateConstraint(Con, progress, total)));
-                }
                 await Task.WhenAll(CalculationTasks);
             }
             /*private bool ValidateComponentAssociations(Component SC)
