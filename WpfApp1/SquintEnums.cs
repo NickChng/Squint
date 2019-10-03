@@ -19,6 +19,13 @@ namespace SquintScript
         [Description("15X")] Photons15 = 4,
         [Description("10XFFF")] Photons10FFF = 5
     }
+    public enum Trajectories
+    {
+        [Description("Unset")] Unset = 1,
+        [Description("Static")] Static = 2,
+        [Description("Clockwise")] CW = 3,
+        [Description("Counterclockwise")] CCW = 4,
+    }
     public enum ParameterOptions
     {
         [Description("Unset")] Unset,
@@ -140,6 +147,7 @@ namespace SquintScript
         [Description("Error in sum constituent")] ConstituentError,
         [Description("Plan linked to constituent is not in sum")] ConstituentNotInSum,
         [Description("Plan sum contains a different number of plans than protocol constituents")] PlansNotEqualToConstituents,
+        [Description("Changed since last session")] ChangedSinceLastSession,
         [Description("UNDEFINED ERROR")] NotDefined,
         [Description("No dose")] NoDoseDistribution,
     }

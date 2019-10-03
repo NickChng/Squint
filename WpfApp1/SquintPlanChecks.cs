@@ -20,6 +20,7 @@ namespace SquintScript
     {
         public class BeamGeometry
         {
+            public Trajectories Trajectory { get; set; } = Trajectories.Unset;
             public string GeometryName { get; set; } = "Unset";
             public double MinStartAngle { get; set; } = -1;
             public double MinEndAngle { get; set; } = -1;
@@ -77,7 +78,7 @@ namespace SquintScript
                     EclipseAliases.Add(A.EclipseFieldId);
                 foreach (var G in DbO.DbBeamGeometries)
                 {
-                    ValidGeometries.Add(new BeamGeometry() { MinEndAngle = G.MinEndAngle, MinStartAngle = G.MinStartAngle, MaxEndAngle = G.MaxEndAngle, MaxStartAngle = G.MaxStartAngle, GeometryName = G.GeometryName});
+                    ValidGeometries.Add(new BeamGeometry() { MinEndAngle = G.MinEndAngle, MinStartAngle = G.MinStartAngle, MaxEndAngle = G.MaxEndAngle, MaxStartAngle = G.MaxStartAngle, GeometryName = G.GeometryName, Trajectory = (Trajectories)G.Trajectory});
                 }
                 ToleranceTable = DbO.ToleranceTable;
                 MinMUWarning = DbO.MinMUWarning;

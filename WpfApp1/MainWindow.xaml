@@ -205,18 +205,9 @@
                     <!-- Trun off default selection-->
                     <ControlTemplate TargetType="{x:Type ListViewItem}">
                         <Grid>
-                            <Border x:Name="Bd" BorderBrush="Transparent" BorderThickness="0" 
-                                Margin="2,2,2,2"
-                                CornerRadius="5,5,5,5"
-                            Background="{TemplateBinding Background}" 
-                            Padding="{TemplateBinding Padding}" 
-                            SnapsToDevicePixels="true">
+                            <Border x:Name="Bd" BorderBrush="Transparent" BorderThickness="0"  Margin="2,2,2,2" CornerRadius="5,5,5,5" Background="{TemplateBinding Background}" Padding="{TemplateBinding Padding}" SnapsToDevicePixels="true">
+                                <ContentPresenter Margin="8,8,8,8" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"  SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
                             </Border>
-                            <ContentPresenter 
-                                Margin="8,8,8,8"
-                            HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" 
-                            SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" 
-                            VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
                         </Grid>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsSelected" Value="True">
@@ -1405,12 +1396,18 @@
                                                 </Grid.RowDefinitions>
                                                 <Grid Grid.Row="0" Height="Auto" >
                                                         <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="Auto"/>
                                                             <ColumnDefinition Width="*"/>
                                                             <ColumnDefinition Width="Auto"/>
                                                             <ColumnDefinition Width="Auto"/>
                                                         </Grid.ColumnDefinitions>
                                                         <TextBlock Grid.Column="0" VerticalAlignment="Center" HorizontalAlignment="Left" Text="{Binding AssessmentName, UpdateSourceTrigger=PropertyChanged}" FontSize="13" Background="Transparent" Margin="10,0,0,0"></TextBlock>
-                                                        <Button Grid.Column="1" Name="button_ShowAssessment" ToolTip="Pin assessment details"
+                                                <!--<SC:CircleCheck Grid.Column="1" HorizontalAlignment="Left" Margin="5,0,0,0" CheckHeight="20" CheckWidth="20" Pass="{Binding Warning, UpdateSourceTrigger=PropertyChanged, Mode=OneWay}"/>-->
+                                                    <Grid Grid.Column="1" Visibility="{Binding Warning, Converter={StaticResource VisibilityConverter}, UpdateSourceTrigger=PropertyChanged}" HorizontalAlignment=" Left" Margin="10,0,0,0">
+                                                    <Polygon Points="0,17 8,0 17,17" Fill="Transparent"  Grid.Column="1" Width="17" Height="17" Stroke="DarkOrange" StrokeThickness="2" Margin="0,-2,0,0"/>
+                                                    <TextBlock Grid.Column="1" IsHitTestVisible="false" Text="!" FontWeight="Bold" HorizontalAlignment="Center" Padding="0,1,0,0" VerticalAlignment="Center" Foreground="Black"/>
+                                                </Grid>
+                                                <Button Grid.Column="2" Name="button_ShowAssessment" ToolTip="Pin assessment details"
                                                             Style="{DynamicResource ButtonStyle_Small}" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="5,5,5,5" 
                                                             Command="{Binding DataContext.ShowAssessmentCommand, ElementName=SquintWindow}" CommandParameter="{Binding}">
                                                             <Image>
@@ -1428,7 +1425,7 @@
                                                                 </Image.Style>
                                                             </Image>
                                                         </Button>
-                                                        <Button Grid.Column="2" Margin="0,0,0,0" Background="Transparent"  ToolTip="Delete assessment"
+                                                        <Button Grid.Column="3" Margin="0,0,0,0" Background="Transparent"  ToolTip="Delete assessment"
                                                             Style="{StaticResource ButtonStyle_Small}" HorizontalAlignment="Right" VerticalAlignment="Center"
                                                             Command="{Binding DataContext.DeleteAssessmentCommand, ElementName=SquintWindow}" CommandParameter="{Binding}">
                                                             <ContentControl>
@@ -1474,6 +1471,7 @@
                                                                     <Grid.RowDefinitions>
                                                                         <RowDefinition></RowDefinition>
                                                                         <RowDefinition></RowDefinition>
+                                                                        <RowDefinition></RowDefinition>
                                                                     </Grid.RowDefinitions>
                                                                     <Grid.ColumnDefinitions>
                                                                         <ColumnDefinition></ColumnDefinition>
@@ -1486,17 +1484,18 @@
                                                                     <TextBlock Grid.Column="2" Grid.Row="0" VerticalAlignment="Center" HorizontalAlignment="Center" MinWidth="80" Text="Select Plan/Sum:"/>
                                                                     <ComboBox Grid.Column="1" Grid.Row="1" VerticalAlignment="Center" HorizontalAlignment="Center" Style="{DynamicResource ConstraintComboBoxStyle}" MinWidth="100" 
                                                                           IsEnabled="{Binding EnableCourseSelection, UpdateSourceTrigger=PropertyChanged}"
-                                                                          SelectedItem="{Binding SelectedCourse}" DisplayMemberPath="CourseId" ItemsSource="{Binding Courses, UpdateSourceTrigger=PropertyChanged}"></ComboBox>
+                                                                          SelectedItem="{Binding SelectedCourse, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" DisplayMemberPath="CourseId" ItemsSource="{Binding Courses, UpdateSourceTrigger=PropertyChanged}"></ComboBox>
                                                                     <ComboBox Grid.Column="2" Grid.Row="1" VerticalAlignment="Center" HorizontalAlignment="Center" Style="{DynamicResource ConstraintComboBoxStyle}" 
                                                                            IsEnabled="{Binding EnableCourseSelection, UpdateSourceTrigger=PropertyChanged}"
-                                                                          MinWidth="100" SelectedItem="{Binding SelectedPlan}" DisplayMemberPath="PlanId" ItemsSource="{Binding Plans, UpdateSourceTrigger=PropertyChanged}"></ComboBox>
+                                                                          MinWidth="100" SelectedItem="{Binding SelectedPlan, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" DisplayMemberPath="PlanId" ItemsSource="{Binding Plans, UpdateSourceTrigger=PropertyChanged}"></ComboBox>
                                                                     <Button Grid.Column="3" Grid.Row="1" Margin="0,0,0,0" Background="Transparent"  ToolTip="Check plan" Style="{StaticResource ButtonStyle_Medium}" HorizontalAlignment="Left" VerticalAlignment="Center"
                                                                      Command="{Binding DataContext.ViewOptimizationObjectivesCommand, ElementName=SquintWindow}" CommandParameter="{Binding SelectedPlan}">
                                                                         <ContentControl>
                                                                             <Image Source="/Resources/check_plan.png"></Image>
                                                                         </ContentControl>
                                                                     </Button>
-                                                                </Grid>
+                                                                    <TextBlock Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="2" VerticalAlignment="Center" Foreground="DarkOrange" HorizontalAlignment="Center" Text="{Binding WarningString}"/>
+                                                            </Grid>
                                                             </DataTemplate>
                                                         </ListView.ItemTemplate>
                                                     </ListView>

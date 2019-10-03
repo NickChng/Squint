@@ -315,8 +315,11 @@ namespace SquintScript
         public AsyncCourse Course { get; private set; }
         public int HashId { get; private set; }
         public string Id { get; private set; }
+        public string StructureSetId { get; private set; } = "";
+        public string StructureSetUID { get; private set; } = "";
         public string UID { get; private set; }
         public bool Valid { get; private set; } = true;
+        public bool IsDoseValid { get; private set; } = true;
         public int? NumFractions { get; private set; }
         public double? Dose { get; private set; }
         public DateTime HistoryDateTime { get; private set; }
@@ -336,16 +339,19 @@ namespace SquintScript
             NumFractions = p.UniqueFractionation.NumberOfFractions;
             HashId = Convert.ToInt32(p.Id.GetHashCode() + p.Course.Id.GetHashCode() + UID.GetHashCode());
             Dose = p.TotalPrescribedDose.Dose;
+            IsDoseValid = p.IsDoseValid;
             if (p.StructureSet == null)
                 Valid = false;
             else
             {
+                StructureSetId = p.StructureSet.Id;
+                StructureSetUID = p.StructureSet.UID;
                 foreach (Structure s in p.StructureSet.Structures)
                 {
 
                     StructureIds.Add(s.Id);
                     _Structures.Add(s.Id, s);
-                    var AS = new AsyncStructure(ACurrent, s);
+                    var AS = new AsyncStructure(ACurrent, s, p.StructureSet.Id, p.StructureSet.UID);
                     Structures.Add(s.Id, AS);
                 }
             }
@@ -367,11 +373,13 @@ namespace SquintScript
                 Valid = false;
             else
             {
+                StructureSetId = ps.StructureSet.Id;
+                StructureSetUID = ps.StructureSet.UID;
                 foreach (Structure s in ps.StructureSet.Structures)
                 {
                     StructureIds.Add(s.Id);
                     _Structures.Add(s.Id, s);
-                    Structures.Add(s.Id, new AsyncStructure(ACurrent, s));
+                    Structures.Add(s.Id, new AsyncStructure(ACurrent, s, ps.StructureSet.Id, ps.StructureSet.UID));
                 }
             }
             foreach (PlanSetup p in ps.PlanSetups)
@@ -404,7 +412,7 @@ namespace SquintScript
                     var Boluses = new List<AsyncStructure>();
                     foreach (Structure s in p.StructureSet.Structures.Where(x => x.DicomType == "BOLUS"))
                     {
-                        var Bolus = new AsyncStructure(A, s);
+                        var Bolus = new AsyncStructure(A, s, p.StructureSet.Id, p.StructureSet.UID);
                         Boluses.Add(Bolus);
                     }
                     return Boluses;
@@ -606,6 +614,15 @@ namespace SquintScript
                     else return "";
                 }
                 else return "";
+            }));
+        }
+        public async Task<string> GetLastModifiedDBy()
+        {
+            return await A.ExecuteAsync(new Func<EApp, string>((app) =>
+            {
+                if (p == null)
+                    return "";
+                return p.HistoryUserName;
             }));
         }
         public async Task<int?> GetNumSlices()
@@ -887,6 +904,8 @@ namespace SquintScript
         private AsyncESAPI A;
         private Structure S;
         public string Id { get; private set; }
+        public string StructureSetID { get; private set; }
+        public string StructureSetUID { get; private set; }
         public double Volume { get; private set; }
         public bool isHighResolution { get; private set; }
         public string DicomType { get; private set; }
@@ -894,13 +913,15 @@ namespace SquintScript
         public string Code { get; private set; }
         public double HU { get; private set; }
         public bool isEmpty { get; private set; }
-        public AsyncStructure(AsyncESAPI ACurrent, Structure Sin)
+        public AsyncStructure(AsyncESAPI ACurrent, Structure Sin, string SSID, string SSUID)
         {
             A = ACurrent;
             S = Sin;
             isEmpty = Sin.IsEmpty;
             isHighResolution = S.IsHighResolution;
             Color = S.Color;
+            StructureSetUID = SSUID;
+            StructureSetID = SSID;
             Code = S.StructureCodeInfos.FirstOrDefault().Code;
             S.GetAssignedHU(out double HU_out);
             HU = HU_out;

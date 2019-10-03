@@ -538,19 +538,42 @@ namespace SquintScript
             {
                 return AvailableStructures.OrderBy(x => x.Id);
             }
+            if (SS.GetAliases().Contains("PTV56"))
+            {
+                var debugme = "hi";
+            }
             if (AvailableStructures.Count != 0)
             {
-                List<double> LD = new List<double>();
-                var CurrentId = SS.EclipseStructure.Id;
-                if (CurrentId == "") // if not assigned, use first alias
+                double[] LD = new double[AvailableStructures.Count];
+                for (int i = 0; i < AvailableStructures.Count; i++)
                 {
-                    CurrentId = SS.GetAliases().FirstOrDefault();
-                    if (CurrentId == null)
-                        CurrentId = "";
+                    LD[i] = double.PositiveInfinity;
                 }
+                int c = 0;
                 foreach (string S in AvailableStructures.Select(x => x.Id))
                 {
-                    LD.Add(LevenshteinDistance.Compute(S.Replace(@"B_", @""), CurrentId));
+                    var CurrentId = SS.EclipseStructure.Id.ToUpper();
+                    var stripString = S.Replace(@"B_", @"").Replace(@"_", @"").ToUpper();
+                    if (CurrentId == "") // if not assigned, use first alias
+                    {
+                        foreach (string Alias in SS.GetAliases())
+                        {
+                            var CompString = Alias.Replace(@"B_", @"").Replace(@"_", @"").ToUpper();
+                            double LDist = LevenshteinDistance.Compute(stripString, CompString);
+                            if (stripString.ToUpper().Contains(CompString) && stripString != "" && CompString !="")
+                                LDist = Math.Min(LDist, 1.5);
+                            LD[c] = Math.Min(LD[c], LDist);
+                        }
+                    }
+                    else
+                    {
+                        var CompString = CurrentId.Replace(@"B_", @"").Replace(@"_", @"").ToUpper();
+                        double LDist = LevenshteinDistance.Compute(stripString, CompString);
+                        if (stripString.ToUpper().Contains(CompString) && stripString != "" && CompString != "")
+                            LDist = Math.Min(LDist, 1.5);
+                        LD[c] = LDist;
+                    }
+                    c++;
                 }
                 var temp = new ObservableCollection<Ctr.EclipseStructure>(AvailableStructures.Zip(LD, (s, l) => new { key = s, LD = l }).OrderBy(x => x.LD).Select(x => x.key).ToList());
                 return temp;

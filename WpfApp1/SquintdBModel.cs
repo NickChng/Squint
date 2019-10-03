@@ -657,6 +657,7 @@ namespace SquintScript
         [ForeignKey("DbBeam")]
         public int BeamID { get; set; }
         public virtual DbBeam DbBeam { get; set; }
+        public int Trajectory { get; set; }
         public string GeometryName { get; set; }
         public double MinStartAngle { get; set; } = -1;
         public double MinEndAngle { get; set; } = -1;
@@ -784,7 +785,7 @@ namespace SquintScript
         public int ProtocolParentID { get; set; }
         public string ProtocolName { get; set; }
         public string CreationDate { get; set; }
-        public string LastModifiedDate { get; set; }
+        public long LastModified { get; set; }
         public string RetirementDate { get; set; }
         public string RetiredBy { get; set; }
         public string LastModifiedBy { get; set; }
@@ -812,7 +813,7 @@ namespace SquintScript
         public virtual DbSession DbSession { get; set; }
         public virtual ICollection<DbConstraintResult> ConstraintResults { get; set; }
         //Properties
-        public int AssessmentParentID { get; set; }
+        public int DisplayOrder { get; set; }
         public string PID { get; set; }
         public string PatientName { get; set; }
         public string SquintUser { get; set; }
@@ -820,24 +821,28 @@ namespace SquintScript
         public string AssessmentName { get; set; }
         public string Comments { get; set; }
     }
+
     public class DbPlan
     {
         [Key]
         public int ID { get; set; }
         //FK
-        [ForeignKey("DbComponent")]
-        public int ComponentID { get; set; }
-        public virtual DbComponent DbComponent { get; set; }
+        [ForeignKey("DbSessionComponent")]
+        public int SessionComponentID { get; set; }
+        public virtual DbSessionComponent DbSessionComponent { get; set; }
         [ForeignKey("DbAssessment")]
         public int AssessmentID { get; set; }
         public virtual DbAssessment DbAssessment { get; set; }
-        //public virtual ICollection<DbConstraintResult> ConstraintResults { get; set; }
+        [ForeignKey("DbSession")]
+        public int SessionId { get; set; }
+        public virtual DbSession DbSession { get; set; }
         //Properties
         public string UID { get; set; }
-        public string PID { get; set; }
         public string PlanName { get; set; }
         public string CourseName { get; set; }
         public int PlanType { get; set; }
+        public long LastModified { get; set; }
+        public string LastModifiedBy { get; set; }
     }
     public class DbComponent
     {
@@ -1039,6 +1044,8 @@ namespace SquintScript
         public virtual DbSession DbSession { get; set; }
         // Data
         public string AssignedEclipseId { get; set; }
+        public string AssignedEclipseLabel { get; set; }
+        public string AssignedEclipseStructureSetUID { get; set; }
         public int ParentECSID_Id { get; set; }
     }
 
@@ -1053,6 +1060,7 @@ namespace SquintScript
         public virtual ICollection<DbSessionComponent> SessionComponents { get; set; }
         public virtual ICollection<DbSessionConstraint> SessionConstraints { get; set; }
         public virtual ICollection<DbAssessment> SessionAssessments { get; set; }
+        public virtual ICollection<DbPlan> SessionPlans { get; set; }
         // Data
         public string PID { get; set; }
         public string SessionComment { get; set; }

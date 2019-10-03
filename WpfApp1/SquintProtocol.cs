@@ -283,7 +283,8 @@ namespace SquintScript
                         StatusCodes.Contains(ConstraintResultStatusCodes.StructureNotFound) ||
                         StatusCodes.Contains(ConstraintResultStatusCodes.NotLinked) ||
                         StatusCodes.Contains(ConstraintResultStatusCodes.LinkedPlanError) ||
-                        StatusCodes.Contains(ConstraintResultStatusCodes.ConstraintUndefined))
+                        StatusCodes.Contains(ConstraintResultStatusCodes.ConstraintUndefined) ||
+                        StatusCodes.Contains(ConstraintResultStatusCodes.ErrorUnspecified))
                         return "-";
                     else
                         return _ResultString;
@@ -722,7 +723,7 @@ namespace SquintScript
                 if (ID > 0)
                     return DataCache.GetConstraintChangelogs(ID);
                 else
-                    return new List<ConstraintChangelog>() { new ConstraintChangelog(this)};
+                    return new List<ConstraintChangelog>() { new ConstraintChangelog(this) };
             }
             public bool isCreated { get; private set; } = false;
             public bool isModified(string propertyname = "")
@@ -1247,7 +1248,7 @@ namespace SquintScript
                             ReferenceValue = Math.Round(BED(_OriginalNumFractions, SC.NumFractions, _OriginalReferenceValue, abRatio) / 100) * 100;
                             NumFractions = SC.NumFractions;
                         }
-                       // NotifyPropertyChanged("ReferenceValue");
+                        // NotifyPropertyChanged("ReferenceValue");
                         foreach (ConstraintThreshold CT in DataCache.GetConstraintThresholdByConstraintId(ID).ToList())
                         {
                             switch (CT.ThresholdName)
@@ -1360,10 +1361,6 @@ namespace SquintScript
                 try
                 {
                     ConstraintResult CR = null;
-                    if (PrimaryStructureName == "SpinalCord")
-                    {
-                        string debugme = "hi";
-                    }
                     lock (Ctr.LockConstraint)
                     {
                         if (ConstraintResults.ContainsKey(SA.ID))
@@ -1384,7 +1381,6 @@ namespace SquintScript
                     if (!isValid())
                     {
                         CR.AddStatusCode(ConstraintResultStatusCodes.ConstraintUndefined);
-                        //                        UpdateProgress();
                         CR.isCalculating = false;
                         return;
                     }
@@ -1396,11 +1392,18 @@ namespace SquintScript
                         CR.isCalculating = false;
                         return;
                     }
+                    if (ECP.LoadWarning)
+                    {
+                        CR.AddStatusCode(ConstraintResultStatusCodes.NotLinked);
+                        ConstraintEvaluated?.Raise(new ConstraintResultView(CR), SA.ID); // this notifies the view class, no need to raise to UI
+                        CR.isCalculating = false;
+                        return;
+                    }
                     List<ComponentStatusCodes> ComponentStatus = ECP.GetErrorCodes();
                     if (!ComponentStatus.Contains(ComponentStatusCodes.Evaluable))
                     { // this constraint is not evaluable because of an error int he component link
                         CR.AddStatusCode(ConstraintResultStatusCodes.ErrorUnspecified);
-                        //UpdateProgress();
+                        ConstraintEvaluated?.Raise(new ConstraintResultView(CR), SA.ID); // this notifies the view class, no need to raise to UI
                         CR.isCalculating = false;
                         return;
                     }
@@ -1586,19 +1589,19 @@ namespace SquintScript
                 ConstraintThresholdNames ThreshLevel = ConstraintThresholdNames.None;
                 if (Con.ReferenceType == ReferenceTypes.Upper)
                 {
-                    foreach (ConstraintThreshold CT in DataCache.GetAllConstraintThresholds().Where(x => x.ConstraintID == Con.ID && x.ThresholdType == ConstraintThresholdTypes.Violation).OrderBy(x => x.ThresholdValue))
+                    foreach (ConstraintThreshold CT in DataCache.GetAllConstraintThresholds().Where(x => x.ConstraintID == Con.ID && x.ThresholdType == ConstraintThresholdTypes.Violation).Where(x => !double.IsNaN(x.ThresholdValue)).OrderBy(x => x.ThresholdValue))
                         if (CR.ResultValue > CT.ThresholdValue)
                             ThreshLevel = CT.ThresholdName;
-                    foreach (ConstraintThreshold CT in DataCache.GetAllConstraintThresholds().Where(x => x.ConstraintID == Con.ID && x.ThresholdType == ConstraintThresholdTypes.Goal).OrderByDescending(x => x.ThresholdValue))
+                    foreach (ConstraintThreshold CT in DataCache.GetAllConstraintThresholds().Where(x => x.ConstraintID == Con.ID && x.ThresholdType == ConstraintThresholdTypes.Goal).Where(x => !double.IsNaN(x.ThresholdValue)).OrderByDescending(x => x.ThresholdValue))
                         if (CR.ResultValue < CT.ThresholdValue)
                             ThreshLevel = CT.ThresholdName;
                 }
                 else
                 {
-                    foreach (ConstraintThreshold CT in DataCache.GetAllConstraintThresholds().Where(x => x.ConstraintID == Con.ID && x.ThresholdType == ConstraintThresholdTypes.Violation).OrderByDescending(x => x.ThresholdValue))
+                    foreach (ConstraintThreshold CT in DataCache.GetAllConstraintThresholds().Where(x => x.ConstraintID == Con.ID && x.ThresholdType == ConstraintThresholdTypes.Violation).Where(x => !double.IsNaN(x.ThresholdValue)).OrderByDescending(x => x.ThresholdValue))
                         if (CR.ResultValue < CT.ThresholdValue)
                             ThreshLevel = CT.ThresholdName;
-                    foreach (ConstraintThreshold CT in DataCache.GetAllConstraintThresholds().Where(x => x.ConstraintID == Con.ID && x.ThresholdType == ConstraintThresholdTypes.Goal).OrderBy(x => x.ThresholdValue))
+                    foreach (ConstraintThreshold CT in DataCache.GetAllConstraintThresholds().Where(x => x.ConstraintID == Con.ID && x.ThresholdType == ConstraintThresholdTypes.Goal).Where(x => !double.IsNaN(x.ThresholdValue)).OrderBy(x => x.ThresholdValue))
                         if (CR.ResultValue > CT.ThresholdValue)
                             ThreshLevel = CT.ThresholdName;
                 }
@@ -1659,6 +1662,8 @@ namespace SquintScript
                 switch (Name)
                 {
                     case ConstraintThresholdNames.MajorViolation:
+                        if (double.IsNaN(value))
+                            return false;
                         if (ReferenceType == ReferenceTypes.Lower)
                         {
                             if (value > ReferenceValue)
@@ -1714,6 +1719,13 @@ namespace SquintScript
                             }
                         }
                     case ConstraintThresholdNames.MinorViolation:
+                        if (double.IsNaN(value)) //
+                        {
+                            var CT_minor = CTs.FirstOrDefault(x => x.ThresholdName == ConstraintThresholdNames.MinorViolation);
+                            if (CT_minor != null)
+                                CT_minor.ThresholdValue = value;
+                            return true;
+                        }
                         if (ReferenceType == ReferenceTypes.Lower)
                         {
                             if (value > ReferenceValue)
@@ -1769,6 +1781,13 @@ namespace SquintScript
                             }
                         }
                     case ConstraintThresholdNames.Stop:
+                        if (double.IsNaN(value)) //
+                        {
+                            var CT_stop = CTs.FirstOrDefault(x => x.ThresholdName == ConstraintThresholdNames.Stop);
+                            if (CT_stop != null)
+                                CT_stop.ThresholdValue = value;
+                            return true;
+                        }
                         if (ReferenceType == ReferenceTypes.Lower)
                         {
                             if (value < ReferenceValue)
@@ -2076,7 +2095,7 @@ namespace SquintScript
                     Artifacts.Add(A);
                 }
             }
-           
+
             public int ID { get; set; }
             public int ComponentID { get; set; }
             public TreatmentTechniques TreatmentTechniqueType { get; set; }
@@ -2286,6 +2305,7 @@ namespace SquintScript
             {
                 ID = DbO.ID;
                 PID = DbO.PID;
+                DisplayOrder = DbO.DisplayOrder;
                 PatientName = DbO.PatientName;
                 Comments = DbO.Comments;
                 AssessmentName = DbO.AssessmentName;
@@ -2320,7 +2340,10 @@ namespace SquintScript
                 ECP.PlanDeleting += OnECPDeleting;
                 PlanMappingChanged?.Invoke(this, ECP.ComponentID);
             }
-
+            public void Delete()
+            {
+                AssessmentDeleted?.Invoke(this, ID);
+            }
             //Evaluation Methods
             private async Task EvaluateComponentConstraints(IProgress<int> progress, int ComponentID = 0)
             {
@@ -2427,10 +2450,6 @@ namespace SquintScript
             }
             */
             //Events
-            //private void ManageSaveEvents()
-            //{
-            //    Ctr.AfterSaving += AfterSaving;
-            //}
             private void OnECPMappingChanged(object sender, int ComponentID)
             {
                 PlanMappingChanged?.Invoke(this, ComponentID);
@@ -2452,21 +2471,47 @@ namespace SquintScript
             {
                 ID = DbO.ID;
                 LinkedPlan = DataCache.GetAsyncPlan(DbO.PlanName, DbO.CourseName, (ComponentTypes)DbO.PlanType);
+                if (LinkedPlan == null)
+                {
+                    LoadWarning = true;
+                    LoadWarningString = string.Format(@"{0}\{1} Not Found!", DbO.CourseName, DbO.PlanName);
+                }
+                else
+                if (LinkedPlan.HistoryDateTime != DateTime.FromBinary(DbO.LastModified))
+                {
+                    LoadWarning = true;
+                    LoadWarningString = ComponentStatusCodes.ChangedSinceLastSession.Display();
+                }
+                AssessmentID = DbO.AssessmentID;
+                ComponentID = DbO.SessionComponentID;
                 DataCache.GetComponent(ComponentID).PropertyChanged += OnComponentPropertyChanged;
             }
             public ECPlan(AsyncPlan p, int AssessmentID_in, int ComponentID_in)
             {
                 ID = Ctr.IDGenerator();
                 LinkedPlan = p;
-                AssessmentID = AssessmentID_in;
+                if (p.PlanType == ComponentTypes.Plan)
+
+                    AssessmentID = AssessmentID_in;
                 ComponentID = ComponentID_in;
                 DataCache.GetComponent(ComponentID).PropertyChanged += OnComponentPropertyChanged;
             }
             public AsyncPlan LinkedPlan { get; set; }
+            public bool LoadWarning { get; private set; } = false;
+            public string LoadWarningString { get; private set; } = "";
             public string PID { get; private set; }
             public int AssessmentID { get; private set; }
             public int ComponentID { get; private set; }
-            public ComponentTypes PlanType { get; set; }
+            public ComponentTypes PlanType
+            {
+                get
+                {
+                    if (Linked)
+                        return LinkedPlan.PlanType;
+                    else
+                        return ComponentTypes.Unset;
+                }
+            }
             public int ID { get; private set; }
             public string UID
             {
@@ -2542,8 +2587,13 @@ namespace SquintScript
             {
                 return ValidateComponentAssociations();
             }
-            public void Reassociate(AsyncPlan p)
+            public void Reassociate(AsyncPlan p, bool ClearWarnings)
             {
+                if (ClearWarnings) // only want to do this if Reassociation is done by user
+                {
+                    LoadWarning = false;
+                    LoadWarningString = "";
+                }
                 LinkedPlan = p;
                 PlanMappingChanged?.Invoke(this, ComponentID);
                 if (p == null)
@@ -2559,11 +2609,17 @@ namespace SquintScript
                     ErrorCodes.Add(ComponentStatusCodes.NotLinked);
                     return ErrorCodes;
                 }
-                // If it meets these criteria the component is evaluable
+                if (!LinkedPlan.IsDoseValid)
+                {
+                    ErrorCodes.Add(ComponentStatusCodes.NoDoseDistribution);
+                    return ErrorCodes;
+                }
                 ErrorCodes.Add(ComponentStatusCodes.Evaluable);
                 Component SC = DataCache.GetComponent(ComponentID);
                 if (SC.ComponentType == ComponentTypes.Plan)
                 {
+                    if (!LinkedPlan.IsDoseValid)
+                        ErrorCodes.Add(ComponentStatusCodes.NoDoseDistribution);
                     if (Math.Abs((double)LinkedPlan.Dose - SC.ReferenceDose) > 1)
                     {
                         // Reference dose mismatch
@@ -2575,6 +2631,7 @@ namespace SquintScript
                         ErrorCodes.Add(ComponentStatusCodes.NumFractionsMismatch);
                     }
                 }
+
                 //else if (SC.ComponentType == ComponentTypes.Sum)
                 //{
                 //    // First confirm that all constituent components do not have errors
@@ -2722,6 +2779,7 @@ namespace SquintScript
                 DisplayOrder = DataCache.GetAllECSIDs().Count() + 1;
                 ProtocolID = DataCache.CurrentProtocol.ID;
                 StructureLabelID = StructureLabelID_in;
+                ES.PropertyChanged += OnESPropertyChanged;
             }
             public List<string> DefaultEclipseAliases { get; private set; } = new List<string>();
             public string GetStructureDescription(bool GetParentValues = false)
@@ -2749,12 +2807,24 @@ namespace SquintScript
             public int StructureLabelID { get; set; }
             public string ProtocolStructureName { get; set; }
             public StructureCheckList CheckList { get; set; }
-            public EclipseStructure ES { get; set; } = new EclipseStructure("", null);
-            public double AssignedHU 
+            private EclipseStructure _ES = new EclipseStructure(null);
+            public EclipseStructure ES
             {
                 get
                 {
-                    return ES.HU;
+                    return _ES;
+                }
+                set
+                {
+                    _ES = value;
+                    _ES.PropertyChanged += OnESPropertyChanged;
+                }
+            }
+            public double AssignedHU
+            {
+                get
+                {
+                    return ES.HU();
                 }
             }
             public string EclipseStructureLabel
@@ -2768,6 +2838,7 @@ namespace SquintScript
                     return ES.Id;
                 }
             }
+            public string EclipseStructureSetUID { get { return ES.StructureSetUID; } }
             public void Delete()
             {
                 ECSIDDeleting?.Invoke(this, ID);
@@ -2795,7 +2866,7 @@ namespace SquintScript
                 if (matchedIDs.Count > 0)
                 {
                     var sorted_Ids = matchedIDs.Zip(rank, (Ids, Order) => new { Ids, Order }).OrderBy(x => x.Order).Select(x => x.Ids);
-                    ES.Update(sorted_Ids.First(), ECP);
+                    ES.Update(P.Structures[sorted_Ids.First()]);
                 }
             }
             private void OnESPropertyChanged(object sender, PropertyChangedEventArgs e)

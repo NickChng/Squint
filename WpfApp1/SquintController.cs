@@ -27,7 +27,7 @@ namespace SquintScript
     {
         //<add name="SquintdBModel.config" connectionString="Server=sprtqacn001;Port=5432;Database=Squint_v05_April_Clinical;User Id=postgres;Password=bccacn;" providerName="Npgsql" />
         private static string providerName = "Npgsql"; //Get this
-        private static string databaseName = "Squint_Dev";
+        private static string databaseName = "Squint_v052_Clinical";
         private static string userName = "postgres";
         private static string password = "bccacn";
         private static string host = "sprtqacn001";
@@ -35,15 +35,9 @@ namespace SquintScript
 
         public static DbConnection GetDatabaseConnection()
         {
-
-            //var connectionString = @"Server=sprtqacn001;Port=5432;Database=Squint_v05_April_Clinical;User Id=postgres;Password=bccacn; providerName=Npgsql";
-            //var N = new NpgsqlConnection(connectionString);
-
-            //Insert it here
             var conn = DbProviderFactories.GetFactory(providerName).CreateConnection();
             conn.ConnectionString = $"Server={host}; " + $"Port={port}; " +
                 $"User Id={userName};" + $"Password={password};" + $"Database={databaseName};";
-
             return conn;
         }
         public static string ConnectionString()
@@ -195,120 +189,131 @@ namespace SquintScript
         public class EclipseStructure : ObservableObject
         {
             //public event PropertyChangedEventHandler PropertyChanged;
-            public string Id { get; private set; } = "";
-            private ECPlan ECP = null;
-            public EclipseStructure(string StructureId, ECPlan ECP_in)
-            {
-                Id = StructureId;
-                ECP = ECP_in;
-                if (ECP != null)
-                {
-                    ECP.PropertyChanged += UpdateStructure;
-                    LabelName = GetLabelName();
-                }
-            }
-            public string LabelName { get; private set; } = "not assigned";
-            public async Task<int> VMS_NumParts()
-            {
-                if (ECP != null)
-                {
-                    if (ECP.LinkedPlan.Structures.ContainsKey(Id))
-                    {
-                        AsyncStructure S = ECP.LinkedPlan.Structures[Id];
-                        if (!S.isEmpty)
-                            return await S.GetVMS_NumParts();
-                        else
-                            return -1;
-                    }
-                    else return -1;
-                }
-                else return -1;
-            }
-            public async Task<List<double>> PartVolumes()
-            {
-                if (ECP != null)
-                {
-                    if (ECP.LinkedPlan.Structures.ContainsKey(Id))
-                    {
-                        AsyncStructure S = ECP.LinkedPlan.Structures[Id];
-                        if (!S.isEmpty)
-                            return await S.GetPartVolumes();
-                        else
-                            return null;
-                    }
-                    else return null;
-                }
-                else return null;
-            }
-            public async Task<int> NumParts()
-            {
-                if (ECP != null)
-                {
-                    if (ECP.LinkedPlan.Structures.ContainsKey(Id))
-                    {
-                        AsyncStructure S = ECP.LinkedPlan.Structures[Id];
-                        if (!S.isEmpty)
-                            return await S.GetNumSeperateParts();
-                        else
-                            return -1;
-                    }
-                    else return -1;
-                }
-                else return -1;
-            }
-            public double HU
+            public string Id
             {
                 get
                 {
-                    if (ECP != null)
-                    {
-                        if (ECP.LinkedPlan.Structures.ContainsKey(Id))
-                        {
-                            AsyncStructure S = ECP.LinkedPlan.Structures[Id];
-                            if (!S.isEmpty)
-                                return ECP.LinkedPlan.Structures[Id].HU;
-                            else
-                                return double.NaN;
-                        }
-                        else return double.NaN;
-                    }
-                    else return double.NaN;
+                    if (_A == null)
+                        return "";
+                    return _A.Id;
                 }
             }
-            private string GetLabelName()
+            private AsyncStructure _A { get; set; }
+            public EclipseStructure(AsyncStructure A)
             {
-                if (ECP.LinkedPlan != null)
-                    if (ECP.LinkedPlan.Structures.ContainsKey(Id))
-                        return DataCache.GetLabelByCode(ECP.LinkedPlan.Structures[Id].Code);
-                    else
-                        return "not assigned";
-                else
-                    return "not assigned";
+                _A = A;
             }
-            public void Update(string Id_in, ECPlan ECP_in)
+            //public async Task<bool> RegisterPlan(ECPlan ECP)
+            //{
+            //    if (ECP.Linked)
+            //    {
+            //        if (ECP.LinkedPlan.StructureIds.Contains(Id))
+            //        {
+            //            MessageBox.Show("Error: Structure Id does not exist in this structure set");
+            //            return false;
+            //        }
+            //        var SS = await ECP.LinkedPlan.GetStructureSetSOPUID();
+            //        if (LinkedPlans.Count() == 0)
+            //        {
+            //            LinkedPlans.Add(ECP);
+            //            ECP.PropertyChanged += UpdateStructure;
+            //            SetStructureSetUID();
+            //            LabelName = GetLabelName();
+            //            return true;
+            //        }
+            //        else
+            //        {
+            //            if (SS == StructureSetUID)
+            //            {
+            //                LinkedPlans.Add(ECP);
+            //                ECP.PropertyChanged += UpdateStructure;
+            //                return true;
+            //            }
+            //            else
+            //            {
+            //                MessageBox.Show("Error: Assigned plan has a different structure set");
+            //                return false;
+            //            }
+            //        }
+            //    }
+            //    else
+            //    {
+            //        MessageBox.Show("Error: Assigned plan has no structure set");
+            //        return false;
+            //    }
+            //}
+            //private async void SetStructureSetUID()
+            //{
+            //    StructureSetUID = await LinkedPlans.First().LinkedPlan.GetStructureSetSOPUID();
+            //}
+            public string StructureSetUID
             {
-                Id = Id_in;
-                if (ECP != null)
-                    ECP.PropertyChanged -= UpdateStructure;
-                ECP = ECP_in;
-                if (ECP != null)
-                    ECP.PropertyChanged += UpdateStructure;
-                LabelName = GetLabelName();
-            }
-            private void UpdateStructure(object sender, PropertyChangedEventArgs e)
-            {
-                if (e.PropertyName == "LinkedPlan")
+                get
                 {
-                    if (ECP.Linked)
+                    if (_A == null)
+                        return "";
+                    return _A.StructureSetUID;
+                }
+            }
+            public string LabelName
+            {
+                get
+                {
+                    if (_A == null)
+                        return "";
+                    else
                     {
-                        if (!ECP.LinkedPlan.Structures.ContainsKey(Id))
-                        {
-                            Id = "";
-                        }
-                        LabelName = GetLabelName();
+                        if (_A.Code == null)
+                            return "Unset";
+                        else
+                            return DataCache.GetLabelByCode(_A.Code);
                     }
                 }
             }
+            public async Task<int> VMS_NumParts()
+            {
+                if (_A == null)
+                    return -1;
+                return await _A.GetVMS_NumParts();
+            }
+            public async Task<List<double>> PartVolumes()
+            {
+                if (_A == null)
+                    return null;
+                return await _A.GetPartVolumes();
+
+            }
+            public async Task<int> NumParts()
+            {
+                if (_A == null)
+                    return -1;
+                return await _A.GetNumSeperateParts();
+            }
+            public double HU()
+            {
+                if (_A == null)
+                    return -1;
+                return _A.HU;
+            }
+            public void Update(AsyncStructure A)
+            {
+                _A = A;
+            }
+            //private void UpdateStructure(object sender, PropertyChangedEventArgs e)
+            //{
+            //    if (e.PropertyName == "LinkedPlan")
+            //    {
+            //        var ECP = (sender as ECPlan);
+            //        if (ECP.Linked)
+            //        {
+            //            if (!ECP.LinkedPlan.Structures.ContainsKey(Id))
+            //            {
+            //                Id = "";
+            //            }
+            //            LabelName = GetLabelName();
+            //        }
+            //    }
+            //}
         }
         public class StructureView
         {
@@ -864,6 +869,9 @@ namespace SquintScript
                 set
                 {
                     Con.ReferenceValue = value; // Con will notify ConstraintView to update the private field
+                    StopValue = double.NaN;
+                    MajorViolation = value;
+                    MinorViolation = double.NaN;
                 }
             }
             public double StopValue
@@ -1158,6 +1166,8 @@ namespace SquintScript
             {
                 get { return ECP.CourseName; }
             }
+            public bool LoadWarning { get { return ECP.LoadWarning; } }
+            public string LoadWarningString { get { return ECP.LoadWarningString; } }
             public ComponentTypes PlanType
             {
                 get { return ECP.PlanType; }
@@ -1166,6 +1176,7 @@ namespace SquintScript
             {
                 get { return ECP.GetStructureNames; }
             }
+            public List<ComponentStatusCodes> ErrorCodes { get { return ECP.GetErrorCodes(); } }
             public bool isStructureEmpty(string StructureID)
             {
                 var isEmpty = ECP.isStructureEmpty(StructureID);
@@ -1259,12 +1270,13 @@ namespace SquintScript
                     ECP.Delete();
                 }
             }
-            public List<ComponentStatusCodes> AssociatePlanToComponent(int ComponentID, string CourseId, string PlanId)
+            public List<ComponentStatusCodes> AssociatePlanToComponent(int ComponentID, string CourseId, string PlanId, bool ClearWarnings) // ClearWarnings
             {
                 AsyncPlan p = DataCache.GetAsyncPlans().FirstOrDefault(x => x.Id == PlanId && x.Course.Id == CourseId);
                 ECPlan ECP = DataCache.GetAllPlans().Where(x => x.AssessmentID == ID && x.ComponentID == ComponentID).SingleOrDefault();
                 if (ECP == null)
                 {
+                    // If it meets these criteria the component is evaluable
                     ECP = new ECPlan(p, ID, ComponentID);
                     DataCache.AddPlan(ECP);
                     SA.AutoCalculate = false; // disable this while we apply aliasing 
@@ -1277,7 +1289,9 @@ namespace SquintScript
                     DataCache.GetAssessment(ID).RegisterPlan(ECP); // this will fire PlanMappingChanged and update all DataCache.Constraints
                 }
                 else
-                    ECP.Reassociate(p);
+                {
+                    ECP.Reassociate(p, ClearWarnings);
+                }
                 LinkedPlansChanged?.Invoke(this, EventArgs.Empty);
                 return ECP.GetErrorCodes();
             }
@@ -1821,7 +1835,7 @@ namespace SquintScript
         }
         public static List<AssessmentView> GetAssessmentViewList()
         {
-            return AssessmentViews.Values.ToList();
+            return AssessmentViews.Values.OrderBy(x=>x.DisplayOrder).ToList();
         }
         public static List<StructureLabelView> GetStructureLabelViewList()
         {
@@ -1912,10 +1926,9 @@ namespace SquintScript
             foreach (ECPlan E in DataCache.GetAllPlans().ToList())
             {
                 if (E.Linked)
-                    foreach (string StructureId in E.LinkedPlan.StructureIds)
+                    foreach (var Structure in E.LinkedPlan.Structures.Values)
                     {
-                        if (!StructureIds.Select(x => x.Id).Contains(StructureId))
-                            StructureIds.Add(new EclipseStructure(StructureId, E));
+                        StructureIds.Add(new EclipseStructure(Structure));
                     }
             }
             return StructureIds;
@@ -2590,18 +2603,25 @@ namespace SquintScript
                                 DbBeamGeometry DbAG = LocalContext.DbBeamGeometries.Create();
                                 DbAG.DbBeam = B;
                                 DbAG.GeometryName = ArcG.GeometryName;
+                                Trajectories T;
+                                if (Enum.TryParse(ArcG.Trajectory, out T))
+                                {
+                                    DbAG.Trajectory = (int)T;
+                                }
+                                else
+                                    DbAG.Trajectory = (int)Trajectories.Unset;
                                 if (ArcG.MinStartAngle > -1)
                                     DbAG.MinStartAngle = ArcG.MinStartAngle;
                                 else
-                                    DbAG.MinStartAngle = ArcG.MaxStartAngle-1E-5;
+                                    DbAG.MinStartAngle = ArcG.MaxStartAngle - 1E-5;
                                 if (ArcG.MinEndAngle > -1)
                                     DbAG.MinEndAngle = ArcG.MinEndAngle;
                                 else
-                                    DbAG.MinEndAngle = DbAG.MaxEndAngle-1E-5;
+                                    DbAG.MinEndAngle = DbAG.MaxEndAngle - 1E-5;
                                 if (ArcG.MaxStartAngle > -1)
                                     DbAG.MaxStartAngle = ArcG.MaxStartAngle;
                                 else
-                                    DbAG.MaxStartAngle = DbAG.MinStartAngle +1E-5;
+                                    DbAG.MaxStartAngle = DbAG.MinStartAngle + 1E-5;
                                 if (ArcG.MaxEndAngle > -1)
                                     DbAG.MaxEndAngle = ArcG.MaxEndAngle;
                                 else
@@ -3039,29 +3059,53 @@ namespace SquintScript
             DataCache.Delete_Session(ID);
             SessionsChanged?.Invoke(null, EventArgs.Empty);
         }
-        public static void Load_Session(int ID)
+        public static async Task<bool> Load_Session(int ID)
         {
             if (PatientLoaded)
             {
                 if (ProtocolLoaded)
                     CloseProtocol();
-                DataCache.Load_Session(ID);
-                ActivePV = new ProtocolView(DataCache.CurrentProtocol);
-                foreach (Component Comp in DataCache.GetAllComponents())
+                DataCache.ClearAssessments();
+                if (await DataCache.Load_Session(ID))  // true if successful load
                 {
-                    new ComponentView(Comp);
+                    ActivePV = new ProtocolView(DataCache.CurrentProtocol);
+                    foreach (Assessment A in DataCache.GetAllAssessments())
+                    {
+                        new AssessmentView(A);
+                    }
+                    foreach (Component Comp in DataCache.GetAllComponents())
+                    {
+                        new ComponentView(Comp);
+                    }
+                    foreach (ECSID ECSID in DataCache.GetAllECSIDs())
+                    {
+                        new StructureView(ECSID);
+                    }
+                    foreach (Constraint Con in DataCache.GetAllConstraints())
+                    {
+                        ConstraintView CV = new ConstraintView(Con);
+                        foreach (Assessment A in DataCache.GetAllAssessments())
+                        {
+                            Con.RegisterAssessment(A);
+                        }
+                    }
+                    foreach (ECPlan P in DataCache.GetAllPlans())
+                    {
+                        var C = await DataCache.GetCourseAsync(P.CourseName);
+                        DataCache.GetAssessment(P.AssessmentID).RegisterPlan(P);
+                        if (P.Linked)
+                        {
+                            var AP = C.Plans.FirstOrDefault(x => x.Id == P.PlanName);
+                            if (AP != null)
+                                P.Reassociate(AP, false);
+                        }
+                    }
+                    ProtocolLoaded = true;
+                    ProtocolOpened?.Invoke(null, EventArgs.Empty);
                 }
-                foreach (ECSID ECSID in DataCache.GetAllECSIDs())
-                {
-                    new StructureView(ECSID);
-                }
-                foreach (Constraint Con in DataCache.GetAllConstraints())
-                {
-                    ConstraintView CV = new ConstraintView(Con);
-                }
-                ProtocolLoaded = true;
-                ProtocolOpened?.Invoke(null, EventArgs.Empty);
+                return true;
             }
+            else return false;
         }
         public static async void SynchronizePlans()
         {
@@ -3117,7 +3161,7 @@ namespace SquintScript
                                 if (p.HistoryDateTime != PlanLastModified[ECP.ID])
                                 {
                                     MessageBox.Show(string.Format("Note: Dose distribution in plan {0} has changed since last evaluation", IdToPlanName[ECP.ID]));
-                                    ECP.Reassociate(p); // Reassociated fires PlanMappingChanged event which is subscribed to by the assessment, which is subscribed to by the DataCache.Constraints, which update in response
+                                    ECP.Reassociate(p, false); // Reassociated fires PlanMappingChanged event which is subscribed to by the assessment, which is subscribed to by the DataCache.Constraints, which update in response
                                 }
                                 else
                                     ECP.LinkedPlan = p;
@@ -3126,7 +3170,7 @@ namespace SquintScript
                         else
                         {
                             MessageBox.Show(string.Format("Course {0} no longer exists", IdToCourseName[ECP.ID]));
-                            ECP.Reassociate(p);
+                            ECP.Reassociate(p, false);
                         }
                     }
                 }
@@ -3263,21 +3307,30 @@ namespace SquintScript
             }
             return SVs;
         }
-        public static AssessmentView NewAssessment(string AssessmentName_in = "")
+        public static AssessmentView NewAssessment()
         {
-            if (AssessmentName_in == "")
-            {
-                AssessmentName_in = string.Format("Assessment#{0}", _AssessmentNameIterator++);
-            }
-            Assessment NewAssessment = new Assessment(AssessmentName_in, _AssessmentNameIterator - 1);
+            Assessment NewAssessment = new Assessment(string.Format("Assessment#{0}", _AssessmentNameIterator), _AssessmentNameIterator);
             DataCache.AddAssessment(NewAssessment);
             foreach (Constraint Con in DataCache.GetAllConstraints())
             {
                 Con.RegisterAssessment(NewAssessment);
             }
+            _AssessmentNameIterator++;
             //Subscribe to updates
             AssessmentView AV = new AssessmentView(NewAssessment);
             NewAssessmentAdded?.Invoke(null, NewAssessment.ID);
+            return AV;
+        }
+        public static AssessmentView LoadAssessment(int AssessmentID)
+        {
+            Assessment A = DataCache.GetAssessment(AssessmentID);
+            foreach (Constraint Con in DataCache.GetAllConstraints())
+            {
+                Con.RegisterAssessment(A);
+            }
+            //Subscribe to updates
+            AssessmentView AV = new AssessmentView(A);
+            NewAssessmentAdded?.Invoke(null, A.ID);
             return AV;
         }
         public static void RemoveAssessment(int AssessmentID)
@@ -3298,7 +3351,7 @@ namespace SquintScript
             DataCache.ClosePatient();
             PatientLoaded = false;
             DataCache.ClearCourses();
-            _AssessmentNameIterator = 0;
+            _AssessmentNameIterator = 1;
             PatientClosed?.Invoke(null, EventArgs.Empty); // this fires the event PatientClosed, which is subscribed to by the UI to clear any DataCache.Patient specific fields
         }
         public static void LoadPatientFromDatabase(string PID)

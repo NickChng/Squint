@@ -50,14 +50,15 @@ namespace SquintScript
             public static AsyncPatient Patient { get; private set; }
             private static Dictionary<int, Beam> _Beams = new Dictionary<int, Beam>(); // lookup Beam by its key
             private static Dictionary<int, Constraint> _Constraints = new Dictionary<int, Constraint>(); // lookup constraint by its key
+            private static Dictionary<int, AsyncPlan> _AsyncPlans = new Dictionary<int, AsyncPlan>();
             private static Dictionary<int, ECPlan> _Plans = new Dictionary<int, ECPlan>();
             private static Dictionary<int, Component> _Components = new Dictionary<int, Component>(); // lookup component by key
             private static Dictionary<int, Assessment> _Assessments = new Dictionary<int, Assessment>();
             //private static Dictionary<int, Constituent> _Constituents = new Dictionary<int, Constituent>();
             private static Dictionary<int, ConstraintThreshold> _ConstraintThresholds = new Dictionary<int, ConstraintThreshold>();
-            private static Dictionary<int, AsyncPlan> _AsyncPlans = new Dictionary<int, AsyncPlan>();
+            private static Dictionary<int, AsyncStructure> _AsyncStructures = new Dictionary<int, AsyncStructure>();
             private static Dictionary<string, AsyncCourse> _Courses = new Dictionary<string, AsyncCourse>();
-            private static Dictionary<int, object> _EclipsePlans = new Dictionary<int, object>(); // may be PlanSetup or PlanSum
+            //private static Dictionary<int, object> _EclipsePlans = new Dictionary<int, object>(); // may be PlanSetup or PlanSum
             private static Dictionary<string, int> _CourseIDbyName = new Dictionary<string, int>();
             private static Dictionary<int, ECSID> _ECSIDs = new Dictionary<int, ECSID>();
             private static Dictionary<string, bool> _isCourseLoaded = new Dictionary<string, bool>(); // check to see whether course has been loaded by EclipseID/name
@@ -245,11 +246,19 @@ namespace SquintScript
             public static void AddConstraintThreshold(ConstraintThreshold C)
             {
                 _ConstraintThresholds.Add(C.ID, C);
+                if (C.ConstraintID == 493)
+                {
+                    var debugme = "hi";
+                }
             }
             public static void AddConstraintThreshold(ConstraintThresholdNames Name, ConstraintThresholdTypes Goal, Constraint Con, double value)
             {
                 ConstraintThreshold CT = new ConstraintThreshold(Name, Goal, Con, value);
                 _ConstraintThresholds.Add(CT.ID, CT);
+                if (Con.ID == 493)
+                {
+                    var debugme = "hi";
+                }
             }
 
             public static ConstraintThreshold LoadConstraintThreshold(DbConThreshold DbCT, int ConId)
@@ -358,6 +367,7 @@ namespace SquintScript
                 foreach (DbStructureLabel DbSL in SquintDb.Context.DbStructureLabels)
                     _StructureLabels.Add(DbSL.ID, new StructureLabel(DbSL));
             }
+
             public static StructureLabel GetStructureLabel(int Id)
             {
                 return _StructureLabels[Id];
@@ -381,14 +391,25 @@ namespace SquintScript
             public static void AddAssessment(Assessment A)
             {
                 _Assessments.Add(A.ID, A);
+                A.AssessmentDeleted += OnAssessmentDeleting;
+
+            }
+            public static void OnAssessmentDeleting(object sender, int ID)
+            {
+                _Assessments[ID].AssessmentDeleted -= OnAssessmentDeleting;
+                DeleteAssessment(ID);
             }
             public static void DeleteAssessment(int ID)
             {
+                _Assessments[ID].Delete();
                 _Assessments.Remove(ID);
             }
             public static void ClearAssessments()
             {
-                _Assessments.Clear();
+                foreach (int AssessmentID in _Assessments.Keys.ToList())
+                {
+                    DeleteAssessment(AssessmentID);
+                }
                 _AssessmentNameIterator = 1;
             }
             public static Assessment GetAssessment(int ID)
@@ -400,17 +421,9 @@ namespace SquintScript
             }
             public static IEnumerable<Assessment> GetAllAssessments()
             {
-                return _Assessments.Values;
+                return _Assessments.Values.OrderBy(x=>x.DisplayOrder);
             }
-            //public static List<AssessmentPreviewView> GetAssessmentPreviews(string PID)
-            //{
-            //    List<AssessmentPreviewView> values = new List<AssessmentPreviewView>();
-            //    foreach (DbAssessment DbA in SquintDb.Context.DbAssessments.Where(x => x.PID == PID))
-            //    {
-            //        values.Add(new AssessmentPreviewView(DbA.ID, DbA.AssessmentName, DbA.DbProtocol.ProtocolName, DbA.SquintUser, DbA.DateOfAssessment, DbA.Comments));
-            //    }
-            //    return values;
-            //}
+
 
             public static void AddAsyncPlan(AsyncPlan P)
             {
@@ -430,8 +443,15 @@ namespace SquintScript
             }
             public static AsyncPlan GetAsyncPlan(string PlanName, string CourseName, ComponentTypes PlanType)
             {
+                if (!_Courses.ContainsKey(CourseName))
+                    LoadCourse(CourseName);
                 return _AsyncPlans.Values.FirstOrDefault(x => x.Id == PlanName && x.Course.Id == CourseName && x.PlanType == PlanType);
             }
+            private static async void LoadCourse(string CourseName)
+            {
+                var C = await GetCourse(CourseName);
+            }
+
             public static IEnumerable<AsyncPlan> GetAsyncPlans()
             {
                 return _AsyncPlans.Values;
@@ -668,18 +688,18 @@ namespace SquintScript
                     P.Delete();
                 CurrentProtocol = null;
             }
-            public static void Load_Session(int ID)
+            public static async Task<bool> Load_Session(int ID)
             {
                 using (SquintdBModel Context = new SquintdBModel())
                 {
                     DbSession DbS = Context.DbSessions.FirstOrDefault(x => x.PID == PatientID && x.ID == ID);
                     if (DbS == null)
-                        return;
+                        return false;
                     DbSessionProtocol DbSP = DbS.DbSessionProtocol;
                     if (DbSP == null)
                     {
                         ProtocolLoaded = false;
-                        return;
+                        return false;
                     }
                     if (ProtocolLoaded)
                     {
@@ -695,12 +715,22 @@ namespace SquintScript
                     {
                         CurrentProtocol = new Protocol(DbSP);
                         CurrentSession.AddProtocol(CurrentProtocol);
+                        foreach (DbPlan DbP in DbS.SessionPlans)
+                            // Load associated course
+                            await GetCourse(DbP.CourseName); // this will load all of the Eclipse Courses and populate _AsyncPlans, but we don't create the ECPlan objects until the components are loaded
                         bool AtLeastOneStructure = false;
-                        var test = _ECSIDs;
                         foreach (DbSessionECSID DbECSID in DbSP.ECSIDs)
                         {
                             ECSID E = new ECSID(DbECSID);
                             AddECSID(E);
+                            var P = _AsyncPlans.Values.FirstOrDefault(x => x.StructureSetUID == DbECSID.AssignedEclipseStructureSetUID);
+                            if (P != null)
+                            {
+                                if (P.Structures.ContainsKey(DbECSID.AssignedEclipseId))
+                                {
+                                    E.ES = new EclipseStructure(P.Structures[DbECSID.AssignedEclipseId]);
+                                }
+                            }
                             AtLeastOneStructure = true;
                         }
                         if (!AtLeastOneStructure)
@@ -747,18 +777,27 @@ namespace SquintScript
                                     else
                                     {
                                         throw new NotImplementedException();
-                                        //DbConThresholdDef MajorViolation = SquintDb.Context.DbConThresholdDefs.Where(x => x.Threshold == (int)ConstraintThresholdNames.MajorViolation).Single();
-                                        //CT = new ConstraintThreshold(MajorViolation, _DbO.ID, _DbO.ReferenceValue);
-                                        //CT.ConstraintThresholdChanged += OnConstraintThresholdChanged;
                                     }
                                 }
                             }
+                            foreach (DbAssessment DbA in DbS.SessionAssessments)
+                            {
+                                Assessment A = new Assessment(DbA);
+                                AddAssessment(A);
+                            }
+                            foreach (DbPlan DbP in DbS.SessionPlans)
+                            {
+                                ECPlan P = new ECPlan(DbP);
+                                AddPlan(P);
+                            }
+                         
                         }
+                        return true;
                     }
                     catch (Exception ex)
                     {
                         MessageBox.Show(string.Format("{0}/r/n{1}/r/n{2}", ex.Message, ex.InnerException, ex.StackTrace));
-                        return;
+                        return false;
                     }
                 }
             }
@@ -786,7 +825,7 @@ namespace SquintScript
                     }
                 }
             }
-            public static void Save_Session(string SessionComment)
+            public static async void Save_Session(string SessionComment)
             {
                 Dictionary<int, int> ComponentLookup = new Dictionary<int, int>();
                 Dictionary<int, int> StructureLookup = new Dictionary<int, int>();
@@ -814,7 +853,7 @@ namespace SquintScript
                     DbP.ApprovalLevelID = Context.DbApprovalLevels.FirstOrDefault(x => x.ApprovalLevel == (int)ApprovalLevels.Unapproved).ID;
                     DbP.ProtocolTypeID = Context.DbProtocolTypes.FirstOrDefault(x => x.ProtocolType == (int)CurrentProtocol.ProtocolType).ID;
                     DbP.LastModifiedBy = SquintUser;
-                    DbP.LastModifiedDate = DateTime.Now.ToShortDateString();
+                    DbP.LastModified = DateTime.Now.ToBinary();
                     DbP.ProtocolParentID = CurrentProtocol.ID;
                     // Assessment
                     foreach (Assessment A in _Assessments.Values)
@@ -823,13 +862,13 @@ namespace SquintScript
                         Context.DbAssessments.Add(DbA);
                         DbA.ID = IDGenerator();
                         AssessmentLookup.Add(A.ID, DbA.ID);
+                        DbA.DisplayOrder = A.DisplayOrder;
                         DbA.SessionID = DbS.ID;
                         DbA.PID = Ctr.PatientID;
                         DbA.PatientName = string.Format("{0}, {1}", Ctr.PatientLastName, Ctr.PatientFirstName);
                         DbA.DateOfAssessment = DateTime.Now.ToShortDateString();
                         DbA.SquintUser = Ctr.SquintUser;
                         DbA.AssessmentName = A.AssessmentName;
-                        //Update Components
                     }
                     var SessionECSID_Lookup = new Dictionary<int, int>();
                     foreach (ECSID S in _ECSIDs.Values)
@@ -841,6 +880,8 @@ namespace SquintScript
                         DbE.SessionId = DbS.ID;
                         DbE.ParentECSID_Id = S.ID;
                         DbE.AssignedEclipseId = S.EclipseStructureName;
+                        DbE.AssignedEclipseLabel = S.EclipseStructureLabel;
+                        DbE.AssignedEclipseStructureSetUID = S.EclipseStructureSetUID;
                         StructureLookup.Add(S.ID, DbE.ID);
                         DbE.ProtocolID = DbP.ID;
                         DbE.ProtocolStructureName = S.ProtocolStructureName;
@@ -857,6 +898,7 @@ namespace SquintScript
                     foreach (Component SC in _Components.Values)
                     {
                         DbSessionComponent DbC = Context.DbSessionComponents.Create();
+                        DbC.ComponentType = (int)SC.ComponentType;
                         Context.DbSessionComponents.Add(DbC);
                         DbC.ID = IDGenerator();
                         DbC.SessionID = DbS.ID;
@@ -934,7 +976,7 @@ namespace SquintScript
                                 DbBG.MinEndAngle = BG.MinEndAngle;
                                 DbBG.MinStartAngle = BG.MinStartAngle;
                             }
-                            if (DbB.DbEnergies == null && B.ValidEnergies.Count>0)
+                            if (DbB.DbEnergies == null && B.ValidEnergies.Count > 0)
                             {
                                 DbB.DbEnergies = new List<DbEnergy>();
                             }
@@ -942,6 +984,24 @@ namespace SquintScript
                             {
                                 DbB.DbEnergies.Add(Context.DbEnergies.Find((int)VE));
                             }
+                        }
+                        var Plans = _Plans.Values.Where(x => x.ComponentID == SC.ID);
+                    }
+                    foreach (ECPlan P in _Plans.Values)
+                    {
+                        if (P.Linked)
+                        {
+                            DbPlan DbPl = Context.DbPlans.Create();
+                            DbPl.SessionId = DbS.ID;
+                            DbPl.AssessmentID = AssessmentLookup[P.AssessmentID];
+                            DbPl.SessionComponentID = ComponentLookup[P.ComponentID];
+                            DbPl.LastModified = P.LinkedPlan.HistoryDateTime.ToBinary();
+                            DbPl.LastModifiedBy = await P.LinkedPlan.GetLastModifiedDBy();
+                            DbPl.CourseName = P.CourseName;
+                            DbPl.PlanName = P.PlanName;
+                            DbPl.UID = P.UID;
+                            DbPl.PlanType = (int)P.PlanType;
+                            Context.DbPlans.Add(DbPl);
                         }
                     }
                     foreach (Constraint Con in _Constraints.Values)
@@ -980,17 +1040,18 @@ namespace SquintScript
                                 DbCR.ResultValue = CRV.ResultValue;
                             }
                         }
+                        foreach (ConstraintThreshold CT in _ConstraintThresholds.Values.Where(x => x.ConstraintID == Con.ID))
+                        {
+                            DbSessionConThreshold DbCT = Context.DbSessionConThresholds.Create();
+                            Context.DbSessionConThresholds.Add(DbCT);
+                            DbCT.ConstraintID = DbO.ID;
+                            DbCT.DbConThresholdDef = Context.DbConThresholdDefs.Where(x => x.Threshold == (int)CT.ThresholdName).SingleOrDefault();
+                            DbCT.DbSession = DbS;
+                            DbCT.ThresholdValue = CT.ThresholdValue;
+                            DbCT.ParentConstraintThresholdID = CT.ID;
+                        }
                     }
-                    foreach (ConstraintThreshold CT in _ConstraintThresholds.Values)
-                    {
-                        DbSessionConThreshold DbCT = Context.DbSessionConThresholds.Create();
-                        Context.DbSessionConThresholds.Add(DbCT);
-                        DbCT.ConstraintID = CT.ConstraintID;
-                        DbCT.DbConThresholdDef = Context.DbConThresholdDefs.Where(x => x.Threshold == (int)CT.ThresholdName).SingleOrDefault();
-                        DbCT.DbSession = DbS;
-                        DbCT.ThresholdValue = CT.ThresholdValue;
-                        DbCT.ParentConstraintThresholdID = CT.ID;
-                    }
+
                     try
                     {
                         Context.SaveChanges();
@@ -1013,7 +1074,7 @@ namespace SquintScript
                     DbP.ProtocolTypeID = Context.DbProtocolTypes.FirstOrDefault(x => x.ProtocolType == (int)CurrentProtocol.ProtocolType).ID;
                     DbP.ApprovalLevelID = Context.DbApprovalLevels.FirstOrDefault(x => x.ApprovalLevel == (int)CurrentProtocol.ApprovalLevel).ID;
                     DbP.LastModifiedBy = SquintUser;
-                    DbP.LastModifiedDate = DateTime.Now.ToShortDateString();
+                    DbP.LastModified = DateTime.Now.ToBinary();
                     DbP.ProtocolName = CurrentProtocol.ProtocolName;
                     //Update Components
                     foreach (Component SC in _Components.Values)
@@ -1122,7 +1183,7 @@ namespace SquintScript
                     DbP.ApprovalLevelID = Context.DbApprovalLevels.FirstOrDefault(x => x.ApprovalLevel == (int)ApprovalLevels.Unapproved).ID;
                     DbP.ProtocolTypeID = Context.DbProtocolTypes.FirstOrDefault(x => x.ProtocolType == (int)CurrentProtocol.ProtocolType).ID;
                     DbP.LastModifiedBy = SquintUser;
-                    DbP.LastModifiedDate = DateTime.Now.ToShortDateString();
+                    DbP.LastModified = DateTime.Now.ToBinary();
                     DbP.ProtocolParentID = CurrentProtocol.ID;
                     //Update Components
                     Dictionary<int, int> ComponentLookup = new Dictionary<int, int>();

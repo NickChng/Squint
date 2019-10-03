@@ -303,7 +303,12 @@ namespace SquintScript
         public double ReferenceValue
         {
             get { return CV.ReferenceValue; }
-            set { CV.ReferenceValue = value; RaisePropertyChangedEvent(nameof(ReferenceValueColor)); }
+            set
+            {
+                CV.ReferenceValue = value;
+                RaisePropertyChangedEvent(nameof(ReferenceValueColor));
+                RaisePropertyChangedEvent(nameof(RefreshFlag));
+            }
         }
         public wpfbrush ReferenceValueColor
         {
@@ -336,7 +341,6 @@ namespace SquintScript
             set
             {
                 CV.MinorViolation = value;
-                RefreshFlag = !RefreshFlag;
                 RaisePropertyChangedEvent("RefreshFlag");
             }
         }
@@ -720,6 +724,8 @@ namespace SquintScript
                 }
             }
         }
+        public bool Warning { get; set; } = false;
+        public string WarningString { get; set; } = "";
         public bool EnableCourseSelection { get; set; } = true;
         public bool DisableAutomaticAssociation = false;
         private CourseSelector _SelectedCourse;
@@ -769,13 +775,13 @@ namespace SquintScript
                 {
                     if (!DisableAutomaticAssociation)
                         Ctr.GetAssessmentView(sAV.ID).ClearComponentAssociation(sCompV.ID);
-                    return;
                 }
                 if (value != _SelectedPlan)
                 {
                     _SelectedPlan = value;
                     if (value != null)
                         SetPlanAsync();
+                    RaisePropertyChangedEvent("SelectedPlan");
                 }
             }
         }
@@ -789,6 +795,9 @@ namespace SquintScript
             sCompV = scompv;
             sAV = sav;
             ParentView = AV;
+            var PV = Ctr.GetPlanView(sCompV.ID, sav.ID); // check if plan is associated
+            if (PV != null)
+                Warning = Ctr.GetPlanView(sCompV.ID,  sav.ID).LoadWarning; // initialize warning 
             foreach (string CourseName in Ctr.GetCourseNames())
             {
                 Courses.Add(new CourseSelector(CourseName));
@@ -798,9 +807,26 @@ namespace SquintScript
         private async void SetPlanAsync()
         {
             if (!DisableAutomaticAssociation)
-                await Task.Run(() => Ctr.GetAssessmentView(sAV.ID).AssociatePlanToComponent(sCompV.ID, _SelectedCourse.CourseId, _SelectedPlan.PlanId));
+            {
+                var CSC = await Task.Run(() => Ctr.GetAssessmentView(sAV.ID).AssociatePlanToComponent(sCompV.ID, _SelectedCourse.CourseId, _SelectedPlan.PlanId, true));
+                Warning = false;
+                WarningString = "";
+                foreach (var status in CSC)
+                {
+                    if (status == ComponentStatusCodes.Evaluable)
+                        continue;
+                    else
+                    {
+                        Warning = true;
+                        if (WarningString == "")
+                            WarningString = status.Display();
+                        else
+                            WarningString = WarningString + System.Environment.NewLine + status.Display();
+                    }
+                }
+            }
+            ParentView.UpdateWarning();
         }
-
     }
     [AddINotifyPropertyChangedInterface]
     public class ProtocolView : ObservableObject
@@ -947,7 +973,7 @@ namespace SquintScript
         }
         public Progress<int> Progress { get; set; }
         public ObservableCollection<StructureSelector> Structures { get; set; } = new ObservableCollection<StructureSelector>();
-        public ObservableCollection<Ctr.EclipseStructure> AvailableStructureIds { get; private set; } = new ObservableCollection<Ctr.EclipseStructure>() { new Ctr.EclipseStructure("", null) };
+        public ObservableCollection<Ctr.EclipseStructure> AvailableStructureIds { get; private set; } = new ObservableCollection<Ctr.EclipseStructure>() { new Ctr.EclipseStructure(null) };
         public ObservableCollection<ProtocolSelector> Protocols { get; set; } = new ObservableCollection<ProtocolSelector>();
         public ObservableCollection<ComponentSelector> Components { get; set; } = new ObservableCollection<ComponentSelector>();
         public ObservableCollection<ConstraintSelector> Constraints { get; set; } = new ObservableCollection<ConstraintSelector>();
@@ -1034,7 +1060,7 @@ namespace SquintScript
 
     }
     [AddINotifyPropertyChangedInterface]
-    public class AssessmentView
+    public class AssessmentView : ObservableObject
     {
         public string ContentControlDataField { get; set; }
         public wpfcolor Color { get; set; }
@@ -1042,6 +1068,23 @@ namespace SquintScript
         public string TextDataField { get; set; }
         public string AssessmentName { get; set; }
         public bool Pinned { get; set; } = false;
+        public bool Warning
+        {
+            get
+            {
+                foreach (var ACV in ACVs)
+                {
+                    if (ACV.Warning)
+                        return true;
+                }
+                return false;
+            }
+        }
+        public void UpdateWarning()
+        {
+            RaisePropertyChangedEvent("Warning");
+        }
+
         public int AssessmentId
         {
             get { return sav.ID; }
@@ -1053,10 +1096,9 @@ namespace SquintScript
             get { return ACVs.Count; }
         }
         public ObservableCollection<AssessmentComponentView> ACVs { get; set; } = new ObservableCollection<AssessmentComponentView>();
-        public AssessmentView(string assessmentName, wpfcolor Color_in, wpfcolor TextColor_in, AssessmentsView ParentView_in)
+        public AssessmentView(wpfcolor Color_in, wpfcolor TextColor_in, AssessmentsView ParentView_in)
         {
             ParentView = ParentView_in;
-            AssessmentName = assessmentName;
             Color = Color_in;
             TextColor = TextColor_in;
             if (!Ctr.PatientLoaded)
@@ -1065,11 +1107,45 @@ namespace SquintScript
                 return;
             }
             sav = Ctr.NewAssessment();
-            sav.AssessmentName = assessmentName;
+            AssessmentName = sav.AssessmentName;
             foreach (Ctr.ComponentView sCompV in Ctr.GetComponentViewList())
             {
                 ACVs.Add(new AssessmentComponentView(this, sCompV, sav));
             }
+        }
+        public AssessmentView(Ctr.AssessmentView AV, wpfcolor Color_in, wpfcolor TextColor_in, AssessmentsView ParentView_in)
+        {
+            sav = AV;
+            Color = Color_in;
+            TextColor = TextColor_in;
+            AssessmentName = AV.AssessmentName;
+            ParentView = ParentView_in;
+            foreach (Ctr.ComponentView sCompV in Ctr.GetComponentViewList())
+            {
+                var ACV = new AssessmentComponentView(this, sCompV, sav);
+                ACV.DisableAutomaticAssociation = true;
+                var PV = Ctr.GetPlanView(sCompV.ID, AV.ID);
+                if (PV != null)
+                {
+                    ACV.WarningString = PV.LoadWarningString;
+                    if (!PV.LoadWarning) // if there's a load warning (e.g can't find the file, don't set the combo boxes
+                    {
+                        ACV.SelectedCourse = ACV.Courses.FirstOrDefault(x => x.CourseId == PV.CourseName);
+                        ACV.SelectedPlan = ACV.Plans.FirstOrDefault(x => x.PlanId == PV.PlanName);
+                        if (!PV.ErrorCodes.Contains(ComponentStatusCodes.Evaluable)) // 
+                        {
+                            ACV.Warning = true;
+                            foreach (ComponentStatusCodes code in PV.ErrorCodes)
+                            {
+                                ACV.WarningString = string.Join(System.Environment.NewLine, code.Display());
+                            }
+                        }
+                    }
+                }
+                ACV.DisableAutomaticAssociation = false;
+                ACVs.Add(ACV);
+            }
+
         }
         public void Delete()
         {
@@ -1097,9 +1173,8 @@ namespace SquintScript
         {
             if (Ctr.PatientLoaded && Ctr.ProtocolLoaded)
             {
-                string AN = string.Format("Assessment#{0}", AssessmentCounter);
                 int colindex = (AssessmentCounter - 1) % DefaultAssessmentColors.Count;
-                AssessmentView AV = new AssessmentView(AN, DefaultAssessmentColors[colindex], DefaultAssessmentTextColors[colindex], this);
+                AssessmentView AV = new AssessmentView(DefaultAssessmentColors[colindex], DefaultAssessmentTextColors[colindex], this);
                 Assessments.Add(AV);
                 //Add new column
                 SquintDataColumn dgtc = new SquintDataColumn(AV)
@@ -1120,6 +1195,36 @@ namespace SquintScript
                 return;
             }
 
+        }
+        public void LoadAssessmentViews()
+        {
+            if (Ctr.PatientLoaded && Ctr.ProtocolLoaded)
+            {
+                foreach (Ctr.AssessmentView SAV in Ctr.GetAssessmentViewList())
+                {
+                    int colindex = (AssessmentCounter - 1) % DefaultAssessmentColors.Count;
+                    AssessmentView AV = new AssessmentView(SAV, DefaultAssessmentColors[colindex], DefaultAssessmentTextColors[colindex], this);
+                    Assessments.Add(AV);
+                    //Add new column
+                    SquintDataColumn dgtc = new SquintDataColumn(AV)
+                    {
+                        //HeaderTemplate = (DataTemplate)Resources["myColumnHeaderTemplate"],
+                        HeaderStyle = (Style)Application.Current.FindResource("SquintColumnHeaderStyle"),
+                        CellTemplate = (DataTemplate)Application.Current.FindResource("SquintCellTemplate"),
+                        CellStyle = (Style)Application.Current.FindResource("SquintCellStyle"),
+                        Header = AV.AssessmentName,
+                        Width = DataGridLength.Auto,
+                    };
+                    AssessmentColumns.Add(dgtc);
+                    AssessmentCounter++;
+                }
+            }
+
+            else
+            {
+                MessageBox.Show("Please load patient and protocol first", "No open Protocol/Patient");
+                return;
+            }
         }
         public void DeleteAssessment(AssessmentView AS)
         {
@@ -1770,7 +1875,7 @@ namespace SquintScript
                 }
                 // Min Col Offset
                 Controls.TestListItem MinColOffsetCheck;
-                if (CV.MaxBeams > 1 && !double.IsNaN(CV.MinColOffset) && Fields.Count>1)
+                if (CV.MaxBeams > 1 && !double.IsNaN(CV.MinColOffset) && Fields.Count > 1)
                 {
                     if (Beam_ViewModel.Beams.Any(x => x.Field == null))
                     {
@@ -1825,7 +1930,7 @@ namespace SquintScript
                             }
                             else
                                 CheckValString = string.Format("{0:0.##} cc", MinVol);
-                            Targets_ViewModel.Tests.Add(new Controls.TestListItem(string.Format(@"{0} (""{1}"") Min. Subvolume", SV.ProtocolStructureName, SV.EclipseStructure.Id), CheckValString, RefValString, Warning, WarningString));
+                            Targets_ViewModel.Tests.Add(new Controls.TestListItem(string.Format(@"Min. Subvolume (""{0}"")", SV.ProtocolStructureName, SV.EclipseStructure.Id), CheckValString, RefValString, Warning, WarningString));
                         }
                     }
 
@@ -1876,7 +1981,7 @@ namespace SquintScript
                         val = 180 - val;
                     if (val < diff)
                     {
-                            diff = val;
+                        diff = val;
                     }
                 }
                 else
@@ -1918,9 +2023,15 @@ namespace SquintScript
                 return;
             isLoading = true;
             LoadingString = "Loading session...";
-            await Task.Run(() => Ctr.Load_Session(SV.ID));
-            AssessmentPresenter = new AssessmentsView();
-            UpdateProtocolView();
+            if (await Task.Run(() => Ctr.Load_Session(SV.ID)))
+            {
+                AssessmentPresenter = new AssessmentsView();
+                UpdateAssessmentsView();
+                UpdateProtocolView();
+                isLinkProtocolVisible = true;
+            }
+            else
+                MessageBox.Show("Error loading session");
             isLoading = false;
             SessionSelectVisibility ^= true;
         }
@@ -2190,6 +2301,7 @@ namespace SquintScript
                 if (Result == MessageBoxResult.Cancel)
                     return;
                 Ctr.ClosePatient();
+                CloseCheckList();
                 PatientPresenter = new PatientView();
                 AssessmentPresenter = new AssessmentsView();
                 Protocol.Unsubscribe();
@@ -2204,8 +2316,6 @@ namespace SquintScript
             // Add an assessment if there aren't any
             if (AssessmentPresenter.Assessments.Count == 0 && isLinkProtocolVisible == true)
                 AssessmentPresenter.AddAssessment();
-
-            //RaisePropertyChangedEvent("AssessmentPresenter");
         }
         private void ExpandLoadProtocol(object param = null)
         {
@@ -2222,12 +2332,17 @@ namespace SquintScript
             string ProtocolId = (string)param;
             if (ProtocolId == null)
                 return; // no protocol selected;
-            AssessmentPresenter = new AssessmentsView();
             LoadingString = "Loading selected protocol...";
             isLoading = true;
+            AssessmentPresenter = new AssessmentsView();
             await Task.Run(() => Ctr.LoadProtocolFromDb(ProtocolId, Protocol.Progress as IProgress<int>));
             UpdateProtocolView();
             isLoading = false;
+        }
+        private void UpdateAssessmentsView()
+        {
+            AssessmentPresenter = new AssessmentsView();
+            AssessmentPresenter.LoadAssessmentViews();
         }
         private void UpdateProtocolView()
         {

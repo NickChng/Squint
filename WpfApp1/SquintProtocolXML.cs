@@ -118,6 +118,8 @@ namespace SquintScript
             [XmlAttribute]
             public string GeometryName { get; set; } = "unset";
             [XmlAttribute]
+            public string Trajectory { get; set; } = "unset";
+            [XmlAttribute]
             public double MinStartAngle { get; set; } = -1;
             [XmlAttribute]
             public double MinEndAngle { get; set; } = -1;
