@@ -26,6 +26,27 @@ namespace SquintScript
             public double MinEndAngle { get; set; } = -1;
             public double MaxStartAngle { get; set; } = -1;
             public double MaxEndAngle { get; set; } = -1;
+            public double Offset(double val)
+            {
+                switch (Trajectory)
+                {
+                    case Trajectories.CCW:
+                        {
+                            if (val < 180)
+                                return 180 - val;
+                            else return 540 - val;
+                            
+                        }
+                    case Trajectories.CW:
+                        {
+                            if (val > 180)
+                                return val - 180;
+                            else return val + 180;
+                        }
+                    default:
+                        return val;
+                }
+            }
         }
         
         [AddINotifyPropertyChangedInterface]

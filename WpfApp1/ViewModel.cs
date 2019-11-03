@@ -80,13 +80,27 @@ namespace SquintScript
         {
             get { return SV.ID; }
         }
+        public bool isUserAdded
+        {
+            get
+            {
+                if (SV.ID < 0)
+                    return true;
+                else
+                    return false;
+            }
+        }
         public string ProtocolStructureName
         {
             get { return SV.ProtocolStructureName; }
             set
             {
-                SV.ProtocolStructureName = value;
-                RaisePropertyChangedEvent("StructureId");
+                if (value.Length > 1)
+                {
+                    SV.ProtocolStructureName = value;
+                    RaisePropertyChangedEvent("StructureId");
+                }
+                else MessageBox.Show("Structure name must be greater than 1 character");
             }
         }
         public string EclipseStructureName

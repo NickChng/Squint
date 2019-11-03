@@ -240,7 +240,7 @@ namespace SquintScript
             }
             public static IEnumerable<Component> GetAllComponents()
             {
-                return _Components.Values;
+                return _Components.Values.OrderBy(x=>x.DisplayOrder);
             }
 
             public static void AddConstraintThreshold(ConstraintThreshold C)
@@ -780,17 +780,16 @@ namespace SquintScript
                                     }
                                 }
                             }
-                            foreach (DbAssessment DbA in DbS.SessionAssessments)
-                            {
-                                Assessment A = new Assessment(DbA);
-                                AddAssessment(A);
-                            }
-                            foreach (DbPlan DbP in DbS.SessionPlans)
-                            {
-                                ECPlan P = new ECPlan(DbP);
-                                AddPlan(P);
-                            }
-                         
+                        }
+                        foreach (DbAssessment DbA in DbS.SessionAssessments)
+                        {
+                            Assessment A = new Assessment(DbA);
+                            AddAssessment(A);
+                        }
+                        foreach (DbPlan DbP in DbS.SessionPlans)
+                        {
+                            ECPlan P = new ECPlan(DbP);
+                            AddPlan(P);
                         }
                         return true;
                     }
@@ -909,6 +908,7 @@ namespace SquintScript
                         DbC.ComponentName = SC.ComponentName;
                         DbC.NumFractions = SC.NumFractions;
                         DbC.ReferenceDose = SC.ReferenceDose;
+                        DbC.DisplayOrder = SC.DisplayOrder;
                         //Add component checklist
                         if (SC.Checklist != null)
                         {

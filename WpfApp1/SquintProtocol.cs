@@ -1352,8 +1352,8 @@ namespace SquintScript
                 if (ComponentID == ChangedComponentID)
                 {
                     if (SA.AutoCalculate)
-                        await Task.Run(() => EvaluateConstraint(SA));
-                    //await EvaluateConstraint(SA);
+                        //await Task.Run(() => EvaluateConstraint(SA));
+                    await EvaluateConstraint(SA);
                 }
             }
             public async Task EvaluateConstraint(Assessment SA)
@@ -2490,9 +2490,8 @@ namespace SquintScript
             {
                 ID = Ctr.IDGenerator();
                 LinkedPlan = p;
-                if (p.PlanType == ComponentTypes.Plan)
-
-                    AssessmentID = AssessmentID_in;
+                //if (p.PlanType == ComponentTypes.Plan)
+                AssessmentID = AssessmentID_in;
                 ComponentID = ComponentID_in;
                 DataCache.GetComponent(ComponentID).PropertyChanged += OnComponentPropertyChanged;
             }
@@ -2775,6 +2774,7 @@ namespace SquintScript
             {
                 ID = Ctr.IDGenerator();
                 ES.PropertyChanged += OnESPropertyChanged;
+                CheckList = new StructureCheckList();
                 ProtocolStructureName = NewStructureName;
                 DisplayOrder = DataCache.GetAllECSIDs().Count() + 1;
                 ProtocolID = DataCache.CurrentProtocol.ID;
@@ -2877,6 +2877,10 @@ namespace SquintScript
         [AddINotifyPropertyChangedInterface]
         public class StructureCheckList
         {
+            public StructureCheckList()
+            {
+                
+            }
             public StructureCheckList(DbStructureChecklist DbO)
             {
                 isPointContourChecked = DbO.isPointContourChecked;

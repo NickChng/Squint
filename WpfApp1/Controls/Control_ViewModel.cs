@@ -213,13 +213,13 @@ namespace SquintScript.Controls
         public string DebugString { get; set; } = "Default_Value";
         public ObservableCollection<BeamListItem> Beams { get; set; } = new ObservableCollection<BeamListItem>();
         public TestList_ViewModel GroupTests { get; set; } = new TestList_ViewModel() { TestListTitle = "Default Beam Title" };
-    
+
     }
     [AddINotifyPropertyChangedInterface]
     public class BeamListItem
     {
         public event EventHandler FieldChanged;
-        
+
         private Ctr.TxFieldItem _Field;
         public Ctr.TxFieldItem Field
         {
@@ -326,7 +326,7 @@ namespace SquintScript.Controls
                         NoFieldAssigned = false;
                     }
             FieldDescription = string.Format(@"Protocol field ""{0}"" assigned to plan field:", RefBeam.ProtocolBeamName);
-            
+
         }
         public void BeamChangeAction(string newFieldId = null)
         {
@@ -343,9 +343,9 @@ namespace SquintScript.Controls
                 return;
             // Add default checks:
             if (!double.IsNaN(MU))
-                BeamTests.Tests.Add(new TestListItem(string.Format(@"MU Range"), string.Format("{0:0.#} MU", MU), string.Format("{0} - {1} MU", RefBeam.MinMUWarning, RefBeam.MaxMUWarning), MinMUWarning | MaxMUWarning, ""));
+                BeamTests.Tests.Add(new TestListItem(string.Format(@"MU range"), string.Format("{0:0.#} MU", MU), string.Format("{0} - {1} MU", RefBeam.MinMUWarning, RefBeam.MaxMUWarning), MinMUWarning | MaxMUWarning, ""));
             else
-                BeamTests.Tests.Add(new TestListItem(string.Format(@"MU Range"), @"N/A", string.Format("{0} - {1} MU", RefBeam.MinMUWarning, RefBeam.MaxMUWarning), true, "Not calculated"));
+                BeamTests.Tests.Add(new TestListItem(string.Format(@"MU range"), @"N/A", string.Format("{0} - {1} MU", RefBeam.MinMUWarning, RefBeam.MaxMUWarning), true, "Not calculated"));
             var EnergyWarning = !RefBeam.ValidEnergies.Contains(Field.Energy) && !RefBeam.ValidEnergies.Contains(Energies.Unset);
             var ValidEnergiesString = new List<string>();
             foreach (var E in RefBeam.ValidEnergies)
@@ -361,21 +361,24 @@ namespace SquintScript.Controls
             {
                 foreach (Ctr.BeamGeometry G in RefBeam.ValidGeometries)
                 {
-                    if (Field.GantryStart <= G.MaxStartAngle+eps && Field.GantryStart >= G.MinStartAngle-eps && Field.GantryEnd <= G.MaxEndAngle+eps  && Field.GantryEnd >= G.MinEndAngle-eps)
-                    {
-                        GeometryWarning = false;
-                        GeometryName = G.GeometryName;
-                        GeometryWarningString = "";
-                    }
+                    if (G.Offset(Field.GantryStart) <= G.Offset(G.MaxStartAngle) + eps &&
+                        G.Offset(Field.GantryStart) >= G.Offset(G.MinStartAngle) - eps &&
+                        G.Offset(Field.GantryEnd) <= G.Offset(G.MaxEndAngle) + eps &&
+                        G.Offset(Field.GantryEnd) >= G.Offset(G.MinEndAngle) - eps)
+                        {
+                            GeometryWarning = false;
+                            GeometryName = G.GeometryName;
+                            GeometryWarningString = "";
+                        }
                 }
             }
-            var GeometryTest = new TestListItem(string.Format(@"Beam Geometry"), string.Format("{0:0.#} - {1:0.#} degrees", StartAngle, EndAngle), GeometryName,
+            var GeometryTest = new TestListItem(string.Format(@"Beam geometry"), string.Format("{0:0.#} - {1:0.#} degrees", StartAngle, EndAngle), GeometryName,
                           GeometryWarning, GeometryWarningString);
             BeamTests.Tests.Add(GeometryTest);
             if (!double.IsNaN(CouchRotation_ref))
             {
                 bool CouchRotationWarning = (Math.Abs(CouchRotation_ref - CouchRotation) > 1E-5);
-                BeamTests.Tests.Add(new TestListItem(string.Format(@"Couch Rotation"), string.Format("{0:0.#} degrees", CouchRotation), string.Format("{0:0.#} degrees", RefBeam.CouchRotation),
+                BeamTests.Tests.Add(new TestListItem(string.Format(@"Couch rotation"), string.Format("{0:0.#} degrees", CouchRotation), string.Format("{0:0.#} degrees", RefBeam.CouchRotation),
                     CouchRotationWarning, ""));
             }
             if (RefBeam.VMAT_JawTracking == ParameterOptions.Required)
@@ -389,50 +392,52 @@ namespace SquintScript.Controls
                 }
                 else
                     Message = @"Tracking detected";
-                BeamTests.Tests.Add(new TestListItem(@"Jaw Tracking", Message, RefBeam.VMAT_JawTracking.Display(), JawTrackingWarning, ""));
+                BeamTests.Tests.Add(new TestListItem(@"Jaw tracking", Message, RefBeam.VMAT_JawTracking.Display(), JawTrackingWarning, ""));
             }
             if (!double.IsNaN(MinColRotation))
             {
                 bool MinColRotationWarning;
+                double Offset = ColRotation;
                 if (ColRotation < 90)
                     MinColRotationWarning = ColRotation < RefBeam.MinColRotation;
                 else if (ColRotation < 180)
-                    MinColRotationWarning = (180 - ColRotation) < RefBeam.MinColRotation;
+                    Offset = (180 - ColRotation);
                 else if (ColRotation < 270)
-                    MinColRotationWarning = (ColRotation - 180) < RefBeam.MinColRotation;
+                    Offset = (ColRotation - 180);
                 else
-                    MinColRotationWarning = ColRotation > (360 - RefBeam.MinColRotation);
-                BeamTests.Tests.Add(new TestListItem(string.Format(@"Min Col Rotation"), string.Format("{0:0.#} degrees", ColRotation), string.Format("{0:0.#} degrees", RefBeam.MinColRotation),
+                    Offset = 360 - ColRotation;
+                MinColRotationWarning = Offset < RefBeam.MinColRotation;
+                BeamTests.Tests.Add(new TestListItem(string.Format(@"Minimum MLC offset from axial plane"), string.Format("{0:0.#} degrees", Offset), string.Format("{0:0.#} degrees", RefBeam.MinColRotation),
                     MinColRotationWarning, ""));
             }
             if (!double.IsNaN(MinX_ref))
             {
                 bool MinXWarning = MinX_ref > Xmin;
-                BeamTests.Tests.Add(new TestListItem(string.Format(@"Minimum X Field Size"), string.Format("{0:0.#} cm", Xmin), string.Format("{0:0.#} cm", RefBeam.MinX),
+                BeamTests.Tests.Add(new TestListItem(string.Format(@"Minimum X field size"), string.Format("{0:0.#} cm", Xmin), string.Format("{0:0.#} cm", RefBeam.MinX),
                     MinXWarning, ""));
             }
             if (!double.IsNaN(MinY_ref))
             {
                 bool MinYWarning = MinY_ref > Ymin;
-                BeamTests.Tests.Add(new TestListItem(string.Format(@"Minimum Y Field Size"), string.Format("{0:0.#} cm", Ymin), string.Format("{0:0.#} cm", RefBeam.MinY),
+                BeamTests.Tests.Add(new TestListItem(string.Format(@"Minimum Y field size"), string.Format("{0:0.#} cm", Ymin), string.Format("{0:0.#} cm", RefBeam.MinY),
                     MinYWarning, ""));
             }
             if (!double.IsNaN(MaxX_ref))
             {
                 bool MaxXWarning = MaxX_ref < Xmax;
-                BeamTests.Tests.Add(new TestListItem(string.Format(@"Maximum X Field Size"), string.Format("{0:0.#} cm", Xmax), string.Format("{0:0.#} cm", RefBeam.MaxX),
+                BeamTests.Tests.Add(new TestListItem(string.Format(@"Maximum X field size"), string.Format("{0:0.#} cm", Xmax), string.Format("{0:0.#} cm", RefBeam.MaxX),
                     MaxXWarning, ""));
             }
             if (!double.IsNaN(MaxY_ref))
             {
                 bool MaxYWarning = MaxY_ref < Ymax;
-                BeamTests.Tests.Add(new TestListItem(string.Format(@"Maximum Y Field Size"), string.Format("{0:0.#} cm", Ymax), string.Format("{0:0.#} cm", RefBeam.MaxY),
+                BeamTests.Tests.Add(new TestListItem(string.Format(@"Maximum Y field size"), string.Format("{0:0.#} cm", Ymax), string.Format("{0:0.#} cm", RefBeam.MaxY),
                     MaxYWarning, ""));
             }
             if (ToleranceTable_ref != "")
             {
                 bool TolTableWarning = ToleranceTable_ref.ToUpper() != ToleranceTable.ToUpper();
-                BeamTests.Tests.Add(new TestListItem(string.Format(@"Tolerance Table"), ToleranceTable, ToleranceTable_ref, TolTableWarning, ""));
+                BeamTests.Tests.Add(new TestListItem(string.Format(@"Tolerance table"), ToleranceTable, ToleranceTable_ref, TolTableWarning, ""));
             }
             var CompletedBolusCheck = await AddBolusCheck();
 

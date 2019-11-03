@@ -954,10 +954,15 @@ namespace SquintScript
             {
                 if (S != null)
                 {
-                    _PartVolumes = Helpers.MeshHelper.Volumes(S.MeshGeometry);
-                    _PartVolumes.RemoveAll(x => x < 0);
-                    _NumSeparateParts = _PartVolumes.Count;
-                    return true;
+                    if (!S.IsEmpty)
+                    {
+                        _PartVolumes = Helpers.MeshHelper.Volumes(S.MeshGeometry);
+                        _PartVolumes.RemoveAll(x => x < 0);
+                        _NumSeparateParts = _PartVolumes.Count;
+                        return true;
+                    }
+                    else
+                        return false;
                 }
                 else
                 {

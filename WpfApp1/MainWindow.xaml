@@ -915,7 +915,7 @@
                                 <ItemsPresenter SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"/>
                             </ScrollViewer>-->
                             <!--<ScrollViewer Focusable="false" Padding="{TemplateBinding Padding}" Template="{DynamicResource ScrollViewerControlTemplate1}">-->
-                                <ItemsPresenter SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"/>
+                            <ItemsPresenter SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"/>
                             <!--</ScrollViewer>-->
                         </Border>
                         <ControlTemplate.Triggers>
@@ -1385,126 +1385,126 @@
                                     </Style.Triggers>
                                 </Style>
                             </Grid.Style>
-                           <ListView HorizontalAlignment="Stretch" Name="listView_AssessmentList" ItemsSource="{Binding AssessmentPresenter.Assessments, UpdateSourceTrigger=PropertyChanged}" Margin="5,5,5,5" BorderThickness="0" VerticalAlignment="Stretch" ItemContainerStyle="{DynamicResource ListViewItemStyle}"
+                            <ListView HorizontalAlignment="Stretch" Name="listView_AssessmentList" ItemsSource="{Binding AssessmentPresenter.Assessments, UpdateSourceTrigger=PropertyChanged}" Margin="5,5,5,5" BorderThickness="0" VerticalAlignment="Stretch" ItemContainerStyle="{DynamicResource ListViewItemStyle}"
                                           HorizontalContentAlignment="Stretch" SelectedItem ="{Binding SelectedAssessment, UpdateSourceTrigger=PropertyChanged}" Style="{DynamicResource ListViewStyle1}">
-                                    <ListView.ItemTemplate>
-                                        <DataTemplate>
-                                            <Grid >
-                                                <Grid.RowDefinitions>
-                                                    <RowDefinition Height="Auto"/>
-                                                    <RowDefinition Height="*"/>
-                                                </Grid.RowDefinitions>
-                                                <Grid Grid.Row="0" Height="Auto" >
-                                                        <Grid.ColumnDefinitions>
-                                                            <ColumnDefinition Width="Auto"/>
-                                                            <ColumnDefinition Width="*"/>
-                                                            <ColumnDefinition Width="Auto"/>
-                                                            <ColumnDefinition Width="Auto"/>
-                                                        </Grid.ColumnDefinitions>
-                                                        <TextBlock Grid.Column="0" VerticalAlignment="Center" HorizontalAlignment="Left" Text="{Binding AssessmentName, UpdateSourceTrigger=PropertyChanged}" FontSize="13" Background="Transparent" Margin="10,0,0,0"></TextBlock>
+                                <ListView.ItemTemplate>
+                                    <DataTemplate>
+                                        <Grid >
+                                            <Grid.RowDefinitions>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="*"/>
+                                            </Grid.RowDefinitions>
+                                            <Grid Grid.Row="0" Height="Auto" >
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                </Grid.ColumnDefinitions>
+                                                <TextBlock Grid.Column="0" VerticalAlignment="Center" HorizontalAlignment="Left" Text="{Binding AssessmentName, UpdateSourceTrigger=PropertyChanged}" FontSize="13" Background="Transparent" Margin="10,0,0,0"></TextBlock>
                                                 <!--<SC:CircleCheck Grid.Column="1" HorizontalAlignment="Left" Margin="5,0,0,0" CheckHeight="20" CheckWidth="20" Pass="{Binding Warning, UpdateSourceTrigger=PropertyChanged, Mode=OneWay}"/>-->
-                                                    <Grid Grid.Column="1" Visibility="{Binding Warning, Converter={StaticResource VisibilityConverter}, UpdateSourceTrigger=PropertyChanged}" HorizontalAlignment=" Left" Margin="10,0,0,0">
+                                                <Grid Grid.Column="1" Visibility="{Binding Warning, Converter={StaticResource VisibilityConverter}, UpdateSourceTrigger=PropertyChanged}" HorizontalAlignment=" Left" Margin="10,0,0,0">
                                                     <Polygon Points="0,17 8,0 17,17" Fill="Transparent"  Grid.Column="1" Width="17" Height="17" Stroke="DarkOrange" StrokeThickness="2" Margin="0,-2,0,0"/>
                                                     <TextBlock Grid.Column="1" IsHitTestVisible="false" Text="!" FontWeight="Bold" HorizontalAlignment="Center" Padding="0,1,0,0" VerticalAlignment="Center" Foreground="Black"/>
                                                 </Grid>
                                                 <Button Grid.Column="2" Name="button_ShowAssessment" ToolTip="Pin assessment details"
                                                             Style="{DynamicResource ButtonStyle_Small}" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="5,5,5,5" 
                                                             Command="{Binding DataContext.ShowAssessmentCommand, ElementName=SquintWindow}" CommandParameter="{Binding}">
-                                                            <Image>
-                                                                <Image.Style>
-                                                                    <Style TargetType="Image">
-                                                                        <Style.Triggers>
-                                                                            <DataTrigger Binding="{Binding Path=Pinned, UpdateSourceTrigger=PropertyChanged}" Value="false">
-                                                                                <Setter Property="Source" Value="/Resources/pin.png"/>
-                                                                            </DataTrigger>
-                                                                            <DataTrigger Binding="{Binding Path=Pinned, UpdateSourceTrigger=PropertyChanged}" Value="true">
-                                                                                <Setter Property="Source" Value="/Resources/pin_remove.png"/>
-                                                                            </DataTrigger>
-                                                                        </Style.Triggers>
-                                                                    </Style>
-                                                                </Image.Style>
-                                                            </Image>
-                                                        </Button>
-                                                        <Button Grid.Column="3" Margin="0,0,0,0" Background="Transparent"  ToolTip="Delete assessment"
+                                                    <Image>
+                                                        <Image.Style>
+                                                            <Style TargetType="Image">
+                                                                <Style.Triggers>
+                                                                    <DataTrigger Binding="{Binding Path=Pinned, UpdateSourceTrigger=PropertyChanged}" Value="false">
+                                                                        <Setter Property="Source" Value="/Resources/pin.png"/>
+                                                                    </DataTrigger>
+                                                                    <DataTrigger Binding="{Binding Path=Pinned, UpdateSourceTrigger=PropertyChanged}" Value="true">
+                                                                        <Setter Property="Source" Value="/Resources/pin_remove.png"/>
+                                                                    </DataTrigger>
+                                                                </Style.Triggers>
+                                                            </Style>
+                                                        </Image.Style>
+                                                    </Image>
+                                                </Button>
+                                                <Button Grid.Column="3" Margin="0,0,0,0" Background="Transparent"  ToolTip="Delete assessment"
                                                             Style="{StaticResource ButtonStyle_Small}" HorizontalAlignment="Right" VerticalAlignment="Center"
                                                             Command="{Binding DataContext.DeleteAssessmentCommand, ElementName=SquintWindow}" CommandParameter="{Binding}">
-                                                            <ContentControl>
-                                                                <Image Source="/Resources/x.png"></Image>
-                                                            </ContentControl>
-                                                        </Button>
-                                                </Grid>
-                                                <Grid Grid.Row="1">
-                                                    <Grid.Tag>
-                                                        <sys:Double>0.0</sys:Double>
-                                                    </Grid.Tag>
-                                                    <Grid.Style>
-                                                        <Style TargetType="Grid">
-                                                            <Style.Triggers>
-                                                                <DataTrigger Value="True">
-                                                                    <DataTrigger.Binding>
-                                                                        <MultiBinding Converter="{StaticResource SelectionConverter}" UpdateSourceTrigger="PropertyChanged">
-                                                                            <Binding RelativeSource="{RelativeSource AncestorLevel=1, AncestorType=ListViewItem}" UpdateSourceTrigger="PropertyChanged" Path="IsSelected" />
-                                                                            <Binding RelativeSource="{RelativeSource AncestorLevel=1, AncestorType=ListViewItem}" UpdateSourceTrigger="PropertyChanged" Path="DataContext.Pinned" />
-                                                                        </MultiBinding>
-                                                                    </DataTrigger.Binding>
-                                                                    <DataTrigger.EnterActions>
-                                                                        <BeginStoryboard Storyboard="{StaticResource ExpandPanel}"/>
-                                                                    </DataTrigger.EnterActions>
-                                                                    <DataTrigger.ExitActions>
-                                                                        <BeginStoryboard Storyboard="{StaticResource CollapsePanel}"/>
-                                                                    </DataTrigger.ExitActions>
-                                                                </DataTrigger>
-                                                            </Style.Triggers>
+                                                    <ContentControl>
+                                                        <Image Source="/Resources/x.png"></Image>
+                                                    </ContentControl>
+                                                </Button>
+                                            </Grid>
+                                            <Grid Grid.Row="1">
+                                                <Grid.Tag>
+                                                    <sys:Double>0.0</sys:Double>
+                                                </Grid.Tag>
+                                                <Grid.Style>
+                                                    <Style TargetType="Grid">
+                                                        <Style.Triggers>
+                                                            <DataTrigger Value="True">
+                                                                <DataTrigger.Binding>
+                                                                    <MultiBinding Converter="{StaticResource SelectionConverter}" UpdateSourceTrigger="PropertyChanged">
+                                                                        <Binding RelativeSource="{RelativeSource AncestorLevel=1, AncestorType=ListViewItem}" UpdateSourceTrigger="PropertyChanged" Path="IsSelected" />
+                                                                        <Binding RelativeSource="{RelativeSource AncestorLevel=1, AncestorType=ListViewItem}" UpdateSourceTrigger="PropertyChanged" Path="DataContext.Pinned" />
+                                                                    </MultiBinding>
+                                                                </DataTrigger.Binding>
+                                                                <DataTrigger.EnterActions>
+                                                                    <BeginStoryboard Storyboard="{StaticResource ExpandPanel}"/>
+                                                                </DataTrigger.EnterActions>
+                                                                <DataTrigger.ExitActions>
+                                                                    <BeginStoryboard Storyboard="{StaticResource CollapsePanel}"/>
+                                                                </DataTrigger.ExitActions>
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
                                                     </Style>
-                                                    </Grid.Style>
-                                                    <Grid.MaxHeight>
-                                                        <MultiBinding Converter="{StaticResource ExpanderConverter}" UpdateSourceTrigger="PropertyChanged" ConverterParameter="120">
-                                                            <Binding Path="Tag" RelativeSource="{RelativeSource Self}"/>
-                                                            <Binding RelativeSource="{RelativeSource AncestorLevel=1, AncestorType=ListViewItem}" UpdateSourceTrigger="PropertyChanged" Path="DataContext.ComponentCount" />
-                                                        </MultiBinding>
-                                                    </Grid.MaxHeight>
-                                                    <ListView  HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch" Name="listView_AssessmentComponentList" ItemContainerStyle="{DynamicResource ListViewItemStyle2}" 
+                                                </Grid.Style>
+                                                <Grid.MaxHeight>
+                                                    <MultiBinding Converter="{StaticResource ExpanderConverter}" UpdateSourceTrigger="PropertyChanged" ConverterParameter="120">
+                                                        <Binding Path="Tag" RelativeSource="{RelativeSource Self}"/>
+                                                        <Binding RelativeSource="{RelativeSource AncestorLevel=1, AncestorType=ListViewItem}" UpdateSourceTrigger="PropertyChanged" Path="DataContext.ComponentCount" />
+                                                    </MultiBinding>
+                                                </Grid.MaxHeight>
+                                                <ListView  HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch" Name="listView_AssessmentComponentList" ItemContainerStyle="{DynamicResource ListViewItemStyle2}" 
                                                               BorderThickness ="0" ItemsSource="{Binding ACVs}">
-                                                        <ListView.ItemTemplate>
-                                                            <DataTemplate>
-                                                                <Grid >
-                                                                    <Grid.RowDefinitions>
-                                                                        <RowDefinition></RowDefinition>
-                                                                        <RowDefinition></RowDefinition>
-                                                                        <RowDefinition></RowDefinition>
-                                                                    </Grid.RowDefinitions>
-                                                                    <Grid.ColumnDefinitions>
-                                                                        <ColumnDefinition></ColumnDefinition>
-                                                                        <ColumnDefinition></ColumnDefinition>
-                                                                        <ColumnDefinition></ColumnDefinition>
-                                                                        <ColumnDefinition></ColumnDefinition>
-                                                                    </Grid.ColumnDefinitions>
-                                                                    <TextBlock Grid.Column="0" Grid.RowSpan="2" Grid.Row="0" VerticalAlignment="Center"  MinWidth="80" FontSize="13" Padding="0,10,0,0" Text="{Binding ComponentName, StringFormat=' {0}:'}"/>
-                                                                    <TextBlock Grid.Column="1" Grid.Row="0" VerticalAlignment="Center" HorizontalAlignment="Center" MinWidth="80" Text="Select Course:"/>
-                                                                    <TextBlock Grid.Column="2" Grid.Row="0" VerticalAlignment="Center" HorizontalAlignment="Center" MinWidth="80" Text="Select Plan/Sum:"/>
-                                                                    <ComboBox Grid.Column="1" Grid.Row="1" VerticalAlignment="Center" HorizontalAlignment="Center" Style="{DynamicResource ConstraintComboBoxStyle}" MinWidth="100" 
+                                                    <ListView.ItemTemplate>
+                                                        <DataTemplate>
+                                                            <Grid >
+                                                                <Grid.RowDefinitions>
+                                                                    <RowDefinition></RowDefinition>
+                                                                    <RowDefinition></RowDefinition>
+                                                                    <RowDefinition></RowDefinition>
+                                                                </Grid.RowDefinitions>
+                                                                <Grid.ColumnDefinitions>
+                                                                    <ColumnDefinition></ColumnDefinition>
+                                                                    <ColumnDefinition></ColumnDefinition>
+                                                                    <ColumnDefinition></ColumnDefinition>
+                                                                    <ColumnDefinition></ColumnDefinition>
+                                                                </Grid.ColumnDefinitions>
+                                                                <TextBlock Grid.Column="0" Grid.RowSpan="2" Grid.Row="0" VerticalAlignment="Center"  MinWidth="80" FontSize="13" Padding="0,10,0,0" Text="{Binding ComponentName, StringFormat=' {0}:'}"/>
+                                                                <TextBlock Grid.Column="1" Grid.Row="0" VerticalAlignment="Center" HorizontalAlignment="Center" MinWidth="80" Text="Select Course:"/>
+                                                                <TextBlock Grid.Column="2" Grid.Row="0" VerticalAlignment="Center" HorizontalAlignment="Center" MinWidth="80" Text="Select Plan/Sum:"/>
+                                                                <ComboBox Grid.Column="1" Grid.Row="1" VerticalAlignment="Center" HorizontalAlignment="Center" Style="{DynamicResource ConstraintComboBoxStyle}" MinWidth="100" 
                                                                           IsEnabled="{Binding EnableCourseSelection, UpdateSourceTrigger=PropertyChanged}"
                                                                           SelectedItem="{Binding SelectedCourse, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" DisplayMemberPath="CourseId" ItemsSource="{Binding Courses, UpdateSourceTrigger=PropertyChanged}"></ComboBox>
-                                                                    <ComboBox Grid.Column="2" Grid.Row="1" VerticalAlignment="Center" HorizontalAlignment="Center" Style="{DynamicResource ConstraintComboBoxStyle}" 
+                                                                <ComboBox Grid.Column="2" Grid.Row="1" VerticalAlignment="Center" HorizontalAlignment="Center" Style="{DynamicResource ConstraintComboBoxStyle}" 
                                                                            IsEnabled="{Binding EnableCourseSelection, UpdateSourceTrigger=PropertyChanged}"
                                                                           MinWidth="100" SelectedItem="{Binding SelectedPlan, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" DisplayMemberPath="PlanId" ItemsSource="{Binding Plans, UpdateSourceTrigger=PropertyChanged}"></ComboBox>
-                                                                    <Button Grid.Column="3" Grid.Row="1" Margin="0,0,0,0" Background="Transparent"  ToolTip="Check plan" Style="{StaticResource ButtonStyle_Medium}" HorizontalAlignment="Left" VerticalAlignment="Center"
+                                                                <Button Grid.Column="3" Grid.Row="1" Margin="0,0,0,0" Background="Transparent"  ToolTip="Check plan" Style="{StaticResource ButtonStyle_Medium}" HorizontalAlignment="Left" VerticalAlignment="Center"
                                                                      Command="{Binding DataContext.ViewOptimizationObjectivesCommand, ElementName=SquintWindow}" CommandParameter="{Binding SelectedPlan}">
-                                                                        <ContentControl>
-                                                                            <Image Source="/Resources/check_plan.png"></Image>
-                                                                        </ContentControl>
-                                                                    </Button>
-                                                                    <TextBlock Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="2" VerticalAlignment="Center" Foreground="DarkOrange" HorizontalAlignment="Center" Text="{Binding WarningString}"/>
+                                                                    <ContentControl>
+                                                                        <Image Source="/Resources/check_plan.png"></Image>
+                                                                    </ContentControl>
+                                                                </Button>
+                                                                <TextBlock Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="2" VerticalAlignment="Center" Foreground="DarkOrange" HorizontalAlignment="Center" Text="{Binding WarningString}"/>
                                                             </Grid>
-                                                            </DataTemplate>
-                                                        </ListView.ItemTemplate>
-                                                    </ListView>
-                                                </Grid>
+                                                        </DataTemplate>
+                                                    </ListView.ItemTemplate>
+                                                </ListView>
                                             </Grid>
-                                        </DataTemplate>
-                                    </ListView.ItemTemplate>
-                                </ListView>
-                            
+                                        </Grid>
+                                    </DataTemplate>
+                                </ListView.ItemTemplate>
+                            </ListView>
+
                         </Grid>
                     </Grid>
                     <Grid Name="ProtocolGrid" Grid.Row="1">
@@ -1770,20 +1770,18 @@
                                                     <ColumnDefinition Width="*"/>
                                                     <ColumnDefinition Width="*"/>
                                                 </Grid.ColumnDefinitions>
-                                                <TextBlock Grid.Column="0" Text="{Binding ProtocolStructureName, UpdateSourceTrigger=PropertyChanged, Mode=OneWay}"  FontSize="13" Background="Transparent" Margin="10,0,0,0"></TextBlock>
+                                                <TextBlock Grid.Column="0" Text="{Binding ProtocolStructureName, UpdateSourceTrigger=PropertyChanged, Mode=OneWay}"  FontSize="13" Background="Transparent" Margin="10,3,0,0"></TextBlock>
                                                 <Grid Grid.Column="1" Margin="20,0,0,0">
                                                     <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="Auto"/>
                                                         <ColumnDefinition Width="*"/>
-                                                        <ColumnDefinition Width="Auto"/>
-                                                        <ColumnDefinition Width="Auto"/>
-                                                        <ColumnDefinition Width="Auto"/>
                                                     </Grid.ColumnDefinitions>
-                                                    <TextBlock Grid.Column="0" Text="{Binding Path=EclipseStructureName, UpdateSourceTrigger=PropertyChanged, Mode=OneWay}" HorizontalAlignment="Left" Foreground="SteelBlue" FontSize="13" Background="Transparent" ></TextBlock>
-                                                    <Grid Grid.Column="1" Visibility="{Binding LabelIsConsistent, Converter={StaticResource VisibilityConverter}, UpdateSourceTrigger=PropertyChanged}">
+                                                    <TextBlock  Grid.Column="0" Text="{Binding Path=EclipseStructureName, Mode=OneWay}" HorizontalAlignment="Left" Foreground="SteelBlue" FontSize="13" Background="Transparent" ></TextBlock>
+                                                    <Grid Grid.Column="1" HorizontalAlignment="Right" Visibility="{Binding LabelIsConsistent, Converter={StaticResource VisibilityConverter}, UpdateSourceTrigger=PropertyChanged}">
                                                         <Polygon Points="0,17 8,0 17,17" Fill="Transparent"  Grid.Column="1" Width="17" Height="17" Stroke="DarkOrange" StrokeThickness="2" ToolTip="{Binding LabelMismatchTooltip, UpdateSourceTrigger=PropertyChanged}" Margin="0,-2,0,0"/>
                                                         <TextBlock Grid.Column="1" IsHitTestVisible="false" Text="!" FontWeight="Bold" HorizontalAlignment="Center" Padding="0,1,0,0" VerticalAlignment="Center" Foreground="Black"/>
                                                     </Grid>
-
+                                                    
                                                 </Grid>
                                             </Grid>
                                             <Grid Grid.Row="1">
@@ -1813,14 +1811,17 @@
                                                     <Grid>
                                                         <Grid.RowDefinitions>
                                                             <RowDefinition Height="Auto"/>
+                                                            <RowDefinition Height="Auto"/>
                                                             <RowDefinition Height="*"/>
                                                         </Grid.RowDefinitions>
                                                         <Grid.ColumnDefinitions>
                                                             <ColumnDefinition Width="Auto"/>
                                                             <ColumnDefinition Width="*"/>
                                                         </Grid.ColumnDefinitions>
-                                                        <TextBlock Grid.Row="0" Grid.Column="0" Text="Structure Id:" Margin="7,5,7,5" HorizontalAlignment="Left"></TextBlock>
-                                                        <ComboBox Grid.Row="0" Grid.Column="1" HorizontalAlignment="Stretch" MaxWidth="150" HorizontalContentAlignment="Center" Width="Auto" Margin="10,5,10,5" Style="{StaticResource ConstraintComboBoxStyle}"
+                                                        <TextBlock Grid.Row="0" Grid.Column="0" Text="Structure Name:" Margin="7,5,7,5" HorizontalAlignment="Left" Visibility="{Binding isUserAdded, Converter={StaticResource VisibilityConverter}, UpdateSourceTrigger=PropertyChanged}"/>
+                                                        <TextBox Grid.Row="0" Grid.Column="1" HorizontalAlignment="Center" Width="150" MaxLength="30" Text="{Binding ProtocolStructureName, Mode=TwoWay}" KeyUp="TextBox_KeyEnterUpdate" Visibility="{Binding isUserAdded, Converter={StaticResource VisibilityConverter}, UpdateSourceTrigger=PropertyChanged}"/>
+                                                        <TextBlock Grid.Row="1" Grid.Column="0" Text="Structure Id:" Margin="7,5,7,5" HorizontalAlignment="Left"></TextBlock>
+                                                        <ComboBox Grid.Row="1" Grid.Column="1" HorizontalAlignment="Stretch" MaxWidth="150" HorizontalContentAlignment="Center" Width="Auto" Margin="10,5,10,5" Style="{StaticResource ConstraintComboBoxStyle}"
                                                                   MaxDropDownHeight="150"    DisplayMemberPath="Id"
                                                                   SelectedItem="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type ListViewItem}}, Path=DataContext.EclipseStructure, Mode=OneWayToSource}"
                                                                       Background="AliceBlue">
@@ -1831,7 +1832,7 @@
                                                                 </MultiBinding>
                                                             </ComboBox.ItemsSource>
                                                         </ComboBox>
-                                                        <Grid Grid.Row="1" Grid.ColumnSpan="2">
+                                                        <Grid Grid.Row="2" Grid.ColumnSpan="2">
                                                             <Grid.ColumnDefinitions>
                                                                 <ColumnDefinition Width="Auto"/>
                                                                 <ColumnDefinition Width="*"/>
