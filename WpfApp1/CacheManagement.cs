@@ -111,7 +111,7 @@ namespace SquintScript
                     ClearAsyncPlans();
                     if (A != null)
                         A.ClosePatient();
-                    A.OpenPatient(PatientID);
+                    Patient = A.OpenPatient(PatientID);
                 }
             }
             public static void CreateSession()
@@ -240,7 +240,7 @@ namespace SquintScript
             }
             public static IEnumerable<Component> GetAllComponents()
             {
-                return _Components.Values.OrderBy(x=>x.DisplayOrder);
+                return _Components.Values.OrderBy(x => x.DisplayOrder);
             }
 
             public static void AddConstraintThreshold(ConstraintThreshold C)
@@ -421,7 +421,7 @@ namespace SquintScript
             }
             public static IEnumerable<Assessment> GetAllAssessments()
             {
-                return _Assessments.Values.OrderBy(x=>x.DisplayOrder);
+                return _Assessments.Values.OrderBy(x => x.DisplayOrder);
             }
 
 
@@ -824,7 +824,7 @@ namespace SquintScript
                     }
                 }
             }
-            public static async void Save_Session(string SessionComment)
+            public static async Task<bool> Save_Session(string SessionComment)
             {
                 Dictionary<int, int> ComponentLookup = new Dictionary<int, int>();
                 Dictionary<int, int> StructureLookup = new Dictionary<int, int>();
@@ -1026,6 +1026,16 @@ namespace SquintScript
                         DbO.ConstraintValue = Con.ConstraintValue;
                         DbO.DisplayOrder = Con.DisplayOrder;
                         DbO.Fractions = Con.NumFractions;
+                        //Save reference values
+                        DbO.OriginalNumFractions = Con._OriginalNumFractions;
+                        DbO.OriginalPrimaryStructureID = Con._OriginalPrimaryStructureID;
+                        DbO.OriginalSecondaryStructureID = Con._OriginalSecondaryStructureID;
+                        DbO.OriginalReferenceValue = Con._OriginalReferenceValue;
+                        DbO.OriginalReferenceType = (int)Con._OriginalReferenceType;
+                        DbO.OriginalConstraintType = (int)Con._OriginalConstraintType;
+                        DbO.OriginalConstraintScale = (int)Con._OriginalConstraintScale;
+                        DbO.OriginalReferenceScale = (int)Con._OriginalReferenceScale;
+                        DbO.OriginalConstraintValue = (int)Con._OriginalConstraintValue;
                         //Link Results to Asssessment
                         foreach (Assessment A in _Assessments.Values)
                         {
@@ -1055,11 +1065,13 @@ namespace SquintScript
                     try
                     {
                         Context.SaveChanges();
+                        return true;
                     }
                     catch (Exception ex)
                     {
 
                         MessageBox.Show(string.Format("{0} {1} {2}", ex.Message, ex.InnerException.InnerException, ex.StackTrace));
+                        return false;
                     }
                 }
             }

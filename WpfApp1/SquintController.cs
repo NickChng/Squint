@@ -203,49 +203,6 @@ namespace SquintScript
             {
                 _A = A;
             }
-            //public async Task<bool> RegisterPlan(ECPlan ECP)
-            //{
-            //    if (ECP.Linked)
-            //    {
-            //        if (ECP.LinkedPlan.StructureIds.Contains(Id))
-            //        {
-            //            MessageBox.Show("Error: Structure Id does not exist in this structure set");
-            //            return false;
-            //        }
-            //        var SS = await ECP.LinkedPlan.GetStructureSetSOPUID();
-            //        if (LinkedPlans.Count() == 0)
-            //        {
-            //            LinkedPlans.Add(ECP);
-            //            ECP.PropertyChanged += UpdateStructure;
-            //            SetStructureSetUID();
-            //            LabelName = GetLabelName();
-            //            return true;
-            //        }
-            //        else
-            //        {
-            //            if (SS == StructureSetUID)
-            //            {
-            //                LinkedPlans.Add(ECP);
-            //                ECP.PropertyChanged += UpdateStructure;
-            //                return true;
-            //            }
-            //            else
-            //            {
-            //                MessageBox.Show("Error: Assigned plan has a different structure set");
-            //                return false;
-            //            }
-            //        }
-            //    }
-            //    else
-            //    {
-            //        MessageBox.Show("Error: Assigned plan has no structure set");
-            //        return false;
-            //    }
-            //}
-            //private async void SetStructureSetUID()
-            //{
-            //    StructureSetUID = await LinkedPlans.First().LinkedPlan.GetStructureSetSOPUID();
-            //}
             public string StructureSetUID
             {
                 get
@@ -1835,7 +1792,7 @@ namespace SquintScript
         }
         public static List<AssessmentView> GetAssessmentViewList()
         {
-            return AssessmentViews.Values.OrderBy(x=>x.DisplayOrder).ToList();
+            return AssessmentViews.Values.OrderBy(x => x.DisplayOrder).ToList();
         }
         public static List<StructureLabelView> GetStructureLabelViewList()
         {
@@ -2613,19 +2570,19 @@ namespace SquintScript
                                 if (ArcG.MinStartAngle > -1)
                                     DbAG.MinStartAngle = ArcG.MinStartAngle;
                                 else
-                                    DbAG.MinStartAngle = ArcG.MaxStartAngle - 1E-5;
+                                    DbAG.MinStartAngle = ArcG.MaxStartAngle;
                                 if (ArcG.MinEndAngle > -1)
                                     DbAG.MinEndAngle = ArcG.MinEndAngle;
                                 else
-                                    DbAG.MinEndAngle = DbAG.MaxEndAngle - 1E-5;
+                                    DbAG.MinEndAngle = DbAG.MaxEndAngle;
                                 if (ArcG.MaxStartAngle > -1)
                                     DbAG.MaxStartAngle = ArcG.MaxStartAngle;
                                 else
-                                    DbAG.MaxStartAngle = DbAG.MinStartAngle + 1E-5;
+                                    DbAG.MaxStartAngle = DbAG.MinStartAngle;
                                 if (ArcG.MaxEndAngle > -1)
                                     DbAG.MaxEndAngle = ArcG.MaxEndAngle;
                                 else
-                                    DbAG.MaxEndAngle = DbAG.MinEndAngle + 1E-5;
+                                    DbAG.MaxEndAngle = DbAG.MinEndAngle;
                                 LocalContext.DbBeamGeometries.Add(DbAG);
                             }
                             B.DbComponent = C;
@@ -3046,13 +3003,21 @@ namespace SquintScript
             if (Deleted)
                 ProtocolListUpdated?.Invoke(null, EventArgs.Empty);
         }
-        public static void Save_Session(string SessionComment)
+        public static async Task<bool> Save_Session(string SessionComment)
         {
             if (PatientLoaded & ProtocolLoaded)
             {
-                DataCache.Save_Session(SessionComment);
-                SessionsChanged?.Invoke(null, EventArgs.Empty);
+                bool Success = await DataCache.Save_Session(SessionComment);
+                if (Success)
+                {
+                    SessionsChanged?.Invoke(null, EventArgs.Empty);
+                    return true;
+                }
+                else
+                    return false;
             }
+            else
+                return false;
         }
         public static void Delete_Session(int ID)
         {
@@ -3165,6 +3130,14 @@ namespace SquintScript
                                 }
                                 else
                                     ECP.LinkedPlan = p;
+                                foreach (ECSID E in DataCache.GetAllECSIDs()) //This is a kludge while structures are derived from plans not structure sets.
+                                {
+                                    if (E.ES != null)
+                                        if (p.Structures.ContainsKey(E.ES.Id))
+                                            E.ES = new EclipseStructure(p.Structures[E.ES.Id]);
+                                        else
+                                            E.ES = new EclipseStructure(null);
+                                }
                             }
                         }
                         else
@@ -3172,7 +3145,10 @@ namespace SquintScript
                             MessageBox.Show(string.Format("Course {0} no longer exists", IdToCourseName[ECP.ID]));
                             ECP.Reassociate(p, false);
                         }
+
+
                     }
+
                 }
                 catch (Exception ex)
                 {
@@ -3374,60 +3350,9 @@ namespace SquintScript
             return await DataCache.GetPlanIdsByCourseName(CourseName);
         }
 
-
-        /*public static List<PlanObj> GetAllPlanIDsInCourse(string CourseName)
+       public static List<string> GetCourseNames()
         {
-            AsyncCourse C = DataCache.Patient.DataCache.Courses.Where(x => x.Id == CourseName).SingleOrDefault();
-            List<PlanObj> PlanObjs = new List<PlanObj>();
-            if (C != null)
-            {
-                foreach (string ID in C.Plans.Select(x => x.Id))
-                {
-                    PlanObjs.Add(new PlanObj() { Id = ID, CourseId = CourseName, PlanType = PlanTypes.Single });
-                }
-            }
-            return PlanObjs;
-        }
-        public static object GetPlan(PlanObj PO)
-        {
-            AsyncCourse C = DataCache.Patient.DataCache.Courses.Where(x => x.Id == PO.CourseId).SingleOrDefault();
-            try
-            {
-                if (PO.PlanType == PlanTypes.Single)
-                {
-                    PlanSetup PL = C.Plans.Where(x => x.Id == PO.Id).SingleOrDefault();
-                    if (PL != null)
-                    {
-                        int InternalPlanID = GetPlanSetupInternalID(PL);
-                        if (!DataCache.AsyncPlans.Keys.Contains(InternalPlanID))
-                            DataCache.AsyncPlans.Add(InternalPlanID, PL);
-                        return PL;
-                    }
-                    else return null;
-
-                }
-                else
-                {
-                    PlanSum PS = C.DataCache.AsyncPlans.Where(x => x.Id == PO.Id).SingleOrDefault();
-                    if (PS != null)
-                    {
-                        int InternalPlanSumID = GetPlanSumInternalID(PS);
-                        if (!DataCache.AsyncPlans.Keys.Contains(InternalPlanSumID))
-                            DataCache.AsyncPlans.Add(InternalPlanSumID, PS);
-                        return PS;
-                    }
-                    else return null;
-                }
-            }
-            catch
-            {
-                MessageBox.Show("Error loading plan/sum, could not be found.", "Squint Error...");
-                return null;
-            }
-        }*/
-        public static List<string> GetCourseNames()
-        {
-            return CourseNames;
+            return DataCache.Patient.CourseIds;
         }
     }
 }

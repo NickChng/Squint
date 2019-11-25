@@ -363,16 +363,42 @@ namespace SquintScript
                 PrimaryStructureID = DbO.PrimaryStructureID;
                 SecondaryStructureID = DbO.SecondaryStructureID;
                 ConstraintType = (ConstraintTypeCodes)DbO.ConstraintType;
-                _OriginalReferenceValue = DbO.ReferenceValue;
                 ReferenceValue = DbO.ReferenceValue;
                 ReferenceType = (ReferenceTypes)DbO.ReferenceType;
                 ReferenceScale = (UnitScale)DbO.ReferenceScale;
-                _OriginalConstraintValue = DbO.ConstraintValue;
                 ConstraintValue = DbO.ConstraintValue;
                 NumFractions = DbO.Fractions;
-                _OriginalNumFractions = DbO.Fractions;
                 ConstraintScale = (UnitScale)DbO.ConstraintScale;
                 DisplayOrder = DbO.DisplayOrder;
+
+                _OriginalComponentID = DbO.ComponentID;
+
+                var DbOS = DbO as DbSessionConstraint;
+                if (DbOS != null)
+                {
+                    _OriginalPrimaryStructureID = DbOS.OriginalPrimaryStructureID;
+                    _OriginalSecondaryStructureID = DbOS.OriginalSecondaryStructureID;
+                    _OriginalConstraintType = (ConstraintTypeCodes)DbOS.OriginalConstraintType;
+                    _OriginalReferenceValue = DbOS.OriginalReferenceValue;
+                    _OriginalReferenceType = (ReferenceTypes)DbOS.OriginalReferenceType;
+                    _OriginalReferenceScale = (UnitScale)DbOS.OriginalReferenceScale;
+                    _OriginalConstraintValue = DbOS.OriginalConstraintValue;
+                    _OriginalNumFractions = DbOS.OriginalNumFractions;
+                    _OriginalConstraintScale = (UnitScale)DbOS.OriginalConstraintScale;
+                }
+                else
+                {
+                    _OriginalPrimaryStructureID = DbO.PrimaryStructureID;
+                    _OriginalSecondaryStructureID = DbO.SecondaryStructureID;
+                    _OriginalConstraintType = (ConstraintTypeCodes)DbO.ConstraintType;
+                    _OriginalReferenceValue = DbO.ReferenceValue;
+                    _OriginalReferenceType = (ReferenceTypes)DbO.ReferenceType;
+                    _OriginalReferenceScale = (UnitScale)DbO.ReferenceScale;
+                    _OriginalConstraintValue = DbO.ConstraintValue;
+                    _OriginalNumFractions = DbO.Fractions;
+                    _OriginalConstraintScale = (UnitScale)DbO.ConstraintScale;
+                }
+
                 var ECSID = DataCache.GetECSID(DbO.PrimaryStructureID);
                 if (ECSID == null)
                 {
@@ -393,7 +419,6 @@ namespace SquintScript
                     SC.ReferenceDoseChanged += OnComponentDoseChanging;
                     SC.ReferenceFractionsChanged += OnComponentFractionsChanging;
                 }
-                SetOriginalValues();
             }
             public Constraint(ConstraintTypeCodes TypeCode, int ComponentID_in, int StructureId = 1, int LabelID_in = 0)
             {
@@ -749,7 +774,7 @@ namespace SquintScript
                             return true;
                         else return false;
                     case nameof(ReferenceValue):
-                        if (ReferenceValue != _OriginalReferenceValue)
+                        if (Math.Abs(ReferenceValue - _OriginalReferenceValue) > 1E-5)
                             return true;
                         else return false;
                     case nameof(ReferenceType):
@@ -769,7 +794,7 @@ namespace SquintScript
                             return true;
                         else return false;
                     case nameof(ConstraintValue):
-                        if (ConstraintValue != _OriginalConstraintValue)
+                        if (Math.Abs(ConstraintValue - _OriginalConstraintValue) > 1E-5)
                             return true;
                         else return false;
                     default:
@@ -778,26 +803,27 @@ namespace SquintScript
                 }
             }
             public bool AutoScaleEnabled { get; set; }
-            private int _OriginalNumFractions;
+            public int _OriginalNumFractions { get; private set; }
             public int NumFractions { get; set; }
             private int _OriginalComponentID;
             public int ComponentID { get; set; }
-            private int _OriginalPrimaryStructureID;
-            private int _PrimaryStructureID;
+            public int _OriginalPrimaryStructureID { get; private set; }
+            public int _PrimaryStructureID { get; private set; }
             public int PrimaryStructureID { get; set; }
-            private int _OriginalSecondaryStructureID;
+            public int _OriginalSecondaryStructureID { get; private set; }
             public int SecondaryStructureID { get; set; }
-            private double _OriginalReferenceValue;
+            public double _OriginalReferenceValue { get; private set; }
             public double ReferenceValue { get; set; }
-            private ReferenceTypes _OriginalReferenceType;
+            private bool _wasSessionModified { get; set; } = false;  // this is true if the loaded constraint was modified in its session
+            public ReferenceTypes _OriginalReferenceType { get; private set; }
             public ReferenceTypes ReferenceType { get; set; }
-            private ConstraintTypeCodes _OriginalConstraintType;
+            public ConstraintTypeCodes _OriginalConstraintType { get; private set; }
             public ConstraintTypeCodes ConstraintType { get; set; }
-            private UnitScale _OriginalConstraintScale;
+            public UnitScale _OriginalConstraintScale { get; private set; }
             public UnitScale ConstraintScale { get; set; }
-            private UnitScale _OriginalReferenceScale;
+            public UnitScale _OriginalReferenceScale { get; private set; }
             public UnitScale ReferenceScale { get; set; }// the constraint unit
-            private double _OriginalConstraintValue;
+            public double _OriginalConstraintValue { get; private set; }
             public double ConstraintValue { get; set; }
             private int _DisplayOrder;
             public int DisplayOrder
@@ -1281,21 +1307,9 @@ namespace SquintScript
             //        (progressReport as IProgress<int>).Report(ID);
             //    }
             //}
-            private void SetOriginalValues()
-            {
-                _OriginalComponentID = ComponentID;
-                _OriginalConstraintScale = ConstraintScale;
-                _OriginalConstraintType = ConstraintType;
-                _OriginalConstraintValue = ConstraintValue;
-                _OriginalNumFractions = NumFractions;
-                _OriginalPrimaryStructureID = PrimaryStructureID;
-                _OriginalReferenceScale = ReferenceScale;
-                _OriginalReferenceType = ReferenceType;
-                _OriginalReferenceValue = ReferenceValue;
-                _OriginalSecondaryStructureID = SecondaryStructureID;
-            }
             private bool _isModified()
             {
+                
                 if (NumFractions != _OriginalNumFractions)
                     return true;
                 if (ComponentID != _OriginalComponentID)
@@ -1304,7 +1318,7 @@ namespace SquintScript
                     return true;
                 if (SecondaryStructureID != _OriginalSecondaryStructureID)
                     return true;
-                if (ReferenceValue != _OriginalReferenceValue)
+                if (Math.Abs(ReferenceValue - _OriginalReferenceValue) > 1E-5)
                     return true;
                 if (ReferenceType != _OriginalReferenceType)
                     return true;
@@ -1314,7 +1328,7 @@ namespace SquintScript
                     return true;
                 if (ReferenceScale != _OriginalReferenceScale)
                     return true;
-                if (ConstraintValue != _OriginalConstraintValue)
+                if (Math.Abs(ConstraintValue - _OriginalConstraintValue) > 1E-5)
                     return true;
                 foreach (ConstraintThreshold CT in DataCache.GetConstraintThresholdByConstraintId(ID))
                 {
@@ -1589,19 +1603,19 @@ namespace SquintScript
                 ConstraintThresholdNames ThreshLevel = ConstraintThresholdNames.None;
                 if (Con.ReferenceType == ReferenceTypes.Upper)
                 {
-                    foreach (ConstraintThreshold CT in DataCache.GetAllConstraintThresholds().Where(x => x.ConstraintID == Con.ID && x.ThresholdType == ConstraintThresholdTypes.Violation).Where(x => !double.IsNaN(x.ThresholdValue)).OrderBy(x => x.ThresholdValue))
+                    foreach (ConstraintThreshold CT in DataCache.GetConstraintThresholdByConstraintId(Con.ID).Where(x=> x.ThresholdType == ConstraintThresholdTypes.Violation).Where(x => !double.IsNaN(x.ThresholdValue)).OrderBy(x => x.ThresholdValue))
                         if (CR.ResultValue > CT.ThresholdValue)
                             ThreshLevel = CT.ThresholdName;
-                    foreach (ConstraintThreshold CT in DataCache.GetAllConstraintThresholds().Where(x => x.ConstraintID == Con.ID && x.ThresholdType == ConstraintThresholdTypes.Goal).Where(x => !double.IsNaN(x.ThresholdValue)).OrderByDescending(x => x.ThresholdValue))
+                    foreach (ConstraintThreshold CT in DataCache.GetConstraintThresholdByConstraintId(Con.ID).Where(x => x.ThresholdType == ConstraintThresholdTypes.Goal).Where(x => !double.IsNaN(x.ThresholdValue)).OrderByDescending(x => x.ThresholdValue))
                         if (CR.ResultValue < CT.ThresholdValue)
                             ThreshLevel = CT.ThresholdName;
                 }
                 else
                 {
-                    foreach (ConstraintThreshold CT in DataCache.GetAllConstraintThresholds().Where(x => x.ConstraintID == Con.ID && x.ThresholdType == ConstraintThresholdTypes.Violation).Where(x => !double.IsNaN(x.ThresholdValue)).OrderByDescending(x => x.ThresholdValue))
+                    foreach (ConstraintThreshold CT in DataCache.GetConstraintThresholdByConstraintId(Con.ID).Where(x => x.ThresholdType == ConstraintThresholdTypes.Violation).Where(x => !double.IsNaN(x.ThresholdValue)).OrderByDescending(x => x.ThresholdValue))
                         if (CR.ResultValue < CT.ThresholdValue)
                             ThreshLevel = CT.ThresholdName;
-                    foreach (ConstraintThreshold CT in DataCache.GetAllConstraintThresholds().Where(x => x.ConstraintID == Con.ID && x.ThresholdType == ConstraintThresholdTypes.Goal).Where(x => !double.IsNaN(x.ThresholdValue)).OrderBy(x => x.ThresholdValue))
+                    foreach (ConstraintThreshold CT in DataCache.GetConstraintThresholdByConstraintId(Con.ID).Where(x => x.ThresholdType == ConstraintThresholdTypes.Goal).Where(x => !double.IsNaN(x.ThresholdValue)).OrderBy(x => x.ThresholdValue))
                         if (CR.ResultValue > CT.ThresholdValue)
                             ThreshLevel = CT.ThresholdName;
                 }

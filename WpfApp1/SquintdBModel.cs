@@ -963,6 +963,15 @@ namespace SquintScript
         public int SessionID { get; set; }
         public virtual DbSession DbSession { get; set; }
         public int ParentConstraintID { get; set; }
+        public int OriginalNumFractions { get; set; }
+        public int OriginalPrimaryStructureID { get; set; }
+        public int OriginalSecondaryStructureID { get; set; }
+        public double OriginalReferenceValue { get; set; }
+        public int OriginalReferenceType { get; set; }
+        public int OriginalConstraintType { get; set; }
+        public int OriginalConstraintScale { get; set; }
+        public int OriginalReferenceScale { get; set; }
+        public double OriginalConstraintValue { get; set; }
     }
 
     public class DbConThreshold

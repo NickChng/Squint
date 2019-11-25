@@ -579,6 +579,9 @@ namespace SquintScript
             CV.ConstraintEvaluated += OnConstraintEvaluated;
             CV.PropertyChanged += OnConstraintPropertyChanged;
             SSin.PropertyChanged += OnStructurePropertyChanged;
+            RaisePropertyChangedEvent("ChangeStatusString");
+            RaisePropertyChangedEvent(nameof(ConstraintValueColor));
+            RaisePropertyChangedEvent(nameof(ReferenceValueColor));
         }
         // Event Handlers
         private void OnConstraintEvaluated(object sender, int AssessmentId)
@@ -599,17 +602,15 @@ namespace SquintScript
                 case "ConstraintDefinition":
                     RefreshRowHeader = !RefreshRowHeader;
                     RaisePropertyChangedEvent("ChangeStatusString");
-                    //                    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("RefreshRowHeader"));
-                    //                  PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("ShortConstraintDefinition"));
                     RaisePropertyChangedEvent("RefreshRowHeader");
                     RaisePropertyChangedEvent("ShortConstraintDefinition");
                     break;
                 case "NumFractions":
                     RefreshRowHeader = !RefreshRowHeader;
-                    //                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("ReferenceValue"));
-                    //              PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("ConstraintValue"));
                     RaisePropertyChangedEvent("ReferenceValue");
                     RaisePropertyChangedEvent("ConstraintValue");
+                    RaisePropertyChangedEvent(nameof(ConstraintValueColor));
+                    RaisePropertyChangedEvent(nameof(ReferenceValueColor));
                     break;
                 case "Threshold":
                     RaisePropertyChangedEvent("ChangeStatusString");
@@ -807,11 +808,12 @@ namespace SquintScript
         public AssessmentComponentView(AssessmentView AV, Ctr.ComponentView scompv, Ctr.AssessmentView sav)
         {
             sCompV = scompv;
+            sCompV.ComponentChanged += UpdateStatus;
             sAV = sav;
             ParentView = AV;
             var PV = Ctr.GetPlanView(sCompV.ID, sav.ID); // check if plan is associated
             if (PV != null)
-                Warning = Ctr.GetPlanView(sCompV.ID,  sav.ID).LoadWarning; // initialize warning 
+                Warning = Ctr.GetPlanView(sCompV.ID, sav.ID).LoadWarning; // initialize warning 
             foreach (string CourseName in Ctr.GetCourseNames())
             {
                 Courses.Add(new CourseSelector(CourseName));
@@ -823,20 +825,31 @@ namespace SquintScript
             if (!DisableAutomaticAssociation)
             {
                 var CSC = await Task.Run(() => Ctr.GetAssessmentView(sAV.ID).AssociatePlanToComponent(sCompV.ID, _SelectedCourse.CourseId, _SelectedPlan.PlanId, true));
-                Warning = false;
-                WarningString = "";
-                foreach (var status in CSC)
+                UpdateWarning(CSC);
+            }
+            ParentView.UpdateWarning();
+        }
+        private void UpdateStatus(object sender, EventArgs e)
+        {
+            var CV = (sender as Ctr.ComponentView);
+            var CSC = sAV.StatusCodes(sCompV.ID);
+            UpdateWarning(CSC);
+        }
+        private void UpdateWarning(List<ComponentStatusCodes> CSC)
+        {
+            Warning = false;
+            WarningString = "";
+            foreach (var status in CSC)
+            {
+                if (status == ComponentStatusCodes.Evaluable)
+                    continue;
+                else
                 {
-                    if (status == ComponentStatusCodes.Evaluable)
-                        continue;
+                    Warning = true;
+                    if (WarningString == "")
+                        WarningString = status.Display();
                     else
-                    {
-                        Warning = true;
-                        if (WarningString == "")
-                            WarningString = status.Display();
-                        else
-                            WarningString = WarningString + System.Environment.NewLine + status.Display();
-                    }
+                        WarningString = WarningString + System.Environment.NewLine + status.Display();
                 }
             }
             ParentView.UpdateWarning();
@@ -1096,7 +1109,7 @@ namespace SquintScript
         }
         public void UpdateWarning()
         {
-            RaisePropertyChangedEvent("Warning");
+            RaisePropertyChangedEvent("Warning"); // this to update the warning symbol in the parent view;
         }
 
         public int AssessmentId
@@ -1146,15 +1159,19 @@ namespace SquintScript
                     {
                         ACV.SelectedCourse = ACV.Courses.FirstOrDefault(x => x.CourseId == PV.CourseName);
                         ACV.SelectedPlan = ACV.Plans.FirstOrDefault(x => x.PlanId == PV.PlanName);
-                        if (!PV.ErrorCodes.Contains(ComponentStatusCodes.Evaluable)) // 
+                        foreach (ComponentStatusCodes code in PV.ErrorCodes)
                         {
-                            ACV.Warning = true;
-                            foreach (ComponentStatusCodes code in PV.ErrorCodes)
+                            if (code == ComponentStatusCodes.Evaluable)
+                                continue;
+                            else
                             {
+                                ACV.Warning = true;
                                 ACV.WarningString = string.Join(System.Environment.NewLine, code.Display());
                             }
                         }
                     }
+                    else
+                        ACV.Warning = true;
                 }
                 ACV.DisableAutomaticAssociation = false;
                 ACVs.Add(ACV);
@@ -1469,6 +1486,7 @@ namespace SquintScript
         public bool isUserPanelVisible { get; set; } = false;
         public bool isConfigVisible { get; set; } = false;
         public bool isLoadProtocolPanelVisible { get; set; } = true;
+        public bool isStructurePanelVisible { get; set; } = true;
         public bool isProtocolLoaded { get; set; } = false;
         public bool isProtocolLoading { get; set; } = false;
         public ObservableCollection<string> Protocols { get; } = new ObservableCollection<string> { "Protocol1", "Protocol2" };
@@ -1485,6 +1503,10 @@ namespace SquintScript
         public ICommand ExpandLoadProtocolCommand
         {
             get { return new DelegateCommand(ExpandLoadProtocol); }
+        }
+        public ICommand ExpandStructuresCommand
+        {
+            get { return new DelegateCommand(ExpandStructures); }
         }
         public ICommand ChangeLinkVisibilityCommand
         {
@@ -2057,7 +2079,7 @@ namespace SquintScript
         {
             LoadingString = "Saving Session...";
             isLoading = true;
-            await Task.Run(() => Ctr.Save_Session(SessionsPresenter.SessionComment));
+            bool Success = await Task.Run(() => Ctr.Save_Session(SessionsPresenter.SessionComment)); // boolean return is in order to delay the "isLoading" return to False, so the load menu has a chance to include the latest save
             isLoading = false;
             SessionSaveVisibility ^= true;
         }
@@ -2334,6 +2356,10 @@ namespace SquintScript
         private void ExpandLoadProtocol(object param = null)
         {
             isLoadProtocolPanelVisible = !isLoadProtocolPanelVisible;
+        }
+        private void ExpandStructures(object param = null)
+        {
+            isStructurePanelVisible = !isStructurePanelVisible;
         }
         private void ExpandUserPanel(object param = null)
         {

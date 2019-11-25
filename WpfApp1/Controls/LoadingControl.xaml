@@ -24,7 +24,7 @@
                         <LinearGradientBrush EndPoint="0,1" StartPoint="0,0">
                             <GradientStop Color="#80FFFFFF" Offset="0.05"/>
                             <!--<GradientStop Color="SteelBlue" Offset="0.05"/>-->
-                            <GradientStop Color="Transparent" Offset="0.25"/>
+                            <GradientStop Color="Transparent" Offset="1"/>
                         </LinearGradientBrush>
                     </Border.Background>
                 </Border>
@@ -33,7 +33,7 @@
                     <Grid x:Name="Foreground">
                         <Rectangle x:Name="Indicator" Fill="{TemplateBinding Foreground}"/>
                         <Grid x:Name="Animation" ClipToBounds="True">
-                            <Rectangle x:Name="GR" HorizontalAlignment="Left" Margin="-100,0,0,0" Width="500">
+                            <Rectangle x:Name="GR" HorizontalAlignment="Stretch" Width="100" Margin="0,0,0,0">
                                 <Rectangle.Fill>
                                     <LinearGradientBrush EndPoint="1,0" StartPoint="0,0">
                                         <GradientStop Color="Transparent" Offset="0"/>
@@ -152,10 +152,11 @@
                     <Trigger.EnterActions>
                         <BeginStoryboard>
                             <Storyboard RepeatBehavior="Forever">
-                                <ThicknessAnimationUsingKeyFrames BeginTime="0:0:0" Duration="0:0:1" Storyboard.TargetName="GR" Storyboard.TargetProperty="Margin">
+                                <ThicknessAnimationUsingKeyFrames BeginTime="0:0:0" Duration="0:0:4" Storyboard.TargetName="GR" Storyboard.TargetProperty="Margin">
                                     <ThicknessAnimationUsingKeyFrames.KeyFrames>
-                                        <LinearThicknessKeyFrame KeyTime="0:0:0" Value="-100,0,0,0"/>
-                                        <LinearThicknessKeyFrame KeyTime="0:0:1" Value="500,0,0,0"/>
+                                        <LinearThicknessKeyFrame KeyTime="0:0:0" Value="-800,0,0,0"/>
+                                        <LinearThicknessKeyFrame KeyTime="0:0:2" Value="800,0,0,0"/>
+                                        <LinearThicknessKeyFrame KeyTime="0:0:4" Value="-800,0,0,0"/>
                                     </ThicknessAnimationUsingKeyFrames.KeyFrames>
                                 </ThicknessAnimationUsingKeyFrames>
                             </Storyboard>

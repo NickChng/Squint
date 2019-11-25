@@ -343,7 +343,12 @@ namespace SquintScript.Controls
                 return;
             // Add default checks:
             if (!double.IsNaN(MU))
-                BeamTests.Tests.Add(new TestListItem(string.Format(@"MU range"), string.Format("{0:0.#} MU", MU), string.Format("{0} - {1} MU", RefBeam.MinMUWarning, RefBeam.MaxMUWarning), MinMUWarning | MaxMUWarning, ""));
+            {
+                string MURange = ""; // no string if no reference
+                if (RefBeam.MinMUWarning > 0 && (RefBeam.MaxMUWarning > 0 && (RefBeam.MaxMUWarning > RefBeam.MinMUWarning)))
+                    MURange = string.Format("{0:0} - {1:0}", RefBeam.MinMUWarning, RefBeam.MaxMUWarning);
+                BeamTests.Tests.Add(new TestListItem(string.Format(@"MU range"), string.Format("{0:0.#} MU", MU), MURange));
+            }
             else
                 BeamTests.Tests.Add(new TestListItem(string.Format(@"MU range"), @"N/A", string.Format("{0} - {1} MU", RefBeam.MinMUWarning, RefBeam.MaxMUWarning), true, "Not calculated"));
             var EnergyWarning = !RefBeam.ValidEnergies.Contains(Field.Energy) && !RefBeam.ValidEnergies.Contains(Energies.Unset);
@@ -361,10 +366,37 @@ namespace SquintScript.Controls
             {
                 foreach (Ctr.BeamGeometry G in RefBeam.ValidGeometries)
                 {
-                    if (G.Offset(Field.GantryStart) <= G.Offset(G.MaxStartAngle) + eps &&
-                        G.Offset(Field.GantryStart) >= G.Offset(G.MinStartAngle) - eps &&
-                        G.Offset(Field.GantryEnd) <= G.Offset(G.MaxEndAngle) + eps &&
-                        G.Offset(Field.GantryEnd) >= G.Offset(G.MinEndAngle) - eps)
+                    double InvariantMaxStart;
+                    double InvariantMinStart;
+                    double InvariantMaxEnd; 
+                    double InvariantMinEnd; 
+
+                    if (G.GetInvariantAngle(G.MaxStartAngle) > G.GetInvariantAngle(G.MinStartAngle))
+                    {
+                        InvariantMaxStart = G.GetInvariantAngle(G.MaxStartAngle);
+                        InvariantMinStart = G.GetInvariantAngle(G.MinStartAngle);
+                    }
+                    else
+                    {
+                        InvariantMaxStart = G.GetInvariantAngle(G.MinStartAngle);
+                        InvariantMinStart = G.GetInvariantAngle(G.MaxStartAngle);
+                    }
+                    if (G.GetInvariantAngle(G.MaxEndAngle) > G.GetInvariantAngle(G.MinEndAngle))
+                    {
+                        InvariantMaxEnd = G.GetInvariantAngle(G.MaxEndAngle);
+                        InvariantMinEnd = G.GetInvariantAngle(G.MinEndAngle);
+                    }
+                    else
+                    {
+                        InvariantMaxEnd = G.GetInvariantAngle(G.MinEndAngle);
+                        InvariantMinEnd = G.GetInvariantAngle(G.MaxEndAngle);
+                    }
+
+
+                    if (G.GetInvariantAngle(Field.GantryStart) <= InvariantMaxStart + eps &&
+                        G.GetInvariantAngle(Field.GantryStart) >= InvariantMinStart - eps &&
+                        G.GetInvariantAngle(Field.GantryEnd) <= InvariantMaxEnd + eps &&
+                        G.GetInvariantAngle(Field.GantryEnd) >= InvariantMinEnd - eps)
                         {
                             GeometryWarning = false;
                             GeometryName = G.GeometryName;

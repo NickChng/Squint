@@ -26,25 +26,22 @@ namespace SquintScript
             public double MinEndAngle { get; set; } = -1;
             public double MaxStartAngle { get; set; } = -1;
             public double MaxEndAngle { get; set; } = -1;
-            public double Offset(double val)
+            public double GetInvariantAngle(double A)
             {
                 switch (Trajectory)
                 {
-                    case Trajectories.CCW:
-                        {
-                            if (val < 180)
-                                return 180 - val;
-                            else return 540 - val;
-                            
-                        }
                     case Trajectories.CW:
-                        {
-                            if (val > 180)
-                                return val - 180;
-                            else return val + 180;
-                        }
+                        if (A > 180)
+                            return -(A - 180);
+                        else
+                            return A;
+                    case Trajectories.CCW:
+                        if (A > 180)
+                            return -(A - 360);
+                        else
+                            return -A;
                     default:
-                        return val;
+                        return A;
                 }
             }
         }
