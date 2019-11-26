@@ -1528,6 +1528,7 @@ namespace SquintScript
                             break;
                         case ConstraintTypeCodes.D:
                             {
+                                var refreshtime = ECP.RefreshTime.ToShortTimeString();
                                 rawresult = await p.GetDoseAtVolume(targetId, ConstraintValue, volPresentationQuery, dosePresentationReturn);
                                 if (SumAndRefIsRelative)
                                 {
@@ -2510,6 +2511,7 @@ namespace SquintScript
                 DataCache.GetComponent(ComponentID).PropertyChanged += OnComponentPropertyChanged;
             }
             public AsyncPlan LinkedPlan { get; set; }
+            //public DateTime RefreshTime { get; set; }
             public bool LoadWarning { get; private set; } = false;
             public string LoadWarningString { get; private set; } = "";
             public string PID { get; private set; }

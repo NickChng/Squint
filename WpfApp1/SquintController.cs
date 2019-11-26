@@ -3103,6 +3103,11 @@ namespace SquintScript
                     IdToCourseName.Add(ECP.ID, ECP.LinkedPlan.Course.Id);
                 }
                 DataCache.RefreshPatient();
+                // Disable autorefresh (see below for reasons)
+                foreach (Assessment SA in DataCache.GetAllAssessments())
+                {
+                    SA.AutoCalculate = false;
+                }
                 try
                 {
                     foreach (ECPlan ECP in DataCache.GetAllPlans())
@@ -3129,12 +3134,15 @@ namespace SquintScript
                                     ECP.Reassociate(p, false); // Reassociated fires PlanMappingChanged event which is subscribed to by the assessment, which is subscribed to by the DataCache.Constraints, which update in response
                                 }
                                 else
+                                {
                                     ECP.LinkedPlan = p;
+                                   // ECP.RefreshTime = DateTime.Now;
+                                }
                                 foreach (ECSID E in DataCache.GetAllECSIDs()) //This is a kludge while structures are derived from plans not structure sets.
                                 {
                                     if (E.ES != null)
                                         if (p.Structures.ContainsKey(E.ES.Id))
-                                            E.ES = new EclipseStructure(p.Structures[E.ES.Id]);
+                                            E.ES = new EclipseStructure(p.Structures[E.ES.Id]); // Have to disable autocalculation or this will provoke an update on constraints linked to plans that haven't been relinked yet
                                         else
                                             E.ES = new EclipseStructure(null);
                                 }
@@ -3147,6 +3155,10 @@ namespace SquintScript
                         }
 
 
+                    }
+                    foreach (Assessment SA in DataCache.GetAllAssessments())
+                    {
+                        SA.AutoCalculate = true;
                     }
 
                 }
