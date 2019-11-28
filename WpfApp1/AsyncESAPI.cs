@@ -208,6 +208,7 @@ namespace SquintScript
         public string FirstName { get; private set; }
         public string LastName { get; private set; }
         public List<string> CourseIds { get; private set; } = new List<string>();
+        public List<string> StructureSetIds { get; private set; } = new List<string>();
         //private Dictionary<string, AsyncCourse> Courses = new Dictionary<string, AsyncCourse>();
         public AsyncPatient(AsyncESAPI ACurrent, Patient p)
         {
@@ -219,6 +220,21 @@ namespace SquintScript
             {
                 CourseIds.Add(c.Id);
             }
+            foreach (StructureSet SS in p.StructureSets)
+            {
+                StructureSetIds.Add(SS.Id);
+            }
+        }
+        public AsyncStructureSet GetStructureSet(string ssid)
+        {
+            if (StructureSetIds.Contains(ssid))
+            {
+                return A.Execute(new Func<Patient, AsyncStructureSet>((p) =>
+                {
+                    return new AsyncStructureSet(A, p.StructureSets.FirstOrDefault(x => x.Id == ssid));
+                }));
+            }
+            else return null;
         }
         public async Task<AsyncCourse> GetCourse(string CourseId, IProgress<int> progress)
         {
@@ -273,6 +289,36 @@ namespace SquintScript
             {
                 app.ClosePatient();
             }));
+        }
+    }
+    public class AsyncStructureSet
+    {
+        private AsyncESAPI A;
+        private StructureSet _StructureSet;
+        public string Id { get; private set; }
+        public string UID { get; private set; }
+        private Dictionary<string, AsyncStructure> _Structures = new Dictionary<string, AsyncStructure>();
+        public AsyncStructureSet(AsyncESAPI _A, StructureSet structureSet)
+        {
+            _StructureSet = structureSet;
+            A = _A;
+            Id = structureSet.Id;
+            UID = structureSet.UID;
+            foreach (Structure S in structureSet.Structures)
+            {
+                _Structures.Add(S.Id, new AsyncStructure(A, S, structureSet.Id, structureSet.UID));
+            }
+        }
+        public IEnumerable<string> GetStructureIds()
+        {
+            return _Structures.Values.Select(x => x.Id);
+        }
+        public AsyncStructure GetStructure(string Id)
+        {
+            if (_Structures.ContainsKey(Id))
+                return _Structures[Id];
+            else
+                return null;
         }
     }
     public class AsyncCourse

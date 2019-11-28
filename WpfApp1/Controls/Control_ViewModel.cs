@@ -392,11 +392,13 @@ namespace SquintScript.Controls
                         InvariantMinEnd = G.GetInvariantAngle(G.MaxEndAngle);
                     }
 
+                    var FieldStart = G.GetInvariantAngle(Field.GantryStart);
+                    var FieldEnd = G.GetInvariantAngle(Field.GantryEnd);
 
-                    if (G.GetInvariantAngle(Field.GantryStart) <= InvariantMaxStart + eps &&
-                        G.GetInvariantAngle(Field.GantryStart) >= InvariantMinStart - eps &&
-                        G.GetInvariantAngle(Field.GantryEnd) <= InvariantMaxEnd + eps &&
-                        G.GetInvariantAngle(Field.GantryEnd) >= InvariantMinEnd - eps)
+                    if (FieldStart <= InvariantMaxStart + eps &&
+                        FieldStart >= InvariantMinStart - eps &&
+                        FieldEnd <= InvariantMaxEnd + eps &&
+                        FieldEnd >= InvariantMinEnd - eps)
                         {
                             GeometryWarning = false;
                             GeometryName = G.GeometryName;

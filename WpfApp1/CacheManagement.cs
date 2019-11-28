@@ -352,15 +352,15 @@ namespace SquintScript
             {
                 return _ECSIDs.Values;
             }
-
-            //public static void AddAssignedId(ECSID ECS, AsyncPlan LinkedPlan, string StructureId)
-            //{
-            //    AssignedIds.Add(new AssignedId(ECS, LinkedPlan, StructureId));
-            //}
-            //public static AssignedId GetAssignedId(int ECSID_Id_in)
-            //{
-            //    return AssignedIds.Find(x => x.SessionId == CurrentSession.ID && x.ECSID_Id == ECSID_Id_in);
-            //}
+            public static List<string> GetAvailableStructureSetIds()
+            {
+                return Patient.StructureSetIds;
+            }
+            public static AsyncStructureSet GetStructureSet(string ssid)
+            {
+                return Patient.GetStructureSet(ssid);
+            }
+       
             private static void LoadStructures()
             {
                 _StructureLabels.Clear();

@@ -709,20 +709,72 @@ namespace SquintScript
         }
     }
     [AddINotifyPropertyChangedInterface]
-    public class PatientView
+    public class StructureSetSelector 
+    {
+        public string StructureSetId { get; set; }
+        public StructureSetSelector(string structureSetId = "")
+        {
+            StructureSetId = structureSetId;
+        }
+    }
+    [AddINotifyPropertyChangedInterface]
+    public class PatientView : ObservableObject
     {
         public string PatientId { get; set; } = "";
+        public Presenter ParentView;
         public string FullPatientName { get; private set; }
         public System.Windows.Media.SolidColorBrush TextBox_Background_Color { get; set; } = new System.Windows.Media.SolidColorBrush(wpfcolors.AliceBlue);
         public ObservableCollection<CourseSelector> Courses { get; set; } = new ObservableCollection<CourseSelector>() { new CourseSelector() };
+        public ObservableCollection<StructureSetSelector> StructureSets { get; set; } = new ObservableCollection<StructureSetSelector>() { new StructureSetSelector() };
+        private StructureSetSelector _CurrentStructureSet;
+        public StructureSetSelector CurrentStructureSet
+        {
+            get
+            {
+                return _CurrentStructureSet;
+            }
+            set
+            {
+                if (_CurrentStructureSet != value)
+                {
+                    _CurrentStructureSet = value;
+                    // Apply structure aliasing
+                    if (value !=null)
+                        SetCurrentStructureSet(_CurrentStructureSet.StructureSetId);
+                }
+            }
+        }
+
+        private async void SetCurrentStructureSet(string structureSetId)
+        {
+            if (ParentView != null)
+            {
+                ParentView.isLoading = true;
+                ParentView.LoadingString = "Applying structure aliases...";
+                bool success = await Task.Run (() => Ctr.SetCurrentStructureSet(_CurrentStructureSet.StructureSetId));
+                ParentView.isLoading = false;
+            }
+        }
+    
         public PatientView(string patientId = "")
         {
             Ctr.PatientOpened += OnPatientOpened;
+            Ctr.CurrentStructureSetChanged += OnCurrentStructureSetChanged;
         }
         private void OnPatientOpened(object sender, EventArgs e)
         {
             PatientId = Ctr.PatientID;
             FullPatientName = string.Format("{0}, {1}", Ctr.PatientLastName, Ctr.PatientFirstName);
+            StructureSets.Clear();
+            foreach (string SSid in Ctr.GetAvailableStructureSetIds())
+            {
+                StructureSets.Add(new StructureSetSelector(SSid));
+            }
+        }
+        private void OnCurrentStructureSetChanged(object sender, EventArgs e)
+        {
+            _CurrentStructureSet = StructureSets.FirstOrDefault(x => x.StructureSetId == Ctr.CurrentStructureSet.Id);
+            RaisePropertyChangedEvent(nameof(CurrentStructureSet));
         }
     }
     [AddINotifyPropertyChangedInterface]
@@ -1462,7 +1514,7 @@ namespace SquintScript
         public Controls.TestList_ViewModel Calculation_ViewModel { get; set; } = new Controls.TestList_ViewModel();
         public Controls.TestList_ViewModel Prescription_ViewModel { get; set; } = new Controls.TestList_ViewModel();
         public ProtocolView Protocol { get; set; } = new ProtocolView();
-        public PatientView PatientPresenter { get; set; } = new PatientView();
+        public PatientView PatientPresenter { get; set; } = new PatientView(null);
         public AssessmentsView AssessmentPresenter { get; set; } = new AssessmentsView();
         public SessionsView SessionsPresenter { get; set; } = new SessionsView();
         public ObservableCollection<ConstraintResultsView> SquintResults { get; set; } = new ObservableCollection<ConstraintResultsView>();
@@ -1995,7 +2047,6 @@ namespace SquintScript
             Beam_ViewModel.GroupTests.Tests.Add(MinColOffsetCheck);
 
         }
-
         private double findMinDiff(double[] arr)
         {
             // Sort array in  
@@ -2254,6 +2305,8 @@ namespace SquintScript
         {
             try
             {
+                if (PatientPresenter.ParentView == null)
+                    PatientPresenter.ParentView = this; // pass the current view so it can access the isLoading variable
                 if (Ctr.PatientLoaded)
                 {
                     var Result = MessageBox.Show("Close current patient and all assessments?", "Close Patient?", MessageBoxButton.OKCancel);
@@ -2299,6 +2352,7 @@ namespace SquintScript
         {
             Ctr.SynchronizationComplete -= SynchronizeHandler;
             // Refresh ViewModel
+            PatientPresenter.StructureSets.Clear();
             foreach (AssessmentView AV in AssessmentPresenter.Assessments)
             {
                 foreach (AssessmentComponentView ACV in AV.ACVs)

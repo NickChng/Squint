@@ -198,10 +198,11 @@ namespace SquintScript
                     return _A.Id;
                 }
             }
-            private AsyncStructure _A { get; set; }
+            private AsyncStructure _A;
             public EclipseStructure(AsyncStructure A)
             {
                 _A = A;
+                RaisePropertyChangedEvent();
             }
             public string StructureSetUID
             {
@@ -255,22 +256,8 @@ namespace SquintScript
             public void Update(AsyncStructure A)
             {
                 _A = A;
+                RaisePropertyChangedEvent();
             }
-            //private void UpdateStructure(object sender, PropertyChangedEventArgs e)
-            //{
-            //    if (e.PropertyName == "LinkedPlan")
-            //    {
-            //        var ECP = (sender as ECPlan);
-            //        if (ECP.Linked)
-            //        {
-            //            if (!ECP.LinkedPlan.Structures.ContainsKey(Id))
-            //            {
-            //                Id = "";
-            //            }
-            //            LabelName = GetLabelName();
-            //        }
-            //    }
-            //}
         }
         public class StructureView
         {
@@ -1231,18 +1218,13 @@ namespace SquintScript
             {
                 AsyncPlan p = DataCache.GetAsyncPlans().FirstOrDefault(x => x.Id == PlanId && x.Course.Id == CourseId);
                 ECPlan ECP = DataCache.GetAllPlans().Where(x => x.AssessmentID == ID && x.ComponentID == ComponentID).SingleOrDefault();
+                if (CurrentStructureSet == null)
+                    SetCurrentStructureSet(p.StructureSetId);
                 if (ECP == null)
                 {
                     // If it meets these criteria the component is evaluable
                     ECP = new ECPlan(p, ID, ComponentID);
                     DataCache.AddPlan(ECP);
-                    SA.AutoCalculate = false; // disable this while we apply aliasing 
-                    foreach (ECSID E in DataCache.GetAllECSIDs()) // notify structures
-                    {
-                        if (E.EclipseStructureName == "")
-                            E.ApplyAliasing(ECP);
-                    }
-                    SA.AutoCalculate = true;
                     DataCache.GetAssessment(ID).RegisterPlan(ECP); // this will fire PlanMappingChanged and update all DataCache.Constraints
                 }
                 else
@@ -1361,6 +1343,7 @@ namespace SquintScript
         // State Data
         public static string SquintUser { get; private set; }
         private static ProtocolView ActivePV;
+        public static AsyncStructureSet CurrentStructureSet { get; private set; }
         public static AsyncESAPI A { get; private set; }
         private static Dictionary<int, StructureLabelView> StructureLabelViews = new Dictionary<int, StructureLabelView>();
         public static Dictionary<int, ConstraintView> ConstraintViews { get; private set; } = new Dictionary<int, ConstraintView>();
@@ -1384,6 +1367,7 @@ namespace SquintScript
         public static bool ProtocolLoaded { get; private set; } = false;
         // Events
         public static event EventHandler AfterSaving;
+        public static event EventHandler CurrentStructureSetChanged;
         public static event EventHandler SynchronizationComplete;
         public static event EventHandler ProtocolListUpdated;
         public static event EventHandler ProtocolConstraintOrderChanged;
@@ -3136,13 +3120,13 @@ namespace SquintScript
                                 else
                                 {
                                     ECP.LinkedPlan = p;
-                                   // ECP.RefreshTime = DateTime.Now;
+                                    // ECP.RefreshTime = DateTime.Now;
                                 }
                                 foreach (ECSID E in DataCache.GetAllECSIDs()) //This is a kludge while structures are derived from plans not structure sets.
                                 {
                                     if (E.ES != null)
                                         if (p.Structures.ContainsKey(E.ES.Id))
-                                            E.ES = new EclipseStructure(p.Structures[E.ES.Id]); // Have to disable autocalculation or this will provoke an update on constraints linked to plans that haven't been relinked yet
+                                            E.ES.Update(p.Structures[E.ES.Id]); // Have to disable autocalculation or this will provoke an update on constraints linked to plans that haven't been relinked yet
                                         else
                                             E.ES = new EclipseStructure(null);
                                 }
@@ -3273,8 +3257,25 @@ namespace SquintScript
         public static void CloseProtocol()
         {
             DataCache.CloseProtocol();
+            CurrentStructureSet = null;
             ProtocolClosed?.Raise(null, EventArgs.Empty);
         }
+
+        public static IEnumerable<string> GetAvailableStructureSetIds()
+        {
+            return DataCache.GetAvailableStructureSetIds();
+        }
+        public static bool SetCurrentStructureSet(string ssid)
+        {
+            CurrentStructureSet = DataCache.GetStructureSet(ssid);
+            foreach (ECSID E in DataCache.GetAllECSIDs()) // notify structures
+            {
+                E.ApplyAliasing(CurrentStructureSet); // always apply aliasing
+            }
+            CurrentStructureSetChanged?.Invoke(null, EventArgs.Empty);
+            return true;
+        }
+
         public static string GetStructureIDString(int ID)
         {
             return DataCache.GetECSID(ID).EclipseStructureName;
@@ -3339,6 +3340,7 @@ namespace SquintScript
             DataCache.ClosePatient();
             PatientLoaded = false;
             DataCache.ClearCourses();
+            CurrentStructureSet = null;
             _AssessmentNameIterator = 1;
             PatientClosed?.Invoke(null, EventArgs.Empty); // this fires the event PatientClosed, which is subscribed to by the UI to clear any DataCache.Patient specific fields
         }
@@ -3362,7 +3364,7 @@ namespace SquintScript
             return await DataCache.GetPlanIdsByCourseName(CourseName);
         }
 
-       public static List<string> GetCourseNames()
+        public static List<string> GetCourseNames()
         {
             return DataCache.Patient.CourseIds;
         }

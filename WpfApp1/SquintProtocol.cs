@@ -343,6 +343,7 @@ namespace SquintScript
                     case "ExceptionType":
                         break;
                     default:
+                        var test = ID; // 460 457 454
                         UpdateOnEvaluatedPropertyChange(propertyName);
                         break;
                 }
@@ -406,6 +407,10 @@ namespace SquintScript
                 }
                 else
                 {
+                    if (ID == 314)
+                    {
+                        string debugme = "puase";
+                    }
                     ECSID.PropertyChanged += OnECSIDChanged;
                 }
                 var SC = DataCache.GetComponent(DbO.ComponentID);
@@ -1528,7 +1533,6 @@ namespace SquintScript
                             break;
                         case ConstraintTypeCodes.D:
                             {
-                                var refreshtime = ECP.RefreshTime.ToShortTimeString();
                                 rawresult = await p.GetDoseAtVolume(targetId, ConstraintValue, volPresentationQuery, dosePresentationReturn);
                                 if (SumAndRefIsRelative)
                                 {
@@ -2359,18 +2363,7 @@ namespace SquintScript
             {
                 AssessmentDeleted?.Invoke(this, ID);
             }
-            //Evaluation Methods
-            private async Task EvaluateComponentConstraints(IProgress<int> progress, int ComponentID = 0)
-            {
-                IEnumerable<Constraint> ConToEvaluate;
-                if (ComponentID == 0)
-                    ConToEvaluate = DataCache.GetAllConstraints();
-                else
-                    ConToEvaluate = DataCache.GetConstraintsInComponent(ComponentID);
-                int total = ConToEvaluate.Count();
-                List<Task> CalculationTasks = new List<Task>();
-                await Task.WhenAll(CalculationTasks);
-            }
+           
             /*private bool ValidateComponentAssociations(Component SC)
             {
                 // This performs error checking on the plans linked to this component and returns a status code indicating an error. 0 is no error
@@ -2646,6 +2639,8 @@ namespace SquintScript
                         ErrorCodes.Add(ComponentStatusCodes.NumFractionsMismatch);
                     }
                 }
+                if (LinkedPlan.StructureSetId != CurrentStructureSet.Id)
+                    ErrorCodes.Add(ComponentStatusCodes.StructureSetDiscrepancy);
 
                 //else if (SC.ComponentType == ComponentTypes.Sum)
                 //{
@@ -2670,13 +2665,13 @@ namespace SquintScript
                 //    //        ErrorCodes.Add(ComponentStatusCodes.ConstituentNotInSum);
                 //    //    }
 
-                //    //}
-                //    List<string> PlanSumUIDs = LinkedPlan.ConstituentPlans.Select(x => x.UID).ToList();
-                //    if (numValidAssociations != PlanSumUIDs.Count)
-                //    {
-                //        ErrorCodes.Add(ComponentStatusCodes.PlansNotEqualToConstituents);// some constituents are linked to plans which are not in the sum
-                //    }
-                //}
+                    //    //}
+                    //    List<string> PlanSumUIDs = LinkedPlan.ConstituentPlans.Select(x => x.UID).ToList();
+                    //    if (numValidAssociations != PlanSumUIDs.Count)
+                    //    {
+                    //        ErrorCodes.Add(ComponentStatusCodes.PlansNotEqualToConstituents);// some constituents are linked to plans which are not in the sum
+                    //    }
+                    //}
                 return ErrorCodes;
             }
             public void Delete()
@@ -2832,6 +2827,7 @@ namespace SquintScript
                 }
                 set
                 {
+                    _ES.PropertyChanged -= OnESPropertyChanged;
                     _ES = value;
                     _ES.PropertyChanged += OnESPropertyChanged;
                 }
@@ -2859,16 +2855,43 @@ namespace SquintScript
             {
                 ECSIDDeleting?.Invoke(this, ID);
             }
-            public void ApplyAliasing(ECPlan ECP)
+            //public void ApplyAliasing(ECPlan ECP)
+            //{
+            //    // this will assign a structure Id if that structure exists in the plan ECP
+            //    AsyncPlan P = ECP.LinkedPlan;
+            //    List<int> rank = new List<int>();
+            //    List<string> matchedIDs = new List<string>();
+            //    int AliasRank = 0;
+            //    foreach (string Alias in DefaultEclipseAliases)
+            //    {
+            //        foreach (string StructureId in P.StructureIds.OrderByDescending(x => x.Count()))
+            //        {
+            //            if (StructureId.ToUpper().Replace(@"_", @"").Replace(@"B_", @"") == Alias.ToUpper().Replace(@"_", @""))
+            //            {
+            //                rank.Add(AliasRank);
+            //                matchedIDs.Add(StructureId);
+            //                break;
+            //            }
+            //        }
+            //        AliasRank++;
+            //    }
+            //    if (matchedIDs.Count > 0)
+            //    {
+            //        var sorted_Ids = matchedIDs.Zip(rank, (Ids, Order) => new { Ids, Order }).OrderBy(x => x.Order).Select(x => x.Ids);
+            //        ES.Update(P.Structures[sorted_Ids.First()]);
+            //    }
+            //}
+            public void ApplyAliasing(AsyncStructureSet SS)
             {
                 // this will assign a structure Id if that structure exists in the plan ECP
-                AsyncPlan P = ECP.LinkedPlan;
                 List<int> rank = new List<int>();
                 List<string> matchedIDs = new List<string>();
                 int AliasRank = 0;
+                var ssid = SS.Id;
+                var ssIds = SS.GetStructureIds();
                 foreach (string Alias in DefaultEclipseAliases)
                 {
-                    foreach (string StructureId in P.StructureIds.OrderByDescending(x => x.Count()))
+                    foreach (string StructureId in SS.GetStructureIds().OrderByDescending(x => x.Count()))
                     {
                         if (StructureId.ToUpper().Replace(@"_", @"").Replace(@"B_", @"") == Alias.ToUpper().Replace(@"_", @""))
                         {
@@ -2882,7 +2905,11 @@ namespace SquintScript
                 if (matchedIDs.Count > 0)
                 {
                     var sorted_Ids = matchedIDs.Zip(rank, (Ids, Order) => new { Ids, Order }).OrderBy(x => x.Order).Select(x => x.Ids);
-                    ES.Update(P.Structures[sorted_Ids.First()]);
+                    ES.Update(SS.GetStructure(sorted_Ids.First()));
+                }
+                else
+                {
+                    ES.Update(null);
                 }
             }
             private void OnESPropertyChanged(object sender, PropertyChangedEventArgs e)

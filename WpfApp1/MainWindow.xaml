@@ -1788,7 +1788,7 @@
                                 </Grid.Style>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*"/>
-                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="1.5*"/>
                                 </Grid.ColumnDefinitions>
                                 <Grid.RowDefinitions>
                                     <RowDefinition Height="Auto"/>
@@ -1799,7 +1799,15 @@
                                     <TextBlock Grid.Row="0" Text="Protocol Definition" VerticalAlignment="Center" Margin="10,0,0,0" FontWeight="Bold"/>
                                 </Border>
                                 <Border DockPanel.Dock="Top" Grid.Column="1" Grid.Row="1" Background="AntiqueWhite" MinHeight="30" CornerRadius="5,5,5,5" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="0,5,15,5">
-                                    <TextBlock Grid.Row="0" Text="Assigned Eclipse ID" VerticalAlignment="Center" Margin="10,0,0,0" FontWeight="Bold"/>
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Grid.Column="0" Text="Assigned Eclipse ID from" VerticalAlignment="Center" Margin="10,0,0,0" FontWeight="Bold"/>
+                                        <ComboBox Grid.Column="1" Style="{StaticResource ConstraintComboBoxStyle}" ItemsSource="{Binding PatientPresenter.StructureSets}" SelectedItem="{Binding PatientPresenter.CurrentStructureSet}"  DisplayMemberPath="StructureSetId" Margin="5,3,10,3"/>
+                                    </Grid>
+                                    
                                 </Border>
                                 <ListView Grid.Row="2" Grid.ColumnSpan="2" Margin="0,0,10,0" Name="StructuresTree" Style="{StaticResource ListViewStyle1}" ItemsSource="{Binding Protocol.Structures, UpdateSourceTrigger=PropertyChanged, Mode=OneWay}" BorderThickness="0" ItemContainerStyle="{StaticResource ListViewItemStyle}" HorizontalContentAlignment="Stretch">
                                     <ListView.ItemTemplate>
@@ -1812,7 +1820,7 @@
                                                 <Grid Grid.Row="0">
                                                     <Grid.ColumnDefinitions>
                                                         <ColumnDefinition Width="*"/>
-                                                        <ColumnDefinition Width="*"/>
+                                                        <ColumnDefinition Width="1.5*"/>
                                                     </Grid.ColumnDefinitions>
                                                     <TextBlock Grid.Column="0" Text="{Binding ProtocolStructureName, UpdateSourceTrigger=PropertyChanged, Mode=OneWay}"  FontSize="13" Background="Transparent" Margin="10,3,0,0"></TextBlock>
                                                     <Grid Grid.Column="1" Margin="20,0,0,0">
