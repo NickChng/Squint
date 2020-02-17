@@ -57,7 +57,6 @@ namespace SquintScript
         {
             var VM = (Presenter)DataContext;
             var test = VM.Protocol.Structures;
-            string debugme = "hi";
         }
 
         public int counter = 0;

@@ -702,19 +702,14 @@ namespace SquintScript
                 ReferenceConstraintDefinition = Con.GetConstraintString(true);
                 ConstraintDefinition = Con.GetConstraintString(false);
                 ShortConstraintDefinition = Con.GetConstraintStringNoStructure(false);
-                SC = DataCache.GetComponent(_Con.ComponentID);
-                _DisplayOrder = Con.DisplayOrder;
+                SC = DataCache.GetComponent(_Con.ComponentID.Value);
                 ComponentID = SC.ID;
                 DisplayOrderComponent = SC.DisplayOrder;
                 ConstraintUnit = Con.GetConstraintUnit();
                 ReferenceUnit = Con.GetReferenceUnit();
                 ComponentName = SC.ComponentName;
-                _ConstraintType = Con.ConstraintType;
-                _ConstraintValue = Con.ConstraintValue;
-                _ReferenceType = Con.ReferenceType;
-                _ReferenceValue = Con.ReferenceValue;
                 PrimaryStructureName = Con.PrimaryStructureName;
-                _PrimaryStructureID = Con.PrimaryStructureID;
+                
                 // Add subscriptions to domain object
                 Con.PropertyChanged += OnConstraintPropertyChanged;
                 Con.ConstraintEvaluating += OnConstraintEvaluating;
@@ -739,25 +734,24 @@ namespace SquintScript
             public string ConstraintDefinition { get; private set; }
             public string ChangeDescription { get; set; } = "";
             public int ID { get; private set; }
-            private int _DisplayOrder;
             public int DisplayOrder
             {
                 get
                 {
-                    return _DisplayOrder;
+                    return Con.DisplayOrder.Value;
                 }
                 set
                 {
-                    Con.DisplayOrder = value; // Con will notify ConstraintView to update the private field
+                    Con.DisplayOrder.Value = value; 
                 }
             }
             public string ComponentName { get; private set; }
             public int ComponentID
             {
-                get { return Con.ComponentID; }
+                get { return Con.ComponentID.Value; }
                 set
                 {
-                    Con.ComponentID = value;
+                    Con.ComponentID.Value = value;
                 }
             }
             public int DisplayOrderComponent { get; private set; }
@@ -785,34 +779,31 @@ namespace SquintScript
             }
             public ConstraintUnits ConstraintUnit { get; private set; }
             public ConstraintUnits ReferenceUnit { get; private set; }
-            private ConstraintTypeCodes _ConstraintType;
             public ConstraintTypeCodes ConstraintType
             {
                 get
                 {
-                    return _ConstraintType;
+                    return Con.ConstraintType.Value;
                 }
                 set
                 {
-                    Con.ConstraintType = value; // Con will notify ConstraintView to update the private field
+                    Con.ConstraintType.Value = value; // Con will notify ConstraintView to update the private field
                 }
             }
-            private double _ConstraintValue;
             public double ConstraintValue
             {
-                get { return _ConstraintValue; }
+                get { return Con.ConstraintValue.Value; }
                 set
                 {
-                    Con.ConstraintValue = value;// Con will notify ConstraintView to update the private field
+                    Con.ConstraintValue.Value = value;// Con will notify ConstraintView to update the private field
                 }
             }
-            private double _ReferenceValue;
             public double ReferenceValue
             {
-                get { return _ReferenceValue; }
+                get { return Con.ReferenceValue.Value; }
                 set
                 {
-                    Con.ReferenceValue = value; // Con will notify ConstraintView to update the private field
+                    Con.ReferenceValue.Value = value; // Con will notify ConstraintView to update the private field
                     StopValue = double.NaN;
                     MajorViolation = value;
                     MinorViolation = double.NaN;
@@ -854,43 +845,39 @@ namespace SquintScript
                     PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("Threshold"));
                 }
             }
-            private ReferenceTypes _ReferenceType;
             public ReferenceTypes ReferenceType
             {
-                get { return _ReferenceType; }
+                get { return Con.ReferenceType.Value; }
                 set
                 {
-                    Con.ReferenceType = value; // Con will notify ConstraintView to update the private field
+                    Con.ReferenceType.Value = value; // Con will notify ConstraintView to update the private field
                 }
             }
-            private UnitScale _ConstraintScale;
             public UnitScale ConstraintScale
             {
-                get { return _ConstraintScale; }
+                get { return Con.ConstraintScale.Value; }
                 set
                 {
-                    Con.ConstraintScale = value; // Con will notify ConstraintView to update the private field
+                    Con.ConstraintScale.Value = value; // Con will notify ConstraintView to update the private field
                 }
             }
-            public UnitScale _ReferenceScale;
             public UnitScale ReferenceScale
             {
-                get { return _ReferenceScale; }
+                get { return Con.ReferenceScale.Value; }
                 set
                 {
-                    Con.ReferenceScale = value; // Con will notify ConstraintView to update the private field
+                    Con.ReferenceScale.Value = value; // Con will notify ConstraintView to update the private field
                 }
             }
-            private int _PrimaryStructureID;
             public int PrimaryStructureID
             {
                 get
                 {
-                    return _PrimaryStructureID;
+                    return Con.PrimaryStructureID.Value;
                 }
                 set
                 {
-                    Con.PrimaryStructureID = value; // Con will notify ConstraintView to update the private field
+                    Con.PrimaryStructureID.Value = value; // Con will notify ConstraintView to update the private field
                     Con.ProtocolStructureName = DataCache.GetECSID(value).ProtocolStructureName;
                 }
             }
@@ -956,7 +943,7 @@ namespace SquintScript
             {
                 List<ConstraintUnits> L = new List<ConstraintUnits>();
                 L.Add(ConstraintUnits.Percent);
-                if (Con.ConstraintType == ConstraintTypeCodes.CI)
+                if (Con.ConstraintType.Value == ConstraintTypeCodes.CI)
                 {
                     L.Add(ConstraintUnits.Multiple);
                 }
@@ -982,52 +969,49 @@ namespace SquintScript
                     case "ID":
                         ID = Con.ID;
                         break;
-                    case "DisplayOrder":
-                        _DisplayOrder = Con.DisplayOrder;
-                        break;
                     case "ReferenceScale":
-                        ReferenceUnit = Con.GetReferenceUnit();
-                        _ReferenceScale = Con.ReferenceScale;
                         ConstraintDefinition = Con.GetConstraintString(false);
                         ShortConstraintDefinition = Con.GetConstraintStringNoStructure(false);
                         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("ConstraintDefinition"));
+                        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("ReferenceScale"));
+                        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("ReferenceUnit"));
                         break;
                     case "ConstraintScale":
-                        ConstraintUnit = Con.GetConstraintUnit();
-                        _ConstraintScale = Con.ConstraintScale;
                         ConstraintDefinition = Con.GetConstraintString(false);
                         ShortConstraintDefinition = Con.GetConstraintStringNoStructure(false);
+                        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("ConstraintScale"));
+                        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("ConstraintUnit"));
                         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("ConstraintDefinition"));
                         break;
                     case "ConstraintValue":
-                        _ConstraintValue = Con.ConstraintValue;
                         ConstraintDefinition = Con.GetConstraintString(false);
                         ShortConstraintDefinition = Con.GetConstraintStringNoStructure(false);
+                        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("ConstraintValue"));
                         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("ConstraintDefinition"));
                         break;
                     case "ReferenceValue":
-                        _ReferenceValue = Con.ReferenceValue;
                         ConstraintDefinition = Con.GetConstraintString(false);
                         ShortConstraintDefinition = Con.GetConstraintStringNoStructure(false);
                         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("ConstraintDefinition"));
+                        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("ReferenceValue"));
                         break;
                     case "ConstraintType":
-                        _ConstraintType = Con.ConstraintType;
                         ConstraintDefinition = Con.GetConstraintString(false);
                         ShortConstraintDefinition = Con.GetConstraintStringNoStructure(false);
+                        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("ConstraintType"));
                         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("ConstraintDefinition"));
                         break;
                     case "ReferenceType":
-                        _ReferenceType = Con.ReferenceType;
                         ConstraintDefinition = Con.GetConstraintString(false);
                         ShortConstraintDefinition = Con.GetConstraintStringNoStructure(false);
                         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("ConstraintDefinition"));
+                        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("ReferenceType"));
                         break;
                     case "PrimaryStructureID":
-                        _PrimaryStructureID = Con.PrimaryStructureID;
                         ConstraintDefinition = Con.GetConstraintString(false);
                         PrimaryStructureName = Con.PrimaryStructureName;
                         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("ConstraintDefinition"));
+                        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("PrimaryStructureID"));
                         break;
                     case "ExceptionType":
                         break;
@@ -1042,15 +1026,15 @@ namespace SquintScript
                         break;
                     case "NumFractions":
                         ConstraintDefinition = Con.GetConstraintString(false);
-                        ConstraintValue = Con.ConstraintValue;
-                        ReferenceValue = Con.ReferenceValue;
                         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("ConstraintDefinition"));
                         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("Threshold"));
+                        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("ConstraintValue"));
+                        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("ReferenceValue"));
                         break;
                     case "ReferenceDose":
                         ConstraintDefinition = Con.GetConstraintString(false);
-                        ConstraintValue = Con.ConstraintValue;
-                        ReferenceValue = Con.ReferenceValue;
+                        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("ConstraintValue"));
+                        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("ReferenceValue"));
                         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("ConstraintDefinition"));
                         break;
                     case "SecondaryStructureName":
@@ -1326,7 +1310,7 @@ namespace SquintScript
                 ResultValue = CR.ResultValue;
                 ThresholdStatus = CR.ThresholdStatus;
                 StatusCodes = CR.StatusCodes;
-                ReferenceType = DataCache.GetConstraint(CR.ConstraintID).ReferenceType;
+                ReferenceType = DataCache.GetConstraint(CR.ConstraintID).ReferenceType.Value;
                 LabelName = CR.LinkedLabelName;
                 isCalculating = CR.isCalculating;
             }
@@ -1936,7 +1920,7 @@ namespace SquintScript
             int NewDisplayOrder = 1;
             foreach (Constraint Con in DataCache.GetAllConstraints().OrderBy(x => x.DisplayOrder))
             {
-                Con.DisplayOrder = NewDisplayOrder++;
+                Con.DisplayOrder.Value = NewDisplayOrder++;
             }
             ConstraintRemoved?.Invoke(null, Id);
         }
@@ -1945,11 +1929,11 @@ namespace SquintScript
             Constraint Con = DataCache.GetConstraint(Id);
             if (Con != null)
             {
-                Constraint ConSwitch = DataCache.GetAllConstraints().FirstOrDefault(x => x.DisplayOrder == Con.DisplayOrder - 1);
+                Constraint ConSwitch = DataCache.GetAllConstraints().FirstOrDefault(x => x.DisplayOrder.Value == Con.DisplayOrder.Value - 1);
                 if (ConSwitch != null)
                 {
                     ConSwitch.DisplayOrder = Con.DisplayOrder;
-                    Con.DisplayOrder = Con.DisplayOrder - 1;
+                    Con.DisplayOrder.Value = Con.DisplayOrder.Value - 1;
                 }
                 ProtocolConstraintOrderChanged?.Invoke(null, EventArgs.Empty);
             }
@@ -1959,11 +1943,11 @@ namespace SquintScript
             Constraint Con = DataCache.GetConstraint(Id);
             if (Con != null)
             {
-                Constraint ConSwitch = DataCache.GetAllConstraints().FirstOrDefault(x => x.DisplayOrder == Con.DisplayOrder + 1);
+                Constraint ConSwitch = DataCache.GetAllConstraints().FirstOrDefault(x => x.DisplayOrder.Value == Con.DisplayOrder.Value + 1);
                 if (ConSwitch != null)
                 {
                     ConSwitch.DisplayOrder = Con.DisplayOrder;
-                    Con.DisplayOrder = Con.DisplayOrder + 1;
+                    Con.DisplayOrder.Value = Con.DisplayOrder.Value + 1;
                 }
                 ProtocolConstraintOrderChanged?.Invoke(null, EventArgs.Empty);
             }
@@ -1973,9 +1957,9 @@ namespace SquintScript
             if (DataCache.CurrentProtocol == null)
                 return null;
             Constraint Con2Dup = DataCache.GetConstraint(ConstraintID);
-            foreach (Constraint Con in DataCache.GetAllConstraints().Where(x => x.DisplayOrder > Con2Dup.DisplayOrder))
+            foreach (Constraint Con in DataCache.GetAllConstraints().Where(x => x.DisplayOrder.Value > Con2Dup.DisplayOrder.Value))
             {
-                Con.DisplayOrder = Con.DisplayOrder + 1;
+                Con.DisplayOrder.Value = Con.DisplayOrder.Value + 1;
             }
             Constraint DupCon = new Constraint(Con2Dup);
             DataCache.AddConstraint(DupCon);
