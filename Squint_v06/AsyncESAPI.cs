@@ -77,8 +77,8 @@ namespace SquintScript
         {
             m_application = Execute(new Func<EApp>(() =>
             {
-                return EApp.CreateApplication(username, password);
-                //return EApp.CreateApplication(null,null );
+                //return EApp.CreateApplication(username, password);
+                return EApp.CreateApplication();
             }));
             isInit = true;
         }
@@ -382,9 +382,9 @@ namespace SquintScript
             UID = p.UID;
             HistoryDateTime = p.HistoryDateTime;
             Id = p.Id;
-            NumFractions = p.UniqueFractionation.NumberOfFractions;
+            NumFractions = p.NumberOfFractions;
             HashId = Convert.ToInt32(p.Id.GetHashCode() + p.Course.Id.GetHashCode() + UID.GetHashCode());
-            Dose = p.TotalPrescribedDose.Dose;
+            Dose = p.TotalDose.Dose;
             IsDoseValid = p.IsDoseValid;
             if (p.StructureSet == null)
                 Valid = false;
@@ -593,7 +593,7 @@ namespace SquintScript
             {
                 if (p.Dose != null)
                 {
-                    return p.PrescribedPercentage * 100;
+                    return p.TreatmentPercentage * 100;
                 }
                 else return double.NaN;
             }));
@@ -692,7 +692,7 @@ namespace SquintScript
             {
                 if (p == null)
                     return null;
-                return p.UniqueFractionation.NumberOfFractions;
+                return p.NumberOfFractions;
             }));
         }
         public Task<Controls.NTODefinition> GetNTOObjective()
@@ -749,7 +749,7 @@ namespace SquintScript
         {
             return A.ExecuteAsync(new Func<PlanSetup, VVector>((p) =>
             {
-                var C = p.StructureSet.Structures.First(x => x.Id == "BODY").GetContoursOnImagePlane(0);
+                //
                 return p.Beams.First().IsocenterPosition;
             }), p);
         }

@@ -206,7 +206,7 @@ namespace SquintScript
             }
             public static IEnumerable<Constraint> GetConstraintsInComponent(int CompID)
             {
-                return _Constraints.Values.Where(x => x.ComponentID.Value == CompID);
+                return _Constraints.Values.Where(x => x.ComponentID == CompID);
             }
             public static IEnumerable<Constraint> GetAllConstraints()
             {
@@ -628,13 +628,16 @@ namespace SquintScript
                             }
                             if (DbC.Checklists != null)
                             {
-                                var DbChecklist = DbC.Checklists.FirstOrDefault(x => x.ProtocolDefault == false);
-                                if (DbChecklist != null)
-                                    SC.Checklist = new ComponentChecklist(DbChecklist);
-                                else
+                                if (DbC.Checklists.Count > 0)
                                 {
-                                    DbChecklist = DbC.Checklists.FirstOrDefault(x => x.ProtocolDefault == true);
-                                    SC.Checklist = new ComponentChecklist(DbChecklist);
+                                    var DbChecklist = DbC.Checklists.FirstOrDefault(x => x.ProtocolDefault == false);
+                                    if (DbChecklist != null)
+                                        SC.Checklist = new ComponentChecklist(DbChecklist);
+                                    else
+                                    {
+                                        DbChecklist = DbC.Checklists.FirstOrDefault(x => x.ProtocolDefault == true);
+                                        SC.Checklist = new ComponentChecklist(DbChecklist);
+                                    }
                                 }
                             }
                             if (DbC.Constraints != null)
@@ -652,7 +655,7 @@ namespace SquintScript
                                         else
                                         {
                                             DbConThresholdDef MajorViolation = SquintDb.Context.DbConThresholdDefs.Where(x => x.Threshold == (int)ConstraintThresholdNames.MajorViolation).Single();
-                                            ConstraintThreshold CT = new ConstraintThreshold(MajorViolation, Con, Con.ReferenceValue.Value);
+                                            ConstraintThreshold CT = new ConstraintThreshold(MajorViolation, Con, Con.ReferenceValue);
                                             AddConstraintThreshold(CT);
                                         }
                                     else
@@ -771,7 +774,7 @@ namespace SquintScript
                                         else
                                         {
                                             DbConThresholdDef MajorViolation = SquintDb.Context.DbConThresholdDefs.Where(x => x.Threshold == (int)ConstraintThresholdNames.MajorViolation).Single();
-                                            ConstraintThreshold CT = new ConstraintThreshold(MajorViolation, Con, Con.ReferenceValue.Value);
+                                            ConstraintThreshold CT = new ConstraintThreshold(MajorViolation, Con, Con.ReferenceValue);
                                             AddConstraintThreshold(CT);
                                         }
                                     else
@@ -1011,31 +1014,32 @@ namespace SquintScript
                         DbO.ID = IDGenerator();
                         DbO.SessionID = DbS.ID;
                         DbO.ParentConstraintID = Con.ID;
-                        DbO.ComponentID = ComponentLookup[Con.ComponentID.Value];
+                        DbO.ComponentID = ComponentLookup[Con.ComponentID];
                         // Update
-                        DbO.PrimaryStructureID = StructureLookup[Con.PrimaryStructureID.Value];
-                        DbO.ReferenceScale = (int)Con.ReferenceScale.Value;
-                        DbO.ReferenceType = (int)Con.ReferenceType.Value;
-                        DbO.ReferenceValue = Con.ReferenceValue.Value;
-                        if (Con.SecondaryStructureID.Value == 1)
+                        DbO.PrimaryStructureID = StructureLookup[Con.PrimaryStructureID];
+                        DbO.ReferenceScale = (int)Con.ReferenceScale;
+                        DbO.ReferenceType = (int)Con.ReferenceType;
+                        DbO.ReferenceValue = Con.ReferenceValue;
+                        if (Con.SecondaryStructureID == 1)
                             DbO.SecondaryStructureID = 1;
                         else
-                            DbO.SecondaryStructureID = StructureLookup[Con.SecondaryStructureID.Value];
-                        DbO.ConstraintScale = (int)Con.ConstraintScale.Value;
-                        DbO.ConstraintType = (int)Con.ConstraintType.Value;
-                        DbO.ConstraintValue = Con.ConstraintValue.Value;
+                            DbO.SecondaryStructureID = StructureLookup[Con.SecondaryStructureID];
+                        DbO.ConstraintScale = (int)Con.ConstraintScale;
+                        DbO.ConstraintType = (int)Con.ConstraintType;
+                        DbO.ConstraintValue = Con.ConstraintValue;
                         DbO.DisplayOrder = Con.DisplayOrder.Value;
-                        DbO.Fractions = Con.NumFractions.Value;
+                        DbO.Fractions = Con.NumFractions;
                         //Save reference values
-                        DbO.OriginalNumFractions = Con.NumFractions.ReferenceValue;
-                        DbO.OriginalPrimaryStructureID = Con.PrimaryStructureID.ReferenceValue;
-                        DbO.OriginalSecondaryStructureID = Con.SecondaryStructureID.ReferenceValue;
-                        DbO.OriginalReferenceValue = Con.ReferenceValue.ReferenceValue;
-                        DbO.OriginalReferenceType = (int)Con.ReferenceType.ReferenceValue;
-                        DbO.OriginalConstraintType = (int)Con.ConstraintType.ReferenceValue;
-                        DbO.OriginalConstraintScale = (int)Con.ConstraintScale.ReferenceValue;
-                        DbO.OriginalReferenceScale = (int)Con.ReferenceScale.ReferenceValue;
-                        DbO.OriginalConstraintValue = (int)Con.ConstraintValue.ReferenceValue;
+                        var ConReferenceValues = Con.GetConstraintReferenceValues();
+                        DbO.OriginalNumFractions = ConReferenceValues.NumFractions;
+                        DbO.OriginalPrimaryStructureID = ConReferenceValues.PrimaryStructureID;
+                        DbO.OriginalSecondaryStructureID = ConReferenceValues.SecondaryStructureID;
+                        DbO.OriginalReferenceValue = ConReferenceValues.ReferenceValue;
+                        DbO.OriginalReferenceType = (int)ConReferenceValues.ReferenceType;
+                        DbO.OriginalConstraintType = (int)ConReferenceValues.ConstraintType;
+                        DbO.OriginalConstraintScale = (int)ConReferenceValues.ConstraintScale;
+                        DbO.OriginalReferenceScale = (int)ConReferenceValues.ReferenceScale;
+                        DbO.OriginalConstraintValue = ConReferenceValues.ConstraintValue;
                         //Link Results to Asssessment
                         foreach (Assessment A in _Assessments.Values)
                         {
@@ -1125,23 +1129,23 @@ namespace SquintScript
                             DbO = Context.DbConstraints.Find(Con.ID);
                         }
                         // Update
-                        DbO.PrimaryStructureID = Con.PrimaryStructureID.Value;
-                        DbO.ReferenceScale = (int)Con.ReferenceScale.Value;
-                        DbO.ReferenceType = (int)Con.ReferenceType.Value;
-                        DbO.ReferenceValue = Con.ReferenceValue.Value;
-                        DbO.SecondaryStructureID = Con.SecondaryStructureID.Value;
-                        DbO.ComponentID = Con.ComponentID.Value;
-                        DbO.ConstraintScale = (int)Con.ConstraintScale.Value;
-                        DbO.ConstraintType = (int)Con.ConstraintType.Value;
-                        DbO.ConstraintValue = Con.ConstraintValue.Value;
+                        DbO.PrimaryStructureID = Con.PrimaryStructureID;
+                        DbO.ReferenceScale = (int)Con.ReferenceScale;
+                        DbO.ReferenceType = (int)Con.ReferenceType;
+                        DbO.ReferenceValue = Con.ReferenceValue;
+                        DbO.SecondaryStructureID = Con.SecondaryStructureID;
+                        DbO.ComponentID = Con.ComponentID;
+                        DbO.ConstraintScale = (int)Con.ConstraintScale;
+                        DbO.ConstraintType = (int)Con.ConstraintType;
+                        DbO.ConstraintValue = Con.ConstraintValue;
                         DbO.DisplayOrder = Con.DisplayOrder.Value;
-                        DbO.Fractions = Con.NumFractions.Value;
+                        DbO.Fractions = Con.NumFractions;
                         // Update constraint log
                         if (Con.isModified() || Con.isCreated)
                         {
                             int DbCC_ParentID = Context.DbConstraintChangelogs.Where(x => x.ConstraintID == Con.ID).Select(x => x.ID).OrderBy(x => x).First();
                             DbConstraintChangelog DbCC = Context.DbConstraintChangelogs.Create();
-                            DbCC.ChangeDescription = GetConstraintView(Con.ID).ChangeDescription;
+                            //DbCC.ChangeDescription = GetConstraintView(Con.ID).ChangeDescription;
                             DbCC.ChangeAuthor = SquintUser;
                             DbCC.ConstraintID = Con.ID;
                             DbCC.ConstraintString = Con.GetConstraintString();
@@ -1229,21 +1233,21 @@ namespace SquintScript
                         DbConstraint DbO = Context.DbConstraints.Create();
                         Context.DbConstraints.Add(DbO);
                         DbO.ID = IDGenerator();
-                        DbO.ComponentID = ComponentLookup[Con.ComponentID.Value];
+                        DbO.ComponentID = ComponentLookup[Con.ComponentID];
                         // Update
-                        DbO.PrimaryStructureID = StructureLookup[Con.PrimaryStructureID.Value];
-                        DbO.ReferenceScale = (int)Con.ReferenceScale.Value;
-                        DbO.ReferenceType = (int)Con.ReferenceType.Value;
-                        DbO.ReferenceValue = Con.ReferenceValue.Value;
-                        if (Con.SecondaryStructureID.Value == 1)
+                        DbO.PrimaryStructureID = StructureLookup[Con.PrimaryStructureID];
+                        DbO.ReferenceScale = (int)Con.ReferenceScale;
+                        DbO.ReferenceType = (int)Con.ReferenceType;
+                        DbO.ReferenceValue = Con.ReferenceValue;
+                        if (Con.SecondaryStructureID == 1)
                             DbO.SecondaryStructureID = 1;
                         else
-                            DbO.SecondaryStructureID = StructureLookup[Con.SecondaryStructureID.Value];
-                        DbO.ConstraintScale = (int)Con.ConstraintScale.Value;
-                        DbO.ConstraintType = (int)Con.ConstraintType.Value;
-                        DbO.ConstraintValue = Con.ConstraintValue.Value;
+                            DbO.SecondaryStructureID = StructureLookup[Con.SecondaryStructureID];
+                        DbO.ConstraintScale = (int)Con.ConstraintScale;
+                        DbO.ConstraintType = (int)Con.ConstraintType;
+                        DbO.ConstraintValue = Con.ConstraintValue;
                         DbO.DisplayOrder = Con.DisplayOrder.Value;
-                        DbO.Fractions = Con.NumFractions.Value;
+                        DbO.Fractions = Con.NumFractions;
                     }
                     try
                     {

@@ -677,408 +677,410 @@ namespace SquintScript
         }
 
 
-        [AddINotifyPropertyChangedInterface]
-        public class ConstraintView : INotifyPropertyChanged, IComparable<ConstraintView>
-        {
-            //Required to allow sorting when bound to datagridview
-            public int CompareTo(ConstraintView other)
-            {
-                return DisplayOrder.CompareTo(other.DisplayOrder);
-            }
-            //Required notification class
-            public event PropertyChangedEventHandler PropertyChanged;
-            public event EventHandler<int> ConstraintEvaluating;
-            public event EventHandler<int> ConstraintEvaluated;
-            public event EventHandler<int> ConstraintDeleted;
-            private void NotifyPropertyChanged([CallerMemberName] String propertyName = "")
-            {
-                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-            }
-            public EventHandler ConstraintViewChanged;
-            public ConstraintView(Constraint _Con)
-            {
-                Con = _Con;
-                ID = _Con.ID;
-                ReferenceConstraintDefinition = Con.GetConstraintString(true);
-                ConstraintDefinition = Con.GetConstraintString(false);
-                ShortConstraintDefinition = Con.GetConstraintStringNoStructure(false);
-                SC = DataCache.GetComponent(_Con.ComponentID.Value);
-                ComponentID = SC.ID;
-                DisplayOrderComponent = SC.DisplayOrder;
-                ConstraintUnit = Con.GetConstraintUnit();
-                ReferenceUnit = Con.GetReferenceUnit();
-                ComponentName = SC.ComponentName;
-                PrimaryStructureName = Con.PrimaryStructureName;
+        //[AddINotifyPropertyChangedInterface]
+        //public class ConstraintView : INotifyPropertyChanged, IComparable<ConstraintView>
+        //{
+        //    //Required to allow sorting when bound to datagridview
+        //    public int CompareTo(ConstraintView other)
+        //    {
+        //        return DisplayOrder.CompareTo(other.DisplayOrder);
+        //    }
+        //    //Required notification class
+        //    public event PropertyChangedEventHandler PropertyChanged;
+        //    public event EventHandler<int> ConstraintEvaluating;
+        //    public event EventHandler<int> ConstraintEvaluated;
+        //    public event EventHandler<int> ConstraintDeleted;
+        //    private void NotifyPropertyChanged([CallerMemberName] String propertyName = "")
+        //    {
+        //        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        //    }
+        //    public EventHandler ConstraintViewChanged;
+        //    //public ConstraintView(Constraint _Con)
+        //    //{
+        //    //    Con = _Con;
+        //    //    ID = _Con.ID;
+        //    //    ReferenceConstraintDefinition = Con.GetConstraintString(true);
+        //    //    ConstraintDefinition = Con.GetConstraintString(false);
+        //    //    ShortConstraintDefinition = Con.GetConstraintStringNoStructure(false);
+        //    //    SC = DataCache.GetComponent(_Con.ComponentID);
+        //    //    ComponentID = SC.ID;
+        //    //    DisplayOrderComponent = SC.DisplayOrder;
+        //    //    ConstraintUnit = Con.GetConstraintUnit();
+        //    //    ReferenceUnit = Con.GetReferenceUnit();
+        //    //    ComponentName = SC.ComponentName;
+        //    //    PrimaryStructureName = Con.PrimaryStructureName;
                 
-                // Add subscriptions to domain object
-                Con.PropertyChanged += OnConstraintPropertyChanged;
-                Con.ConstraintEvaluating += OnConstraintEvaluating;
-                Con.ConstraintEvaluated += OnConstraintEvaluated;
-                Con.ConstraintDeleted += OnConstraintDeleted;
-                // Add to state data
-                lock (LockConstraint)
-                {
-                    ConstraintViews.Add(Con.ID, this);
-                }
-            }
-            private Constraint Con;
-            private Component SC;
-            public string Status { get; private set; }
-            public bool isModified(string PropertyName = "")
-            {
-                return Con.isModified(PropertyName);
-            }
-            public bool isCreated { get { return Con.isCreated; } }
-            public string ReferenceConstraintDefinition { get; private set; }
-            public string ShortConstraintDefinition { get; private set; }
-            public string ConstraintDefinition { get; private set; }
-            public string ChangeDescription { get; set; } = "";
-            public int ID { get; private set; }
-            public int DisplayOrder
-            {
-                get
-                {
-                    return Con.DisplayOrder.Value;
-                }
-                set
-                {
-                    Con.DisplayOrder.Value = value; 
-                }
-            }
-            public string ComponentName { get; private set; }
-            public int ComponentID
-            {
-                get { return Con.ComponentID.Value; }
-                set
-                {
-                    Con.ComponentID.Value = value;
-                }
-            }
-            public int DisplayOrderComponent { get; private set; }
-            public string PrimaryStructureName { get; set; }
-            public List<System.Windows.Media.Color> StructureColors
-            {
-                get
-                {
-                    var ECPs = DataCache.GetAllPlans().Where(x => x.ComponentID == ComponentID);
-                    List<System.Windows.Media.Color> Colors = new List<System.Windows.Media.Color>();
-                    foreach (var ECP in ECPs)
-                    {
-                        if (ECP != null)
-                        {
-                            var C = ECP.GetStructureColor(PrimaryStructureName);
-                            if (C != null)
-                            {
-                                if (!Colors.Contains(((System.Windows.Media.Color)C)))
-                                    Colors.Add((System.Windows.Media.Color)C);
-                            }
-                        }
-                    }
-                    return Colors;
-                }
-            }
-            public ConstraintUnits ConstraintUnit { get; private set; }
-            public ConstraintUnits ReferenceUnit { get; private set; }
-            public ConstraintTypeCodes ConstraintType
-            {
-                get
-                {
-                    return Con.ConstraintType.Value;
-                }
-                set
-                {
-                    Con.ConstraintType.Value = value; // Con will notify ConstraintView to update the private field
-                }
-            }
-            public double ConstraintValue
-            {
-                get { return Con.ConstraintValue.Value; }
-                set
-                {
-                    Con.ConstraintValue.Value = value;// Con will notify ConstraintView to update the private field
-                }
-            }
-            public double ReferenceValue
-            {
-                get { return Con.ReferenceValue.Value; }
-                set
-                {
-                    Con.ReferenceValue.Value = value; // Con will notify ConstraintView to update the private field
-                    StopValue = double.NaN;
-                    MajorViolation = value;
-                    MinorViolation = double.NaN;
-                }
-            }
-            public double StopValue
-            {
-                get
-                {
-                    return Con.GetThreshold(ConstraintThresholdNames.Stop);
-                }
-                set
-                {
-                    Con.SetThreshold(ConstraintThresholdNames.Stop, value);
-                    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("Threshold"));
-                }
-            }
-            public double MinorViolation
-            {
-                get
-                {
-                    return Con.GetThreshold(ConstraintThresholdNames.MinorViolation);
-                }
-                set
-                {
-                    Con.SetThreshold(ConstraintThresholdNames.MinorViolation, value);
-                    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("Threshold"));
-                }
-            }
-            public double MajorViolation
-            {
-                get
-                {
-                    return Con.GetThreshold(ConstraintThresholdNames.MajorViolation);
-                }
-                set
-                {
-                    Con.SetThreshold(ConstraintThresholdNames.MajorViolation, value);
-                    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("Threshold"));
-                }
-            }
-            public ReferenceTypes ReferenceType
-            {
-                get { return Con.ReferenceType.Value; }
-                set
-                {
-                    Con.ReferenceType.Value = value; // Con will notify ConstraintView to update the private field
-                }
-            }
-            public UnitScale ConstraintScale
-            {
-                get { return Con.ConstraintScale.Value; }
-                set
-                {
-                    Con.ConstraintScale.Value = value; // Con will notify ConstraintView to update the private field
-                }
-            }
-            public UnitScale ReferenceScale
-            {
-                get { return Con.ReferenceScale.Value; }
-                set
-                {
-                    Con.ReferenceScale.Value = value; // Con will notify ConstraintView to update the private field
-                }
-            }
-            public int PrimaryStructureID
-            {
-                get
-                {
-                    return Con.PrimaryStructureID.Value;
-                }
-                set
-                {
-                    Con.PrimaryStructureID.Value = value; // Con will notify ConstraintView to update the private field
-                    Con.ProtocolStructureName = DataCache.GetECSID(value).ProtocolStructureName;
-                }
-            }
-            public ConstraintResultView GetResult(int AssessmentID)
-            {
-                return Con.GetResult(AssessmentID);
-            }
-            private List<ConstraintResultView> GetAllResults()
-            {
-                return Con.GetAllResults();
-            }
-            public List<ConstraintChangelog> GetChangeLogs()
-            {
-                return Con.GetChangeLogs();
-            }
-            public bool isBestResult(double testval)
-            {
-                if (Ctr.NumAssessments > 1 && !double.IsNaN(testval))
-                {
-                    var Results = GetAllResults().Where(x => x != null);
-                    if (Results == null)
-                        return false;
-                    IEnumerable<double> ResultValues = Results.Select(x => x.ResultValue);
-                    double BestValue = 0;
-                    double Spread = 0;
-                    if (ReferenceType == ReferenceTypes.Lower)
-                    {
-                        BestValue = ResultValues.Max();
-                        var Dif = ResultValues.Select(x => x - BestValue);
-                        Spread = Math.Abs(ResultValues.Max() - ResultValues.Min());
-                    }
-                    else if (ReferenceType == ReferenceTypes.Upper)
-                    {
-                        BestValue = ResultValues.Min();
-                        var Dif = ResultValues.Select(x => x - BestValue);
-                        Spread = Math.Abs(ResultValues.Max() - ResultValues.Min());
-                    }
-                    if (Spread > 0.01 && testval == BestValue)
-                    {
-                        return true;
-                    }
-                    else
-                        return false;
-                }
-                else return false;
-            }
-            //View helpers
-            public List<ConstraintUnits> GetAvailableConstraintUnitList()
-            {
-                List<ConstraintUnits> L = new List<ConstraintUnits>();
-                L.Add(ConstraintUnits.Percent);
-                if (Con.isConstraintValueDose())
-                {
-                    L.Add(ConstraintUnits.cGy);
-                }
-                else
-                {
-                    L.Add(ConstraintUnits.cc);
-                }
-                return L;
-            }
-            public List<ConstraintUnits> GetAvailableReferenceUnitList()
-            {
-                List<ConstraintUnits> L = new List<ConstraintUnits>();
-                L.Add(ConstraintUnits.Percent);
-                if (Con.ConstraintType.Value == ConstraintTypeCodes.CI)
-                {
-                    L.Add(ConstraintUnits.Multiple);
-                }
-                else
-                {
-                    if (Con.isReferenceValueDose())
-                    {
+        //    //    // Add subscriptions to domain object
+        //    //    Con.PropertyChanged += OnConstraintPropertyChanged;
+        //    //    Con.ConstraintEvaluating += OnConstraintEvaluating;
+        //    //    Con.ConstraintEvaluated += OnConstraintEvaluated;
+        //    //    Con.ConstraintDeleted += OnConstraintDeleted;
+        //    //    // Add to state data
+        //    //    lock (LockConstraint)
+        //    //    {
+        //    //        ConstraintViews.Add(Con.ID, this);
+        //    //    }
+        //    //}
+        //    private Constraint Con;
+        //    private Component SC;
+        //    public string Status { get; private set; }
+        //    public bool isModified(string PropertyName = "")
+        //    {
+        //        return Con.isModified(PropertyName);
+        //    }
+        //    public bool isCreated { get { return Con.isCreated; } }
+        //    public string ReferenceConstraintDefinition { get; private set; }
+        //    public string ShortConstraintDefinition { get; private set; }
+        //    public string ConstraintDefinition { get; private set; }
+        //    public string ChangeDescription { get; set; } = "";
+        //    public int ID { get; private set; }
+        //    public int DisplayOrder
+        //    {
+        //        get
+        //        {
+        //            return Con.DisplayOrder.Value;
+        //        }
+        //        set
+        //        {
+        //            Con.DisplayOrder.Value = value; 
+        //        }
+        //    }
+        //    public string ComponentName { get; private set; }
+        //    public int ComponentID
+        //    {
+        //        get { return Con.ComponentID; }
+        //        set
+        //        {
+        //            Con.ComponentID = value;
+        //        }
+        //    }
+        //    public int DisplayOrderComponent { get; private set; }
+        //    public string PrimaryStructureName { get; set; }
+        //    public List<System.Windows.Media.Color> StructureColors
+        //    {
+        //        get
+        //        {
+        //            var ECPs = DataCache.GetAllPlans().Where(x => x.ComponentID == ComponentID);
+        //            List<System.Windows.Media.Color> Colors = new List<System.Windows.Media.Color>();
+        //            foreach (var ECP in ECPs)
+        //            {
+        //                if (ECP != null)
+        //                {
+        //                    var C = ECP.GetStructureColor(PrimaryStructureName);
+        //                    if (C != null)
+        //                    {
+        //                        if (!Colors.Contains(((System.Windows.Media.Color)C)))
+        //                            Colors.Add((System.Windows.Media.Color)C);
+        //                    }
+        //                }
+        //            }
+        //            return Colors;
+        //        }
+        //    }
+        //    public ConstraintUnits ConstraintUnit { get; private set; }
+        //    public ConstraintUnits ReferenceUnit { get; private set; }
+        //    public ConstraintTypeCodes ConstraintType
+        //    {
+        //        get
+        //        {
+        //            return Con.ConstraintType;
+        //        }
+        //        set
+        //        {
+        //            Con.ConstraintType = value; // Con will notify ConstraintView to update the private field
+        //        }
+        //    }
+        //    public double ConstraintValue
+        //    {
+        //        get { return Con.ConstraintValue; }
+        //        set
+        //        {
+        //            Con.ConstraintValue = value;// Con will notify ConstraintView to update the private field
+        //        }
+        //    }
+        //    public double ReferenceValue
+        //    {
+        //        get { return Con.ReferenceValue; }
+        //        set
+        //        {
+        //            Con.ReferenceValue = value; // Con will notify ConstraintView to update the private field
+        //            StopValue = double.NaN;
+        //            MajorViolation = value;
+        //            MinorViolation = double.NaN;
+        //        }
+        //    }
+        //    public double StopValue
+        //    {
+        //        get
+        //        {
+        //            return Con.GetThreshold(ConstraintThresholdNames.Stop);
+        //        }
+        //        set
+        //        {
+        //            Con.SetThreshold(ConstraintThresholdNames.Stop, value);
+        //            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("Threshold"));
+        //        }
+        //    }
+        //    public double MinorViolation
+        //    {
+        //        get
+        //        {
+        //            return Con.GetThreshold(ConstraintThresholdNames.MinorViolation);
+        //        }
+        //        set
+        //        {
+        //            Con.SetThreshold(ConstraintThresholdNames.MinorViolation, value);
+        //            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("Threshold"));
+        //        }
+        //    }
+        //    public double MajorViolation
+        //    {
+        //        get
+        //        {
+        //            return Con.GetThreshold(ConstraintThresholdNames.MajorViolation);
+        //        }
+        //        set
+        //        {
+        //            Con.SetThreshold(ConstraintThresholdNames.MajorViolation, value);
+        //            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("Threshold"));
+        //        }
+        //    }
+        //    public ReferenceTypes ReferenceType
+        //    {
+        //        get { return Con.ReferenceType; }
+        //        set
+        //        {
+        //            Con.ReferenceType = value; // Con will notify ConstraintView to update the private field
+        //        }
+        //    }
+        //    public UnitScale ConstraintScale
+        //    {
+        //        get { return Con.ConstraintScale; }
+        //        set
+        //        {
+        //            Con.ConstraintScale = value; // Con will notify ConstraintView to update the private field
+        //        }
+        //    }
+        //    public UnitScale ReferenceScale
+        //    {
+        //        get { return Con.ReferenceScale; }
+        //        set
+        //        {
+        //            Con.ReferenceScale = value; // Con will notify ConstraintView to update the private field
+        //        }
+        //    }
+        //    public int PrimaryStructureID
+        //    {
+        //        get
+        //        {
+        //            return Con.PrimaryStructureID;
+        //        }
+        //        set
+        //        {
+        //            Con.PrimaryStructureID = value; // Con will notify ConstraintView to update the private field
+        //        }
+        //    }
+        //    public ConstraintResultView GetResult(int AssessmentID)
+        //    {
+        //        return Con.GetResult(AssessmentID);
+        //    }
+        //    private List<ConstraintResultView> GetAllResults()
+        //    {
+        //        return Con.GetAllResults();
+        //    }
+        //    public List<ConstraintChangelog> GetChangeLogs()
+        //    {
+        //        return Con.GetChangeLogs();
+        //    }
+        //    public bool isBestResult(double testval)
+        //    {
+        //        if (Ctr.NumAssessments > 1 && !double.IsNaN(testval))
+        //        {
+        //            var Results = GetAllResults().Where(x => x != null);
+        //            if (Results == null)
+        //                return false;
+        //            IEnumerable<double> ResultValues = Results.Select(x => x.ResultValue);
+        //            double BestValue = 0;
+        //            double Spread = 0;
+        //            if (ReferenceType == ReferenceTypes.Lower)
+        //            {
+        //                BestValue = ResultValues.Max();
+        //                var Dif = ResultValues.Select(x => x - BestValue);
+        //                Spread = Math.Abs(ResultValues.Max() - ResultValues.Min());
+        //            }
+        //            else if (ReferenceType == ReferenceTypes.Upper)
+        //            {
+        //                BestValue = ResultValues.Min();
+        //                var Dif = ResultValues.Select(x => x - BestValue);
+        //                Spread = Math.Abs(ResultValues.Max() - ResultValues.Min());
+        //            }
+        //            if (Spread > 0.01 && testval == BestValue)
+        //            {
+        //                return true;
+        //            }
+        //            else
+        //                return false;
+        //        }
+        //        else return false;
+        //    }
+        //    //View helpers
+        //    public List<ConstraintUnits> GetAvailableConstraintUnitList()
+        //    {
+        //        List<ConstraintUnits> L = new List<ConstraintUnits>();
+        //        L.Add(ConstraintUnits.Percent);
+        //        if (Con.isConstraintValueDose())
+        //        {
+        //            L.Add(ConstraintUnits.cGy);
+        //        }
+        //        else
+        //        {
+        //            L.Add(ConstraintUnits.cc);
+        //        }
+        //        return L;
+        //    }
+        //    public List<ConstraintUnits> GetAvailableReferenceUnitList()
+        //    {
+        //        List<ConstraintUnits> L = new List<ConstraintUnits>();
+        //        L.Add(ConstraintUnits.Percent);
+        //        if (Con.ConstraintType == ConstraintTypeCodes.CI)
+        //        {
+        //            L.Add(ConstraintUnits.Multiple);
+        //        }
+        //        else
+        //        {
+        //            if (Con.isReferenceValueDose())
+        //            {
 
-                        L.Add(ConstraintUnits.cGy);
-                    }
-                    else
-                    {
-                        L.Add(ConstraintUnits.cc);
-                    }
-                }
-                return L;
-            }
-            //Event Handlers
-            private void OnConstraintPropertyChanged(object sender, PropertyChangedEventArgs e)
-            {
-                switch (e.PropertyName)
-                {
-                    case "ID":
-                        ID = Con.ID;
-                        break;
-                    case "ReferenceScale":
-                        ConstraintDefinition = Con.GetConstraintString(false);
-                        ShortConstraintDefinition = Con.GetConstraintStringNoStructure(false);
-                        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("ConstraintDefinition"));
-                        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("ReferenceScale"));
-                        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("ReferenceUnit"));
-                        break;
-                    case "ConstraintScale":
-                        ConstraintDefinition = Con.GetConstraintString(false);
-                        ShortConstraintDefinition = Con.GetConstraintStringNoStructure(false);
-                        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("ConstraintScale"));
-                        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("ConstraintUnit"));
-                        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("ConstraintDefinition"));
-                        break;
-                    case "ConstraintValue":
-                        ConstraintDefinition = Con.GetConstraintString(false);
-                        ShortConstraintDefinition = Con.GetConstraintStringNoStructure(false);
-                        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("ConstraintValue"));
-                        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("ConstraintDefinition"));
-                        break;
-                    case "ReferenceValue":
-                        ConstraintDefinition = Con.GetConstraintString(false);
-                        ShortConstraintDefinition = Con.GetConstraintStringNoStructure(false);
-                        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("ConstraintDefinition"));
-                        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("ReferenceValue"));
-                        break;
-                    case "ConstraintType":
-                        ConstraintDefinition = Con.GetConstraintString(false);
-                        ShortConstraintDefinition = Con.GetConstraintStringNoStructure(false);
-                        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("ConstraintType"));
-                        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("ConstraintDefinition"));
-                        break;
-                    case "ReferenceType":
-                        ConstraintDefinition = Con.GetConstraintString(false);
-                        ShortConstraintDefinition = Con.GetConstraintStringNoStructure(false);
-                        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("ConstraintDefinition"));
-                        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("ReferenceType"));
-                        break;
-                    case "PrimaryStructureID":
-                        ConstraintDefinition = Con.GetConstraintString(false);
-                        PrimaryStructureName = Con.PrimaryStructureName;
-                        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("ConstraintDefinition"));
-                        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("PrimaryStructureID"));
-                        break;
-                    case "ExceptionType":
-                        break;
-                    case "ComponentID":
-                        ComponentName = SC.ComponentName;
-                        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("ConstraintDefinition"));
-                        break;
-                    case "PrimaryStructureName":
-                        ConstraintDefinition = Con.GetConstraintString(false);
-                        PrimaryStructureName = Con.PrimaryStructureName;
-                        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("ConstraintDefinition"));
-                        break;
-                    case "NumFractions":
-                        ConstraintDefinition = Con.GetConstraintString(false);
-                        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("ConstraintDefinition"));
-                        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("Threshold"));
-                        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("ConstraintValue"));
-                        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("ReferenceValue"));
-                        break;
-                    case "ReferenceDose":
-                        ConstraintDefinition = Con.GetConstraintString(false);
-                        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("ConstraintValue"));
-                        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("ReferenceValue"));
-                        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("ConstraintDefinition"));
-                        break;
-                    case "SecondaryStructureName":
-                        ConstraintDefinition = Con.GetConstraintString(false);
-                        PrimaryStructureName = Con.PrimaryStructureName;
-                        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("ConstraintDefinition"));
-                        break;
-                    case "ProtocolStructureName":
-                        ConstraintDefinition = Con.GetConstraintString(false);
-                        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("ConstraintDefinition"));
-                        break;
-                    default:
-                        MessageBox.Show("Error updating ConstraintView");
-                        break;
-                }
-                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(e.PropertyName));
-            }
-            private void OnConstraintEvaluated(object sender, int AssessmentID)
-            {
+        //                L.Add(ConstraintUnits.cGy);
+        //            }
+        //            else
+        //            {
+        //                L.Add(ConstraintUnits.cc);
+        //            }
+        //        }
+        //        return L;
+        //    }
+        //    //Event Handlers
+        //    private void OnConstraintPropertyChanged(object sender, PropertyChangedEventArgs e)
+        //    {
+        //        switch (e.PropertyName)
+        //        {
+        //            case "ID":
+        //                ID = Con.ID;
+        //                break;
+        //            case "ReferenceScale":
+        //                ConstraintDefinition = Con.GetConstraintString(false);
+        //                ShortConstraintDefinition = Con.GetConstraintStringNoStructure(false);
+        //                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("ConstraintDefinition"));
+        //                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("ReferenceScale"));
+        //                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("ReferenceUnit"));
+        //                break;
+        //            case "ConstraintScale":
+        //                ConstraintDefinition = Con.GetConstraintString(false);
+        //                ShortConstraintDefinition = Con.GetConstraintStringNoStructure(false);
+        //                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("ConstraintScale"));
+        //                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("ConstraintUnit"));
+        //                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("ConstraintDefinition"));
+        //                break;
+        //            case "ConstraintValue":
+        //                ConstraintDefinition = Con.GetConstraintString(false);
+        //                ShortConstraintDefinition = Con.GetConstraintStringNoStructure(false);
+        //                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("ConstraintValue"));
+        //                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("ConstraintDefinition"));
+        //                break;
+        //            case "ReferenceValue":
+        //                ConstraintDefinition = Con.GetConstraintString(false);
+        //                ShortConstraintDefinition = Con.GetConstraintStringNoStructure(false);
+        //                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("ConstraintDefinition"));
+        //                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("ReferenceValue"));
+        //                break;
+        //            case "ConstraintType":
+        //                ConstraintDefinition = Con.GetConstraintString(false);
+        //                ShortConstraintDefinition = Con.GetConstraintStringNoStructure(false);
+        //                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("ConstraintType"));
+        //                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("ConstraintDefinition"));
+        //                break;
+        //            case "ReferenceType":
+        //                ConstraintDefinition = Con.GetConstraintString(false);
+        //                ShortConstraintDefinition = Con.GetConstraintStringNoStructure(false);
+        //                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("ConstraintDefinition"));
+        //                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("ReferenceType"));
+        //                break;
+        //            case "PrimaryStructureID":
+        //                ConstraintDefinition = Con.GetConstraintString(false);
+        //                PrimaryStructureName = Con.PrimaryStructureName;
+        //                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("ConstraintDefinition"));
+        //                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("PrimaryStructureID"));
+        //                break;
+        //            case "ExceptionType":
+        //                break;
+        //            case "ComponentID":
+        //                ComponentName = SC.ComponentName;
+        //                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("ConstraintDefinition"));
+        //                break;
+        //            case "PrimaryStructureName":
+        //                ConstraintDefinition = Con.GetConstraintString(false);
+        //                PrimaryStructureName = Con.PrimaryStructureName;
+        //                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("ConstraintDefinition"));
+        //                break;
+        //            case "NumFractions":
+        //                ConstraintDefinition = Con.GetConstraintString(false);
+        //                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("ConstraintDefinition"));
+        //                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("Threshold"));
+        //                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("ConstraintValue"));
+        //                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("ReferenceValue"));
+        //                break;
+        //            case "ReferenceDose":
+        //                ConstraintDefinition = Con.GetConstraintString(false);
+        //                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("ConstraintValue"));
+        //                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("ReferenceValue"));
+        //                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("ConstraintDefinition"));
+        //                break;
+        //            case "SecondaryStructureName":
+        //                ConstraintDefinition = Con.GetConstraintString(false);
+        //                PrimaryStructureName = Con.PrimaryStructureName;
+        //                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("ConstraintDefinition"));
+        //                break;
+        //            case "ProtocolStructureName":
+        //                ConstraintDefinition = Con.GetConstraintString(false);
+        //                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("ConstraintDefinition"));
+        //                break;
+        //            case "Threshold":
+        //                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("Threshold"));
+        //                break;
+        //            default:
+        //                MessageBox.Show("Error updating ConstraintView");
+        //                break;
+        //        }
+        //        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(e.PropertyName));
+        //    }
+        //    private void OnConstraintEvaluated(object sender, int AssessmentID)
+        //    {
 
-                //ConstraintEvaluated?.Invoke(this, AssessmentID);
-                ConstraintEvaluated.Raise(this, AssessmentID);
-                // if (ConstraintEvaluated != null)
-                ///    RaiseEventOnUIThread(ConstraintEvaluated, new object[] { this, EventArgs.Empty }); // this is subscribed to by UI elements
-            }
-            private void OnConstraintEvaluating(object sender, int AssessmentID)
-            {
+        //        //ConstraintEvaluated?.Invoke(this, AssessmentID);
+        //        ConstraintEvaluated.Raise(this, AssessmentID);
+        //        // if (ConstraintEvaluated != null)
+        //        ///    RaiseEventOnUIThread(ConstraintEvaluated, new object[] { this, EventArgs.Empty }); // this is subscribed to by UI elements
+        //    }
+        //    private void OnConstraintEvaluating(object sender, int AssessmentID)
+        //    {
 
-                //ConstraintEvaluating?.Invoke(this, AssessmentID);
-                ConstraintEvaluating.Raise(this, AssessmentID);
-                //if (ConstraintEvaluating != null)
-                //RaiseEventOnUIThread(ConstraintEvaluating, new object[] { this, EventArgs.Empty }); // this is subscribed to by UI elements
-            }
-            private void OnConstraintDeleted(object sender, int ID)
-            {
-                //Con.PropertyChanged -= OnConstraintPropertyChanged;
-                //Con.ConstraintDeleted -= OnConstraintDeleted;
-                //Con.ConstraintEvaluated -= OnConstraintEvaluated;
-                //Con.ConstraintEvaluating -= OnConstraintEvaluating;
-                DataCache.ConstraintDeleted -= OnConstraintDeleted;
-                ConstraintViews.Remove(ID);
-                ConstraintDeleted?.Raise(this, ID);
-            }
-        }
+        //        //ConstraintEvaluating?.Invoke(this, AssessmentID);
+        //        ConstraintEvaluating.Raise(this, AssessmentID);
+        //        //if (ConstraintEvaluating != null)
+        //        //RaiseEventOnUIThread(ConstraintEvaluating, new object[] { this, EventArgs.Empty }); // this is subscribed to by UI elements
+        //    }
+        //    private void OnConstraintDeleted(object sender, int ID)
+        //    {
+        //        //Con.PropertyChanged -= OnConstraintPropertyChanged;
+        //        //Con.ConstraintDeleted -= OnConstraintDeleted;
+        //        //Con.ConstraintEvaluated -= OnConstraintEvaluated;
+        //        //Con.ConstraintEvaluating -= OnConstraintEvaluating;
+        //        DataCache.ConstraintDeleted -= OnConstraintDeleted;
+        //        ConstraintViews.Remove(ID);
+        //        ConstraintDeleted?.Raise(this, ID);
+        //    }
+        //}
         public class PlanView
         {
             private ECPlan ECP;
@@ -1310,7 +1312,7 @@ namespace SquintScript
                 ResultValue = CR.ResultValue;
                 ThresholdStatus = CR.ThresholdStatus;
                 StatusCodes = CR.StatusCodes;
-                ReferenceType = DataCache.GetConstraint(CR.ConstraintID).ReferenceType.Value;
+                ReferenceType = DataCache.GetConstraint(CR.ConstraintID).ReferenceType;
                 LabelName = CR.LinkedLabelName;
                 isCalculating = CR.isCalculating;
             }
@@ -1330,7 +1332,7 @@ namespace SquintScript
         public static AsyncStructureSet CurrentStructureSet { get; private set; }
         public static AsyncESAPI A { get; private set; }
         private static Dictionary<int, StructureLabelView> StructureLabelViews = new Dictionary<int, StructureLabelView>();
-        public static Dictionary<int, ConstraintView> ConstraintViews { get; private set; } = new Dictionary<int, ConstraintView>();
+        //public static Dictionary<int, ConstraintView> ConstraintViews { get; private set; } = new Dictionary<int, ConstraintView>();
         public static Dictionary<int, ComponentView> ComponentViews { get; private set; } = new Dictionary<int, ComponentView>();
         public static Dictionary<int, AssessmentView> AssessmentViews { get; private set; } = new Dictionary<int, AssessmentView>();
         //public static Dictionary<int, ConstituentView> ConstituentViews { get; private set; } = new Dictionary<int, ConstituentView>();
@@ -1703,12 +1705,9 @@ namespace SquintScript
             else
                 return null;
         }
-        public static ConstraintView GetConstraintView(int ConId)
+        public static Constraint GetConstraint(int ConId)
         {
-            if (ConstraintViews.ContainsKey(ConId))
-                return ConstraintViews[ConId];
-            else
-                return null;
+            return DataCache.GetConstraint(ConId);
         }
         public static StructureView GetStructureView(int StructureID)
         {
@@ -1725,12 +1724,12 @@ namespace SquintScript
         {
             return StructureViews.Values.ToList();
         }
-        public static List<ConstraintView> GetConstraintViewList(int? ComponentID = null)
+        public static List<Constraint> GetConstraints(int? ComponentID = null)
         {
             if (ComponentID == null)
-                return ConstraintViews.Values.ToList();
+                return DataCache.GetAllConstraints().ToList();
             else
-                return ConstraintViews.Values.Where(x => x.ComponentID == ComponentID).ToList();
+                return DataCache.GetAllConstraints().Where(x => x.ComponentID == ComponentID).ToList();
         }
         public static List<ComponentView> GetComponentViewList()
         {
@@ -1900,7 +1899,7 @@ namespace SquintScript
         //    ConstraintAdded?.Invoke(null, CV.ID);
         //    return CV;
         //}
-        public static ConstraintView AddConstraint(ConstraintTypeCodes TypeCode, int ComponentID = 0, int StructureId = 1)
+        public static Constraint AddConstraint(ConstraintTypeCodes TypeCode, int ComponentID = 0, int StructureId = 1)
         {
             if (!ProtocolLoaded)
                 return null;
@@ -1910,8 +1909,7 @@ namespace SquintScript
             {
                 Con.RegisterAssessment(SA);
             }
-            ConstraintView CV = new ConstraintView(Con);
-            return CV;
+            return Con;
         }
         public static void DeleteConstraint(int Id)
         {
@@ -1952,10 +1950,10 @@ namespace SquintScript
                 ProtocolConstraintOrderChanged?.Invoke(null, EventArgs.Empty);
             }
         }
-        public static ConstraintView DuplicateConstraint(int ConstraintID)
+        public static void DuplicateConstraint(int ConstraintID)
         {
             if (DataCache.CurrentProtocol == null)
-                return null;
+                return;
             Constraint Con2Dup = DataCache.GetConstraint(ConstraintID);
             foreach (Constraint Con in DataCache.GetAllConstraints().Where(x => x.DisplayOrder.Value > Con2Dup.DisplayOrder.Value))
             {
@@ -1964,14 +1962,11 @@ namespace SquintScript
             Constraint DupCon = new Constraint(Con2Dup);
             DataCache.AddConstraint(DupCon);
             //Update DisplayOrder
-
             foreach (Assessment SA in DataCache.GetAllAssessments())
             {
                 DupCon.RegisterAssessment(SA);
             }
-            ConstraintView CV = new ConstraintView(DupCon);
-            ConstraintAdded?.Invoke(null, CV.ID);
-            return CV;
+            ConstraintAdded?.Invoke(null, DupCon.ID);
         }
         public static ComponentView AddComponent(ComponentTypes Type_input, int ReferenceDose_input = 0, int NumFractions_input = 0, string ComponentName = "")
         {
@@ -2940,10 +2935,10 @@ namespace SquintScript
                 {
                     new StructureView(ECSID);
                 }
-                foreach (Constraint Con in DataCache.GetAllConstraints())
-                {
-                    ConstraintView CV = new ConstraintView(Con);
-                }
+                //foreach (Constraint Con in DataCache.GetAllConstraints())
+                //{
+                //    ConstraintView CV = new ConstraintView(Con);
+                //}
                 ProtocolLoaded = true;
                 ProtocolOpened?.Invoke(null, EventArgs.Empty);
             }
@@ -3016,7 +3011,6 @@ namespace SquintScript
                     }
                     foreach (Constraint Con in DataCache.GetAllConstraints())
                     {
-                        ConstraintView CV = new ConstraintView(Con);
                         foreach (Assessment A in DataCache.GetAllAssessments())
                         {
                             Con.RegisterAssessment(A);

@@ -1,9 +1,9 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.28307.136
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29806.167
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Squint_v05", "WpfApp1\Squint_v05.csproj", "{6D8BE6B7-741B-4289-BB54-968443E0AC4D}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Squint_v06", "Squint_v06\Squint_v06.csproj", "{6D8BE6B7-741B-4289-BB54-968443E0AC4D}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SquintStructure", "SquintStructure\SquintStructure.csproj", "{63249039-E46F-4567-AB56-9FCD394FF15A}"
 EndProject

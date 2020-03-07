@@ -299,6 +299,18 @@ namespace SquintScript
         }
         public class Constraint : INotifyPropertyChanged
         {
+            public class ConstraintReferenceValues
+            {
+                public int NumFractions;
+                public int PrimaryStructureID;
+                public int SecondaryStructureID;
+                public double ReferenceValue;
+                public ReferenceTypes ReferenceType;
+                public ConstraintTypeCodes ConstraintType;
+                public UnitScale ConstraintScale;
+                public UnitScale ReferenceScale;
+                public double ConstraintValue;
+            }
             //Classes
             //Required notification class
             public virtual event PropertyChangedEventHandler PropertyChanged;
@@ -312,7 +324,7 @@ namespace SquintScript
                     case "ExceptionType":
                         break;
                     default:
-                        var test = ID; // 460 457 454
+                        var test = ID; 
                         UpdateOnEvaluatedPropertyChange(propertyName);
                         break;
                 }
@@ -328,44 +340,42 @@ namespace SquintScript
             public Constraint(DbConstraint DbO)
             {
                 ID = DbO.ID;
-                ProtocolStructureName = DbO.DbECSID_Primary.ProtocolStructureName;
-                ComponentID = new TrackedValue<int>(DbO.ComponentID);
+                _ComponentID = new TrackedValue<int>(DbO.ComponentID);
                 DisplayOrder = new TrackedValue<int>(DbO.DisplayOrder);
 
                 var DbOS = DbO as DbSessionConstraint;
                 if (DbOS != null) // set current session values
                 {
-                    ComponentID = new TrackedValue<int>(DbO.ComponentID);
-                    PrimaryStructureID = new TrackedValue<int>(DbOS.PrimaryStructureID);
-                    PrimaryStructureID.Value = DbOS.OriginalPrimaryStructureID;
-                    SecondaryStructureID = new TrackedValue<int>(DbOS.SecondaryStructureID);
-                    SecondaryStructureID.Value = DbOS.OriginalSecondaryStructureID;
-                    ConstraintType = new TrackedValue<ConstraintTypeCodes>((ConstraintTypeCodes)DbOS.ConstraintType);
-                    ConstraintType.Value = (ConstraintTypeCodes)DbOS.OriginalConstraintType;
-                    ReferenceValue = new TrackedValueWithReferences<double>(DbO.ReferenceValue);
-                    ReferenceValue.Value = DbOS.OriginalReferenceValue;
-                    ReferenceType = new TrackedValue<ReferenceTypes>((ReferenceTypes)DbO.ReferenceType);
-                    ReferenceType.Value = (ReferenceTypes)DbOS.OriginalReferenceType;
-                    ReferenceScale = new TrackedValue<UnitScale>((UnitScale)DbO.ReferenceScale);
-                    ReferenceScale.Value = (UnitScale)DbOS.OriginalReferenceScale;
-                    ConstraintValue = new TrackedValue<double>(DbO.ConstraintValue);
-                    ConstraintValue.Value = DbOS.OriginalConstraintValue;
-                    NumFractions = new TrackedValue<int>(DbO.Fractions);
-                    NumFractions.Value = DbOS.OriginalNumFractions;
-                    ConstraintScale = new TrackedValue<UnitScale>((UnitScale)DbO.ConstraintScale);
-                    ConstraintScale.Value = (UnitScale)DbOS.OriginalConstraintScale;
+                    _PrimaryStructureID = new TrackedValue<int>(DbOS.OriginalPrimaryStructureID);
+                    PrimaryStructureID = DbOS.PrimaryStructureID;
+                    _SecondaryStructureID = new TrackedValue<int>(DbOS.OriginalSecondaryStructureID);
+                    SecondaryStructureID = DbOS.SecondaryStructureID;
+                    _ConstraintType = new TrackedValue<ConstraintTypeCodes>((ConstraintTypeCodes)DbOS.OriginalConstraintType);
+                    ConstraintType = (ConstraintTypeCodes)DbOS.ConstraintType;
+                    _ReferenceValue = new TrackedValueWithReferences<double>(DbOS.OriginalReferenceValue);
+                    _ReferenceValue.Value = DbO.ReferenceValue;
+                    _ReferenceType = new TrackedValue<ReferenceTypes>((ReferenceTypes)DbOS.OriginalReferenceType);
+                    ReferenceType = (ReferenceTypes)DbOS.ReferenceType;
+                    _ReferenceScale = new TrackedValue<UnitScale>((UnitScale)DbOS.OriginalReferenceScale);
+                    ReferenceScale = (UnitScale)DbOS.ReferenceScale;
+                    _ConstraintValue = new TrackedValue<double>(DbOS.OriginalConstraintValue);
+                    ConstraintValue = DbO.ConstraintValue;
+                    _NumFractions = new TrackedValue<int>(DbOS.OriginalNumFractions);
+                    NumFractions = DbOS.Fractions;
+                    _ConstraintScale = new TrackedValue<UnitScale>((UnitScale)DbOS.OriginalConstraintScale);
+                    ConstraintScale = (UnitScale)DbOS.ConstraintScale;
                 }
                 else
                 {
-                    PrimaryStructureID = new TrackedValue<int>(DbO.PrimaryStructureID);
-                    SecondaryStructureID = new TrackedValue<int>(DbO.SecondaryStructureID);
-                    ConstraintType = new TrackedValue<ConstraintTypeCodes>((ConstraintTypeCodes)DbO.ConstraintType);
-                    ReferenceValue = new TrackedValueWithReferences<double>(DbO.ReferenceValue);
-                    ReferenceType = new TrackedValue<ReferenceTypes>((ReferenceTypes)DbO.ReferenceType);
-                    ReferenceScale = new TrackedValue<UnitScale>((UnitScale)DbO.ReferenceScale);
-                    ConstraintValue = new TrackedValue<double>(DbO.ConstraintValue);
-                    NumFractions = new TrackedValue<int>(DbO.Fractions);
-                    ConstraintScale = new TrackedValue<UnitScale>((UnitScale)DbO.ConstraintScale);
+                    _PrimaryStructureID = new TrackedValue<int>(DbO.PrimaryStructureID);
+                    _SecondaryStructureID = new TrackedValue<int>(DbO.SecondaryStructureID);
+                    _ConstraintType = new TrackedValue<ConstraintTypeCodes>((ConstraintTypeCodes)DbO.ConstraintType);
+                    _ReferenceValue = new TrackedValueWithReferences<double>(DbO.ReferenceValue);
+                    _ReferenceType = new TrackedValue<ReferenceTypes>((ReferenceTypes)DbO.ReferenceType);
+                    _ReferenceScale = new TrackedValue<UnitScale>((UnitScale)DbO.ReferenceScale);
+                    _ConstraintValue = new TrackedValue<double>(DbO.ConstraintValue);
+                    _NumFractions = new TrackedValue<int>(DbO.Fractions);
+                    _ConstraintScale = new TrackedValue<UnitScale>((UnitScale)DbO.ConstraintScale);
                     DisplayOrder = new TrackedValue<int>(DbO.DisplayOrder);
                 }
 
@@ -396,17 +406,17 @@ namespace SquintScript
                 isCreated = true;
                 ID = Ctr.IDGenerator();
                 Component SC = DataCache.GetComponent(ComponentID_in);
-                ComponentID = new TrackedValue<int>(ComponentID_in); // necessary to create listeners
-                ConstraintScale = new TrackedValue<UnitScale>(UnitScale.Unset);
-                ConstraintValue = new TrackedValue<double>(0);
-                NumFractions = new TrackedValue<int>(SC.NumFractions);
-                PrimaryStructureID = new TrackedValue<int>(StructureId);
-                ConstraintType = new TrackedValue<ConstraintTypeCodes>(TypeCode);
-                ReferenceValue = new TrackedValueWithReferences<double>(0);
-                SecondaryStructureID = new TrackedValue<int>(1);
-                ReferenceScale = new TrackedValue<UnitScale>(UnitScale.Unset);
+                _ComponentID = new TrackedValue<int>(ComponentID_in); // necessary to create listeners
+                _ConstraintScale = new TrackedValue<UnitScale>(UnitScale.Unset);
+                _ConstraintValue = new TrackedValue<double>(0);
+                _NumFractions = new TrackedValue<int>(SC.NumFractions);
+                _PrimaryStructureID = new TrackedValue<int>(StructureId);
+                _ConstraintType = new TrackedValue<ConstraintTypeCodes>(TypeCode);
+                _ReferenceValue = new TrackedValueWithReferences<double>(0);
+                _SecondaryStructureID = new TrackedValue<int>(1);
+                _ReferenceScale = new TrackedValue<UnitScale>(UnitScale.Unset);
                 DisplayOrder = DataCache.GetAllConstraints().Select(x => x.DisplayOrder).Max();
-                var ECSID = DataCache.GetECSID(PrimaryStructureID.Value);
+                var ECSID = DataCache.GetECSID(PrimaryStructureID);
                 if (ECSID == null)
                 {
                     throw new Exception("Referenced ECSID is not present in cache (Constraint constructor)");
@@ -414,7 +424,6 @@ namespace SquintScript
                 else
                 {
                     ECSID.PropertyChanged += OnECSIDChanged;
-                    ProtocolStructureName = ECSID.ProtocolStructureName;
                 }
                 if (SC == null)
                 {
@@ -431,11 +440,11 @@ namespace SquintScript
             {
                 isCreated = true;
                 ID = Ctr.IDGenerator();
-                Component SC = DataCache.GetComponent(Con.ComponentID.Value);
-                ComponentID = new TrackedValue<int>(SC.ID); // necessary to create listeners
+                Component SC = DataCache.GetComponent(Con.ComponentID);
+                _ComponentID = new TrackedValue<int>(SC.ID); // necessary to create listeners
                 ConstraintScale = Con.ConstraintScale;
                 ConstraintValue = Con.ConstraintValue;
-                NumFractions = new TrackedValue<int>(SC.NumFractions);
+                _NumFractions = new TrackedValue<int>(SC.NumFractions);
                 PrimaryStructureID = Con.PrimaryStructureID;
                 SecondaryStructureID = Con.SecondaryStructureID;
                 ConstraintType = Con.ConstraintType;
@@ -444,7 +453,7 @@ namespace SquintScript
                 ReferenceScale = Con.ReferenceScale;
                 DisplayOrder = new TrackedValue<int>(Con.DisplayOrder.Value + 1);
 
-                var ECSID = DataCache.GetECSID(PrimaryStructureID.Value);
+                var ECSID = DataCache.GetECSID(PrimaryStructureID);
                 if (ECSID == null)
                 {
                     throw new Exception("Referenced ECSID is not present in cache (Constraint constructor)");
@@ -452,7 +461,6 @@ namespace SquintScript
                 else
                 {
                     ECSID.PropertyChanged += OnECSIDChanged;
-                    ProtocolStructureName = ECSID.ProtocolStructureName;
                 }
                 if (SC == null)
                 {
@@ -724,68 +732,98 @@ namespace SquintScript
                 switch (propertyname)
                 {
                     case nameof(NumFractions):
-                        return NumFractions.IsChanged;
+                        return _NumFractions.IsChanged;
                     case nameof(ComponentID):
-                        return ComponentID.IsChanged;
+                        return _ComponentID.IsChanged;
                     case nameof(PrimaryStructureID):
-                        return PrimaryStructureID.IsChanged;
-                    case nameof(SecondaryStructureID):
-                        return SecondaryStructureID.IsChanged;
+                        return _PrimaryStructureID.IsChanged;
+                    case nameof(_SecondaryStructureID):
+                        return _SecondaryStructureID.IsChanged;
                     case nameof(ReferenceValue):
-                        return ReferenceValue.IsChanged;
+                        return _ReferenceValue.IsChanged;
                     case nameof(ReferenceType):
-                        return ReferenceType.IsChanged;
+                        return _ReferenceType.IsChanged;
                     case nameof(ConstraintType):
-                        return ConstraintType.IsChanged;
+                        return _ConstraintType.IsChanged;
                     case nameof(ConstraintScale):
-                        return ConstraintScale.IsChanged;
+                        return _ConstraintScale.IsChanged;
                     case nameof(ReferenceScale):
-                        return ReferenceScale.IsChanged;
+                        return _ReferenceScale.IsChanged;
                     case nameof(ConstraintValue):
-                        return ConstraintValue.IsChanged;
+                        return _ConstraintValue.IsChanged;
                     default:
                         MessageBox.Show("Unrecognized property passed to Constraint.isModified");
                         return true;
                 }
             }
-            public TrackedValue<int> NumFractions { get; set; }
-            public TrackedValue<int> ComponentID { get; set; }
-            public TrackedValue<int> PrimaryStructureID { get; set; }
-            public TrackedValue<int> SecondaryStructureID { get; set; }
-            public TrackedValueWithReferences<double> ReferenceValue { get; set; }
+            private TrackedValue<int> _NumFractions;
+            public int NumFractions { get { return _NumFractions.Value; } set { _NumFractions.Value = value; } }
+            private TrackedValue<int> _ComponentID;
+            public int ComponentID { get { return _ComponentID.Value; } set { _ComponentID.Value = value; } }
+            public string ComponentName { get { return DataCache.GetComponent(ComponentID).ComponentName; } }
+            private TrackedValue<int> _PrimaryStructureID { get; set; }
+            public int PrimaryStructureID { get { return _PrimaryStructureID.Value; } set { _PrimaryStructureID.Value = value; } }
+            private TrackedValue<int> _SecondaryStructureID { get; set; }
+            public int SecondaryStructureID { get { return _SecondaryStructureID.Value; } set { _SecondaryStructureID.Value = value; } }
+            private TrackedValueWithReferences<double> _ReferenceValue { get; set; }
+            public double ReferenceValue
+            {
+                get { return _ReferenceValue.Value; }
+                set { _ReferenceValue.Value = value; }
+            }
             //private bool _wasSessionModified { get; set; } = false;  // this is true if the loaded constraint was modified in its session
-            public TrackedValue<ReferenceTypes> ReferenceType { get; set; }
-            public TrackedValue<ConstraintTypeCodes> ConstraintType { get; set; }
-            public TrackedValue<UnitScale> ConstraintScale { get; set; }
-            public TrackedValue<UnitScale> ReferenceScale { get; set; }// the constraint unit
-            public TrackedValue<double> ConstraintValue { get; set; }
+            private TrackedValue<ReferenceTypes> _ReferenceType;
+            public ReferenceTypes ReferenceType { get { return _ReferenceType.Value; } set { _ReferenceType.Value = value; } }
+            private TrackedValue<ConstraintTypeCodes> _ConstraintType;
+            public ConstraintTypeCodes ConstraintType { get { return _ConstraintType.Value; } set { _ConstraintType.Value = value; } }
+            private TrackedValue<UnitScale> _ConstraintScale;
+            public UnitScale ConstraintScale { get { return _ConstraintScale.Value; } set { _ConstraintScale.Value = value; } }
+            private TrackedValue<UnitScale> _ReferenceScale { get; set; }// the constraint unit
+            public UnitScale ReferenceScale { get { return _ReferenceScale.Value; } set { _ReferenceScale.Value = value; } }
+            private TrackedValue<double> _ConstraintValue;
+            public double ConstraintValue
+            {
+                get { return _ConstraintValue.Value; }
+                set { _ConstraintValue.Value = value; }
+            }
             public TrackedValue<int> DisplayOrder { get; set; }
             public bool isValid()
             {
-                if (ConstraintType.Value == ConstraintTypeCodes.Unset)
+                if (ConstraintType == ConstraintTypeCodes.Unset)
                     return false;
                 else
                 {
-                    if (PrimaryStructureID.Value != 1
-                           && (ConstraintScale.Value != UnitScale.Unset || ConstraintType.Value == ConstraintTypeCodes.M)
-                           && (ConstraintType.Value != ConstraintTypeCodes.CI || SecondaryStructureID.Value != 1)
-                           && ConstraintValue.Value >= 0
-                           && ReferenceValue.Value >= 0
-                           && ReferenceType.Value != ReferenceTypes.Unset
-                           && ComponentID.Value != 1
-                           && ReferenceScale.Value != UnitScale.Unset)
+                    if (PrimaryStructureID != 1
+                           && (ConstraintScale != UnitScale.Unset || ConstraintType == ConstraintTypeCodes.M)
+                           && (ConstraintType != ConstraintTypeCodes.CI || SecondaryStructureID != 1)
+                           && ConstraintValue >= 0
+                           && ReferenceValue >= 0
+                           && ReferenceType != ReferenceTypes.Unset
+                           && ComponentID != 1
+                           && ReferenceScale != UnitScale.Unset)
                         return true;
                     else
                         return false;
                 }
             }
             public int ID { get; private set; }
-            public string ProtocolStructureName { get; set; }
+            public string ProtocolStructureName
+            {
+                get
+                {
+                    var E = DataCache.GetECSID(PrimaryStructureID);
+                    if (E != null)
+                        return E.ProtocolStructureName;
+                    else
+                        return "Cannot find referenced structure";
+                }
+            }
+
             public string PrimaryStructureName
             {
                 get
                 {
-                    var E = DataCache.GetECSID(PrimaryStructureID.Value);
+                    var E = DataCache.GetECSID(PrimaryStructureID);
                     if (E != null)
                         return E.EclipseStructureName;
                     else
@@ -795,23 +833,23 @@ namespace SquintScript
             //DVH constraint type properties and methods
             public bool isConstraintValueDose()
             {
-                if (ConstraintType.Value == ConstraintTypeCodes.V
-                    || ConstraintType.Value == ConstraintTypeCodes.CV || ConstraintType.Value == ConstraintTypeCodes.CI)
+                if (ConstraintType == ConstraintTypeCodes.V
+                    || ConstraintType == ConstraintTypeCodes.CV || ConstraintType == ConstraintTypeCodes.CI)
                     return true;
                 else
                     return false;
             }
             public bool isReferenceValueDose()
             {
-                if (ConstraintType.Value == ConstraintTypeCodes.D
-                    || ConstraintType.Value == ConstraintTypeCodes.M)
+                if (ConstraintType == ConstraintTypeCodes.D
+                    || ConstraintType == ConstraintTypeCodes.M)
                     return true;
                 else
                     return false;
             }
             public Dvh_Types GetDvhConstraintType()
             {
-                switch (ConstraintType.Value)
+                switch (ConstraintType)
                 {
                     case ConstraintTypeCodes.V:
                         return Dvh_Types.V;
@@ -827,27 +865,27 @@ namespace SquintScript
             }
             public ConstraintUnits GetConstraintUnit()
             {
-                if (ConstraintScale.Value == UnitScale.Unset)
+                if (ConstraintScale == UnitScale.Unset)
                     return ConstraintUnits.Unset;
-                switch (ConstraintType.Value)
+                switch (ConstraintType)
                 {
                     case ConstraintTypeCodes.CV:
                         {
-                            if (ConstraintScale.Value == UnitScale.Relative)
+                            if (ConstraintScale == UnitScale.Relative)
                                 return ConstraintUnits.Percent;
                             else
                                 return ConstraintUnits.cGy;
                         }
                     case ConstraintTypeCodes.V:
                         {
-                            if (ConstraintScale.Value == UnitScale.Relative)
+                            if (ConstraintScale == UnitScale.Relative)
                                 return ConstraintUnits.Percent;
                             else
                                 return ConstraintUnits.cGy;
                         }
                     case ConstraintTypeCodes.D:
                         {
-                            if (ConstraintScale.Value == UnitScale.Relative)
+                            if (ConstraintScale == UnitScale.Relative)
                                 return ConstraintUnits.Percent;
                             else
                                 return ConstraintUnits.cc;
@@ -858,7 +896,7 @@ namespace SquintScript
                         return ConstraintUnits.Unset;
                     case ConstraintTypeCodes.CI:
                         {
-                            if (ConstraintScale.Value == UnitScale.Relative)
+                            if (ConstraintScale == UnitScale.Relative)
                                 return ConstraintUnits.Percent;
                             else
                                 return ConstraintUnits.cGy;
@@ -870,34 +908,34 @@ namespace SquintScript
             }
             public ConstraintUnits GetReferenceUnit()
             {
-                if (ReferenceScale.Value == UnitScale.Unset)
+                if (ReferenceScale == UnitScale.Unset)
                     return ConstraintUnits.Unset;
-                switch (ConstraintType.Value)
+                switch (ConstraintType)
                 {
                     case ConstraintTypeCodes.CV:
                         {
-                            if (ReferenceScale.Value == UnitScale.Relative)
+                            if (ReferenceScale == UnitScale.Relative)
                                 return ConstraintUnits.Percent;
                             else
                                 return ConstraintUnits.cc;
                         }
                     case ConstraintTypeCodes.V:
                         {
-                            if (ReferenceScale.Value == UnitScale.Relative)
+                            if (ReferenceScale == UnitScale.Relative)
                                 return ConstraintUnits.Percent;
                             else
                                 return ConstraintUnits.cc;
                         }
                     case ConstraintTypeCodes.D:
                         {
-                            if (ReferenceScale.Value == UnitScale.Relative)
+                            if (ReferenceScale == UnitScale.Relative)
                                 return ConstraintUnits.Percent;
                             else
                                 return ConstraintUnits.cGy;
                         }
                     case ConstraintTypeCodes.M:
                         {
-                            if (ReferenceScale.Value == UnitScale.Relative)
+                            if (ReferenceScale == UnitScale.Relative)
                                 return ConstraintUnits.Percent;
                             else
                                 return ConstraintUnits.cGy;
@@ -906,7 +944,7 @@ namespace SquintScript
                         return ConstraintUnits.Unset;
                     case ConstraintTypeCodes.CI:
                         {
-                            if (ReferenceScale.Value == UnitScale.Relative)
+                            if (ReferenceScale == UnitScale.Relative)
                                 return ConstraintUnits.Percent;
                             else
                                 return ConstraintUnits.Multiple;
@@ -918,14 +956,14 @@ namespace SquintScript
             }
             public string GetRefStructureName()
             {
-                if (SecondaryStructureID.Value != 1)
-                    return DataCache.GetECSID(SecondaryStructureID.Value).ProtocolStructureName;
+                if (SecondaryStructureID != 1)
+                    return DataCache.GetECSID(SecondaryStructureID).ProtocolStructureName;
                 else
                     return @"(ID not set)";
             }
             public string GetConstraintStringWithFractions()
             {
-                return string.Format("{0} in {1} fractions", GetConstraintString(), DataCache.GetComponent(ComponentID.Value).NumFractions);
+                return string.Format("{0} in {1} fractions", GetConstraintString(), DataCache.GetComponent(ComponentID).NumFractions);
             }
             public string GetConstraintString(bool GetParentValues = false)
             {
@@ -941,62 +979,62 @@ namespace SquintScript
                 //    ReturnReferenceValues = true;
                 //else
                 //    ReturnReferenceValues = false;
-                if (PrimaryStructureID.Value == 1)
+                if (PrimaryStructureID == 1)
                     return "Not assigned to structure";
                 if (!isValid())
                     return "(Invalid Definition)";
                 string ReturnString = null;
                 //string ConString = null;
-                switch (ConstraintType.Value)
+                switch (ConstraintType)
                 {
                     case ConstraintTypeCodes.CV:
-                        ReturnString = string.Format("CV{0:0.###} [{1}] {2} {3:0.###} [{4}]", ConstraintValue.Value, GetConstraintUnit().Display(), ReferenceType.Display(), ReferenceValue.Value, GetReferenceUnit().Display());
+                        ReturnString = string.Format("CV{0:0.###} [{1}] {2} {3:0.###} [{4}]", ConstraintValue, GetConstraintUnit().Display(), ReferenceType.Display(), ReferenceValue, GetReferenceUnit().Display());
                         break;
                     case ConstraintTypeCodes.V:
-                        if (ConstraintScale.Value == UnitScale.Relative)
-                            ReturnString = string.Format("V{0:0.###} [{1}] {2} {3:0.###} [{4}]", ConstraintValue.Value, GetConstraintUnit().Display(), ReferenceType.Display(), ReferenceValue.Value, GetReferenceUnit().Display());
+                        if (ConstraintScale == UnitScale.Relative)
+                            ReturnString = string.Format("V{0:0.###} [{1}] {2} {3:0.###} [{4}]", ConstraintValue, GetConstraintUnit().Display(), ReferenceType.Display(), ReferenceValue, GetReferenceUnit().Display());
                         else
-                            ReturnString = string.Format("V{0:0.#} [{1}] {2} {3:0.###} [{4}]", ConstraintValue.Value, GetConstraintUnit().Display(), ReferenceType.Display(), ReferenceValue.Value, GetReferenceUnit().Display());
+                            ReturnString = string.Format("V{0:0.#} [{1}] {2} {3:0.###} [{4}]", ConstraintValue, GetConstraintUnit().Display(), ReferenceType.Display(), ReferenceValue, GetReferenceUnit().Display());
                         break;
                     case ConstraintTypeCodes.D:
                         //Exception for min and max dose
-                        if (ConstraintValue.Value < 1E-5)
+                        if (ConstraintValue < 1E-5)
                         { // max dose
-                            if (ReferenceScale.Value == UnitScale.Relative)
-                                ReturnString = string.Format("Max Dose {0} {1:0.###} [{2}]", ReferenceType.Display(), ReferenceValue.Value, GetReferenceUnit().Display());
+                            if (ReferenceScale == UnitScale.Relative)
+                                ReturnString = string.Format("Max Dose {0} {1:0.###} [{2}]", ReferenceType.Display(), ReferenceValue, GetReferenceUnit().Display());
                             else
-                                ReturnString = string.Format("Max Dose {0} {1:0} [{2}]", ReferenceType.Display(), ReferenceValue.Value, GetReferenceUnit().Display());
+                                ReturnString = string.Format("Max Dose {0} {1:0} [{2}]", ReferenceType.Display(), ReferenceValue, GetReferenceUnit().Display());
 
                             break;
                         }
-                        else if (ConstraintValue.Value < 1E-5 && ConstraintScale.Value == UnitScale.Relative)
+                        else if (ConstraintValue < 1E-5 && ConstraintScale == UnitScale.Relative)
                         {
-                            if (ReferenceScale.Value == UnitScale.Relative)
-                                ReturnString = string.Format("Min Dose {0} {1:0.###} [{2}]", ReferenceType.Display(), ReferenceValue.Value, GetReferenceUnit().Display());
+                            if (ReferenceScale == UnitScale.Relative)
+                                ReturnString = string.Format("Min Dose {0} {1:0.###} [{2}]", ReferenceType.Display(), ReferenceValue, GetReferenceUnit().Display());
                             else
-                                ReturnString = string.Format("Min Dose {0} {1:0} [{2}]", ReferenceType.Display(), ReferenceValue.Value, GetReferenceUnit().Display());
+                                ReturnString = string.Format("Min Dose {0} {1:0} [{2}]", ReferenceType.Display(), ReferenceValue, GetReferenceUnit().Display());
                             break;
                         }
                         else
                         {
-                            if (ReferenceScale.Value == UnitScale.Relative)
-                                ReturnString = string.Format("D{0:0.###} [{1}] {2} {3:0.#} [{4}]", ConstraintValue.Value, GetConstraintUnit().Display(), ReferenceType.Display(), ReferenceValue.Value, GetReferenceUnit().Display());
+                            if (ReferenceScale == UnitScale.Relative)
+                                ReturnString = string.Format("D{0:0.###} [{1}] {2} {3:0.#} [{4}]", ConstraintValue, GetConstraintUnit().Display(), ReferenceType.Display(), ReferenceValue, GetReferenceUnit().Display());
                             else
-                                ReturnString = string.Format("D{0:0.###} [{1}] {2} {3:0} [{4}]", ConstraintValue.Value, GetConstraintUnit().Display(), ReferenceType.Display(), ReferenceValue.Value, GetReferenceUnit().Display());
+                                ReturnString = string.Format("D{0:0.###} [{1}] {2} {3:0} [{4}]", ConstraintValue, GetConstraintUnit().Display(), ReferenceType.Display(), ReferenceValue, GetReferenceUnit().Display());
                             break;
                         }
                     case ConstraintTypeCodes.M:
-                        ReturnString = string.Format("Mean Dose {0} {1:0} [{2}]", ReferenceType.Display(), ReferenceValue.Value, GetReferenceUnit());
+                        ReturnString = string.Format("Mean Dose {0} {1:0} [{2}]", ReferenceType.Display(), ReferenceValue, GetReferenceUnit());
                         break;
                     case ConstraintTypeCodes.CI:
-                        if (ConstraintValue.Value == 0) // Display exception if it's the whole volume for readability
-                            ReturnString = string.Format("Total volume is {0} {1} % of {2} volume", ReferenceType.Display(), ReferenceValue.Value, GetRefStructureName());
+                        if (ConstraintValue == 0) // Display exception if it's the whole volume for readability
+                            ReturnString = string.Format("Total volume is {0} {1} % of {2} volume", ReferenceType.Display(), ReferenceValue, GetRefStructureName());
                         else
                         {
-                            if (ReferenceScale.Value == UnitScale.Relative)
-                                ReturnString = string.Format("V{0}[{1}] {2} {3}{4} of the {5} volume", ConstraintValue.Value, GetConstraintUnit().Display(), ReferenceType.Display(), ReferenceValue.Value, GetReferenceUnit().Display(), GetRefStructureName());
-                            else if (ReferenceScale.Value == UnitScale.Absolute)
-                                ReturnString = string.Format("V{0}[{1}] {2} {3} {4} the {5} volume", ConstraintValue.Value, GetConstraintUnit().Display(), ReferenceType.Display(), ReferenceValue.Value, GetReferenceUnit().Display(), GetRefStructureName());
+                            if (ReferenceScale == UnitScale.Relative)
+                                ReturnString = string.Format("V{0}[{1}] {2} {3}{4} of the {5} volume", ConstraintValue, GetConstraintUnit().Display(), ReferenceType.Display(), ReferenceValue, GetReferenceUnit().Display(), GetRefStructureName());
+                            else if (ReferenceScale == UnitScale.Absolute)
+                                ReturnString = string.Format("V{0}[{1}] {2} {3} {4} the {5} volume", ConstraintValue, GetConstraintUnit().Display(), ReferenceType.Display(), ReferenceValue, GetReferenceUnit().Display(), GetRefStructureName());
                             break;
                         }
                         break;
@@ -1010,25 +1048,25 @@ namespace SquintScript
             }
             public double GetConstraintAbsDose()
             {
-                Component SC = DataCache.GetComponent(ComponentID.Value);
+                Component SC = DataCache.GetComponent(ComponentID);
                 if (isConstraintValueDose())
                 {
-                    if (ConstraintScale.Value == UnitScale.Relative)
-                        return ConstraintValue.Value * SC.ReferenceDose / 100;
+                    if (ConstraintScale == UnitScale.Relative)
+                        return ConstraintValue * SC.ReferenceDose / 100;
                     else
-                        return ConstraintValue.Value;
+                        return ConstraintValue;
                 }
                 else
                 {
                     if (isReferenceValueDose())
                     {
-                        if (ReferenceScale.Value == UnitScale.Relative)
+                        if (ReferenceScale == UnitScale.Relative)
                         {
-                            return ReferenceValue.Value * SC.ReferenceDose / 100;
+                            return ReferenceValue * SC.ReferenceDose / 100;
                         }
                         else
                         {
-                            return ReferenceValue.Value;
+                            return ReferenceValue;
                         }
                     }
                     else
@@ -1157,35 +1195,35 @@ namespace SquintScript
             public bool LowerConstraintDoseScalesWithComponent = true;
             private void ApplyBEDScaling()
             {
-                Component SC = DataCache.GetComponent(ComponentID.Value);
-                ECSID E = DataCache.GetECSID(PrimaryStructureID.Value);
+                Component SC = DataCache.GetComponent(ComponentID);
+                ECSID E = DataCache.GetECSID(PrimaryStructureID);
                 double abRatio = DataCache.GetStructureLabel(E.StructureLabelID).AlphaBetaRatio;
                 if (abRatio > 0)
                 {
                     if (isConstraintValueDose())
                     {
-                        if (ConstraintScale.Value == UnitScale.Relative)
+                        if (ConstraintScale == UnitScale.Relative)
                         {
-                            ConstraintValue.Value = DoseFunctions.BED(NumFractions.ReferenceValue, SC.NumFractions, ConstraintValue.ReferenceValue / 100 * SC.ReferenceDose, abRatio) * 100 / SC.ReferenceDose;
-                            NumFractions.Value = SC.NumFractions;
+                            ConstraintValue = DoseFunctions.BED(_NumFractions.ReferenceValue, SC.NumFractions, _ConstraintValue.ReferenceValue / 100 * SC.ReferenceDose, abRatio) * 100 / SC.ReferenceDose;
+                            NumFractions = SC.NumFractions;
                         }
                         else
                         {
-                            ConstraintValue.Value = Math.Round(DoseFunctions.BED(NumFractions.ReferenceValue, SC.NumFractions, ConstraintValue.ReferenceValue, abRatio) / 100) * 100;
-                            NumFractions.Value = SC.NumFractions;
+                            ConstraintValue = Math.Round(DoseFunctions.BED(_NumFractions.ReferenceValue, SC.NumFractions, _ConstraintValue.ReferenceValue, abRatio) / 100) * 100;
+                            NumFractions = SC.NumFractions;
                         }
                     }
                     else if (isReferenceValueDose())
                     {
-                        if (ReferenceScale.Value == UnitScale.Relative)
+                        if (ReferenceScale == UnitScale.Relative)
                         {
-                            ReferenceValue.Value = Math.Round(DoseFunctions.BED(NumFractions.ReferenceValue, SC.NumFractions, ConstraintValue.ReferenceValue / 100 * SC.ReferenceDose, abRatio)) * 100 / SC.ReferenceDose;
-                            NumFractions.Value = SC.NumFractions;
+                            ReferenceValue = Math.Round(DoseFunctions.BED(_NumFractions.ReferenceValue, SC.NumFractions, _ConstraintValue.ReferenceValue / 100 * SC.ReferenceDose, abRatio)) * 100 / SC.ReferenceDose;
+                            NumFractions = SC.NumFractions;
                         }
                         else
                         {
-                            ReferenceValue.Value = Math.Round(DoseFunctions.BED(NumFractions.ReferenceValue, SC.NumFractions, ConstraintValue.ReferenceValue, abRatio) / 100) * 100;
-                            NumFractions.Value = SC.NumFractions;
+                            ReferenceValue = Math.Round(DoseFunctions.BED(_NumFractions.ReferenceValue, SC.NumFractions, _ConstraintValue.ReferenceValue, abRatio) / 100) * 100;
+                            NumFractions = SC.NumFractions;
                         }
                         // NotifyPropertyChanged("ReferenceValue");
                         foreach (ConstraintThreshold CT in DataCache.GetConstraintThresholdByConstraintId(ID).ToList())
@@ -1196,7 +1234,7 @@ namespace SquintScript
                                     DataCache.DeleteConstraintThreshold(CT);
                                     break;
                                 case ConstraintThresholdNames.MajorViolation:
-                                    CT.ThresholdValue = ReferenceValue.Value;
+                                    CT.ThresholdValue = ReferenceValue;
                                     break;
                                 case ConstraintThresholdNames.Stop:
                                     DataCache.DeleteConstraintThreshold(CT);
@@ -1207,23 +1245,23 @@ namespace SquintScript
                 }
                 else
                 {
-                    NumFractions.Value = SC.NumFractions;
+                    NumFractions = SC.NumFractions;
                 }
             }
             //Evaluation routines
             private List<int> RegisteredAssessmentIDs = new List<int>();
             private bool _isModified()
             {
-                return NumFractions.IsChanged
-                || ComponentID.IsChanged
-                || PrimaryStructureID.IsChanged
-                || SecondaryStructureID.IsChanged
-                || ReferenceValue.IsChanged
-                || ReferenceType.IsChanged
-                || ConstraintType.IsChanged
-                || ConstraintScale.IsChanged
-                || ReferenceScale.IsChanged
-                || ConstraintValue.IsChanged;
+                return _NumFractions.IsChanged
+                || _ComponentID.IsChanged
+                || _PrimaryStructureID.IsChanged
+                || _SecondaryStructureID.IsChanged
+                || _ReferenceValue.IsChanged
+                || _ReferenceType.IsChanged
+                || _ConstraintType.IsChanged
+                || _ConstraintScale.IsChanged
+                || _ReferenceScale.IsChanged
+                || _ConstraintValue.IsChanged;
             }
             public void RegisterAssessment(Assessment SA)
             {
@@ -1241,7 +1279,7 @@ namespace SquintScript
             public async void OnComponentAssociationChanged(object sender, int ChangedComponentID)
             {
                 Assessment SA = (sender as Assessment);
-                if (ComponentID.Value == ChangedComponentID)
+                if (ComponentID == ChangedComponentID)
                 {
                     if (SA.AutoCalculate)
                         await Task.Run(() => EvaluateConstraint(SA));
@@ -1251,7 +1289,7 @@ namespace SquintScript
             {
                 Assessment SA = (sender as Assessment);
                 string.Format("{0}", ID);
-                if (ComponentID.Value == ChangedComponentID)
+                if (ComponentID == ChangedComponentID)
                 {
                     if (SA.AutoCalculate)
                         //await Task.Run(() => EvaluateConstraint(SA));
@@ -1286,7 +1324,7 @@ namespace SquintScript
                         CR.isCalculating = false;
                         return;
                     }
-                    ECPlan ECP = DataCache.GetAllPlans().Where(x => x.AssessmentID == SA.ID && x.ComponentID == ComponentID.Value).SingleOrDefault();
+                    ECPlan ECP = DataCache.GetAllPlans().Where(x => x.AssessmentID == SA.ID && x.ComponentID == ComponentID).SingleOrDefault();
                     if (ECP == null)
                     {
                         CR.AddStatusCode(ConstraintResultStatusCodes.NotLinked);
@@ -1309,10 +1347,10 @@ namespace SquintScript
                         CR.isCalculating = false;
                         return;
                     }
-                    string targetId = DataCache.GetECSID(PrimaryStructureID.Value).EclipseStructureName;
+                    string targetId = DataCache.GetECSID(PrimaryStructureID).EclipseStructureName;
                     DoseValue doseQuery; // = new DoseValue(Dvh_Val, DoseValue.DoseUnit.Percent); // set a default
                     double rawresult = double.NaN;
-                    Component comp = DataCache.GetComponent(ComponentID.Value);
+                    Component comp = DataCache.GetComponent(ComponentID);
                     VolumePresentation volPresentationQuery;
                     VolumePresentation volPresentationReturn;
                     DoseValuePresentation dosePresentationReturn;
@@ -1339,22 +1377,22 @@ namespace SquintScript
                         CR.LinkedLabelName = DataCache.GetLabelByCode(p.Structures[targetId].Code);
                     // Constraint is evaluable
                     ConstraintEvaluating?.Raise(new ConstraintResultView(CR), SA.ID); // this notifies the view class, no need to raise to UI
-                    if ((p.Structures[targetId].Code != DataCache.GetStructureCode(DataCache.GetECSID(PrimaryStructureID.Value).StructureLabelID)))
+                    if ((p.Structures[targetId].Code != DataCache.GetStructureCode(DataCache.GetECSID(PrimaryStructureID).StructureLabelID)))
                     {
                         CR.AddStatusCode(ConstraintResultStatusCodes.LabelMismatch);
                     }
                     double binWidth = 0.01;
-                    if (ConstraintScale.Value == UnitScale.Absolute)
+                    if (ConstraintScale == UnitScale.Absolute)
                     {
-                        doseQuery = new DoseValue(ConstraintValue.Value, DoseValue.DoseUnit.cGy);
+                        doseQuery = new DoseValue(ConstraintValue, DoseValue.DoseUnit.cGy);
                         volPresentationQuery = VolumePresentation.AbsoluteCm3;
                     }
                     else
                     {
-                        doseQuery = new DoseValue(ConstraintValue.Value, DoseValue.DoseUnit.Percent);
+                        doseQuery = new DoseValue(ConstraintValue, DoseValue.DoseUnit.Percent);
                         volPresentationQuery = VolumePresentation.Relative;
                     }
-                    if (ReferenceScale.Value == UnitScale.Absolute)
+                    if (ReferenceScale == UnitScale.Absolute)
                     {
                         dosePresentationReturn = DoseValuePresentation.Absolute;
                         volPresentationReturn = VolumePresentation.AbsoluteCm3;
@@ -1369,11 +1407,11 @@ namespace SquintScript
                     bool SumAndRefIsRelative = false;
                     if (p.PlanType == ComponentTypes.Sum)
                     {
-                        if (isConstraintValueDose() && ConstraintScale.Value == UnitScale.Relative)
+                        if (isConstraintValueDose() && ConstraintScale == UnitScale.Relative)
                         {
-                            if (DataCache.GetComponent(ComponentID.Value).ReferenceDose > 0)
+                            if (DataCache.GetComponent(ComponentID).ReferenceDose > 0)
                             {
-                                doseQuery = new DoseValue(ConstraintValue.Value / 100 * DataCache.GetComponent(ComponentID.Value).ReferenceDose, DoseValue.DoseUnit.cGy);
+                                doseQuery = new DoseValue(ConstraintValue / 100 * DataCache.GetComponent(ComponentID).ReferenceDose, DoseValue.DoseUnit.cGy);
                                 CR.AddStatusCode(ConstraintResultStatusCodes.RelativeDoseForSum);
                             }
                             else
@@ -1386,13 +1424,13 @@ namespace SquintScript
                                 return;
                             }
                         }
-                        else if ((isReferenceValueDose() && ReferenceScale.Value == UnitScale.Relative))
+                        else if ((isReferenceValueDose() && ReferenceScale == UnitScale.Relative))
                         {
                             SumAndRefIsRelative = true;
                             dosePresentationReturn = DoseValuePresentation.Absolute;
-                            if (DataCache.GetComponent(ComponentID.Value).ReferenceDose > 0)
+                            if (DataCache.GetComponent(ComponentID).ReferenceDose > 0)
                             {
-                                doseQuery = new DoseValue(ReferenceValue.Value / 100 * DataCache.GetComponent(ComponentID.Value).ReferenceDose, DoseValue.DoseUnit.cGy);
+                                doseQuery = new DoseValue(ReferenceValue / 100 * DataCache.GetComponent(ComponentID).ReferenceDose, DoseValue.DoseUnit.cGy);
                                 CR.AddStatusCode(ConstraintResultStatusCodes.RelativeDoseForSum);
                             }
                             else
@@ -1406,7 +1444,7 @@ namespace SquintScript
                             }
                         }
                     }
-                    switch (ConstraintType.Value)
+                    switch (ConstraintType)
                     {
                         case ConstraintTypeCodes.CV: // critical volume
                             rawresult = p.Structures[targetId].Volume - await p.GetVolumeAtDose(targetId, doseQuery, VolumePresentation.AbsoluteCm3);
@@ -1416,10 +1454,10 @@ namespace SquintScript
                             break;
                         case ConstraintTypeCodes.D:
                             {
-                                rawresult = await p.GetDoseAtVolume(targetId, ConstraintValue.Value, volPresentationQuery, dosePresentationReturn);
+                                rawresult = await p.GetDoseAtVolume(targetId, ConstraintValue, volPresentationQuery, dosePresentationReturn);
                                 if (SumAndRefIsRelative)
                                 {
-                                    rawresult = rawresult / DataCache.GetComponent(ComponentID.Value).ReferenceDose * 100;
+                                    rawresult = rawresult / DataCache.GetComponent(ComponentID).ReferenceDose * 100;
                                 }
                                 break;
                             }
@@ -1427,11 +1465,11 @@ namespace SquintScript
                             rawresult = await p.GetMeanDose(targetId, volPresentationReturn, dosePresentationReturn, binWidth);
                             if (SumAndRefIsRelative)
                             {
-                                rawresult = rawresult / DataCache.GetComponent(ComponentID.Value).ReferenceDose * 100;
+                                rawresult = rawresult / DataCache.GetComponent(ComponentID).ReferenceDose * 100;
                             }
                             break;
                         case ConstraintTypeCodes.CI:
-                            string refStructId = DataCache.GetECSID(SecondaryStructureID.Value).EclipseStructureName;
+                            string refStructId = DataCache.GetECSID(SecondaryStructureID).EclipseStructureName;
                             bool refStructExists = p.StructureIds.Contains(refStructId);
                             if (refStructExists)
                             {
@@ -1441,7 +1479,7 @@ namespace SquintScript
                                     rawresult = 0;
                                 else
                                     rawresult = await (p.GetVolumeAtDose(targetId, doseQuery, VolumePresentation.AbsoluteCm3)) / p.Structures[refStructId].Volume;
-                                if (ReferenceScale.Value == UnitScale.Relative)
+                                if (ReferenceScale == UnitScale.Relative)
                                 {
                                     rawresult = rawresult * 100;
                                 }
@@ -1489,7 +1527,7 @@ namespace SquintScript
                 if (CR.StatusCodes.Where(x => x != ConstraintResultStatusCodes.LabelMismatch).Count() > 0)
                     return ConstraintThresholdNames.Unset;
                 ConstraintThresholdNames ThreshLevel = ConstraintThresholdNames.None;
-                if (Con.ReferenceType.Value == ReferenceTypes.Upper)
+                if (Con.ReferenceType == ReferenceTypes.Upper)
                 {
                     foreach (ConstraintThreshold CT in DataCache.GetConstraintThresholdByConstraintId(Con.ID).Where(x => x.ThresholdType == ConstraintThresholdTypes.Violation).Where(x => !double.IsNaN(x.ThresholdValue)).OrderBy(x => x.ThresholdValue))
                         if (CR.ResultValue > CT.ThresholdValue)
@@ -1550,6 +1588,42 @@ namespace SquintScript
                     CR.ThresholdStatus = ThresholdStatus(CR);
                 }
             }
+            public double StopValue
+            {
+                get
+                {
+                    return GetThreshold(ConstraintThresholdNames.Stop);
+                }
+                set
+                {
+                    SetThreshold(ConstraintThresholdNames.Stop, value);
+                    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("Threshold"));
+                }
+            }
+            public double MinorViolation
+            {
+                get
+                {
+                    return GetThreshold(ConstraintThresholdNames.MinorViolation);
+                }
+                set
+                {
+                    SetThreshold(ConstraintThresholdNames.MinorViolation, value);
+                    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("Threshold"));
+                }
+            }
+            public double MajorViolation
+            {
+                get
+                {
+                    return GetThreshold(ConstraintThresholdNames.MajorViolation);
+                }
+                set
+                {
+                    SetThreshold(ConstraintThresholdNames.MajorViolation, value);
+                    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("Threshold"));
+                }
+            }
             public double GetThreshold(ConstraintThresholdNames Name)
             {
                 var CT = DataCache.GetConstraintThresholdByConstraintId(ID).FirstOrDefault(x => x.ThresholdName == Name);
@@ -1566,9 +1640,9 @@ namespace SquintScript
                     case ConstraintThresholdNames.MajorViolation:
                         if (double.IsNaN(value))
                             return false;
-                        if (ReferenceType.Value == ReferenceTypes.Lower)
+                        if (ReferenceType == ReferenceTypes.Lower)
                         {
-                            if (value > ReferenceValue.Value)
+                            if (value > ReferenceValue)
                                 return false;
                             var CT_minor = CTs.FirstOrDefault(x => x.ThresholdName == ConstraintThresholdNames.MinorViolation);
                             if (CT_minor != null)
@@ -1595,7 +1669,7 @@ namespace SquintScript
                         }
                         else
                         {
-                            if (value < ReferenceValue.Value)
+                            if (value < ReferenceValue)
                                 return false;
                             var CT_minor = CTs.FirstOrDefault(x => x.ThresholdName == ConstraintThresholdNames.MinorViolation);
                             if (CT_minor != null)
@@ -1628,9 +1702,9 @@ namespace SquintScript
                                 CT_minor.ThresholdValue = value;
                             return true;
                         }
-                        if (ReferenceType.Value == ReferenceTypes.Lower)
+                        if (ReferenceType == ReferenceTypes.Lower)
                         {
-                            if (value > ReferenceValue.Value)
+                            if (value > ReferenceValue)
                                 return false;
                             var CT_major = CTs.FirstOrDefault(x => x.ThresholdName == ConstraintThresholdNames.MajorViolation);
                             if (CT_major != null)
@@ -1657,7 +1731,7 @@ namespace SquintScript
                         }
                         else
                         {
-                            if (value < ReferenceValue.Value)
+                            if (value < ReferenceValue)
                                 return false;
                             var CT_major = CTs.FirstOrDefault(x => x.ThresholdName == ConstraintThresholdNames.MajorViolation);
                             if (CT_major != null)
@@ -1690,9 +1764,9 @@ namespace SquintScript
                                 CT_stop.ThresholdValue = value;
                             return true;
                         }
-                        if (ReferenceType.Value == ReferenceTypes.Lower)
+                        if (ReferenceType == ReferenceTypes.Lower)
                         {
-                            if (value < ReferenceValue.Value)
+                            if (value < ReferenceValue)
                                 return false;
                             var CT_stop = DataCache.GetConstraintThresholdByConstraintId(ID).FirstOrDefault(x => x.ThresholdName == ConstraintThresholdNames.Stop);
                             if (CT_stop != null)
@@ -1715,7 +1789,7 @@ namespace SquintScript
                         }
                         else
                         {
-                            if (value > ReferenceValue.Value)
+                            if (value > ReferenceValue)
                                 return false;
                             var CT_stop = DataCache.GetConstraintThresholdByConstraintId(ID).FirstOrDefault(x => x.ThresholdName == ConstraintThresholdNames.Stop);
                             if (CT_stop != null)
@@ -1750,7 +1824,7 @@ namespace SquintScript
                 {
                     case "ES":
                         {
-                            if ((sender as ECSID).ID == PrimaryStructureID.Value)
+                            if ((sender as ECSID).ID == PrimaryStructureID)
                                 NotifyPropertyChanged("PrimaryStructureName");
                             else
                                 NotifyPropertyChanged("SecondaryStructureName");
@@ -1763,28 +1837,28 @@ namespace SquintScript
             {
                 if (isConstraintValueDose())
                 {
-                    if (ConstraintScale.Value == UnitScale.Relative)
+                    if (ConstraintScale == UnitScale.Relative)
                     {
                         NotifyPropertyChanged("ConstraintValue");
                     }
-                    else if (ConstraintScale.Value == UnitScale.Absolute && ReferenceType.Value == ReferenceTypes.Lower && LowerConstraintDoseScalesWithComponent)
+                    else if (ConstraintScale == UnitScale.Absolute && ReferenceType == ReferenceTypes.Lower && LowerConstraintDoseScalesWithComponent)
                     {
-                        double CompDose = DataCache.GetComponent(ComponentID.Value).ReferenceDose;
-                        ConstraintValue.Value = ConstraintValue.Value * CompDose / OldReferenceDose;
+                        double CompDose = DataCache.GetComponent(ComponentID).ReferenceDose;
+                        ConstraintValue = ConstraintValue * CompDose / OldReferenceDose;
                         NotifyPropertyChanged("ConstraintValue");
                     }
                 }
                 else if (isReferenceValueDose())
                 {
-                    if (ReferenceScale.Value == UnitScale.Relative)
+                    if (ReferenceScale == UnitScale.Relative)
                     {
                         NotifyPropertyChanged("ReferenceValue");
                     }
-                    else if (ReferenceScale.Value == UnitScale.Absolute && ReferenceType.Value == ReferenceTypes.Lower && LowerConstraintDoseScalesWithComponent)
+                    else if (ReferenceScale == UnitScale.Absolute && ReferenceType == ReferenceTypes.Lower && LowerConstraintDoseScalesWithComponent)
                     {
 
-                        double CompDose = DataCache.GetComponent(ComponentID.Value).ReferenceDose;
-                        ReferenceValue.Value = ReferenceValue.Value * CompDose / OldReferenceDose;
+                        double CompDose = DataCache.GetComponent(ComponentID).ReferenceDose;
+                        ReferenceValue = ReferenceValue * CompDose / OldReferenceDose;
                         NotifyPropertyChanged("ReferenceValue");
                     }
                 }
@@ -1798,13 +1872,29 @@ namespace SquintScript
                 }
                 else
                 {
-                    NumFractions.Value = (sender as Component).NumFractions;
+                    NumFractions = (sender as Component).NumFractions;
                 }
                 //UpdateProgress();
             }
             private void OnConstraintThresholdChanged(object sender, EventArgs e)
             {
                 AssociatedThresholdChanged?.Invoke(this, EventArgs.Empty);
+            }
+
+            public ConstraintReferenceValues GetConstraintReferenceValues()
+            {
+                return new ConstraintReferenceValues()
+                {
+                    NumFractions = _NumFractions.ReferenceValue,
+                    PrimaryStructureID = _PrimaryStructureID.ReferenceValue,
+                    SecondaryStructureID = _SecondaryStructureID.ReferenceValue,
+                    ReferenceValue = _ReferenceValue.ReferenceValue,
+                    ReferenceType = _ReferenceType.ReferenceValue,
+                    ConstraintType = _ConstraintType.ReferenceValue,
+                    ConstraintScale = _ConstraintScale.ReferenceValue,
+                    ReferenceScale = _ReferenceScale.ReferenceValue,
+                    ConstraintValue = _ConstraintValue.ReferenceValue
+                };
             }
         }
         [AddINotifyPropertyChangedInterface]

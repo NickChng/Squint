@@ -4,11 +4,14 @@ using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using PropertyChanged;
 
 namespace SquintScript
 {
-    public class TrackedValue<T> : IRevertibleChangeTracking, IComparable<TrackedValue<T>> where T : IComparable
+    
+    public class TrackedValue<T> : INotifyPropertyChanged, IRevertibleChangeTracking, IComparable<TrackedValue<T>> where T : IComparable
     {
+        public event PropertyChangedEventHandler PropertyChanged;
         public bool IsChanged { get; private set; } = false;
         protected T _ReferenceValue;
         protected T _CurrentValue;
@@ -53,13 +56,16 @@ namespace SquintScript
             }
             set
             {
-                _CurrentValue = Value;
+                _CurrentValue = value;
                 IsChanged = true;
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(this.Value)));
+                
             }
         }
         public T ReferenceValue { get { return _ReferenceValue; } }
     }
 
+    [AddINotifyPropertyChangedInterface]
     public class TrackedValueWithReferences<T> : TrackedValue<T> where T : IComparable
     {
         public TrackedValue<T> majorViolation { get; private set; }
