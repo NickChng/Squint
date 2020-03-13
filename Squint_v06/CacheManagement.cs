@@ -352,13 +352,18 @@ namespace SquintScript
             {
                 return _ECSIDs.Values;
             }
-            public static List<string> GetAvailableStructureSetIds()
+            public static List<StructureSetHeader> GetAvailableStructureSets()
             {
-                return Patient.StructureSetIds;
+                var L = new List<StructureSetHeader>();
+                foreach (var p in _Plans.Values)
+                {
+                    L.Add(new StructureSetHeader(p.LinkedPlan.StructureSetId, p.LinkedPlan.StructureSetUID, p.LinkedPlan.Id));
+                }
+                return L;
             }
-            public static AsyncStructureSet GetStructureSet(string ssid)
+            public static AsyncStructureSet GetStructureSet(string ssuid)
             {
-                return Patient.GetStructureSet(ssid);
+                return Patient.GetStructureSet(ssuid);
             }
        
             private static void LoadStructures()

@@ -259,184 +259,198 @@ namespace SquintScript
                 RaisePropertyChangedEvent();
             }
         }
-        public class StructureView
+
+        [AddINotifyPropertyChangedInterface]
+        public class StructureSetHeader
         {
-            public PropertyChangedEventHandler StructureChanged;
-            private ECSID _ECSID;
-            public StructureView(ECSID ECSID)
+            public string LinkedPlanId { get; private set; }
+            public string StructureSetId { get; private set; }
+            public string StructureSetUID { get; private set; }
+            public StructureSetHeader(string structureSetId, string structureSetUID, string linkedPlanId)
             {
-                _ECSID = ECSID;
-                ECSID.PropertyChanged += ECSID_PropertyChanged;
-                ECSID.ECSIDDeleting += OnECSIDDeleted;
-                StructureViews.Add(ID, this);
-            }
-            private void ECSID_PropertyChanged(object sender, PropertyChangedEventArgs e)
-            {
-                StructureChanged?.Invoke(this, e);
-            }
-            private void OnECSIDDeleted(object sender, int ID)
-            {
-                StructureViews.Remove(ID);
-            }
-            public string StructureDescription(bool GetParent = false)
-            {
-                return _ECSID.GetStructureDescription(GetParent);
-            }
-            public List<string> GetAliases()
-            {
-                return _ECSID.DefaultEclipseAliases;
-            }
-            public int ID
-            {
-                get
-                { return _ECSID.ID; }
-            }
-            public int DisplayOrder
-            {
-                get
-                {
-                    return _ECSID.DisplayOrder;
-                }
-            }
-            public string ProtocolStructureName
-            {
-                get { return _ECSID.ProtocolStructureName; }
-                set { _ECSID.ProtocolStructureName = value; }
-            }
-            public EclipseStructure EclipseStructure
-            {
-                get
-                {
-                    return _ECSID.ES;
-                }
-                set
-                {
-                    _ECSID.ES = value;
-                }
-            }
-            public ExceptionTypes ExceptionType
-            {
-                get { return _ECSID.ExceptionType; }
-            }
-            public StructureLabelView StructureLabel
-            {
-                get
-                {
-                    return GetStructureLabelView(_ECSID.StructureLabelID);
-                }
-            }
-            public StructureLabelView AssignedStuctureLabel
-            {
-                get
-                {
-                    return GetStructureLabelView(_ECSID.StructureLabelID);
-                }
-            }
-            public StructureCheckList Checklist
-            {
-                get { return _ECSID.CheckList; }
-            }
-            public void SetStructureLabel(int StructureLabelID)
-            {
-                _ECSID.StructureLabelID = StructureLabelID;
-            }
-
-        }
-        public class ComponentView
-        {
-            public EventHandler ComponentChanged;
-            public ComponentView(Component _SC)
-            {
-                SC = _SC;
-                Checklist = _SC.Checklist;
-                SC.PropertyChanged += SC_PropertyChanged;
-                SC.ComponentDeleted += OnComponentDeleted;
-                ComponentViews.Add(SC.ID, this);
-            }
-            private void SC_PropertyChanged(object sender, PropertyChangedEventArgs e)
-            {
-                ComponentChanged.Raise(this, EventArgs.Empty);
-            }
-            private Component SC;
-            public int ID { get { return SC.ID; } }
-            public int NumConstraints { get { return DataCache.GetConstraintsInComponent(ID).Count(); } }
-            private bool _ApplyBEDScaling = true;
-            public bool ApplyBEDScaling
-            {
-                get { return _ApplyBEDScaling; }
-                set
-                {
-                    foreach (Constraint Con in DataCache.GetConstraintsInComponent(ID))
-                    {
-                        Con.BEDScalesWithComponent = value;
-                    }
-                }
-            }
-            public List<ImagingProtocols> ImagingProtocolsAttached { get { return SC.ImagingProtocolsAttached; } }
-            private bool _ApplyAbsLowerConstraintScaling = true;
-            public bool ApplyAbsLowerConstraintScaling
-            {
-                get { return _ApplyAbsLowerConstraintScaling; }
-                set
-                {
-                    foreach (Constraint Con in DataCache.GetConstraintsInComponent(ID))
-                    {
-                        Con.LowerConstraintDoseScalesWithComponent = value;
-                    }
-                }
-            }
-            public ComponentTypes ComponentType { get { return SC.ComponentType; } }
-            public List<Beam> GetBeams()
-            {
-                return DataCache.GetBeams(ID);
-            }
-            public string ComponentName
-            {
-                get { return SC.ComponentName; }
-                set { SC.ComponentName = value; }
-            }
-            public async Task SetFractionsAsync(int NumFractions)
-            {
-                try
-                {
-                    await Task.Run(() => SC.NumFractions = NumFractions);
-                }
-                catch (Exception ex)
-                {
-                    string debugme = "hi";
-                }
-                //update constraint thresholds
-
-            }
-            public int NumFractions
-            {
-                get { return SC.NumFractions; }
-            }
-
-            public int NumIsocentres { get { return SC.NumIso; } }
-            public int MinBeams { get { return SC.MinBeams; } }
-            public int MaxBeams { get { return SC.MaxBeams; } }
-            public int MinColOffset { get { return SC.MinColOffset; } }
-            public double ReferenceDose
-            {
-                get { return SC.ReferenceDose; }
-                set
-                {
-                    SC.ReferenceDose = value;
-                }
-            }
-            public int DisplayOrder
-            {
-                get { return SC.DisplayOrder; }
-            }
-            public ComponentChecklist Checklist;
-            // Events
-            private void OnComponentDeleted(object sender, int ID)
-            {
-                DataCache.ComponentDeleted -= OnComponentDeleted;
-                ComponentViews.Remove(ID);
+                StructureSetId = structureSetId;
+                StructureSetUID = structureSetUID;
+                LinkedPlanId = linkedPlanId;
             }
         }
+        //public class StructureView
+        //{
+        //    public PropertyChangedEventHandler StructureChanged;
+        //    private ECSID _ECSID;
+        //    public StructureView(ECSID ECSID)
+        //    {
+        //        _ECSID = ECSID;
+        //        ECSID.PropertyChanged += ECSID_PropertyChanged;
+        //        ECSID.ECSIDDeleting += OnECSIDDeleted;
+        //        Structures.Add(ID, this);
+        //    }
+        //    private void ECSID_PropertyChanged(object sender, PropertyChangedEventArgs e)
+        //    {
+        //        StructureChanged?.Invoke(this, e);
+        //    }
+        //    private void OnECSIDDeleted(object sender, int ID)
+        //    {
+        //        Structures.Remove(ID);
+        //    }
+        //    public string StructureDescription(bool GetParent = false)
+        //    {
+        //        return _ECSID.GetStructureDescription(GetParent);
+        //    }
+        //    public List<string> GetAliases()
+        //    {
+        //        return _ECSID.DefaultEclipseAliases;
+        //    }
+        //    public int ID
+        //    {
+        //        get
+        //        { return _ECSID.ID; }
+        //    }
+        //    public int DisplayOrder
+        //    {
+        //        get
+        //        {
+        //            return _ECSID.DisplayOrder;
+        //        }
+        //    }
+        //    public string ProtocolStructureName
+        //    {
+        //        get { return _ECSID.ProtocolStructureName; }
+        //        set { _ECSID.ProtocolStructureName = value; }
+        //    }
+        //    public EclipseStructure EclipseStructure
+        //    {
+        //        get
+        //        {
+        //            return _ECSID.ES;
+        //        }
+        //        set
+        //        {
+        //            _ECSID.ES = value;
+        //        }
+        //    }
+        //    public ExceptionTypes ExceptionType
+        //    {
+        //        get { return _ECSID.ExceptionType; }
+        //    }
+        //    public StructureLabelView StructureLabel
+        //    {
+        //        get
+        //        {
+        //            return GetStructureLabelView(_ECSID.StructureLabelID);
+        //        }
+        //    }
+        //    public StructureLabelView AssignedStuctureLabel
+        //    {
+        //        get
+        //        {
+        //            return GetStructureLabelView(_ECSID.StructureLabelID);
+        //        }
+        //    }
+        //    public StructureCheckList Checklist
+        //    {
+        //        get { return _ECSID.CheckList; }
+        //    }
+        //    public void SetStructureLabel(int StructureLabelID)
+        //    {
+        //        _ECSID.StructureLabelID = StructureLabelID;
+        //    }
+
+        //}
+        //public class ComponentView
+        //{
+        //    public EventHandler ComponentChanged;
+        //    public Component(Component _SC)
+        //    {
+        //        SC = _SC;
+        //        Checklist = _SC.Checklist;
+        //        SC.PropertyChanged += SC_PropertyChanged;
+        //        SC.ComponentDeleted += OnComponentDeleted;
+        //        ComponentViews.Add(SC.ID, this);
+        //    }
+        //    private void SC_PropertyChanged(object sender, PropertyChangedEventArgs e)
+        //    {
+        //        ComponentChanged.Raise(this, EventArgs.Empty);
+        //    }
+        //    private Component SC;
+        //    public int ID { get { return SC.ID; } }
+        //    public int NumConstraints { get { return DataCache.GetConstraintsInComponent(ID).Count(); } }
+        //    private bool _ApplyBEDScaling = true;
+        //    public bool ApplyBEDScaling
+        //    {
+        //        get { return _ApplyBEDScaling; }
+        //        set
+        //        {
+        //            foreach (Constraint Con in DataCache.GetConstraintsInComponent(ID))
+        //            {
+        //                Con.BEDScalesWithComponent = value;
+        //            }
+        //        }
+        //    }
+        //    public List<ImagingProtocols> ImagingProtocolsAttached { get { return SC.ImagingProtocolsAttached; } }
+        //    private bool _ApplyAbsLowerConstraintScaling = true;
+        //    public bool ApplyAbsLowerConstraintScaling
+        //    {
+        //        get { return _ApplyAbsLowerConstraintScaling; }
+        //        set
+        //        {
+        //            foreach (Constraint Con in DataCache.GetConstraintsInComponent(ID))
+        //            {
+        //                Con.LowerConstraintDoseScalesWithComponent = value;
+        //            }
+        //        }
+        //    }
+        //    public ComponentTypes ComponentType { get { return SC.ComponentType; } }
+        //    public List<Beam> GetBeams()
+        //    {
+        //        return DataCache.GetBeams(ID);
+        //    }
+        //    public string ComponentName
+        //    {
+        //        get { return SC.ComponentName; }
+        //        set { SC.ComponentName = value; }
+        //    }
+        //    public async Task SetFractionsAsync(int NumFractions)
+        //    {
+        //        try
+        //        {
+        //            await Task.Run(() => SC.NumFractions = NumFractions);
+        //        }
+        //        catch (Exception ex)
+        //        {
+        //            string debugme = "hi";
+        //        }
+        //        //update constraint thresholds
+
+        //    }
+        //    public int NumFractions
+        //    {
+        //        get { return SC.NumFractions; }
+        //    }
+
+        //    public int NumIsocentres { get { return SC.NumIso; } }
+        //    public int MinBeams { get { return SC.MinBeams; } }
+        //    public int MaxBeams { get { return SC.MaxBeams; } }
+        //    public int MinColOffset { get { return SC.MinColOffset; } }
+        //    public double ReferenceDose
+        //    {
+        //        get { return SC.ReferenceDose; }
+        //        set
+        //        {
+        //            SC.ReferenceDose = value;
+        //        }
+        //    }
+        //    public int DisplayOrder
+        //    {
+        //        get { return SC.DisplayOrder; }
+        //    }
+        //    public ComponentChecklist Checklist;
+        //    // Events
+        //    private void OnComponentDeleted(object sender, int ID)
+        //    {
+        //        DataCache.ComponentDeleted -= OnComponentDeleted;
+        //        ComponentViews.Remove(ID);
+        //    }
+        //}
         public class TxFieldItem
         {
             public class BolusInfo
@@ -709,7 +723,7 @@ namespace SquintScript
         //    //    ReferenceUnit = Con.GetReferenceUnit();
         //    //    ComponentName = SC.ComponentName;
         //    //    PrimaryStructureName = Con.PrimaryStructureName;
-                
+
         //    //    // Add subscriptions to domain object
         //    //    Con.PropertyChanged += OnConstraintPropertyChanged;
         //    //    Con.ConstraintEvaluating += OnConstraintEvaluating;
@@ -1158,86 +1172,86 @@ namespace SquintScript
             }
 
         }
-        public class AssessmentView : INotifyPropertyChanged
-        {
-            public event PropertyChangedEventHandler PropertyChanged;
-            private void NotifyPropertyChanged([CallerMemberName] string PropertyName = "")
-            {
-                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(PropertyName));
-            }
-            private Assessment SA;
-            public AssessmentView(Assessment _SA)
-            {
-                SA = _SA;
-                DisplayOrder = _SA.DisplayOrder;
-                SA.AssessmentDeleted += OnAssessmentDeleted;
-                AssessmentViews.Add(ID, this);
-            }
-            public int ID
-            {
-                get { return SA.ID; }
-            }
-            public int DisplayOrder;
-            public string AssessmentName
-            {
-                get { return SA.AssessmentName; }
-                set
-                {
-                    SA.AssessmentName = value;
-                    NotifyPropertyChanged("AssessmentName");
-                }
-            }
-            public string Comments
-            {
-                get { return SA.Comments; }
-                set { SA.Comments = value; }
-            }
-            public void ClearComponentAssociation(int ComponentId)
-            {
-                ECPlan ECP = DataCache.GetAllPlans().Where(x => x.AssessmentID == ID && x.ComponentID == ComponentId).SingleOrDefault();
-                if (ECP != null)
-                {
-                    ECP.Delete();
-                }
-            }
-            public List<ComponentStatusCodes> AssociatePlanToComponent(int ComponentID, string CourseId, string PlanId, bool ClearWarnings) // ClearWarnings
-            {
-                AsyncPlan p = DataCache.GetAsyncPlans().FirstOrDefault(x => x.Id == PlanId && x.Course.Id == CourseId);
-                ECPlan ECP = DataCache.GetAllPlans().Where(x => x.AssessmentID == ID && x.ComponentID == ComponentID).SingleOrDefault();
-                if (CurrentStructureSet == null)
-                    SetCurrentStructureSet(p.StructureSetId);
-                if (ECP == null)
-                {
-                    // If it meets these criteria the component is evaluable
-                    ECP = new ECPlan(p, ID, ComponentID);
-                    DataCache.AddPlan(ECP);
-                    DataCache.GetAssessment(ID).RegisterPlan(ECP); // this will fire PlanMappingChanged and update all DataCache.Constraints
-                }
-                else
-                {
-                    ECP.Reassociate(p, ClearWarnings);
-                }
-                LinkedPlansChanged?.Invoke(this, EventArgs.Empty);
-                return ECP.GetErrorCodes();
-            }
-            public List<ComponentStatusCodes> StatusCodes(int ComponentID)
-            {
-                ECPlan ECP = DataCache.GetAllPlans().Where(x => x.AssessmentID == ID && x.ComponentID == ComponentID).SingleOrDefault();
-                if (ECP != null)
-                    return ECP.GetErrorCodes();
-                else
-                    return null;
-            }
-            private void OnAssessmentDeleted(object sender, int ID)
-            {
-                Dispose();
-            }
-            public void Dispose()
-            {
-                SA.AssessmentDeleted -= OnAssessmentDeleted;
-                AssessmentViews.Remove(ID);
-            }
-        }
+        //public class AssessmentView : INotifyPropertyChanged
+        //{
+        //    public event PropertyChangedEventHandler PropertyChanged;
+        //    private void NotifyPropertyChanged([CallerMemberName] string PropertyName = "")
+        //    {
+        //        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(PropertyName));
+        //    }
+        //    private Assessment SA;
+        //    public AssessmentView(Assessment _SA)
+        //    {
+        //        SA = _SA;
+        //        DisplayOrder = _SA.DisplayOrder;
+        //        SA.AssessmentDeleted += OnAssessmentDeleted;
+        //        AssessmentViews.Add(ID, this);
+        //    }
+        //    public int ID
+        //    {
+        //        get { return SA.ID; }
+        //    }
+        //    public int DisplayOrder;
+        //    public string AssessmentName
+        //    {
+        //        get { return SA.AssessmentName; }
+        //        set
+        //        {
+        //            SA.AssessmentName = value;
+        //            NotifyPropertyChanged("AssessmentName");
+        //        }
+        //    }
+        //    public string Comments
+        //    {
+        //        get { return SA.Comments; }
+        //        set { SA.Comments = value; }
+        //    }
+        //    public void ClearComponentAssociation(int ComponentId)
+        //    {
+        //        ECPlan ECP = DataCache.GetAllPlans().Where(x => x.AssessmentID == ID && x.ComponentID == ComponentId).SingleOrDefault();
+        //        if (ECP != null)
+        //        {
+        //            ECP.Delete();
+        //        }
+        //    }
+        //    public List<ComponentStatusCodes> AssociatePlanToComponent(int ComponentID, string CourseId, string PlanId, bool ClearWarnings) // ClearWarnings
+        //    {
+        //        AsyncPlan p = DataCache.GetAsyncPlans().FirstOrDefault(x => x.Id == PlanId && x.Course.Id == CourseId);
+        //        ECPlan ECP = DataCache.GetAllPlans().Where(x => x.AssessmentID == ID && x.ComponentID == ComponentID).SingleOrDefault();
+        //        if (CurrentStructureSet == null)
+        //            SetCurrentStructureSet(p.StructureSetId);
+        //        if (ECP == null)
+        //        {
+        //            // If it meets these criteria the component is evaluable
+        //            ECP = new ECPlan(p, ID, ComponentID);
+        //            DataCache.AddPlan(ECP);
+        //            DataCache.GetAssessment(ID).RegisterPlan(ECP); // this will fire PlanMappingChanged and update all DataCache.Constraints
+        //        }
+        //        else
+        //        {
+        //            ECP.Reassociate(p, ClearWarnings);
+        //        }
+        //        LinkedPlansChanged?.Invoke(this, EventArgs.Empty);
+        //        return ECP.GetErrorCodes();
+        //    }
+        //    public List<ComponentStatusCodes> StatusCodes(int ComponentID)
+        //    {
+        //        ECPlan ECP = DataCache.GetAllPlans().Where(x => x.AssessmentID == ID && x.ComponentID == ComponentID).SingleOrDefault();
+        //        if (ECP != null)
+        //            return ECP.GetErrorCodes();
+        //        else
+        //            return null;
+        //    }
+        //    private void OnAssessmentDeleted(object sender, int ID)
+        //    {
+        //        Dispose();
+        //    }
+        //    public void Dispose()
+        //    {
+        //        SA.AssessmentDeleted -= OnAssessmentDeleted;
+        //        AssessmentViews.Remove(ID);
+        //    }
+        //}
         public class AssessmentPreviewView
         {
             public AssessmentPreviewView(int _ID, string _AssessmentName, string _ReferenceProtocol, string _User, string _DateOfAssessment, string _Comments)
@@ -1333,10 +1347,10 @@ namespace SquintScript
         public static AsyncESAPI A { get; private set; }
         private static Dictionary<int, StructureLabelView> StructureLabelViews = new Dictionary<int, StructureLabelView>();
         //public static Dictionary<int, ConstraintView> ConstraintViews { get; private set; } = new Dictionary<int, ConstraintView>();
-        public static Dictionary<int, ComponentView> ComponentViews { get; private set; } = new Dictionary<int, ComponentView>();
+        public static Dictionary<int, Component> ComponentViews { get; private set; } = new Dictionary<int, Component>();
         public static Dictionary<int, AssessmentView> AssessmentViews { get; private set; } = new Dictionary<int, AssessmentView>();
         //public static Dictionary<int, ConstituentView> ConstituentViews { get; private set; } = new Dictionary<int, ConstituentView>();
-        private static Dictionary<int, StructureView> StructureViews = new Dictionary<int, StructureView>();
+        private static Dictionary<int, ECSID> Structures = new Dictionary<int, ECSID>();
 
 
 
@@ -1352,19 +1366,19 @@ namespace SquintScript
         static public bool PatientLoaded { get; private set; } = false;
         public static bool ProtocolLoaded { get; private set; } = false;
         // Events
-        public static event EventHandler AfterSaving;
+
         public static event EventHandler CurrentStructureSetChanged;
+        public static event EventHandler<ECPlan> AvailableStructureSetsChanged;
         public static event EventHandler SynchronizationComplete;
         public static event EventHandler ProtocolListUpdated;
         public static event EventHandler ProtocolConstraintOrderChanged;
         public static event EventHandler ProtocolOpened;
         public static event EventHandler ProtocolClosed;
-        public static event EventHandler LinkedPlansChanged;
+        public static event EventHandler<ECPlan> LinkedPlansChanged;
         public static event EventHandler SessionsChanged;
         public static event EventHandler<int> ConstraintAdded;
         public static event EventHandler<int> ConstraintRemoved;
         public static event EventHandler<int> NewAssessmentAdded;
-        public static event EventHandler<int> AssessmentLoaded;
         public static event EventHandler<int> AssessmentRemoved;
         public static event EventHandler<int> ComponentAdded;
         // Initialization
@@ -1625,7 +1639,7 @@ namespace SquintScript
                 return ImagingFields;
             }
         }
-        public static Dictionary<ImagingProtocols, List<string>> CheckImagingProtocols(ComponentView CV, List<ImagingFieldItem> IF)
+        public static Dictionary<ImagingProtocols, List<string>> CheckImagingProtocols(Component CV, List<ImagingFieldItem> IF)
         {
             Dictionary<ImagingProtocols, List<string>> Errors = new Dictionary<ImagingProtocols, List<string>>();
             foreach (ImagingProtocols IP in CV.ImagingProtocolsAttached)
@@ -1698,7 +1712,7 @@ namespace SquintScript
             else
                 return null;
         }
-        public static ComponentView GetComponentView(int ComponentID)
+        public static Component GetComponentView(int ComponentID)
         {
             if (ComponentViews.ContainsKey(ComponentID))
                 return ComponentViews[ComponentID];
@@ -1709,10 +1723,10 @@ namespace SquintScript
         {
             return DataCache.GetConstraint(ConId);
         }
-        public static StructureView GetStructureView(int StructureID)
+        public static ECSID GetStructure(int StructureID)
         {
-            if (StructureViews.ContainsKey(StructureID))
-                return StructureViews[StructureID];
+            if (Structures.ContainsKey(StructureID))
+                return Structures[StructureID];
             else
                 return null;
         }
@@ -1720,9 +1734,9 @@ namespace SquintScript
         {
             return new StructureLabelView(DataCache.GetStructureLabel(StructureLabelID));
         }
-        public static List<StructureView> GetStructureViewList()
+        public static List<ECSID> GetStructureList()
         {
-            return StructureViews.Values.ToList();
+            return DataCache.GetAllECSIDs().ToList();
         }
         public static List<Constraint> GetConstraints(int? ComponentID = null)
         {
@@ -1731,9 +1745,9 @@ namespace SquintScript
             else
                 return DataCache.GetAllConstraints().Where(x => x.ComponentID == ComponentID).ToList();
         }
-        public static List<ComponentView> GetComponentViewList()
+        public static List<Component> GetComponentList()
         {
-            return ComponentViews.Values.OrderBy(x => x.DisplayOrder).ToList();
+            return DataCache.GetAllComponents().OrderBy(x => x.DisplayOrder).ToList();
         }
         //public static List<ConstituentView> GetConstituentViewList(int ComponentId)
         //{
@@ -1757,9 +1771,9 @@ namespace SquintScript
             }
             return returnList;
         }
-        public static List<AssessmentView> GetAssessmentViewList()
+        public static List<Assessment> GetAssessmentList()
         {
-            return AssessmentViews.Values.OrderBy(x => x.DisplayOrder).ToList();
+            return DataCache.GetAllAssessments().OrderBy(x => x.DisplayOrder).ToList();
         }
         public static List<StructureLabelView> GetStructureLabelViewList()
         {
@@ -1844,18 +1858,26 @@ namespace SquintScript
         //}
 
         //Squint structure helpers
-        public static List<EclipseStructure> GetAllLinkedStructures()
+        public static List<EclipseStructure> GetCurrentStructures()
         {
             List<EclipseStructure> StructureIds = new List<EclipseStructure>();
-            foreach (ECPlan E in DataCache.GetAllPlans().ToList())
+            foreach (AsyncStructure Structure in CurrentStructureSet.GetAllStructures())
             {
-                if (E.Linked)
-                    foreach (var Structure in E.LinkedPlan.Structures.Values)
-                    {
-                        StructureIds.Add(new EclipseStructure(Structure));
-                    }
+                StructureIds.Add(new EclipseStructure(Structure));
+
             }
             return StructureIds;
+        }
+
+        public static List<string> GetAvailableStructureSetIds()
+        {
+            var SSs = DataCache.GetAvailableStructureSets();
+            return SSs.Select(x => x.StructureSetId).ToList();
+        }
+        public static List<StructureSetHeader> GetAvailableStructureSets()
+        {
+            return DataCache.GetAvailableStructureSets();
+
         }
 
         //Squint Protocol Control functions
@@ -1968,7 +1990,7 @@ namespace SquintScript
             }
             ConstraintAdded?.Invoke(null, DupCon.ID);
         }
-        public static ComponentView AddComponent(ComponentTypes Type_input, int ReferenceDose_input = 0, int NumFractions_input = 0, string ComponentName = "")
+        public static Component AddComponent(ComponentTypes Type_input, int ReferenceDose_input = 0, int NumFractions_input = 0, string ComponentName = "")
         {
             if (!ProtocolLoaded)
                 return null;
@@ -1985,19 +2007,19 @@ namespace SquintScript
             }
             Component Comp = new Component(DataCache.CurrentProtocol.ID, ComponentName, NumFractions_input, ReferenceDose_input, Type_input);
             ComponentAdded?.Invoke(null, Comp.ID);
-            ComponentView CompView = new ComponentView(Comp);
+            Component CompView = new Component(Comp);
             return CompView;
         }
-        public static StructureView AddNewStructure()
+        public static ECSID AddNewStructure()
         {
             if (DataCache.CurrentProtocol == null)
                 return null;
             else
             {
                 string NewStructureName = string.Format("UserStructure{0}", _NewStructureCounter++);
-                ECSID newESCID = new ECSID(NewStructureName, 1);
-                DataCache.AddECSID(newESCID);
-                return new StructureView(newESCID);
+                ECSID newECSID = new ECSID(NewStructureName, 1);
+                DataCache.AddECSID(newECSID);
+                return newECSID;
             }
         }
         public static void AddConstraintThreshold(ConstraintThresholdNames Name, int ConstraintID, double ThresholdValue)
@@ -2929,11 +2951,7 @@ namespace SquintScript
                 ActivePV = new ProtocolView(DataCache.CurrentProtocol);
                 foreach (Component Comp in DataCache.GetAllComponents())
                 {
-                    new ComponentView(Comp);
-                }
-                foreach (ECSID ECSID in DataCache.GetAllECSIDs())
-                {
-                    new StructureView(ECSID);
+                    new Component(Comp);
                 }
                 //foreach (Constraint Con in DataCache.GetAllConstraints())
                 //{
@@ -2997,17 +3015,13 @@ namespace SquintScript
                 if (await DataCache.Load_Session(ID))  // true if successful load
                 {
                     ActivePV = new ProtocolView(DataCache.CurrentProtocol);
-                    foreach (Assessment A in DataCache.GetAllAssessments())
-                    {
-                        new AssessmentView(A);
-                    }
+                    //foreach (Assessment A in DataCache.GetAllAssessments())
+                    //{
+                    //    new AssessmentView(A);
+                    //}
                     foreach (Component Comp in DataCache.GetAllComponents())
                     {
-                        new ComponentView(Comp);
-                    }
-                    foreach (ECSID ECSID in DataCache.GetAllECSIDs())
-                    {
-                        new StructureView(ECSID);
+                        new Component(Comp);
                     }
                     foreach (Constraint Con in DataCache.GetAllConstraints())
                     {
@@ -3100,14 +3114,6 @@ namespace SquintScript
                                     ECP.LinkedPlan = p;
                                     // ECP.RefreshTime = DateTime.Now;
                                 }
-                                foreach (ECSID E in DataCache.GetAllECSIDs()) //This is a kludge while structures are derived from plans not structure sets.
-                                {
-                                    if (E.ES != null)
-                                        if (p.Structures.ContainsKey(E.ES.Id))
-                                            E.ES.Update(p.Structures[E.ES.Id]); // Have to disable autocalculation or this will provoke an update on constraints linked to plans that haven't been relinked yet
-                                        else
-                                            E.ES = new EclipseStructure(null);
-                                }
                             }
                         }
                         else
@@ -3115,8 +3121,20 @@ namespace SquintScript
                             MessageBox.Show(string.Format("Course {0} no longer exists", IdToCourseName[ECP.ID]));
                             ECP.Reassociate(p, false);
                         }
-
-
+                    }
+                    foreach (ECSID E in DataCache.GetAllECSIDs()) //This is a kludge while structures are derived from plans not structure sets.
+                    {
+                        if (E.ES != null)
+                            if (CurrentStructureSet.UID == E.ES.StructureSetUID)
+                            {
+                                var UpdatedStructure = CurrentStructureSet.GetStructure(E.ES.Id);
+                                if (UpdatedStructure != null)
+                                    E.ES.Update(CurrentStructureSet.GetStructure(E.ES.Id)); // Have to disable autocalculation or this will provoke an update on constraints linked to plans that haven't been relinked yet
+                                else
+                                    E.ES = new EclipseStructure(null);
+                            }
+                            else
+                                E.ES = new EclipseStructure(null);
                     }
                     foreach (Assessment SA in DataCache.GetAllAssessments())
                     {
@@ -3182,7 +3200,7 @@ namespace SquintScript
         //    //        ActivePV = new ProtocolView(DataCache.CurrentProtocol);
         //    //        foreach (Component Comp in DataCache.GetAllComponents())
         //    //        {
-        //    //            new ComponentView(Comp);
+        //    //            new Component(Comp);
         //    //        }
         //    //        foreach (Constituent Cons in Constituents.Values)
         //    //        {
@@ -3239,31 +3257,51 @@ namespace SquintScript
             ProtocolClosed?.Raise(null, EventArgs.Empty);
         }
 
-        public static IEnumerable<string> GetAvailableStructureSetIds()
+        public static bool SetCurrentStructureSet(string ssuid, bool PerformAliasing)
         {
-            return DataCache.GetAvailableStructureSetIds();
-        }
-        public static bool SetCurrentStructureSet(string ssid)
-        {
-            CurrentStructureSet = DataCache.GetStructureSet(ssid);
-            foreach (ECSID E in DataCache.GetAllECSIDs()) // notify structures
-            {
-                E.ApplyAliasing(CurrentStructureSet); // always apply aliasing
-            }
+            CurrentStructureSet = DataCache.GetStructureSet(ssuid);
+            if (PerformAliasing)
+                foreach (ECSID E in DataCache.GetAllECSIDs()) // notify structures
+                {
+                    if (E.ES.Id == "")
+                        E.ApplyAliasing(CurrentStructureSet);
+                }
             CurrentStructureSetChanged?.Invoke(null, EventArgs.Empty);
             return true;
+        }
+
+        public static List<ComponentStatusCodes> AssociatePlanToComponent(int AssessmentID, int ComponentID, string CourseId, string PlanId, bool ClearWarnings) // ClearWarnings
+        {
+            AsyncPlan p = DataCache.GetAsyncPlans().FirstOrDefault(x => x.Id == PlanId && x.Course.Id == CourseId);
+            ECPlan ECP = DataCache.GetAllPlans().Where(x => x.AssessmentID == AssessmentID && x.ComponentID == ComponentID).SingleOrDefault();
+            if (ECP == null)
+            {
+                // If it meets these criteria the component is evaluable
+                ECP = new ECPlan(p, AssessmentID, ComponentID);
+                DataCache.AddPlan(ECP);
+                AvailableStructureSetsChanged?.Invoke(null, ECP);
+                if (CurrentStructureSet == null)
+                {
+                    SetCurrentStructureSet(p.StructureSetUID, true);
+                }
+                DataCache.GetAssessment(AssessmentID).RegisterPlan(ECP); // this will fire PlanMappingChanged and update all DataCache.Constraints
+            }
+            else
+            {
+                ECP.Reassociate(p, ClearWarnings);
+                AvailableStructureSetsChanged?.Invoke(null, ECP);
+            }
+            LinkedPlansChanged?.Invoke(null, ECP);
+            return ECP.GetErrorCodes();
         }
 
         public static string GetStructureIDString(int ID)
         {
             return DataCache.GetECSID(ID).EclipseStructureName;
         }
-        public static AssessmentView GetAssessmentView(int AssessmentID)
+        public static Assessment GetAssessment(int AssessmentID)
         {
-            if (AssessmentViews.ContainsKey(AssessmentID))
-                return AssessmentViews[AssessmentID];
-            else
-                return null;
+            return DataCache.GetAssessment(AssessmentID);
         }
         public static List<SessionView> GetSessionViews()
         {
@@ -3274,7 +3312,7 @@ namespace SquintScript
             }
             return SVs;
         }
-        public static AssessmentView NewAssessment()
+        public static Assessment NewAssessment()
         {
             Assessment NewAssessment = new Assessment(string.Format("Assessment#{0}", _AssessmentNameIterator), _AssessmentNameIterator);
             DataCache.AddAssessment(NewAssessment);
@@ -3284,11 +3322,11 @@ namespace SquintScript
             }
             _AssessmentNameIterator++;
             //Subscribe to updates
-            AssessmentView AV = new AssessmentView(NewAssessment);
+            //AssessmentView AV = new AssessmentView(NewAssessment);
             NewAssessmentAdded?.Invoke(null, NewAssessment.ID);
-            return AV;
+            return NewAssessment;
         }
-        public static AssessmentView LoadAssessment(int AssessmentID)
+        public static Assessment LoadAssessment(int AssessmentID)
         {
             Assessment A = DataCache.GetAssessment(AssessmentID);
             foreach (Constraint Con in DataCache.GetAllConstraints())
@@ -3296,9 +3334,9 @@ namespace SquintScript
                 Con.RegisterAssessment(A);
             }
             //Subscribe to updates
-            AssessmentView AV = new AssessmentView(A);
+            //AssessmentView AV = new AssessmentView(A);
             NewAssessmentAdded?.Invoke(null, A.ID);
-            return AV;
+            return A;
         }
         public static void RemoveAssessment(int AssessmentID)
         {

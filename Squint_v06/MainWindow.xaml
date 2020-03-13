@@ -1788,7 +1788,7 @@
                                 </Grid.Style>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*"/>
-                                    <ColumnDefinition Width="1.5*"/>
+                                    <ColumnDefinition Width="2*"/>
                                 </Grid.ColumnDefinitions>
                                 <Grid.RowDefinitions>
                                     <RowDefinition Height="Auto"/>
@@ -1804,8 +1804,8 @@
                                             <ColumnDefinition Width="Auto"/>
                                             <ColumnDefinition Width="*"/>
                                         </Grid.ColumnDefinitions>
-                                        <TextBlock Grid.Column="0" Text="Assigned Eclipse ID from" VerticalAlignment="Center" Margin="10,0,0,0" FontWeight="Bold"/>
-                                        <ComboBox Grid.Column="1" Style="{StaticResource ConstraintComboBoxStyle}" ItemsSource="{Binding PatientPresenter.StructureSets}" SelectedItem="{Binding PatientPresenter.CurrentStructureSet}"  DisplayMemberPath="StructureSetId" Margin="5,3,10,3"/>
+                                        <TextBlock Grid.Column="0" Text="Current structure set:" VerticalAlignment="Center" Margin="10,0,0,0" FontWeight="Bold"/>
+                                        <ComboBox Grid.Column="1" Style="{StaticResource ConstraintComboBoxStyle}" ItemsSource="{Binding PatientPresenter.StructureSets}" SelectedItem="{Binding PatientPresenter.CurrentStructureSet, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"  DisplayMemberPath="ComboBoxDisplay" Margin="5,3,10,3"/>
                                     </Grid>
                                     
                                 </Border>
@@ -1875,7 +1875,7 @@
                                                             <TextBlock Grid.Row="1" Grid.Column="0" Text="Structure Id:" Margin="7,5,7,5" HorizontalAlignment="Left"></TextBlock>
                                                             <ComboBox Grid.Row="1" Grid.Column="1" HorizontalAlignment="Stretch" MaxWidth="150" HorizontalContentAlignment="Center" Width="Auto" Margin="10,5,10,5" Style="{StaticResource ConstraintComboBoxStyle}"
                                                                   MaxDropDownHeight="150"    DisplayMemberPath="Id"
-                                                                  SelectedItem="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type ListViewItem}}, Path=DataContext.EclipseStructure, Mode=OneWayToSource}"
+                                                                  SelectedItem="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type ListViewItem}}, Path=DataContext.ES, Mode=OneWayToSource}"
                                                                       Background="AliceBlue">
                                                                 <ComboBox.ItemsSource>
                                                                     <MultiBinding Converter="{StaticResource SortStructuresConverter}" Mode="OneWay">
@@ -2023,7 +2023,7 @@
                                                         </Grid.RowDefinitions>
                                                         <StackPanel Grid.Row="0" Orientation="Horizontal">
                                                             <ComboBox ItemsSource ="{Binding Path=ConstraintTypes, UpdateSourceTrigger=PropertyChanged}" SelectedItem="{Binding ConstraintType}" Width="50" HorizontalAlignment="Left" Style="{StaticResource ConstraintComboBoxStyle}"></ComboBox>
-                                                            <TextBox Text ="{Binding ConstraintValue, Mode=TwoWay}" Style="{StaticResource ConstraintTextBoxStyle}" Width="50" local:TextBoxExtensions.UpdateSourceOnKey="Return"
+                                                            <TextBox Text ="{Binding ConstraintValue, UpdateSourceTrigger=PropertyChanged,  Mode=TwoWay}" Style="{StaticResource ConstraintTextBoxStyle}" Width="50" local:TextBoxExtensions.UpdateSourceOnKey="Return"
                                                                         Foreground="{Binding ConstraintValueColor, UpdateSourceTrigger=PropertyChanged}"></TextBox>
                                                             <ComboBox ItemsSource ="{Binding Path=ConstraintUnitTypes, UpdateSourceTrigger=PropertyChanged}" SelectedItem="{Binding ConstraintUnit}" Width="50" HorizontalAlignment="Left" Style="{StaticResource ConstraintComboBoxStyle}">
                                                                 <ComboBox.ItemTemplate>
@@ -2039,7 +2039,7 @@
                                                                     </DataTemplate>
                                                                 </ComboBox.ItemTemplate>
                                                             </ComboBox>
-                                                            <TextBox Text ="{Binding ReferenceValue, Mode=TwoWay}" Style="{StaticResource ConstraintTextBoxStyle}" Foreground="{Binding ReferenceValueColor, UpdateSourceTrigger=PropertyChanged}"
+                                                            <TextBox Text ="{Binding ReferenceValue, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" Style="{StaticResource ConstraintTextBoxStyle}" Foreground="{Binding ReferenceValueColor, UpdateSourceTrigger=PropertyChanged}"
                                                                      Width="50" local:TextBoxExtensions.UpdateSourceOnKey="Return"></TextBox>
                                                             <ComboBox ItemsSource ="{Binding Path=AvailableReferenceUnitTypes, UpdateSourceTrigger=PropertyChanged}" SelectedItem="{Binding ReferenceUnit}" Width="50" HorizontalAlignment="Left" Style="{StaticResource ConstraintComboBoxStyle}">
                                                                 <ComboBox.ItemTemplate>

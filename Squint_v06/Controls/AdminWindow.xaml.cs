@@ -56,7 +56,6 @@ namespace SquintScript
         private void OnSelectedStructureChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
         {
             var VM = (Presenter)DataContext;
-            var test = VM.Protocol.Structures;
         }
 
         public int counter = 0;

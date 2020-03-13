@@ -538,10 +538,6 @@ namespace SquintScript
             {
                 return AvailableStructures.OrderBy(x => x.Id);
             }
-            if (SS.GetAliases().Contains("PTV56"))
-            {
-                var debugme = "hi";
-            }
             if (AvailableStructures.Count != 0)
             {
                 double[] LD = new double[AvailableStructures.Count];
@@ -552,7 +548,7 @@ namespace SquintScript
                 int c = 0;
                 foreach (string S in AvailableStructures.Select(x => x.Id))
                 {
-                    var CurrentId = SS.EclipseStructure.Id.ToUpper();
+                    var CurrentId = SS.ES.Id.ToUpper();
                     var stripString = S.Replace(@"B_", @"").Replace(@"_", @"").ToUpper();
                     if (CurrentId == "") // if not assigned, use first alias
                     {
@@ -727,7 +723,7 @@ namespace SquintScript
                object parameter, System.Globalization.CultureInfo culture)
         {
             StructureSelector V = value as StructureSelector;
-            return string.Format("{0} (Label={1})", V.EclipseStructure.Id, V.EclipseStructure.LabelName);
+            return string.Format("{0} (Label={1})", V.ES.Id, V.ES.LabelName);
         }
         public object ConvertBack(object value, Type targetTypes,
                object parameter, System.Globalization.CultureInfo culture)

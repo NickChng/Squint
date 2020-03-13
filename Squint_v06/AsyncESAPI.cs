@@ -208,7 +208,7 @@ namespace SquintScript
         public string FirstName { get; private set; }
         public string LastName { get; private set; }
         public List<string> CourseIds { get; private set; } = new List<string>();
-        public List<string> StructureSetIds { get; private set; } = new List<string>();
+        public List<string> StructureSetUIDs { get; private set; } = new List<string>();
         //private Dictionary<string, AsyncCourse> Courses = new Dictionary<string, AsyncCourse>();
         public AsyncPatient(AsyncESAPI ACurrent, Patient p)
         {
@@ -222,19 +222,31 @@ namespace SquintScript
             }
             foreach (StructureSet SS in p.StructureSets)
             {
-                StructureSetIds.Add(SS.Id);
+                StructureSetUIDs.Add(SS.UID);
             }
         }
-        public AsyncStructureSet GetStructureSet(string ssid)
+        public AsyncStructureSet GetStructureSet(string ssuid)
         {
-            if (StructureSetIds.Contains(ssid))
+            if (StructureSetUIDs.Contains(ssuid))
             {
                 return A.Execute(new Func<Patient, AsyncStructureSet>((p) =>
                 {
-                    return new AsyncStructureSet(A, p.StructureSets.FirstOrDefault(x => x.Id == ssid));
+                    return new AsyncStructureSet(A, p.StructureSets.FirstOrDefault(x => x.UID == ssuid));
                 }));
             }
             else return null;
+        }
+
+        public List<Ctr.StructureSetHeader> GetAllStructureSets()
+        {
+            var L = new List<Ctr.StructureSetHeader>();
+                return A.Execute(new Func<Patient, List<Ctr.StructureSetHeader>>((p) =>
+                {
+                    foreach (StructureSet SS in p.StructureSets)
+                        L.Add(new Ctr.StructureSetHeader(SS.Id, SS.UID, ""));
+                    return L;
+                }));
+            
         }
         public async Task<AsyncCourse> GetCourse(string CourseId, IProgress<int> progress)
         {
@@ -294,13 +306,11 @@ namespace SquintScript
     public class AsyncStructureSet
     {
         private AsyncESAPI A;
-        private StructureSet _StructureSet;
         public string Id { get; private set; }
         public string UID { get; private set; }
         private Dictionary<string, AsyncStructure> _Structures = new Dictionary<string, AsyncStructure>();
         public AsyncStructureSet(AsyncESAPI _A, StructureSet structureSet)
         {
-            _StructureSet = structureSet;
             A = _A;
             Id = structureSet.Id;
             UID = structureSet.UID;
@@ -319,6 +329,10 @@ namespace SquintScript
                 return _Structures[Id];
             else
                 return null;
+        }
+        public List<AsyncStructure> GetAllStructures()
+        {
+            return _Structures.Values.ToList();
         }
     }
     public class AsyncCourse

@@ -324,18 +324,17 @@ namespace SquintScript
                     case "ExceptionType":
                         break;
                     default:
-                        var test = ID; 
+                        var test = ID;
                         UpdateOnEvaluatedPropertyChange(propertyName);
                         break;
                 }
             }
             private async void UpdateOnEvaluatedPropertyChange(string propertyName)
             {
-                var test = propertyName;
-                foreach (int SA_ID in RegisteredAssessmentIDs)
+
+                foreach (int SA_ID in new List<int>(RegisteredAssessmentIDs)) // new list created to avoid user chaning the list while constraints being calculated
                     if (DataCache.GetAssessment(SA_ID).AutoCalculate)
                         await Task.Run(() => EvaluateConstraint(DataCache.GetAssessment(SA_ID))); // this has to be awaited so the while loop doesn't lock up the UI thread
-                                                                                                  //EvaluateConstraint(DataCache.GetAssessment(SA_ID));
             }
             public Constraint(DbConstraint DbO)
             {
@@ -710,7 +709,7 @@ namespace SquintScript
                 //ID = _DbO.ID;
             }
             //Events
-            public object Lock = new object();
+            public static readonly object Lock = new object();
             public event EventHandler<int> ConstraintDeleted;
             public event EventHandler<int> ConstraintEvaluating; //argument is the assessment ID
             public event EventHandler<int> ConstraintEvaluated;
@@ -1217,12 +1216,12 @@ namespace SquintScript
                     {
                         if (ReferenceScale == UnitScale.Relative)
                         {
-                            ReferenceValue = Math.Round(DoseFunctions.BED(_NumFractions.ReferenceValue, SC.NumFractions, _ConstraintValue.ReferenceValue / 100 * SC.ReferenceDose, abRatio)) * 100 / SC.ReferenceDose;
+                            ReferenceValue = Math.Round(DoseFunctions.BED(_NumFractions.ReferenceValue, SC.NumFractions, _ReferenceValue.ReferenceValue / 100 * SC.ReferenceDose, abRatio)) * 100 / SC.ReferenceDose;
                             NumFractions = SC.NumFractions;
                         }
                         else
                         {
-                            ReferenceValue = Math.Round(DoseFunctions.BED(_NumFractions.ReferenceValue, SC.NumFractions, _ConstraintValue.ReferenceValue, abRatio) / 100) * 100;
+                            ReferenceValue = Math.Round(DoseFunctions.BED(_NumFractions.ReferenceValue, SC.NumFractions, _ReferenceValue.ReferenceValue, abRatio) / 100) * 100;
                             NumFractions = SC.NumFractions;
                         }
                         // NotifyPropertyChanged("ReferenceValue");
@@ -1292,8 +1291,8 @@ namespace SquintScript
                 if (ComponentID == ChangedComponentID)
                 {
                     if (SA.AutoCalculate)
-                        //await Task.Run(() => EvaluateConstraint(SA));
-                        await EvaluateConstraint(SA);
+                        await Task.Run(() => EvaluateConstraint(SA));
+                    //await EvaluateConstraint(SA);
                 }
             }
             public async Task EvaluateConstraint(Assessment SA)
@@ -1322,29 +1321,32 @@ namespace SquintScript
                     {
                         CR.AddStatusCode(ConstraintResultStatusCodes.ConstraintUndefined);
                         CR.isCalculating = false;
+                        ConstraintEvaluated?.Raise(new ConstraintResultView(CR), SA.ID); // this notifies the view class, no need to raise to UI
                         return;
                     }
                     ECPlan ECP = DataCache.GetAllPlans().Where(x => x.AssessmentID == SA.ID && x.ComponentID == ComponentID).SingleOrDefault();
                     if (ECP == null)
                     {
                         CR.AddStatusCode(ConstraintResultStatusCodes.NotLinked);
-                        ConstraintEvaluated?.Raise(new ConstraintResultView(CR), SA.ID); // this notifies the view class, no need to raise to UI
                         CR.isCalculating = false;
+                        ConstraintEvaluated?.Raise(new ConstraintResultView(CR), SA.ID); // this notifies the view class, no need to raise to UI
                         return;
                     }
                     if (ECP.LoadWarning)
                     {
                         CR.AddStatusCode(ConstraintResultStatusCodes.NotLinked);
-                        ConstraintEvaluated?.Raise(new ConstraintResultView(CR), SA.ID); // this notifies the view class, no need to raise to UI
                         CR.isCalculating = false;
+                        ConstraintEvaluated?.Raise(new ConstraintResultView(CR), SA.ID); // this notifies the view class, no need to raise to UI
+
                         return;
                     }
                     List<ComponentStatusCodes> ComponentStatus = ECP.GetErrorCodes();
                     if (!ComponentStatus.Contains(ComponentStatusCodes.Evaluable))
                     { // this constraint is not evaluable because of an error int he component link
                         CR.AddStatusCode(ConstraintResultStatusCodes.ErrorUnspecified);
-                        ConstraintEvaluated?.Raise(new ConstraintResultView(CR), SA.ID); // this notifies the view class, no need to raise to UI
                         CR.isCalculating = false;
+                        ConstraintEvaluated?.Raise(new ConstraintResultView(CR), SA.ID); // this notifies the view class, no need to raise to UI
+
                         return;
                     }
                     string targetId = DataCache.GetECSID(PrimaryStructureID).EclipseStructureName;
@@ -1369,8 +1371,8 @@ namespace SquintScript
                     {
                         CR.AddStatusCode(ConstraintResultStatusCodes.StructureNotFound);
                         //UpdateProgress();
-                        ConstraintEvaluated?.Raise(new ConstraintResultView(CR), SA.ID); // this notifies the view class, no need to raise to UI
                         CR.isCalculating = false;
+                        ConstraintEvaluated?.Raise(new ConstraintResultView(CR), SA.ID); // this notifies the view class, no need to raise to UI
                         return;
                     }
                     else
@@ -2043,11 +2045,6 @@ namespace SquintScript
         {
             //Required notification class
             public event PropertyChangedEventHandler PropertyChanged;
-            private void NotifyPropertyChanged([CallerMemberName] String propertyName = "")
-            {
-                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName)); // can't be made thread safe by Raise?
-            }
-            //Synchronized EF object
             public Component(int CompId, int ProtocolId)
             {
                 ID = CompId;
@@ -2101,7 +2098,6 @@ namespace SquintScript
             {
                 public object Value;
             }
-            private int PriorID;
             public int ID { get; private set; }
             public int DisplayOrder { get; set; }
             public int ProtocolID { get; private set; }
@@ -2111,6 +2107,11 @@ namespace SquintScript
             public int MaxBeams { get; set; } = -1;
             public int NumIso { get; set; } = 1;
             public int MinColOffset { get; set; } = 0;
+
+            public List<Beam> GetBeams()
+            {
+                return DataCache.GetBeams(ID);
+            }
             public bool isTDFmodified { get; private set; }
             private double _ReferenceDose;
             public double ReferenceDose
@@ -2200,18 +2201,18 @@ namespace SquintScript
             public double ChangeValue;
             public string ChangeString;
         }
-
-        public class Assessment : INotifyPropertyChanged
+        [AddINotifyPropertyChangedInterface]
+        public class Assessment
         {
             //Events
-            public event PropertyChangedEventHandler PropertyChanged;
+            //public event PropertyChangedEventHandler PropertyChanged;
             public event EventHandler<int> AssessmentDeleted;
             public event EventHandler<int> ComponentUnlinked;
-            public event EventHandler AssessmentOverwriting;
+            //public event EventHandler AssessmentOverwriting;
             public event EventHandler<int> PlanMappingChanged;
-            public event EventHandler NewAssessmentCommitted;
+            //public event EventHandler NewAssessmentCommitted;
             public event EventHandler<int> ComponentAssociationChange;
-            public event EventHandler AssessmentNameChanged;
+            //public event EventHandler AssessmentNameChanged;
             public Assessment(DbAssessment DbO)
             {
                 ID = DbO.ID;
@@ -2251,9 +2252,35 @@ namespace SquintScript
                 ECP.PlanDeleting += OnECPDeleting;
                 PlanMappingChanged?.Invoke(this, ECP.ComponentID);
             }
+            public void ClearComponentAssociation(int ComponentId)
+            {
+                ECPlan ECP = DataCache.GetAllPlans().Where(x => x.AssessmentID == ID && x.ComponentID == ComponentId).SingleOrDefault();
+                if (ECP != null)
+                {
+                    ECP.Delete();
+                }
+            }
+
+            public List<ComponentStatusCodes> StatusCodes(int ComponentID)
+            {
+                ECPlan ECP = DataCache.GetAllPlans().Where(x => x.AssessmentID == ID && x.ComponentID == ComponentID).SingleOrDefault();
+                if (ECP != null)
+                    return ECP.GetErrorCodes();
+                else
+                    return null;
+            }
             public void Delete()
             {
                 AssessmentDeleted?.Invoke(this, ID);
+            }
+
+            public List<ComponentStatusCodes> GetStatusCodes(int ComponentID)
+            {
+                ECPlan ECP = DataCache.GetAllPlans().Where(x => x.AssessmentID == ID && x.ComponentID == ComponentID).SingleOrDefault();
+                if (ECP != null)
+                    return ECP.GetErrorCodes();
+                else
+                    return null;
             }
 
             /*private bool ValidateComponentAssociations(Component SC)
@@ -2531,7 +2558,7 @@ namespace SquintScript
                         ErrorCodes.Add(ComponentStatusCodes.NumFractionsMismatch);
                     }
                 }
-                if (LinkedPlan.StructureSetId != CurrentStructureSet.Id)
+                if (LinkedPlan.StructureSetUID != CurrentStructureSet.UID)
                     ErrorCodes.Add(ComponentStatusCodes.StructureSetDiscrepancy);
 
                 //else if (SC.ComponentType == ComponentTypes.Sum)
@@ -2698,6 +2725,13 @@ namespace SquintScript
                 return string.Format("{0} (Label: {1}, \u03B1/\u03B2={2})", ProtocolStructureName,
                     DataCache.SquintDb.Context.DbStructureLabels.Find(StructureLabelID).StructureLabel,
                     DataCache.SquintDb.Context.DbStructureLabels.Find(StructureLabelID).AlphaBetaRatio);
+            }
+            public StructureLabel StructureLabel
+            {
+                get
+                {
+                    return DataCache.GetStructureLabel(StructureLabelID);
+                }
             }
             public ExceptionTypes ExceptionType
             {

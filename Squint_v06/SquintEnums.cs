@@ -148,7 +148,7 @@ namespace SquintScript
         [Description("Plan linked to constituent is not in sum")] ConstituentNotInSum,
         [Description("Plan sum contains a different number of plans than protocol constituents")] PlansNotEqualToConstituents,
         [Description("Changed since last session")] ChangedSinceLastSession,
-        [Description("Structure set does not match")] StructureSetDiscrepancy,
+        [Description("Plan is not linked to current structure set")] StructureSetDiscrepancy,
         [Description("UNDEFINED ERROR")] NotDefined,
         [Description("No dose")] NoDoseDistribution,
     }

@@ -75,16 +75,16 @@ namespace SquintScript
     public class StructureSelector : ObservableObject
     {
         private bool isSelected { get; set; }
-        private Ctr.StructureView SV;
+        private Ctr.ECSID E;
         public int Id
         {
-            get { return SV.ID; }
+            get { return E.ID; }
         }
         public bool isUserAdded
         {
             get
             {
-                if (SV.ID < 0)
+                if (E.ID < 0)
                     return true;
                 else
                     return false;
@@ -92,12 +92,12 @@ namespace SquintScript
         }
         public string ProtocolStructureName
         {
-            get { return SV.ProtocolStructureName; }
+            get { return E.ProtocolStructureName; }
             set
             {
                 if (value.Length > 1)
                 {
-                    SV.ProtocolStructureName = value;
+                    E.ProtocolStructureName = value;
                     RaisePropertyChangedEvent("StructureId");
                 }
                 else MessageBox.Show("Structure name must be greater than 1 character");
@@ -105,31 +105,31 @@ namespace SquintScript
         }
         public string EclipseStructureName
         {
-            get { return EclipseStructure.Id; }
+            get { return ES.Id; }
         }
-        public Ctr.EclipseStructure EclipseStructure
+        public Ctr.EclipseStructure ES
         {
-            get { return SV.EclipseStructure; }
+            get { return E.ES; }
             set
             {
                 if (value != null)
-                    SV.EclipseStructure = value;
+                    E.ES = value;
             }
         }
         public List<string> GetAliases()
         {
-            return SV.GetAliases();
+            return E.DefaultEclipseAliases;
         }
         public string LabelName
         {
-            get { return SV.StructureLabel.LabelName; }
+            get { return E.EclipseStructureLabel; }
         }
         public string AlphaBetaRatio
         {
             get
             {
-                if (SV.StructureLabel.AlphaBetaRatio > 0.1)
-                    return string.Format(@"({0}\{1} = {2:0})", '\u03B1', '\u03B2', SV.StructureLabel.AlphaBetaRatio);
+                if (E.StructureLabel.AlphaBetaRatio > 0.1)
+                    return string.Format(@"({0}\{1} = {2:0})", '\u03B1', '\u03B2', E.StructureLabel.AlphaBetaRatio);
                 else
                     return string.Format(@"(No BED adjustment)");
             }
@@ -138,7 +138,7 @@ namespace SquintScript
         {
             get
             {
-                if (SV.EclipseStructure.LabelName.ToUpper() == SV.StructureLabel.LabelName.ToUpper() || SV.EclipseStructure.Id == "")
+                if (E.ES.LabelName.ToUpper() == E.StructureLabel.LabelName.ToUpper() || E.ES.Id == "")
                 {
                     return false;
                 }
@@ -150,13 +150,13 @@ namespace SquintScript
         {
             get
             {
-                return string.Format("Label mismatch: Assigned structure label is {0}", SV.EclipseStructure.LabelName);
+                return string.Format("Label mismatch: Assigned structure label is {0}", E.ES.LabelName);
             }
         }
-        public StructureSelector(Ctr.StructureView SVin)
+        public StructureSelector(Ctr.ECSID Ein)
         {
-            SV = SVin;
-            SV.StructureChanged += OnStructureViewChanged;
+            E = Ein;
+            E.PropertyChanged += OnStructureViewChanged;
         }
         private void OnStructureViewChanged(object sender, PropertyChangedEventArgs e)
         {
@@ -168,7 +168,6 @@ namespace SquintScript
                 RaisePropertyChangedEvent("LabelMismatchTooltip");
             }
         }
-        public ObservableCollection<StructureProperties> test { get; set; } = new ObservableCollection<StructureProperties>() { new StructureProperties() };
     }
     [AddINotifyPropertyChangedInterface]
     public class ComponentSelector : ObservableObject
@@ -176,35 +175,38 @@ namespace SquintScript
         private bool isSelected { get; set; }
         public bool Pinned { get; set; } = false;
         public int DisplayHeight { get; } = 100;
-        private Ctr.ComponentView CompV;
+        private Ctr.Component Comp;
         public int Id
         {
-            get { return CompV.ID; }
+            get { return Comp.ID; }
         }
         public string ComponentName
         {
-            get { return CompV.ComponentName; }
-            set { CompV.ComponentName = value; }
+            get { return Comp.ComponentName; }
+            set { Comp.ComponentName = value; }
         }
         public ComponentTypes ComponentType
         {
-            get { return CompV.ComponentType; }
+            get { return Comp.ComponentType; }
             set { }
         }
         public double ReferenceDose
         {
-            get { return CompV.ReferenceDose; }
+            get { return Comp.ReferenceDose; }
             set
             {
-                CompV.ReferenceDose = value;
+                Comp.ReferenceDose = value;
                 RaisePropertyChangedEvent("ComponentTDFDescription"); // Fody will update the primary property, this is to update the description
             }
         }
+
+        private int _numFractions;
         public int NumFractions
         {
-            get { return CompV.NumFractions; }
+            get { return _numFractions; }
             set
             {
+                _numFractions = value; // necessary because the await in SetFractions may result in the UI retrieving Comp.NumFractions before it has been updated
                 SetFractions(value);
                 RaisePropertyChangedEvent("ComponentTDFDescription"); // Fody will update the primary property, this is to update the description
             }
@@ -213,9 +215,10 @@ namespace SquintScript
         {
             get { return string.Format("({0:0.#} Gy in {1} fractions)", ReferenceDose / 100, NumFractions); }
         }
-        public ComponentSelector(Ctr.ComponentView CompVin)
+        public ComponentSelector(Ctr.Component Compin)
         {
-            CompV = CompVin;
+            Comp = Compin;
+            _numFractions = Comp.NumFractions;
             AvailableComponentTypes.Clear();
             foreach (ComponentTypes T in Enum.GetValues(typeof(ComponentTypes)))
             {
@@ -224,7 +227,14 @@ namespace SquintScript
         }
         private async void SetFractions(int NumFractions)
         {
-            await CompV.SetFractionsAsync(NumFractions);
+            try
+            {
+                await Task.Run(() => Comp.NumFractions = NumFractions);
+            }
+            catch (Exception ex)
+            {
+                string debugme = "hi";
+            }
         }
         public ObservableCollection<ComponentTypes> AvailableComponentTypes { get; set; } = new ObservableCollection<ComponentTypes>() { ComponentTypes.Plan };
     }
@@ -252,13 +262,13 @@ namespace SquintScript
             get
             {
                 return new ObservableCollection<Ctr.ConstraintChangelog>(); // temp disabled while refactoring constraintview
-                //if (CV == null)
+                //if (Comp == null)
                 //{
                 //    return new ObservableCollection<Ctr.ConstraintChangelog>() { new Ctr.ConstraintChangelog(), new Ctr.ConstraintChangelog() };
                 //}
                 //else
                 //{
-                //    return new ObservableCollection<Ctr.ConstraintChangelog>(CV.GetChangeLogs());
+                //    return new ObservableCollection<Ctr.ConstraintChangelog>(Comp.GetChangeLogs());
                 //}
             }
         }
@@ -449,9 +459,9 @@ namespace SquintScript
                 //    }
                 //}
                 //return Colors;
-                return new List<System.Windows.Media.Color>(); 
+                return new List<System.Windows.Media.Color>();
             }
-            
+
         }
         public string StructureId
         {
@@ -621,7 +631,7 @@ namespace SquintScript
             }
             SetComboBoxes();
             Components.Clear();
-            foreach (var CN in Ctr.GetComponentViewList())
+            foreach (var CN in Ctr.GetComponentList())
             {
                 Components.Add(new ComponentSelector(CN));
             }
@@ -651,6 +661,7 @@ namespace SquintScript
                     break;
                 case nameof(Ctr.Constraint.NumFractions):
                     RefreshRowHeader = !RefreshRowHeader;
+                    RaisePropertyChangedEvent(nameof(ConstraintSelector.ShortConstraintDefinition));
                     //RaisePropertyChangedEvent("ReferenceValue");
                     //RaisePropertyChangedEvent("ConstraintValue");
                     //RaisePropertyChangedEvent(nameof(ConstraintValueColor));
@@ -658,10 +669,18 @@ namespace SquintScript
                     break;
                 case nameof(Ctr.Constraint.ConstraintValue):
                     RefreshRowHeader = !RefreshRowHeader;
-                    //RaisePropertyChangedEvent("ConstraintValue");
+                    RaisePropertyChangedEvent(nameof(ConstraintValue));
+                    RaisePropertyChangedEvent(nameof(ConstraintSelector.ShortConstraintDefinition));
+                    break;
+                case nameof(Ctr.Constraint.ReferenceValue):
+                    RefreshRowHeader = !RefreshRowHeader;
+                    RaisePropertyChangedEvent(nameof(ReferenceValue));
+                    RaisePropertyChangedEvent(nameof(ConstraintSelector.ShortConstraintDefinition));
                     break;
                 case nameof(Ctr.Constraint.ReferenceScale):
                     RefreshRowHeader = !RefreshRowHeader;
+                    RaisePropertyChangedEvent(nameof(ReferenceUnit));
+                    RaisePropertyChangedEvent(nameof(ConstraintSelector.ShortConstraintDefinition));
                     //RaisePropertyChangedEvent("ReferenceValue");
                     //RaisePropertyChangedEvent("StopValue");
                     //RaisePropertyChangedEvent("MinorViolation");
@@ -669,12 +688,17 @@ namespace SquintScript
                     break;
                 case nameof(Ctr.Constraint.ConstraintScale):
                     RefreshRowHeader = !RefreshRowHeader;
+                    RaisePropertyChangedEvent(nameof(ConstraintUnit));
+                    RaisePropertyChangedEvent(nameof(ConstraintSelector.ShortConstraintDefinition));
                     break;
                 case nameof(Ctr.Constraint.ConstraintType):
                     RefreshRowHeader = !RefreshRowHeader;
+                    RaisePropertyChangedEvent(nameof(ConstraintType));
+                    RaisePropertyChangedEvent(nameof(ConstraintSelector.ShortConstraintDefinition));
                     break;
                 case nameof(Ctr.Constraint.PrimaryStructureID):
                     RefreshRowHeader = !RefreshRowHeader;
+                    RaisePropertyChangedEvent(nameof(ConstraintSelector.ShortConstraintDefinition));
                     break;
             }
         }
@@ -769,21 +793,58 @@ namespace SquintScript
     [AddINotifyPropertyChangedInterface]
     public class StructureSetSelector
     {
-        public string StructureSetId { get; set; }
-        public StructureSetSelector(string structureSetId = "")
+        private Ctr.StructureSetHeader _StS = null;
+        public string StructureSetId
         {
-            StructureSetId = structureSetId;
+            get
+            {
+                if (_StS == null)
+                    return "";
+                else
+                    return _StS.StructureSetId;
+            }
+        }
+        public string StructureSetUID
+        {
+            get
+            {
+                if (_StS == null)
+                    return "";
+                else
+                    return _StS.StructureSetUID;
+            }
+        }
+
+        public string ComboBoxDisplay
+        {
+            get
+            {
+                return string.Format("{0} ({1})", StructureSetId, LinkedPlanId);
+            }
+        }
+
+        public string LinkedPlanId
+        {
+            get
+            {
+                return _StS.LinkedPlanId;
+            }
+        }
+        public StructureSetSelector(Ctr.StructureSetHeader StS = null)
+        {
+            _StS = StS;
         }
     }
     [AddINotifyPropertyChangedInterface]
     public class PatientView : ObservableObject, IDisposable
     {
         public string PatientId { get; set; } = "";
+        public bool AutomaticStructureAliasingEnabled = true;
         public Presenter ParentView;
         public string FullPatientName { get; private set; }
         public System.Windows.Media.SolidColorBrush TextBox_Background_Color { get; set; } = new System.Windows.Media.SolidColorBrush(wpfcolors.AliceBlue);
         public ObservableCollection<CourseSelector> Courses { get; set; } = new ObservableCollection<CourseSelector>() { new CourseSelector() };
-        public ObservableCollection<StructureSetSelector> StructureSets { get; set; } = new ObservableCollection<StructureSetSelector>() { new StructureSetSelector() };
+        public ObservableCollection<StructureSetSelector> StructureSets { get; set; } = new ObservableCollection<StructureSetSelector>() { new StructureSetSelector(null) };
         private StructureSetSelector _CurrentStructureSet;
         public StructureSetSelector CurrentStructureSet
         {
@@ -798,18 +859,20 @@ namespace SquintScript
                     _CurrentStructureSet = value;
                     // Apply structure aliasing
                     if (value != null)
-                        SetCurrentStructureSet(_CurrentStructureSet.StructureSetId);
+                    {
+                        SetCurrentStructureSet(_CurrentStructureSet.StructureSetUID);
+
+                    }
                 }
             }
         }
-
         private async void SetCurrentStructureSet(string structureSetId)
         {
             if (ParentView != null)
             {
                 ParentView.isLoading = true;
                 ParentView.LoadingString = "Applying structure aliases...";
-                bool success = await Task.Run(() => Ctr.SetCurrentStructureSet(_CurrentStructureSet.StructureSetId));
+                bool success = await Task.Run(() => Ctr.SetCurrentStructureSet(_CurrentStructureSet.StructureSetUID, AutomaticStructureAliasingEnabled));
                 ParentView.isLoading = false;
             }
         }
@@ -817,12 +880,14 @@ namespace SquintScript
         public PatientView(string patientId = "")
         {
             Ctr.PatientOpened += OnPatientOpened;
+            Ctr.AvailableStructureSetsChanged += OnAvailableStructureSetsChanged;
             Ctr.CurrentStructureSetChanged += OnCurrentStructureSetChanged;
         }
 
         public void Dispose()
         {
             Ctr.PatientOpened -= OnPatientOpened;
+            Ctr.AvailableStructureSetsChanged -= OnAvailableStructureSetsChanged;
             Ctr.CurrentStructureSetChanged -= OnCurrentStructureSetChanged;
         }
 
@@ -831,28 +896,50 @@ namespace SquintScript
             PatientId = Ctr.PatientID;
             FullPatientName = string.Format("{0}, {1}", Ctr.PatientLastName, Ctr.PatientFirstName);
             StructureSets.Clear();
-            foreach (string SSid in Ctr.GetAvailableStructureSetIds())
+            foreach (Ctr.StructureSetHeader StS in Ctr.GetAvailableStructureSets())
             {
-                StructureSets.Add(new StructureSetSelector(SSid));
+                StructureSets.Add(new StructureSetSelector(StS));
+            }
+        }
+
+        private void OnAvailableStructureSetsChanged(object sender, Ctr.ECPlan ECP)
+        {
+            var A = Ctr.GetAvailableStructureSets();
+            StructureSetSelector NewSSS = null;
+            foreach (var SS in A) // Make new linked structure set available
+            {
+                if (!StructureSets.Select(x => x.StructureSetUID).Contains(SS.StructureSetUID))
+                {
+                    NewSSS = new StructureSetSelector(SS);
+                    StructureSets.Add(NewSSS);
+                }
+            }
+            var ExistingStructureSets = new List<StructureSetSelector>(StructureSets);
+            foreach (var SSS in ExistingStructureSets) // remove structure sets that are no longer linked
+            {
+                if (!A.Select(x => x.StructureSetUID).Contains(SSS.StructureSetUID))
+                {
+                    StructureSets.Remove(SSS);
+                }
             }
         }
         private void OnCurrentStructureSetChanged(object sender, EventArgs e)
         {
-            _CurrentStructureSet = StructureSets.FirstOrDefault(x => x.StructureSetId == Ctr.CurrentStructureSet.Id);
+            _CurrentStructureSet = StructureSets.FirstOrDefault(x => x.StructureSetUID == Ctr.CurrentStructureSet.UID);
             RaisePropertyChangedEvent(nameof(CurrentStructureSet));
         }
     }
     [AddINotifyPropertyChangedInterface]
-    public class AssessmentComponentView : ObservableObject
+    public class AssessmentComponentView : ObservableObject, IDisposable
     {
         public string ComponentName
         {
-            get { return sCompV.ComponentName; }
+            get { return Comp.ComponentName; }
             set
             {
-                if (value != sCompV.ComponentName)
+                if (value != Comp.ComponentName)
                 {
-                    sCompV.ComponentName = value;
+                    Comp.ComponentName = value;
                 }
             }
         }
@@ -906,7 +993,7 @@ namespace SquintScript
                 if (value == null)
                 {
                     if (!DisableAutomaticAssociation)
-                        Ctr.GetAssessmentView(sAV.ID).ClearComponentAssociation(sCompV.ID);
+                        Ctr.GetAssessment(A.ID).ClearComponentAssociation(Comp.ID);
                 }
                 if (value != _SelectedPlan)
                 {
@@ -917,59 +1004,71 @@ namespace SquintScript
                 }
             }
         }
-        private Ctr.ComponentView sCompV;
-        private Ctr.AssessmentView sAV;
-        public AssessmentView ParentView;
+        private Ctr.Component Comp;
+        private Ctr.Assessment A;
+        private AssessmentView ParentView;
         public ObservableCollection<CourseSelector> Courses { get; set; } = new ObservableCollection<CourseSelector>();
         public ObservableCollection<PlanSelector> Plans { get; set; } = new ObservableCollection<PlanSelector>();
-        public AssessmentComponentView(AssessmentView AV, Ctr.ComponentView scompv, Ctr.AssessmentView sav)
+        public AssessmentComponentView(AssessmentView AV, Ctr.Component CompIn, Ctr.Assessment Ain)
         {
-            sCompV = scompv;
-            sCompV.ComponentChanged += UpdateStatus;
-            sAV = sav;
+            Comp = CompIn;
             ParentView = AV;
-            var PV = Ctr.GetPlanView(sCompV.ID, sav.ID); // check if plan is associated
+            Comp.PropertyChanged += UpdateStatus;
+            Ctr.CurrentStructureSetChanged += UpdateStatus;
+            A = Ain;
+            var PV = Ctr.GetPlanView(Comp.ID, A.ID); // check if plan is associated
             if (PV != null)
-                Warning = Ctr.GetPlanView(sCompV.ID, sav.ID).LoadWarning; // initialize warning 
+                Warning = Ctr.GetPlanView(Comp.ID, A.ID).LoadWarning; // initialize warning 
             foreach (string CourseName in Ctr.GetCourseNames())
             {
                 Courses.Add(new CourseSelector(CourseName));
             }
 
         }
-        private async void SetPlanAsync()
+        public void Dispose()
+        {
+            Comp.ComponentChanged -= UpdateStatus;
+            Ctr.CurrentStructureSetChanged -= UpdateStatus;
+        }
+        private void SetPlanAsync()
         {
             if (!DisableAutomaticAssociation)
             {
-                var CSC = await Task.Run(() => Ctr.GetAssessmentView(sAV.ID).AssociatePlanToComponent(sCompV.ID, _SelectedCourse.CourseId, _SelectedPlan.PlanId, true));
+                //var CSC = await Task.Run(() => Ctr.AssociatePlanToComponent(A.ID, Comp.ID, _SelectedCourse.CourseId, _SelectedPlan.PlanId, true));
+                var CSC = Ctr.AssociatePlanToComponent(A.ID, Comp.ID, _SelectedCourse.CourseId, _SelectedPlan.PlanId, true);
                 UpdateWarning(CSC);
             }
             ParentView.UpdateWarning();
         }
         private void UpdateStatus(object sender, EventArgs e)
         {
-            var CV = (sender as Ctr.ComponentView);
-            var CSC = sAV.StatusCodes(sCompV.ID);
-            UpdateWarning(CSC);
+            if (Comp != null)
+            {
+                var CSC = A.StatusCodes(Comp.ID);
+                UpdateWarning(CSC);
+            }
         }
         private void UpdateWarning(List<ComponentStatusCodes> CSC)
         {
             Warning = false;
             WarningString = "";
-            foreach (var status in CSC)
+            if (CSC != null)
             {
-                if (status == ComponentStatusCodes.Evaluable)
-                    continue;
-                else
+                foreach (var status in CSC)
                 {
-                    Warning = true;
-                    if (WarningString == "")
-                        WarningString = status.Display();
+                    if (status == ComponentStatusCodes.Evaluable)
+                        continue;
                     else
-                        WarningString = WarningString + System.Environment.NewLine + status.Display();
+                    {
+                        Warning = true;
+                        if (WarningString == "")
+                            WarningString = status.Display();
+                        else
+                            WarningString = WarningString + System.Environment.NewLine + status.Display();
+                    }
                 }
+                ParentView.UpdateWarning();
             }
-            ParentView.UpdateWarning();
         }
     }
     [AddINotifyPropertyChangedInterface]
@@ -1011,7 +1110,7 @@ namespace SquintScript
                 Protocols.Add(new ProtocolSelector(P));
             }
             // Subscribe to events
-            Ctr.LinkedPlansChanged += UpdateAvailableStructureIds;
+            Ctr.CurrentStructureSetChanged += UpdateAvailableStructureIds;
             Ctr.ProtocolListUpdated += UpdateProtocolList;
             Ctr.ProtocolConstraintOrderChanged += UpdateConstraintOrder;
             Ctr.ConstraintAdded += OnConstraintAdded;
@@ -1021,7 +1120,7 @@ namespace SquintScript
         }
         public void Unsubscribe()
         {
-            Ctr.LinkedPlansChanged -= UpdateAvailableStructureIds;
+            Ctr.CurrentStructureSetChanged -= UpdateAvailableStructureIds;
             Ctr.ProtocolListUpdated -= UpdateProtocolList;
             Ctr.ProtocolConstraintOrderChanged -= UpdateConstraintOrder;
             Ctr.ConstraintAdded -= OnConstraintAdded;
@@ -1084,10 +1183,6 @@ namespace SquintScript
             }
             set
             {
-                if (value == -1)
-                {
-                    string debgume = "hi";
-                }
                 _SelectedIndex = value;
             }
         }
@@ -1135,12 +1230,7 @@ namespace SquintScript
         }
         private void UpdateAvailableStructureIds(object sender, EventArgs e)
         {
-            ObservableCollection<Ctr.EclipseStructure> StructureIds = new ObservableCollection<Ctr.EclipseStructure>();
-            foreach (Ctr.EclipseStructure Structure in Ctr.GetAllLinkedStructures())
-            {
-                StructureIds.Add(Structure);
-            }
-            AvailableStructureIds = StructureIds;
+            AvailableStructureIds = new ObservableCollection<Ctr.EclipseStructure>(Ctr.GetCurrentStructures());
         }
         private void UpdateProtocolList(object sender, EventArgs e)
         {
@@ -1198,8 +1288,8 @@ namespace SquintScript
         }
         public void AddStructure()
         {
-            var SV = Ctr.AddNewStructure();
-            Structures.Add(new StructureSelector(SV));
+            var E = Ctr.AddNewStructure();
+            Structures.Add(new StructureSelector(E));
         }
 
     }
@@ -1231,10 +1321,10 @@ namespace SquintScript
 
         public int AssessmentId
         {
-            get { return sav.ID; }
+            get { return A.ID; }
         }
         public AssessmentsView ParentView;
-        private Ctr.AssessmentView sav;
+        private Ctr.Assessment A;
         public int ComponentCount
         {
             get { return ACVs.Count; }
@@ -1250,25 +1340,25 @@ namespace SquintScript
                 MessageBox.Show("Please load patient first...");
                 return;
             }
-            sav = Ctr.NewAssessment();
-            AssessmentName = sav.AssessmentName;
-            foreach (Ctr.ComponentView sCompV in Ctr.GetComponentViewList())
+            A = Ctr.NewAssessment();
+            AssessmentName = A.AssessmentName;
+            foreach (Ctr.Component Comp in Ctr.GetComponentList())
             {
-                ACVs.Add(new AssessmentComponentView(this, sCompV, sav));
+                ACVs.Add(new AssessmentComponentView(this, Comp, A));
             }
         }
-        public AssessmentView(Ctr.AssessmentView AV, wpfcolor Color_in, wpfcolor TextColor_in, AssessmentsView ParentView_in)
+        public AssessmentView(Ctr.Assessment Ain, wpfcolor Color_in, wpfcolor TextColor_in, AssessmentsView ParentView_in)
         {
-            sav = AV;
+            A = Ain;
             Color = Color_in;
             TextColor = TextColor_in;
-            AssessmentName = AV.AssessmentName;
+            AssessmentName = Ain.AssessmentName;
             ParentView = ParentView_in;
-            foreach (Ctr.ComponentView sCompV in Ctr.GetComponentViewList())
+            foreach (Ctr.Component Comp in Ctr.GetComponentList())
             {
-                var ACV = new AssessmentComponentView(this, sCompV, sav);
+                var ACV = new AssessmentComponentView(this, Comp, A);
                 ACV.DisableAutomaticAssociation = true;
-                var PV = Ctr.GetPlanView(sCompV.ID, AV.ID);
+                var PV = Ctr.GetPlanView(Comp.ID, A.ID);
                 if (PV != null)
                 {
                     ACV.WarningString = PV.LoadWarningString;
@@ -1297,7 +1387,9 @@ namespace SquintScript
         }
         public void Delete()
         {
-            Ctr.RemoveAssessment(sav.ID);
+            foreach (var ACV in ACVs)
+                ACV.Dispose();
+            Ctr.RemoveAssessment(A.ID);
         }
     }
     [AddINotifyPropertyChangedInterface]
@@ -1348,15 +1440,14 @@ namespace SquintScript
         {
             if (Ctr.PatientLoaded && Ctr.ProtocolLoaded)
             {
-                foreach (Ctr.AssessmentView SAV in Ctr.GetAssessmentViewList())
+                foreach (Ctr.Assessment A in Ctr.GetAssessmentList())
                 {
                     int colindex = (AssessmentCounter - 1) % DefaultAssessmentColors.Count;
-                    AssessmentView AV = new AssessmentView(SAV, DefaultAssessmentColors[colindex], DefaultAssessmentTextColors[colindex], this);
+                    AssessmentView AV = new AssessmentView(A, DefaultAssessmentColors[colindex], DefaultAssessmentTextColors[colindex], this);
                     Assessments.Add(AV);
                     //Add new column
                     SquintDataColumn dgtc = new SquintDataColumn(AV)
                     {
-                        //HeaderTemplate = (DataTemplate)Resources["myColumnHeaderTemplate"],
                         HeaderStyle = (Style)Application.Current.FindResource("SquintColumnHeaderStyle"),
                         CellTemplate = (DataTemplate)Application.Current.FindResource("SquintCellTemplate"),
                         CellStyle = (Style)Application.Current.FindResource("SquintCellStyle"),
@@ -1429,14 +1520,14 @@ namespace SquintScript
         {
             Ctr.SessionsChanged -= OnSessionsChanged;
             Ctr.SessionsChanged += OnSessionsChanged;
-            foreach (Ctr.SessionView SV in Ctr.GetSessionViews())
-                SessionViews.Add(SV);
+            foreach (Ctr.SessionView E in Ctr.GetSessionViews())
+                SessionViews.Add(E);
         }
         public void OnSessionsChanged(object sender, EventArgs e)
         {
             ObservableCollection<Ctr.SessionView> updatedSV = new ObservableCollection<Ctr.SessionView>();
-            foreach (Ctr.SessionView SV in Ctr.GetSessionViews())
-                updatedSV.Add(SV);
+            foreach (Ctr.SessionView E in Ctr.GetSessionViews())
+                updatedSV.Add(E);
             SessionViews = updatedSV;
         }
     }
@@ -1771,10 +1862,10 @@ namespace SquintScript
                 Objectives_ViewModel.Objectives = objectiveItems;
                 Objectives_ViewModel.NTO = await Ctr.GetNTOObjective(p.CourseId, p.PlanId);
                 var ImagingFields = await Ctr.GetImagingFieldList(p.CourseId, p.PlanId);
-                Ctr.ComponentView CV = Ctr.GetComponentViewList().FirstOrDefault(x => x.ComponentName == p.ACV.ComponentName);
-                var ImageProtocolCheck = Ctr.CheckImagingProtocols(CV, ImagingFields);
+                Ctr.Component Comp = Ctr.GetComponentList().FirstOrDefault(x => x.ComponentName == p.ACV.ComponentName);
+                var ImageProtocolCheck = Ctr.CheckImagingProtocols(Comp, ImagingFields);
                 Imaging_ViewModel.ImagingProtocols.Clear();
-                foreach (ImagingProtocols IP in CV.ImagingProtocolsAttached)
+                foreach (ImagingProtocols IP in Comp.ImagingProtocolsAttached)
                 {
                     Controls.ProtocolImagingView PIV = new Controls.ProtocolImagingView() { ImagingProtocolName = IP.Display() };
                     if (ImageProtocolCheck.ContainsKey(IP))
@@ -1789,7 +1880,7 @@ namespace SquintScript
                 }
                 Imaging_ViewModel.ImagingFields = new ObservableCollection<Ctr.ImagingFieldItem>(ImagingFields);
                 // Populate Simulation ViewModel
-                var SliceSpacingReference = CV.Checklist.SliceSpacing;
+                var SliceSpacingReference = Comp.Checklist.SliceSpacing;
                 if (SliceSpacingReference == 0)
                     SliceSpacingReference = Ctr.GetProtocolView().SliceSpacing;
                 var SliceSpacingValue = await Ctr.GetSliceSpacing(p.CourseId, p.PlanId);
@@ -1809,7 +1900,7 @@ namespace SquintScript
                 Simulation_ViewModel.Tests = new ObservableCollection<Controls.TestListItem>() { Study, Series, NumSlices, SliceSpacing, SeriesComment, ImageComment };
                 // Populate Calculation ViewModel
                 Calculation_ViewModel.Tests.Clear(); // = new ObservableCollection<Controls.TestListItem>();
-                var ProtocolAlgorithm = CV.Checklist.Algorithm.Display();
+                var ProtocolAlgorithm = Comp.Checklist.Algorithm.Display();
                 var ComponentAlgorithm = await Ctr.GetAlgorithmModel(p.CourseId, p.PlanId);
                 var AlgorithmWarning = false;
                 var AlgorithmWarningString = "Algorithm mismatch";
@@ -1817,7 +1908,7 @@ namespace SquintScript
                     AlgorithmWarning = true;
                 Controls.TestListItem Algorithm = new Controls.TestListItem("Algorithm", ComponentAlgorithm, ProtocolAlgorithm, AlgorithmWarning, AlgorithmWarningString);
                 Calculation_ViewModel.Tests.Add(Algorithm);
-                var DGR_protocol = CV.Checklist.AlgorithmResolution;
+                var DGR_protocol = Comp.Checklist.AlgorithmResolution;
                 var DGRwarning = false;
                 var DGRwarningMessage = "Insufficient resolution";
                 var DGR_plan = await Ctr.GetDoseGridResolution(p.CourseId, p.PlanId);
@@ -1826,7 +1917,7 @@ namespace SquintScript
                 Controls.TestListItem DoseGridResolution = new Controls.TestListItem("Dose grid resolution", DGR_plan.ToString(), DGR_protocol.ToString(), DGRwarning, DGRwarningMessage);
                 Calculation_ViewModel.Tests.Add(DoseGridResolution);
                 var HeteroOn = await Ctr.GetHeterogeneityOn(p.CourseId, p.PlanId);
-                var ProtocolHeteroOn = CV.Checklist.HeterogeneityOn;
+                var ProtocolHeteroOn = Comp.Checklist.HeterogeneityOn;
                 var HeteroWarning = false;
                 var HeteroWarningString = "Heterogeneity setting incorrect";
                 if (HeteroOn != ProtocolHeteroOn)
@@ -1837,7 +1928,7 @@ namespace SquintScript
                 Calculation_ViewModel.Tests.Add(HeterogeneityOn); ;
                 // Field Normalization
                 var FieldNorm = await Ctr.GetFieldNormalizationMode(p.CourseId, p.PlanId);
-                var ProtocolFieldNorm = CV.Checklist.FieldNormalizationMode.Display();
+                var ProtocolFieldNorm = Comp.Checklist.FieldNormalizationMode.Display();
                 var FieldNormWarning = false;
                 if (FieldNorm != ProtocolFieldNorm)
                     FieldNormWarning = true;
@@ -1846,8 +1937,8 @@ namespace SquintScript
                 // Support structures
                 var CheckCouchSurface = await Ctr.GetCouchSurface(p.CourseId, p.PlanId);
                 var CheckCouchInterior = await Ctr.GetCouchInterior(p.CourseId, p.PlanId);
-                var RefCouchSurface = CV.Checklist.CouchSurface;
-                var RefCouchInterior = CV.Checklist.CouchInterior;
+                var RefCouchSurface = Comp.Checklist.CouchSurface;
+                var RefCouchInterior = Comp.Checklist.CouchInterior;
                 var CouchSurfaceWarning = false;
                 var CouchInteriorWarning = false;
                 var CouchSurfaceWarningMessage = "";
@@ -1877,7 +1968,7 @@ namespace SquintScript
                         CheckCouchInteriorString = string.Format("{0:0.#} HU", RefCouchInterior);
                     }
                 }
-                switch (CV.Checklist.SupportIndication)
+                switch (Comp.Checklist.SupportIndication)
                 {
                     case ParameterOptions.Optional:
                         if (!CouchFound)
@@ -1916,7 +2007,7 @@ namespace SquintScript
                 Calculation_ViewModel.Tests.Add(CouchSurfaceTest);
                 Calculation_ViewModel.Tests.Add(CouchInteriorTest);
                 // Artifacts in calculaion
-                foreach (var A in CV.Checklist.Artifacts)
+                foreach (var A in Comp.Checklist.Artifacts)
                 {
                     var ArtifactWarning = false;
                     var ArtifactWarningString = "";
@@ -1945,8 +2036,8 @@ namespace SquintScript
                     CourseIntentWarning = true;
                 }
                 Controls.TestListItem CourseIntentTest = new Controls.TestListItem("Course Intent", CheckCourseIntent, RefCourseIntent, CourseIntentWarning, CourseIntentWarningString);
-                var ProtocolPNVMax = CV.Checklist.PNVMax;
-                var ProtocolPNVMin = CV.Checklist.PNVMin;
+                var ProtocolPNVMax = Comp.Checklist.PNVMax;
+                var ProtocolPNVMin = Comp.Checklist.PNVMin;
                 var Acceptable_PNVRange = string.Format("{0:0.##} - {1:0.##}", ProtocolPNVMin, ProtocolPNVMax);
                 var PlanPNV = await Ctr.GetPNV(p.CourseId, p.PlanId);
                 var PNVWarning = false;
@@ -1966,7 +2057,7 @@ namespace SquintScript
                 if (CheckRxDose != null)
                 {
                     CheckRxDoseString = string.Format("{0:0.##}", CheckRxDose);
-                    if (Math.Abs((double)CheckRxDose - CV.ReferenceDose) > 1E-2)
+                    if (Math.Abs((double)CheckRxDose - Comp.ReferenceDose) > 1E-2)
                     {
                         RxDoseWarning = true;
                         RxDoseWarningString = "Plan dose different from protocol";
@@ -1978,7 +2069,7 @@ namespace SquintScript
                     RxDoseWarningString = "No total dose specified";
                 }
                 var CheckFractions = Ctr.GetNumFractions(p.CourseId, p.PlanId);
-                var RefFractions = CV.NumFractions;
+                var RefFractions = Comp.NumFractions;
                 var CheckFractionString = "-";
                 var CheckFractionWarningString = "";
                 var CheckFractionWarning = false;
@@ -1996,8 +2087,8 @@ namespace SquintScript
                     CheckFractionWarning = true;
                     CheckFractionWarningString = "No fractions specified";
                 }
-                Controls.TestListItem RxCheck = new Controls.TestListItem("Prescription dose", CheckRxDoseString, CV.ReferenceDose.ToString(), RxDoseWarning, RxDoseWarningString);
-                Controls.TestListItem FxCheck = new Controls.TestListItem("Number of fractions", CheckFractionString, CV.NumFractions.ToString(), CheckFractionWarning, CheckFractionWarningString);
+                Controls.TestListItem RxCheck = new Controls.TestListItem("Prescription dose", CheckRxDoseString, Comp.ReferenceDose.ToString(), RxDoseWarning, RxDoseWarningString);
+                Controls.TestListItem FxCheck = new Controls.TestListItem("Number of fractions", CheckFractionString, Comp.NumFractions.ToString(), CheckFractionWarning, CheckFractionWarningString);
                 Controls.TestListItem PNVCheck = new Controls.TestListItem("Plan Normalization Value Range", PlanPNV.ToString(), Acceptable_PNVRange, PNVWarning, "Out of range");
                 Controls.TestListItem PlanRxPc = new Controls.TestListItem("Prescribed percentage", PlanRxPercentage.ToString(), "100", PlanRxPercentageWarning, "Not set to 100");
                 Prescription_ViewModel.Tests = new ObservableCollection<Controls.TestListItem>() { RxCheck, FxCheck, CourseIntentTest, PNVCheck, PlanRxPc };
@@ -2005,56 +2096,56 @@ namespace SquintScript
                 Beam_ViewModel.Beams.Clear();
                 Beam_ViewModel.GroupTests.Tests.Clear();
                 var Fields = await Ctr.GetTxFieldItems(p.CourseId, p.PlanId);
-                foreach (var Beam in CV.GetBeams())
+                foreach (var Beam in Comp.GetBeams())
                 {
                     var BLI = new Controls.BeamListItem(Beam, Fields);
                     Beam_ViewModel.Beams.Add(BLI);
-                    BLI.FieldChanged += new EventHandler((s, e) => BLI_PropertyChanged(s, e, CV)); // this updates the MinColOffsetCheck if the field assignments on any reference beam are changed
+                    BLI.FieldChanged += new EventHandler((s, e) => BLI_PropertyChanged(s, e, Comp)); // this updates the MinColOffsetCheck if the field assignments on any reference beam are changed
                 }
                 // Iso Check
-                var IsoCentreWarning = Fields.Select(x => x.Isocentre).Distinct().Count() != CV.NumIsocentres;
+                var IsoCentreWarning = Fields.Select(x => x.Isocentre).Distinct().Count() != Comp.NumIso;
                 var NumIsoDetected = Fields.Select(x => x.Isocentre).Distinct().Count();
-                Controls.TestListItem NumIsoCheck = new Controls.TestListItem("Number of isocentres", string.Format("{0:0}", NumIsoDetected), string.Format("{0:0}", CV.NumIsocentres), IsoCentreWarning, "Additional isocentres");
+                Controls.TestListItem NumIsoCheck = new Controls.TestListItem("Number of isocentres", string.Format("{0:0}", NumIsoDetected), string.Format("{0:0}", Comp.NumIso), IsoCentreWarning, "Additional isocentres");
                 Beam_ViewModel.GroupTests.Tests.Add(NumIsoCheck);
                 // Num Fields Check
-                var NumFieldsWarning = Fields.Count() > CV.MaxBeams || Fields.Count() < CV.MinBeams;
+                var NumFieldsWarning = Fields.Count() > Comp.MaxBeams || Fields.Count() < Comp.MinBeams;
                 string NumFieldsWarningString = "";
                 if (NumFieldsWarning)
                     NumFieldsWarningString = "Out of range";
-                if (CV.MinBeams > -1)
+                if (Comp.MinBeams > -1)
                 {
-                    Controls.TestListItem FieldCountCheck = new Controls.TestListItem("Number of fields", string.Format("{0:0}", Fields.Count()), string.Format("{0:0} - {1:0}", CV.MinBeams, CV.MaxBeams),
+                    Controls.TestListItem FieldCountCheck = new Controls.TestListItem("Number of fields", string.Format("{0:0}", Fields.Count()), string.Format("{0:0} - {1:0}", Comp.MinBeams, Comp.MaxBeams),
                     IsoCentreWarning, NumFieldsWarningString);
                     Beam_ViewModel.GroupTests.Tests.Add(FieldCountCheck);
                 }
                 // Min Col Offset
                 Controls.TestListItem MinColOffsetCheck;
-                if (CV.MaxBeams > 1 && !double.IsNaN(CV.MinColOffset) && Fields.Count > 1)
+                if (Comp.MaxBeams > 1 && !double.IsNaN(Comp.MinColOffset) && Fields.Count > 1)
                 {
                     if (Beam_ViewModel.Beams.Any(x => x.Field == null))
                     {
-                        MinColOffsetCheck = new Controls.TestListItem("Min collimator offset", "", string.Format("{0:0.#}", CV.MinColOffset), true, "Protocol fields not assigned");
+                        MinColOffsetCheck = new Controls.TestListItem("Min collimator offset", "", string.Format("{0:0.#}", Comp.MinColOffset), true, "Protocol fields not assigned");
                     }
                     else
                     {
                         var ColOffset = Beam_ViewModel.Beams.Select(x => x.Field).Select(x => x.CollimatorAngle);
                         var MinColOffset = findMinDiff(ColOffset.ToArray());
-                        var MinColOFfsetWarning = MinColOffset < CV.MinColOffset;
-                        MinColOffsetCheck = new Controls.TestListItem("Min collimator offset", string.Format("{0:0.#}", MinColOffset), string.Format("{0:0.#}", CV.MinColOffset),
+                        var MinColOFfsetWarning = MinColOffset < Comp.MinColOffset;
+                        MinColOffsetCheck = new Controls.TestListItem("Min collimator offset", string.Format("{0:0.#}", MinColOffset), string.Format("{0:0.#}", Comp.MinColOffset),
                             MinColOFfsetWarning, "");
                     }
                     Beam_ViewModel.GroupTests.Tests.Add(MinColOffsetCheck);
                 }
                 // Target Structure Checks
                 Targets_ViewModel.Tests.Clear();
-                foreach (Ctr.StructureView SV in Ctr.GetStructureViewList())
+                foreach (Ctr.ECSID E in Ctr.GetStructureList())
                 {
-                    if (SV.Checklist != null)
+                    if (E.CheckList != null)
                     {
-                        var C = SV.Checklist;
+                        var C = E.CheckList;
                         if (C.isPointContourChecked)
                         {
-                            var VolParts = await SV.EclipseStructure.PartVolumes();
+                            var VolParts = await E.ES.PartVolumes();
                             var MinVol = double.NaN;
                             if (VolParts != null)
                                 MinVol = VolParts.Min();
@@ -2062,8 +2153,8 @@ namespace SquintScript
                             string RefValString = string.Format("{0:0.##} cc", C.PointContourVolumeThreshold);
                             string CheckValString = "";
                             string WarningString = "";
-                            var NumDetectedParts = await SV.EclipseStructure.NumParts();
-                            var VMS_NumParts = await SV.EclipseStructure.VMS_NumParts();
+                            var NumDetectedParts = await E.ES.NumParts();
+                            var VMS_NumParts = await E.ES.VMS_NumParts();
 
                             if (double.IsNaN(MinVol))
                             {
@@ -2084,7 +2175,7 @@ namespace SquintScript
                             }
                             else
                                 CheckValString = string.Format("{0:0.##} cc", MinVol);
-                            Targets_ViewModel.Tests.Add(new Controls.TestListItem(string.Format(@"Min. Subvolume (""{0}"")", SV.ProtocolStructureName, SV.EclipseStructure.Id), CheckValString, RefValString, Warning, WarningString));
+                            Targets_ViewModel.Tests.Add(new Controls.TestListItem(string.Format(@"Min. Subvolume (""{0}"")", E.ProtocolStructureName, E.ES.Id), CheckValString, RefValString, Warning, WarningString));
                         }
                     }
 
@@ -2095,11 +2186,11 @@ namespace SquintScript
             }
         }
 
-        private void BLI_PropertyChanged(object sender, EventArgs e, Ctr.ComponentView CV)
+        private void BLI_PropertyChanged(object sender, EventArgs e, Ctr.Component Comp)
         {
             //Refresh Field col separation check
 
-            if (Beam_ViewModel.Beams.Any(x => x.Field == null) || CV.MaxBeams < 2 || double.IsNaN(CV.MinColOffset))
+            if (Beam_ViewModel.Beams.Any(x => x.Field == null) || Comp.MaxBeams < 2 || double.IsNaN(Comp.MinColOffset))
             {
                 return;
             }
@@ -2107,8 +2198,8 @@ namespace SquintScript
             var MinColOffset = findMinDiff(ColOffset.ToArray());
             var OldTest = Beam_ViewModel.GroupTests.Tests.Where(x => x.TestName == "Min collimator offset").FirstOrDefault();
             Beam_ViewModel.GroupTests.Tests.Remove(OldTest);
-            var MinColOFfsetWarning = MinColOffset < CV.MinColOffset;
-            Controls.TestListItem MinColOffsetCheck = new Controls.TestListItem("Min collimator offset", string.Format("{0:0.#}", MinColOffset), string.Format("{0:0.#}", CV.MinColOffset),
+            var MinColOFfsetWarning = MinColOffset < Comp.MinColOffset;
+            Controls.TestListItem MinColOffsetCheck = new Controls.TestListItem("Min collimator offset", string.Format("{0:0.#}", MinColOffset), string.Format("{0:0.#}", Comp.MinColOffset),
                 MinColOFfsetWarning, "");
             Beam_ViewModel.GroupTests.Tests.Add(MinColOffsetCheck);
 
@@ -2148,14 +2239,14 @@ namespace SquintScript
         {
             if (isLoading == true)
                 return;
-            Ctr.SessionView SV = param as Ctr.SessionView;
+            Ctr.SessionView E = param as Ctr.SessionView;
             if (param == null)
                 return;
             isLoading = true;
             LoadingString = "Deleting session...";
             try
             {
-                await Task.Run(() => Ctr.Delete_Session(SV.ID));
+                await Task.Run(() => Ctr.Delete_Session(E.ID));
             }
             catch (Exception ex)
             {
@@ -2171,12 +2262,12 @@ namespace SquintScript
         {
             if (isLoading == true)
                 return;
-            Ctr.SessionView SV = param as Ctr.SessionView;
+            Ctr.SessionView E = param as Ctr.SessionView;
             if (param == null)
                 return;
             isLoading = true;
             LoadingString = "Loading session...";
-            if (await Task.Run(() => Ctr.Load_Session(SV.ID)))
+            if (await Task.Run(() => Ctr.Load_Session(E.ID)))
             {
                 AssessmentPresenter = new AssessmentsView();
                 UpdateAssessmentsView();
@@ -2404,7 +2495,7 @@ namespace SquintScript
         private static EventHandler SynchronizeHandler;
         private void SynchronizePatient(object param = null)
         {
-            if (Ctr.PatientLoaded && Ctr.ProtocolLoaded && Ctr.GetAssessmentViewList().Count > 0)
+            if (Ctr.PatientLoaded && Ctr.ProtocolLoaded && Ctr.GetAssessmentList().Count > 0)
             {
                 var W = new WaitWindow();
                 W.Show();
@@ -2418,12 +2509,25 @@ namespace SquintScript
         {
             Ctr.SynchronizationComplete -= SynchronizeHandler;
             // Refresh ViewModel
+            var CurrentStructureSetId = PatientPresenter.CurrentStructureSet.StructureSetId; // store these as clearing the list will null this as it is databound.
+            var CurrentStructureSetUID = PatientPresenter.CurrentStructureSet.StructureSetUID;
             PatientPresenter.StructureSets.Clear();
+            foreach (var StS in Ctr.GetAvailableStructureSets())
+            {
+                PatientPresenter.StructureSets.Add(new StructureSetSelector(StS));
+            }
+            var UnchangedStructureSet = PatientPresenter.StructureSets.FirstOrDefault(x => x.StructureSetId == CurrentStructureSetId && x.StructureSetUID == CurrentStructureSetUID);
+            if (UnchangedStructureSet != null)
+            {
+                PatientPresenter.CurrentStructureSet = UnchangedStructureSet;
+            }
+
+
+
             foreach (AssessmentView AV in AssessmentPresenter.Assessments)
             {
                 foreach (AssessmentComponentView ACV in AV.ACVs)
                 {
-                    //ACV.DisableAutomaticAssociation = true; // this kludge stops the setting of the SelectedPlan field from recalculating dose, which is otherwise baked into the setter.  
                     ObservableCollection<CourseSelector> UpdatedCourses = new ObservableCollection<CourseSelector>();
                     foreach (string CourseName in Ctr.GetCourseNames())
                     {
@@ -2512,7 +2616,7 @@ namespace SquintScript
             Protocol = new ProtocolView();
             Protocol.Structures.Clear();
             Protocol.Constraints.Clear();
-            foreach (var S in Ctr.GetStructureViewList().OrderBy(x => x.DisplayOrder))
+            foreach (var S in Ctr.GetStructureList().OrderBy(x => x.DisplayOrder))
             {
                 Protocol.Structures.Add(new StructureSelector(S));
             }
@@ -2522,9 +2626,9 @@ namespace SquintScript
                 ConstraintSelector CS = new ConstraintSelector(C, SS);
                 Protocol.Constraints.Add(CS);
             }
-            foreach (var CompV in Ctr.GetComponentViewList().OrderBy(x => x.DisplayOrder))
+            foreach (var Comp in Ctr.GetComponentList().OrderBy(x => x.DisplayOrder))
             {
-                Protocol.Components.Add(new ComponentSelector(CompV));
+                Protocol.Components.Add(new ComponentSelector(Comp));
             }
             try
             {
