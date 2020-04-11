@@ -56,6 +56,7 @@ namespace SquintScript
         [Description("Unset")] Unset,
         [Description("AAA_11031")] AAA_11031,
         [Description("AAA_13623")] AAA_13623,
+        [Description("AAA_15606")] AAA_15606,
     }
 
     public enum FieldNormalizationTypes
@@ -69,6 +70,8 @@ namespace SquintScript
     {
         [Description("None")] Unset,
         [Description("Equality")] Equality,
+        [Description("GreaterThan")] GreaterThan,
+        [Description("LessThan")] LessThan,
         [Description("Range")] Range,
         [Description("Multiple-choice")] MC,
     }
@@ -379,81 +382,5 @@ namespace SquintScript
         [Description("SABRVMAT")] SABRVMAT,
         [Description("POP")] POP,
         [Description("Single direct")] SingleDirect
-    }
-
-    public static class Extensions
-    {
-        public static string Display(this Enum value) 
-        {
-            Type type = value.GetType();
-            string name = Enum.GetName(type, value);
-            if (name != null)
-            {
-                FieldInfo field = type.GetField(name);
-                if (field != null)
-                {
-                    DescriptionAttribute attr =
-                           Attribute.GetCustomAttribute(field,
-                             typeof(DescriptionAttribute)) as DescriptionAttribute;
-                    if (attr != null)
-                    {
-                        return attr.Description;
-                    }
-                }
-            }
-            return null;
-        }
-        //public static void Invoke(this Control control, MethodInvoker action)
-        //{
-        //    control.Invoke(action);
-        //}
-        public static object Raise(this MulticastDelegate multicastDelegate, object sender, EventArgs e)
-        {
-            object retVal = null;
-
-            MulticastDelegate threadSafeMulticastDelegate = multicastDelegate;
-            if (threadSafeMulticastDelegate != null)
-            {
-                foreach (Delegate d in threadSafeMulticastDelegate.GetInvocationList())
-                {
-                    var synchronizeInvoke = d.Target as ISynchronizeInvoke;
-                    if ((synchronizeInvoke != null) && synchronizeInvoke.InvokeRequired)
-                    {
-                        //retVal = synchronizeInvoke.EndInvoke(synchronizeInvoke.BeginInvoke(d, new[] { sender, e }));
-                        retVal = synchronizeInvoke.Invoke(d, new[] { sender, e }); // edited as BeginInvoke will crash UI if it is held in Showdialog (i.e. when protocolbuilder used etc)
-                    }
-                    else
-                    {
-                        retVal = d.DynamicInvoke(new[] { sender, e });
-                    }
-                }
-            }
-
-            return retVal;
-        }
-        public static object Raise(this MulticastDelegate multicastDelegate, object sender, int ID)
-        {
-            object retVal = null;
-
-            MulticastDelegate threadSafeMulticastDelegate = multicastDelegate;
-            if (threadSafeMulticastDelegate != null)
-            {
-                foreach (Delegate d in threadSafeMulticastDelegate.GetInvocationList())
-                {
-                    var synchronizeInvoke = d.Target as ISynchronizeInvoke;
-                    if ((synchronizeInvoke != null) && synchronizeInvoke.InvokeRequired)
-                    {
-                        //retVal = synchronizeInvoke.EndInvoke(synchronizeInvoke.BeginInvoke(d, new[] { sender, ID }));
-                        retVal = synchronizeInvoke.Invoke(d, new[] { sender, ID });
-                    }
-                    else
-                    {
-                        retVal = d.DynamicInvoke(new[] { sender, ID });
-                    }
-                }
-            }
-
-            return retVal;
-        }
     }
 }

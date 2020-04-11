@@ -17,7 +17,8 @@ using wpfcolors = System.Windows.Media.Colors;
 using wpfcolor = System.Windows.Media.Color;
 using wpfbrush = System.Windows.Media.SolidColorBrush;
 using Controls = SquintScript.Controls;
-
+using SquintScript.ViewModelClasses;
+using SquintScript.Interfaces;
 
 namespace SquintScript
 {
@@ -75,7 +76,7 @@ namespace SquintScript
     public class StructureSelector : ObservableObject
     {
         private bool isSelected { get; set; }
-        private Ctr.ECSID E;
+        private Ctr.ProtocolStructure E;
         public int Id
         {
             get { return E.ID; }
@@ -103,17 +104,18 @@ namespace SquintScript
                 else MessageBox.Show("Structure name must be greater than 1 character");
             }
         }
-        public string EclipseStructureName
+
+        public string AssignedStructureId
         {
-            get { return ES.Id; }
-        }
-        public Ctr.EclipseStructure ES
-        {
-            get { return E.ES; }
+            get { return E.AssignedStructureId; }
             set
             {
                 if (value != null)
-                    E.ES = value;
+                {
+                    E.AssignedStructureId = value;
+                    RaisePropertyChangedEvent(nameof(this.StructureColor));
+                    Ctr.UpdateConstraintsLinkedToStructure(Id);
+                }
             }
         }
         public List<string> GetAliases()
@@ -122,7 +124,13 @@ namespace SquintScript
         }
         public string LabelName
         {
-            get { return E.EclipseStructureLabel; }
+            get
+            {
+                if (Ctr.CurrentStructureSet != null)
+                    return E.EclipseStructureLabel(Ctr.CurrentStructureSet.UID);
+                else
+                    return "";
+            }
         }
         public string AlphaBetaRatio
         {
@@ -138,7 +146,10 @@ namespace SquintScript
         {
             get
             {
-                if (E.ES.LabelName.ToUpper() == E.StructureLabel.LabelName.ToUpper() || E.ES.Id == "")
+                if (Ctr.CurrentStructureSet == null)
+                    return false;
+                else
+                    if (E.EclipseStructureLabel(Ctr.CurrentStructureSet.UID).ToUpper() == E.StructureLabel.LabelName.ToUpper() || E.AssignedStructureId == "")
                 {
                     return false;
                 }
@@ -150,20 +161,36 @@ namespace SquintScript
         {
             get
             {
-                return string.Format("Label mismatch: Assigned structure label is {0}", E.ES.LabelName);
+                if (Ctr.CurrentStructureSet == null)
+                    return "";
+                else
+                    return string.Format("Label mismatch: Assigned structure label is {0}", E.EclipseStructureLabel(Ctr.CurrentStructureSet.UID));
             }
         }
-        public StructureSelector(Ctr.ECSID Ein)
+        public StructureSelector(Ctr.ProtocolStructure Ein)
         {
             E = Ein;
-            E.PropertyChanged += OnStructureViewChanged;
+            E.PropertyChanged += OnProtocolStructureChanged;
         }
-        private void OnStructureViewChanged(object sender, PropertyChangedEventArgs e)
+
+        public wpfcolor? StructureColor
+        {
+            get
+            {
+                if (Ctr.CurrentStructureSet != null)
+                {
+                    return E.GetStructureColor(Ctr.CurrentStructureSet.UID);
+                }
+                else return null;
+            }
+
+        }
+        private void OnProtocolStructureChanged(object sender, PropertyChangedEventArgs e)
         {
             RaisePropertyChangedEvent(e.PropertyName);
-            if (e.PropertyName == "ES" || e.PropertyName == "LabelName")
+            if (e.PropertyName == nameof(Ctr.ProtocolStructure.AssignedStructureId))
             {
-                RaisePropertyChangedEvent("EclipseStructureName"); // this is for when the Assigned Eclipse structure itself is changed
+                RaisePropertyChangedEvent("StructureColor"); // this is for when the Assigned Eclipse structure itself is changed
                 RaisePropertyChangedEvent("LabelIsConsistent"); // this is for when the Assigned Eclipse structure itself is changed
                 RaisePropertyChangedEvent("LabelMismatchTooltip");
             }
@@ -195,7 +222,7 @@ namespace SquintScript
             get { return Comp.ReferenceDose; }
             set
             {
-                Comp.ReferenceDose = value;
+                SetReferenceDose(value);
                 RaisePropertyChangedEvent("ComponentTDFDescription"); // Fody will update the primary property, this is to update the description
             }
         }
@@ -227,14 +254,19 @@ namespace SquintScript
         }
         private async void SetFractions(int NumFractions)
         {
-            try
+            await Task.Run(() =>
             {
-                await Task.Run(() => Comp.NumFractions = NumFractions);
-            }
-            catch (Exception ex)
+                Comp.NumFractions = NumFractions;
+                Ctr.UpdateComponentConstraints(Comp.ID);
+            });
+        }
+        private async void SetReferenceDose(double dose)
+        {
+            await Task.Run(() =>
             {
-                string debugme = "hi";
-            }
+                Comp.ReferenceDose = dose;
+                Ctr.UpdateComponentConstraints(Comp.ID);
+            });
         }
         public ObservableCollection<ComponentTypes> AvailableComponentTypes { get; set; } = new ObservableCollection<ComponentTypes>() { ComponentTypes.Plan };
     }
@@ -243,8 +275,8 @@ namespace SquintScript
     public class ConstraintSelector : ObservableObject
     {
         //        public event PropertyChangedEventHandler PropertyChanged;
-        public bool RefreshFlag { get; set; } // this is the ID of the assessment to update
-        public bool RefreshRowHeader { get; set; }
+        public bool RefreshFlag { get; set; } // this bool updates
+        //public bool RefreshRowHeader { get; set; }
         public bool ConstraintInfoVisibility { get; set; } = false;
         public string ChangeDescription
         {
@@ -313,7 +345,12 @@ namespace SquintScript
         public double ConstraintValue
         {
             get { return Con.ConstraintValue; }
-            set { Con.ConstraintValue = value; RaisePropertyChangedEvent(nameof(ConstraintValueColor)); }
+            set
+            {
+                Con.ConstraintValue = value;
+                UpdateConstraint();
+                RaisePropertyChangedEvent(nameof(ConstraintValueColor));
+            }
         }
         public wpfbrush ConstraintValueColor
         {
@@ -330,7 +367,12 @@ namespace SquintScript
             get { return Con.ReferenceValue; }
             set
             {
+                bool CalcAfter = false;
+                if (!Con.isValid())
+                    CalcAfter = true;
                 Con.ReferenceValue = value;
+                if (CalcAfter)
+                    UpdateConstraint(); // only do this if the constraint was previously invalid
                 RaisePropertyChangedEvent(nameof(ReferenceValueColor));
                 RaisePropertyChangedEvent(nameof(RefreshFlag));
             }
@@ -387,6 +429,7 @@ namespace SquintScript
             set
             {
                 Con.ConstraintType = value;
+                UpdateConstraint();
                 SetComboBoxes();
             }
         }
@@ -412,6 +455,7 @@ namespace SquintScript
                             Con.ConstraintScale = UnitScale.Relative;
                             break;
                     }
+                    UpdateConstraint();
                 }
             }
         }
@@ -422,6 +466,9 @@ namespace SquintScript
             {
                 if (value != Con.GetReferenceUnit())
                 {
+                    bool CalcAfter = false;
+                    if (!Con.isValid())
+                        CalcAfter = true;
                     switch (value)
                     {
                         case ConstraintUnits.Multiple:
@@ -437,31 +484,11 @@ namespace SquintScript
                             Con.ReferenceScale = UnitScale.Relative;
                             break;
                     }
+                    if (CalcAfter)
+                        UpdateConstraint(); // only do this if the constraint was previously invalid
                 }
-            }
-        }
-        public List<System.Windows.Media.Color> GetStructureColors
-        {
-            get
-            {
-                //var ECPs = DataCache.GetAllPlans().Where(x => x.ComponentID == ComponentID);
-                //List<System.Windows.Media.Color> Colors = new List<System.Windows.Media.Color>();
-                //foreach (var ECP in ECPs)
-                //{
-                //    if (ECP != null)
-                //    {
-                //        var C = ECP.GetStructureColor(PrimaryStructureName);
-                //        if (C != null)
-                //        {
-                //            if (!Colors.Contains(((System.Windows.Media.Color)C)))
-                //                Colors.Add((System.Windows.Media.Color)C);
-                //        }
-                //    }
-                //}
-                //return Colors;
-                return new List<System.Windows.Media.Color>();
-            }
 
+            }
         }
         public string StructureId
         {
@@ -512,12 +539,18 @@ namespace SquintScript
             {
                 if (value != Con.ReferenceType)
                 {
+                    bool CalcAfter = false;
+                    if (!Con.isValid())
+                        CalcAfter = true;
                     Con.ReferenceType = value;
+                    if (CalcAfter)
+                        UpdateConstraint();
+                    RaisePropertyChangedEvent(nameof(ConstraintSelector.ShortConstraintDefinition));
                     RaisePropertyChangedEvent("OppositeReferenceTypeString"); // notify view to update the opposite as well
                 }
             }
         }
-        public string OppositeReferenceTypeString
+        public string OppositeReferenceTypeString // this is used for thresholds.  
         {
             get
             {
@@ -644,6 +677,10 @@ namespace SquintScript
             RaisePropertyChangedEvent(nameof(ReferenceValueColor));
         }
         // Event Handlers
+        private async void UpdateConstraint()
+        {
+            await Con.EvaluateConstraint();
+        }
         private void OnConstraintEvaluated(object sender, int AssessmentId)
         {
             RefreshFlag = !RefreshFlag;
@@ -659,45 +696,8 @@ namespace SquintScript
                 case nameof(Ctr.Constraint.DisplayOrder):
                     RaisePropertyChangedEvent("DisplayOrder");
                     break;
-                case nameof(Ctr.Constraint.NumFractions):
-                    RefreshRowHeader = !RefreshRowHeader;
-                    RaisePropertyChangedEvent(nameof(ConstraintSelector.ShortConstraintDefinition));
-                    //RaisePropertyChangedEvent("ReferenceValue");
-                    //RaisePropertyChangedEvent("ConstraintValue");
-                    //RaisePropertyChangedEvent(nameof(ConstraintValueColor));
-                    //RaisePropertyChangedEvent(nameof(ReferenceValueColor));
-                    break;
-                case nameof(Ctr.Constraint.ConstraintValue):
-                    RefreshRowHeader = !RefreshRowHeader;
-                    RaisePropertyChangedEvent(nameof(ConstraintValue));
-                    RaisePropertyChangedEvent(nameof(ConstraintSelector.ShortConstraintDefinition));
-                    break;
-                case nameof(Ctr.Constraint.ReferenceValue):
-                    RefreshRowHeader = !RefreshRowHeader;
-                    RaisePropertyChangedEvent(nameof(ReferenceValue));
-                    RaisePropertyChangedEvent(nameof(ConstraintSelector.ShortConstraintDefinition));
-                    break;
-                case nameof(Ctr.Constraint.ReferenceScale):
-                    RefreshRowHeader = !RefreshRowHeader;
-                    RaisePropertyChangedEvent(nameof(ReferenceUnit));
-                    RaisePropertyChangedEvent(nameof(ConstraintSelector.ShortConstraintDefinition));
-                    //RaisePropertyChangedEvent("ReferenceValue");
-                    //RaisePropertyChangedEvent("StopValue");
-                    //RaisePropertyChangedEvent("MinorViolation");
-                    //RaisePropertyChangedEvent("MajorViolation");
-                    break;
-                case nameof(Ctr.Constraint.ConstraintScale):
-                    RefreshRowHeader = !RefreshRowHeader;
-                    RaisePropertyChangedEvent(nameof(ConstraintUnit));
-                    RaisePropertyChangedEvent(nameof(ConstraintSelector.ShortConstraintDefinition));
-                    break;
-                case nameof(Ctr.Constraint.ConstraintType):
-                    RefreshRowHeader = !RefreshRowHeader;
-                    RaisePropertyChangedEvent(nameof(ConstraintType));
-                    RaisePropertyChangedEvent(nameof(ConstraintSelector.ShortConstraintDefinition));
-                    break;
-                case nameof(Ctr.Constraint.PrimaryStructureID):
-                    RefreshRowHeader = !RefreshRowHeader;
+                default:
+                    RefreshFlag ^= true;
                     RaisePropertyChangedEvent(nameof(ConstraintSelector.ShortConstraintDefinition));
                     break;
             }
@@ -707,7 +707,7 @@ namespace SquintScript
             switch (e.PropertyName)
             {
                 case "EclipseStructureName":
-                    RefreshRowHeader = !RefreshRowHeader;
+                    RefreshFlag ^= true;
                     //PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("RefreshRowHeader"));
                     RaisePropertyChangedEvent("RefreshRowHeader");
 
@@ -730,7 +730,7 @@ namespace SquintScript
     //[AddINotifyPropertyChangedInterface]
     //public class AssessmentPlanSelector
     //{
-    //    public PatientView PV { get; set; }
+    //    public PatientView _P { get; set; }
     //    public ComponentSelector CS { get; set; }
     //    private CourseSelector _Course;
     //    public CourseSelector Course
@@ -753,7 +753,7 @@ namespace SquintScript
     //                        break;
 
     //                }
-    //                foreach (var A in PV.Courses.FirstOrDefault(x => x.CourseId == _Course.CourseId).Plans.Where(x => x.PlanType == P))
+    //                foreach (var A in _P.Courses.FirstOrDefault(x => x.CourseId == _Course.CourseId).Plans.Where(x => x.PlanType == P))
     //                {
     //                    AvailablePlans.Add(A);
     //                }
@@ -761,20 +761,24 @@ namespace SquintScript
     //        }
     //    }
     //    public ObservableCollection<PlanSelector> AvailablePlans = new ObservableCollection<PlanSelector>();
-    //    public AssessmentPlanSelector(PatientView pv)
+    //    public AssessmentPlanSelector(PatientView _P)
     //    {
-    //        PV = pv;
+    //        _P = _P;
     //    }
     //}
     [AddINotifyPropertyChangedInterface]
     public class PlanSelector
     {
-        public string PlanId { get; set; } = "";
-        public string CourseId { get; set; } = "";
+        public string PlanId { get; private set; } = "";
+        public string PlanUID { get; private set; } = "";
+        public string StructureSetUID { get; private set; } = "";
+        public string CourseId { get; private set; } = "";
         public PlanTypes PlanType { get; set; } = PlanTypes.Unset;
-        public PlanSelector(string planId = "", string courseId = "", AssessmentComponentView ACVinit = null)
+        public PlanSelector(string planId = "", string planUID = "", string courseId = "", string structureSetUID = "", AssessmentComponentView ACVinit = null)
         {
             PlanId = planId;
+            StructureSetUID = structureSetUID;
+            PlanUID = planUID;
             CourseId = courseId;
             ACV = ACVinit;
         }
@@ -846,6 +850,8 @@ namespace SquintScript
         public ObservableCollection<CourseSelector> Courses { get; set; } = new ObservableCollection<CourseSelector>() { new CourseSelector() };
         public ObservableCollection<StructureSetSelector> StructureSets { get; set; } = new ObservableCollection<StructureSetSelector>() { new StructureSetSelector(null) };
         private StructureSetSelector _CurrentStructureSet;
+
+        public bool CalculateOnUpdate = true;
         public StructureSetSelector CurrentStructureSet
         {
             get
@@ -873,6 +879,8 @@ namespace SquintScript
                 ParentView.isLoading = true;
                 ParentView.LoadingString = "Applying structure aliases...";
                 bool success = await Task.Run(() => Ctr.SetCurrentStructureSet(_CurrentStructureSet.StructureSetUID, AutomaticStructureAliasingEnabled));
+                if (CalculateOnUpdate)
+                    Ctr.UpdateAllConstraints();
                 ParentView.isLoading = false;
             }
         }
@@ -880,8 +888,8 @@ namespace SquintScript
         public PatientView(string patientId = "")
         {
             Ctr.PatientOpened += OnPatientOpened;
-            Ctr.AvailableStructureSetsChanged += OnAvailableStructureSetsChanged;
             Ctr.CurrentStructureSetChanged += OnCurrentStructureSetChanged;
+            Ctr.AvailableStructureSetsChanged += OnAvailableStructureSetsChanged;
         }
 
         public void Dispose()
@@ -902,7 +910,7 @@ namespace SquintScript
             }
         }
 
-        private void OnAvailableStructureSetsChanged(object sender, Ctr.ECPlan ECP)
+        private void OnAvailableStructureSetsChanged(object sender, EventArgs e)
         {
             var A = Ctr.GetAvailableStructureSets();
             StructureSetSelector NewSSS = null;
@@ -911,7 +919,11 @@ namespace SquintScript
                 if (!StructureSets.Select(x => x.StructureSetUID).Contains(SS.StructureSetUID))
                 {
                     NewSSS = new StructureSetSelector(SS);
-                    StructureSets.Add(NewSSS);
+                    WpfApp1.App.Current.Dispatcher.Invoke(() =>
+                    {
+                        StructureSets.Add(NewSSS);
+                    });
+
                 }
             }
             var ExistingStructureSets = new List<StructureSetSelector>(StructureSets);
@@ -919,7 +931,10 @@ namespace SquintScript
             {
                 if (!A.Select(x => x.StructureSetUID).Contains(SSS.StructureSetUID))
                 {
-                    StructureSets.Remove(SSS);
+                    WpfApp1.App.Current.Dispatcher.Invoke(() =>
+                    {
+                        StructureSets.Remove(SSS);
+                    });
                 }
             }
         }
@@ -969,11 +984,11 @@ namespace SquintScript
             {
                 ParentView.ParentView.WaitingForUpdate = true;
                 ParentView.ParentView.WaitingDescription = "Loading plans...";
-                List<string> result = await Ctr.GetPlanIdsByCourseName(_SelectedCourse.CourseId);
+                List<Ctr.PlanDescriptor> result = await Ctr.GetPlanIdsByCourseName(_SelectedCourse.CourseId);
                 ObservableCollection<PlanSelector> NewPlans = new ObservableCollection<PlanSelector>();
-                foreach (string PlanId in result)
+                foreach (var d in result)
                 {
-                    NewPlans.Add(new PlanSelector(PlanId, CourseId, this));
+                    NewPlans.Add(new PlanSelector(d.PlanId, d.PlanUID, CourseId, d.StructureSetUID, this));
                 }
                 Plans = NewPlans;
                 ParentView.ParentView.WaitingForUpdate = false;
@@ -1016,9 +1031,9 @@ namespace SquintScript
             Comp.PropertyChanged += UpdateStatus;
             Ctr.CurrentStructureSetChanged += UpdateStatus;
             A = Ain;
-            var PV = Ctr.GetPlanView(Comp.ID, A.ID); // check if plan is associated
-            if (PV != null)
-                Warning = Ctr.GetPlanView(Comp.ID, A.ID).LoadWarning; // initialize warning 
+            var _P = Ctr.GetPlan(Comp.ID, A.ID); // check if plan is associated
+            if (_P != null)
+                Warning = Ctr.GetPlan(Comp.ID, A.ID).LoadWarning; // initialize warning 
             foreach (string CourseName in Ctr.GetCourseNames())
             {
                 Courses.Add(new CourseSelector(CourseName));
@@ -1027,16 +1042,25 @@ namespace SquintScript
         }
         public void Dispose()
         {
-            Comp.ComponentChanged -= UpdateStatus;
+            Comp.PropertyChanged -= UpdateStatus;
             Ctr.CurrentStructureSetChanged -= UpdateStatus;
         }
-        private void SetPlanAsync()
+        private async void SetPlanAsync()
         {
             if (!DisableAutomaticAssociation)
             {
-                //var CSC = await Task.Run(() => Ctr.AssociatePlanToComponent(A.ID, Comp.ID, _SelectedCourse.CourseId, _SelectedPlan.PlanId, true));
-                var CSC = Ctr.AssociatePlanToComponent(A.ID, Comp.ID, _SelectedCourse.CourseId, _SelectedPlan.PlanId, true);
-                UpdateWarning(CSC);
+                try
+                {
+                    ParentView.ParentView.WaitingForUpdate = true;
+                    var CSC = await Ctr.AssociatePlanToComponent(A.ID, Comp.ID, _SelectedCourse.CourseId, _SelectedPlan.PlanId, true);
+                    Ctr.UpdateComponentConstraints(Comp.ID, A.ID);
+                    UpdateWarning(CSC);
+                    ParentView.ParentView.WaitingForUpdate = false;
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show(string.Format("{0}\r\n{1}\r\n{2})", ex.Message, ex.InnerException, ex.StackTrace));
+                }
             }
             ParentView.UpdateWarning();
         }
@@ -1076,38 +1100,39 @@ namespace SquintScript
     {
         public class ProtocolSelector : ObservableObject
         {
-            public int ID { get; private set; }
-            public string ProtocolName { get { return PV.ProtocolName; } }
-            public ProtocolTypes ProtocolType { get { return PV.ProtocolType; } }
-            public TreatmentCentres TreatmentCentre { get { return PV.TreatmentCentre; } }
-            public TreatmentSites TreatmentSite { get { return PV.TreatmentSite; } }
-            public ApprovalLevels ApprovalLevel { get { return PV.ApprovalLevel; } }
-            public string LastModifiedBy { get { return PV.LastModifiedBy; } }
-            private Ctr.ProtocolView PV;
-            public ProtocolSelector(Ctr.ProtocolView PV_in)
+            private Ctr.ProtocolPreview _pp;
+            public ProtocolSelector(Ctr.ProtocolPreview pp)
             {
-                PV = PV_in;
-                ID = PV.ProtocolID;
-                Ctr.ProtocolListUpdated += OnProtocolListUpdated;
+                _pp = pp;
+                //Ctr.ProtocolListUpdated += OnProtocolListUpdated;
             }
-            private void OnProtocolListUpdated(object sender, EventArgs e)
-            {
-                PV = Ctr.GetProtocolList(ID);
-            }
+
+            public int Id { get { return _pp.ID; } }
+            public string ProtocolName { get { return _pp.ProtocolName; } }
+
+            public TreatmentCentres TreatmentCentre { get { return _pp.TreatmentCentre; } }
+            public TreatmentSites TreatmentSite { get { return _pp.TreatmentSite; } }
+
+            public string LastModifiedBy { get { return _pp.LastModifiedBy; } }
+            public ProtocolTypes ProtocolType { get { return _pp.ProtocolType; } }
+            public ApprovalLevels ApprovalLevel { get { return _pp.Approval; } }
+            //private void OnProtocolListUpdated(object sender, EventArgs e)
+            //{
+            //    ProtocolName = Ctr.GetProtocol(Id).ProtocolName;
+            //}
             public void Unsubscribe()
             {
-                Ctr.ProtocolListUpdated -= OnProtocolListUpdated;
+                //Ctr.ProtocolListUpdated -= OnProtocolListUpdated;
             }
         }
         public ProtocolView(string inputProtocolName = "No protocol loaded")
         {
-            PV = Ctr.GetProtocolView();
-            ProtocolName = PV.ProtocolName;
-            RaisePropertyChangedEvent(nameof(LastModifiedBy));
-            var ProtocolPreviews = Ctr.GetProtocolList();
-            foreach (Ctr.ProtocolView P in ProtocolPreviews)
+            _P = Ctr.GetActiveProtocol();
+            //RaisePropertyChangedEvent(nameof(LastModifiedBy));
+            var ProtocolPreviews = Ctr.GetProtocolPreviewList();
+            foreach (var PP in ProtocolPreviews)
             {
-                Protocols.Add(new ProtocolSelector(P));
+                Protocols.Add(new ProtocolSelector(PP));
             }
             // Subscribe to events
             Ctr.CurrentStructureSetChanged += UpdateAvailableStructureIds;
@@ -1115,8 +1140,8 @@ namespace SquintScript
             Ctr.ProtocolConstraintOrderChanged += UpdateConstraintOrder;
             Ctr.ConstraintAdded += OnConstraintAdded;
             Ctr.ConstraintRemoved += OnConstraintRemoved;
-            if (PV != null)
-                PV.PropertyChanged += OnProtocolPropertyChanged;
+            //if (_P != null)
+            //    _P.PropertyChanged += OnProtocolPropertyChanged;
         }
         public void Unsubscribe()
         {
@@ -1125,14 +1150,14 @@ namespace SquintScript
             Ctr.ProtocolConstraintOrderChanged -= UpdateConstraintOrder;
             Ctr.ConstraintAdded -= OnConstraintAdded;
             Ctr.ConstraintRemoved -= OnConstraintRemoved;
-            if (PV != null)
-                PV.PropertyChanged -= OnProtocolPropertyChanged;
+            //if (_P != null)
+            //    _P.PropertyChanged -= OnProtocolPropertyChanged;
             foreach (ProtocolSelector PS in Protocols)
             {
                 PS.Unsubscribe();
             }
         }
-        private Ctr.ProtocolView PV;
+        private Ctr.Protocol _P;
         private string _ProtocolName = "No protocol loaded";
         public string ProtocolName
         {
@@ -1142,36 +1167,35 @@ namespace SquintScript
                 if (value != _ProtocolName)
                 {
                     _ProtocolName = value;
-                    Ctr.GetProtocolView().ProtocolName = value;
-                    //RaisePropertyChangedEvent(nameof(Protocols));
+                    _P.ProtocolName = value;
                 }
             }
         }
         public ProtocolTypes ProtocolType
         {
-            get { return Ctr.GetProtocolView().ProtocolType; }
-            set { Ctr.GetProtocolView().ProtocolType = value; }
+            get { return _P.ProtocolType; }
+            set { _P.ProtocolType = value; }
         }
         public TreatmentCentres TreatmentCentre
         {
-            get { return Ctr.GetProtocolView().TreatmentCentre; }
-            set { Ctr.GetProtocolView().TreatmentCentre = value; }
+            get { return _P.TreatmentCentre; }
+            set { _P.TreatmentCentre = value; }
         }
         public TreatmentSites TreatmentSite
         {
-            get { return Ctr.GetProtocolView().TreatmentSite; }
-            set { Ctr.GetProtocolView().TreatmentSite = value; }
+            get { return _P.TreatmentSite; }
+            set { _P.TreatmentSite = value; }
         }
-        public string LastModifiedBy
-        {
-            get
-            {
-                if (PV != null)
-                    return PV.LastModifiedBy;
-                else
-                    return "";
-            }
-        }
+        //public string LastModifiedBy
+        //{
+        //    get
+        //    {
+        //        if (_P != null)
+        //            return _P.LastModifiedBy;
+        //        else
+        //            return "";
+        //    }
+        //}
         public bool RefreshFlag { get; private set; } = false;
         public bool DragSelected { get; set; } = false;
         private int _SelectedIndex = -2;
@@ -1189,15 +1213,6 @@ namespace SquintScript
 
         public static readonly DependencyProperty IsDraggingProperty = DependencyProperty.RegisterAttached("IsDragging", typeof(bool), typeof(ProtocolView), new UIPropertyMetadata(false));
 
-        public static bool GetIsDragging(DependencyObject source)
-        {
-            return (bool)source.GetValue(IsDraggingProperty);
-        }
-
-        public static void SetIsDragging(DependencyObject target, bool value)
-        {
-            target.SetValue(IsDraggingProperty, value);
-        }
         public int DropIndex { get; set; } = -1;
         public StructureSelector SelectedStructure { get; set; }
         public int _ProgressPercentage;
@@ -1212,7 +1227,7 @@ namespace SquintScript
         }
         public Progress<int> Progress { get; set; }
         public ObservableCollection<StructureSelector> Structures { get; set; } = new ObservableCollection<StructureSelector>();
-        public ObservableCollection<Ctr.EclipseStructure> AvailableStructureIds { get; private set; } = new ObservableCollection<Ctr.EclipseStructure>() { new Ctr.EclipseStructure(null) };
+        public ObservableCollection<string> AvailableStructureIds { get; private set; } = new ObservableCollection<string>() { "default" };
         public ObservableCollection<ProtocolSelector> Protocols { get; set; } = new ObservableCollection<ProtocolSelector>();
         public ObservableCollection<ComponentSelector> Components { get; set; } = new ObservableCollection<ComponentSelector>();
         public ObservableCollection<ConstraintSelector> Constraints { get; set; } = new ObservableCollection<ConstraintSelector>();
@@ -1230,12 +1245,12 @@ namespace SquintScript
         }
         private void UpdateAvailableStructureIds(object sender, EventArgs e)
         {
-            AvailableStructureIds = new ObservableCollection<Ctr.EclipseStructure>(Ctr.GetCurrentStructures());
+            AvailableStructureIds = new ObservableCollection<string>(Ctr.GetCurrentStructures());
         }
         private void UpdateProtocolList(object sender, EventArgs e)
         {
             ObservableCollection<ProtocolSelector> UpdatedList = new ObservableCollection<ProtocolSelector>();
-            foreach (Ctr.ProtocolView P in Ctr.GetProtocolList())
+            foreach (Ctr.ProtocolPreview P in Ctr.GetProtocolPreviewList())
             {
                 UpdatedList.Add(new ProtocolSelector(P));
             }
@@ -1271,16 +1286,16 @@ namespace SquintScript
         {
             Constraints.Remove(Constraints.FirstOrDefault(x => x.Id == Id));
         }
-        private void OnProtocolPropertyChanged(object sender, PropertyChangedEventArgs e)
-        {
-            switch (e.PropertyName)
-            {
-                case nameof(Ctr.ProtocolView.LastModifiedBy):
-                    RaisePropertyChangedEvent(nameof(LastModifiedBy));
-                    break;
-            }
-            RaisePropertyChangedEvent(nameof(Protocols));
-        }
+        //private void OnProtocolPropertyChanged(object sender, PropertyChangedEventArgs e)
+        //{
+        //    switch (e.PropertyName)
+        //    {
+        //        case nameof(Ctr.Protocol.LastModifiedBy):
+        //            RaisePropertyChangedEvent(nameof(LastModifiedBy));
+        //            break;
+        //    }
+        //    RaisePropertyChangedEvent(nameof(Protocols));
+        //}
         public void AddConstraint()
         {
             var Con = Ctr.AddConstraint(ConstraintTypeCodes.Unset, Components.FirstOrDefault().Id, Structures.FirstOrDefault().Id);
@@ -1358,15 +1373,15 @@ namespace SquintScript
             {
                 var ACV = new AssessmentComponentView(this, Comp, A);
                 ACV.DisableAutomaticAssociation = true;
-                var PV = Ctr.GetPlanView(Comp.ID, A.ID);
-                if (PV != null)
+                var _P = Ctr.GetPlan(Comp.ID, A.ID);
+                if (_P != null)
                 {
-                    ACV.WarningString = PV.LoadWarningString;
-                    if (!PV.LoadWarning) // if there's a load warning (e.g can't find the file, don't set the combo boxes
+                    ACV.WarningString = _P.LoadWarningString;
+                    if (!_P.LoadWarning) // if there's a load warning (e.g can't find the file, don't set the combo boxes
                     {
-                        ACV.SelectedCourse = ACV.Courses.FirstOrDefault(x => x.CourseId == PV.CourseName);
-                        ACV.SelectedPlan = ACV.Plans.FirstOrDefault(x => x.PlanId == PV.PlanName);
-                        foreach (ComponentStatusCodes code in PV.ErrorCodes)
+                        ACV.SelectedCourse = ACV.Courses.FirstOrDefault(x => x.CourseId == _P.CourseId);
+                        ACV.SelectedPlan = ACV.Plans.FirstOrDefault(x => x.PlanId == _P.PlanId);
+                        foreach (ComponentStatusCodes code in _P.GetErrorCodes())
                         {
                             if (code == ComponentStatusCodes.Evaluable)
                                 continue;
@@ -1611,22 +1626,22 @@ namespace SquintScript
                     {
                         case ViewEnums.Centre:
                             if (Ctr.ProtocolLoaded)
-                                return Ctr.GetProtocolView().TreatmentCentre;
+                                return Ctr.GetActiveProtocol().TreatmentCentre;
                             else
                                 return null;
                         case ViewEnums.Site:
                             if (Ctr.ProtocolLoaded)
-                                return Ctr.GetProtocolView().TreatmentSite;
+                                return Ctr.GetActiveProtocol().TreatmentSite;
                             else
                                 return null;
                         case ViewEnums.ProtocolType:
                             if (Ctr.ProtocolLoaded)
-                                return Ctr.GetProtocolView().ProtocolType;
+                                return Ctr.GetActiveProtocol().ProtocolType;
                             else
                                 return null;
                         case ViewEnums.Approval:
                             if (Ctr.ProtocolLoaded)
-                                return Ctr.GetProtocolView().ApprovalLevel;
+                                return Ctr.GetActiveProtocol().ApprovalLevel;
                             else
                                 return null;
                         default:
@@ -1639,19 +1654,19 @@ namespace SquintScript
                     {
                         case ViewEnums.Centre:
                             if (Ctr.ProtocolLoaded)
-                                Ctr.GetProtocolView().TreatmentCentre = (TreatmentCentres)value;
+                                Ctr.GetActiveProtocol().TreatmentCentre = (TreatmentCentres)value;
                             break;
                         case ViewEnums.Site:
                             if (Ctr.ProtocolLoaded)
-                                Ctr.GetProtocolView().TreatmentSite = (TreatmentSites)value;
+                                Ctr.GetActiveProtocol().TreatmentSite = (TreatmentSites)value;
                             break;
                         case ViewEnums.ProtocolType:
                             if (Ctr.ProtocolLoaded)
-                                Ctr.GetProtocolView().ProtocolType = (ProtocolTypes)value;
+                                Ctr.GetActiveProtocol().ProtocolType = (ProtocolTypes)value;
                             break;
                         case ViewEnums.Approval:
                             if (Ctr.ProtocolLoaded)
-                                Ctr.GetProtocolView().ApprovalLevel = (ApprovalLevels)value;
+                                Ctr.GetActiveProtocol().ApprovalLevel = (ApprovalLevels)value;
                             break;
                     }
                 }
@@ -1661,7 +1676,9 @@ namespace SquintScript
                 RaisePropertyChangedEvent("ComboSelectedItem");
             }
         }
-        private bool isSquintInitialized { get; set; } = false;
+        
+
+        public ViewModels.Checklist_ViewModel ChecklistViewModel { get; set;} = new ViewModels.Checklist_ViewModel();
         public Controls.Beam_ViewModel Beam_ViewModel { get; set; } = new Controls.Beam_ViewModel();
         public Controls.LoadingViewModel Loading_ViewModel { get; set; } = new Controls.LoadingViewModel();
         public Controls.Control_ViewModel Objectives_ViewModel { get; set; } = new Controls.Control_ViewModel();
@@ -1816,11 +1833,11 @@ namespace SquintScript
                 return new DelegateCommand(DeleteSelectedSession);
             }
         }
-        public ICommand ViewOptimizationObjectivesCommand
+        public ICommand ViewPlanCheckCommand
         {
             get
             {
-                return new DelegateCommand(ViewOptimizationObjectives);
+                return new DelegateCommand(ViewPlanCheck);
             }
         }
         public ICommand CloseCheckListCommand
@@ -1832,7 +1849,7 @@ namespace SquintScript
             ProtocolCheckVisible = true;
             PlanCheckVisible = false;
         }
-        private async void ViewOptimizationObjectives(object param = null)
+        private async void ViewPlanCheck(object param = null)
         {
             var p = (param as PlanSelector);
             if (param == null)
@@ -1844,346 +1861,180 @@ namespace SquintScript
                 isPlanCheckCalculating = true;
                 Loading_ViewModel = new Controls.LoadingViewModel() { LoadingMessage = @"Checking plan, please wait..." };
 
-                Objectives_ViewModel = new Controls.Control_ViewModel();
-                var Objectives = await Ctr.GetOptimizationObjectiveList(p.CourseId, p.PlanId);
-                List<string> StructureIds = new List<string>();
-                ObservableCollection<Controls.ObjectiveItem> objectiveItems = new ObservableCollection<Controls.ObjectiveItem>();
-                foreach (Controls.ObjectiveDefinition OD in Objectives)
-                {
-                    if (!StructureIds.Contains(OD.StructureId))
-                    {
-                        objectiveItems.Add(new Controls.ObjectiveItem(OD.StructureId, OD));
-                        StructureIds.Add(OD.StructureId);
-                    }
-                    else
-                        objectiveItems.Where(x => x.StructureId == OD.StructureId).FirstOrDefault().ObjectiveDefinitions.Add(OD);
-
-                }
-                Objectives_ViewModel.Objectives = objectiveItems;
-                Objectives_ViewModel.NTO = await Ctr.GetNTOObjective(p.CourseId, p.PlanId);
-                var ImagingFields = await Ctr.GetImagingFieldList(p.CourseId, p.PlanId);
-                Ctr.Component Comp = Ctr.GetComponentList().FirstOrDefault(x => x.ComponentName == p.ACV.ComponentName);
-                var ImageProtocolCheck = Ctr.CheckImagingProtocols(Comp, ImagingFields);
-                Imaging_ViewModel.ImagingProtocols.Clear();
-                foreach (ImagingProtocols IP in Comp.ImagingProtocolsAttached)
-                {
-                    Controls.ProtocolImagingView PIV = new Controls.ProtocolImagingView() { ImagingProtocolName = IP.Display() };
-                    if (ImageProtocolCheck.ContainsKey(IP))
-                    {
-                        if (ImageProtocolCheck[IP].Count > 0)
-                        {
-                            PIV.WarningMessages = ImageProtocolCheck[IP];
-                            PIV.isWarning = true;
-                        }
-                    }
-                    Imaging_ViewModel.ImagingProtocols.Add(PIV);
-                }
-                Imaging_ViewModel.ImagingFields = new ObservableCollection<Ctr.ImagingFieldItem>(ImagingFields);
-                // Populate Simulation ViewModel
-                var SliceSpacingReference = Comp.Checklist.SliceSpacing;
-                if (SliceSpacingReference == 0)
-                    SliceSpacingReference = Ctr.GetProtocolView().SliceSpacing;
-                var SliceSpacingValue = await Ctr.GetSliceSpacing(p.CourseId, p.PlanId);
-                var SliceSpacingWarning = false;
-                var SliceSpacingWarningMessage = "";
-                if (Math.Abs(SliceSpacingReference - SliceSpacingValue) > 0.1)
-                {
-                    SliceSpacingWarning = true;
-                    SliceSpacingWarningMessage = "Slice spacing does not match protocol";
-                }
-                Controls.TestListItem SliceSpacing = new Controls.TestListItem("Slice spacing", string.Format("{0:0.##}", SliceSpacingValue), string.Format("{0:0.##}", SliceSpacingReference), SliceSpacingWarning, SliceSpacingWarningMessage);
-                Controls.TestListItem Series = new Controls.TestListItem("Series Id", await Ctr.GetSeriesId(p.CourseId, p.PlanId));
-                Controls.TestListItem Study = new Controls.TestListItem("Study Id", await Ctr.GetStudyId(p.CourseId, p.PlanId));
-                Controls.TestListItem SeriesComment = new Controls.TestListItem("Series comment / scan protocol", await Ctr.GetSeriesComments(p.CourseId, p.PlanId));
-                Controls.TestListItem ImageComment = new Controls.TestListItem("Image comment", await Ctr.GetImageComments(p.CourseId, p.PlanId));
-                Controls.TestListItem NumSlices = new Controls.TestListItem("Number of slices", (await Ctr.GetNumSlices(p.CourseId, p.PlanId)).ToString());
-                Simulation_ViewModel.Tests = new ObservableCollection<Controls.TestListItem>() { Study, Series, NumSlices, SliceSpacing, SeriesComment, ImageComment };
-                // Populate Calculation ViewModel
-                Calculation_ViewModel.Tests.Clear(); // = new ObservableCollection<Controls.TestListItem>();
-                var ProtocolAlgorithm = Comp.Checklist.Algorithm.Display();
-                var ComponentAlgorithm = await Ctr.GetAlgorithmModel(p.CourseId, p.PlanId);
-                var AlgorithmWarning = false;
-                var AlgorithmWarningString = "Algorithm mismatch";
-                if (ProtocolAlgorithm != ComponentAlgorithm)
-                    AlgorithmWarning = true;
-                Controls.TestListItem Algorithm = new Controls.TestListItem("Algorithm", ComponentAlgorithm, ProtocolAlgorithm, AlgorithmWarning, AlgorithmWarningString);
-                Calculation_ViewModel.Tests.Add(Algorithm);
-                var DGR_protocol = Comp.Checklist.AlgorithmResolution;
-                var DGRwarning = false;
-                var DGRwarningMessage = "Insufficient resolution";
-                var DGR_plan = await Ctr.GetDoseGridResolution(p.CourseId, p.PlanId);
-                if (DGR_protocol < (DGR_plan - 0.01))
-                    DGRwarning = true;
-                Controls.TestListItem DoseGridResolution = new Controls.TestListItem("Dose grid resolution", DGR_plan.ToString(), DGR_protocol.ToString(), DGRwarning, DGRwarningMessage);
-                Calculation_ViewModel.Tests.Add(DoseGridResolution);
-                var HeteroOn = await Ctr.GetHeterogeneityOn(p.CourseId, p.PlanId);
-                var ProtocolHeteroOn = Comp.Checklist.HeterogeneityOn;
-                var HeteroWarning = false;
-                var HeteroWarningString = "Heterogeneity setting incorrect";
-                if (HeteroOn != ProtocolHeteroOn)
-                {
-                    HeteroWarning = true;
-                }
-                Controls.TestListItem HeterogeneityOn = new Controls.TestListItem("Heterogeneity On", HeteroOn.ToString(), ProtocolHeteroOn.ToString(), HeteroWarning, HeteroWarningString);
-                Calculation_ViewModel.Tests.Add(HeterogeneityOn); ;
-                // Field Normalization
-                var FieldNorm = await Ctr.GetFieldNormalizationMode(p.CourseId, p.PlanId);
-                var ProtocolFieldNorm = Comp.Checklist.FieldNormalizationMode.Display();
-                var FieldNormWarning = false;
-                if (FieldNorm != ProtocolFieldNorm)
-                    FieldNormWarning = true;
-                Controls.TestListItem FieldNormTest = new Controls.TestListItem("Field Norm Mode", FieldNorm, ProtocolFieldNorm, FieldNormWarning, "Non-standard normalization");
-                Calculation_ViewModel.Tests.Add(FieldNormTest);
-                // Support structures
-                var CheckCouchSurface = await Ctr.GetCouchSurface(p.CourseId, p.PlanId);
-                var CheckCouchInterior = await Ctr.GetCouchInterior(p.CourseId, p.PlanId);
-                var RefCouchSurface = Comp.Checklist.CouchSurface;
-                var RefCouchInterior = Comp.Checklist.CouchInterior;
-                var CouchSurfaceWarning = false;
-                var CouchInteriorWarning = false;
-                var CouchSurfaceWarningMessage = "";
-                var CouchInteriorWarningMessage = "";
-                var CheckCouchSurfaceString = string.Format("{0:0.#}", CheckCouchSurface);
-                var CheckCouchInteriorString = string.Format("{0:0.#}", CheckCouchInterior);
-                var RefCouchSurfaceString = RefCouchSurface.ToString();
-                var RefCouchInteriorString = RefCouchInterior.ToString();
-                bool CouchFound = true;
-                if (Double.IsNaN(CheckCouchSurface))
-                {
-                    CheckCouchSurfaceString = "Not found";
-                    CouchFound = false;
-                }
-                else
-                {
-                    if (Math.Abs(CheckCouchSurface - RefCouchSurface) > 0.5)
-                    {
-                        CouchSurfaceWarning = true;
-                        CouchSurfaceWarningMessage = "HU Deviation";
-                        CheckCouchSurfaceString = string.Format("{0:0.#} HU", RefCouchSurface);
-                    }
-                    if (Math.Abs(CheckCouchInterior - RefCouchInterior) > 0.5)
-                    {
-                        CouchInteriorWarning = true;
-                        CouchInteriorWarningMessage = "HU Deviation";
-                        CheckCouchInteriorString = string.Format("{0:0.#} HU", RefCouchInterior);
-                    }
-                }
-                switch (Comp.Checklist.SupportIndication)
-                {
-                    case ParameterOptions.Optional:
-                        if (!CouchFound)
-                        {
-                            CouchSurfaceWarning = false;
-                            RefCouchSurfaceString = "No reference set";
-                            RefCouchInteriorString = "No reference set";
-                            CheckCouchSurfaceString = "Not found";
-                            CheckCouchInteriorString = "Not found";
-                        }
-                        break;
-                    case ParameterOptions.Required:
-                        if (!CouchFound)
-                        {
-                            CouchSurfaceWarning = true;
-                            CouchSurfaceWarningMessage = "Couch required";
-                            CheckCouchInteriorString = "Not found";
-                            CheckCouchSurfaceString = "Not found";
-                        }
-                        break;
-                    case ParameterOptions.None:
-                        if (CouchFound)
-                        {
-                            CouchSurfaceWarning = true;
-                            CouchSurfaceWarningMessage = "No couch in protocol";
-                        }
-                        break;
-                    default:
-                        CouchSurfaceWarning = false;
-                        RefCouchSurfaceString = "No reference set";
-                        RefCouchInteriorString = "No reference set";
-                        break;
-                }
-                Controls.TestListItem CouchSurfaceTest = new Controls.TestListItem("Couch Surface HU", CheckCouchSurfaceString, RefCouchSurfaceString, CouchSurfaceWarning, CouchSurfaceWarningMessage);
-                Controls.TestListItem CouchInteriorTest = new Controls.TestListItem("Couch Interior HU", CheckCouchInteriorString, RefCouchInteriorString, CouchInteriorWarning, CouchInteriorWarningMessage);
-                Calculation_ViewModel.Tests.Add(CouchSurfaceTest);
-                Calculation_ViewModel.Tests.Add(CouchInteriorTest);
-                // Artifacts in calculaion
-                foreach (var A in Comp.Checklist.Artifacts)
-                {
-                    var ArtifactWarning = false;
-                    var ArtifactWarningString = "";
-                    var RefHUString = string.Format("{0:0.#} \u00B1{1:0.#} HU", A.RefHU, A.ToleranceHU);
-                    var CheckHUString = string.Format("{0:0.#} HU", A.CheckHU);
-                    if (Double.IsNaN(A.CheckHU))
-                        CheckHUString = "No artifact structure";
-                    else
-                    {
-                        if (Math.Abs(A.RefHU - A.CheckHU) > A.ToleranceHU)
-                        {
-                            ArtifactWarning = true;
-                            ArtifactWarningString = "Assigned HU deviates from protocol";
-                        }
-                    }
-                    Calculation_ViewModel.Tests.Add(new Controls.TestListItem(string.Format(@"Artifact HU (""{0}"")", A.E.EclipseStructureName), CheckHUString, RefHUString, ArtifactWarning, ArtifactWarningString));
-                }
-
-                // Populate Prescription ViewModel
-                var RefCourseIntent = Ctr.GetProtocolView().TreatmentIntent.Display();
-                var CheckCourseIntent = await Ctr.GetCourseIntent(p.CourseId, p.PlanId);
-                var CourseIntentWarning = false;
-                var CourseIntentWarningString = "";
-                if (RefCourseIntent.ToUpper() != CheckCourseIntent.ToUpper())
-                {
-                    CourseIntentWarning = true;
-                }
-                Controls.TestListItem CourseIntentTest = new Controls.TestListItem("Course Intent", CheckCourseIntent, RefCourseIntent, CourseIntentWarning, CourseIntentWarningString);
-                var ProtocolPNVMax = Comp.Checklist.PNVMax;
-                var ProtocolPNVMin = Comp.Checklist.PNVMin;
-                var Acceptable_PNVRange = string.Format("{0:0.##} - {1:0.##}", ProtocolPNVMin, ProtocolPNVMax);
-                var PlanPNV = await Ctr.GetPNV(p.CourseId, p.PlanId);
-                var PNVWarning = false;
-                if (PlanPNV < ProtocolPNVMin || PlanPNV > ProtocolPNVMax)
-                {
-                    PNVWarning = true;
-                }
-                var PlanRxPercentage = await Ctr.GetPrescribedPercentage(p.CourseId, p.PlanId);
-                var PlanRxPercentageWarning = false;
-                if (Math.Abs(PlanRxPercentage - 100) > 0.1)
-                    PlanRxPercentageWarning = true;
-                // Check Rx and fractions
-                var CheckRxDose = Ctr.GetRxDose(p.CourseId, p.PlanId);
-                var CheckRxDoseString = "-";
-                var RxDoseWarningString = "";
-                bool RxDoseWarning = false;
-                if (CheckRxDose != null)
-                {
-                    CheckRxDoseString = string.Format("{0:0.##}", CheckRxDose);
-                    if (Math.Abs((double)CheckRxDose - Comp.ReferenceDose) > 1E-2)
-                    {
-                        RxDoseWarning = true;
-                        RxDoseWarningString = "Plan dose different from protocol";
-                    }
-                }
-                else
-                {
-                    RxDoseWarning = true;
-                    RxDoseWarningString = "No total dose specified";
-                }
-                var CheckFractions = Ctr.GetNumFractions(p.CourseId, p.PlanId);
-                var RefFractions = Comp.NumFractions;
-                var CheckFractionString = "-";
-                var CheckFractionWarningString = "";
-                var CheckFractionWarning = false;
-                if (CheckFractions != null)
-                {
-                    CheckFractionString = CheckFractions.ToString();
-                    if (CheckFractions != RefFractions)
-                    {
-                        CheckFractionWarning = true;
-                        CheckFractionWarningString = "Plan fractions different from protocol";
-                    }
-                }
-                else
-                {
-                    CheckFractionWarning = true;
-                    CheckFractionWarningString = "No fractions specified";
-                }
-                Controls.TestListItem RxCheck = new Controls.TestListItem("Prescription dose", CheckRxDoseString, Comp.ReferenceDose.ToString(), RxDoseWarning, RxDoseWarningString);
-                Controls.TestListItem FxCheck = new Controls.TestListItem("Number of fractions", CheckFractionString, Comp.NumFractions.ToString(), CheckFractionWarning, CheckFractionWarningString);
-                Controls.TestListItem PNVCheck = new Controls.TestListItem("Plan Normalization Value Range", PlanPNV.ToString(), Acceptable_PNVRange, PNVWarning, "Out of range");
-                Controls.TestListItem PlanRxPc = new Controls.TestListItem("Prescribed percentage", PlanRxPercentage.ToString(), "100", PlanRxPercentageWarning, "Not set to 100");
-                Prescription_ViewModel.Tests = new ObservableCollection<Controls.TestListItem>() { RxCheck, FxCheck, CourseIntentTest, PNVCheck, PlanRxPc };
-                // Beam checks
-                Beam_ViewModel.Beams.Clear();
-                Beam_ViewModel.GroupTests.Tests.Clear();
-                var Fields = await Ctr.GetTxFieldItems(p.CourseId, p.PlanId);
-                foreach (var Beam in Comp.GetBeams())
-                {
-                    var BLI = new Controls.BeamListItem(Beam, Fields);
-                    Beam_ViewModel.Beams.Add(BLI);
-                    BLI.FieldChanged += new EventHandler((s, e) => BLI_PropertyChanged(s, e, Comp)); // this updates the MinColOffsetCheck if the field assignments on any reference beam are changed
-                }
-                // Iso Check
-                var IsoCentreWarning = Fields.Select(x => x.Isocentre).Distinct().Count() != Comp.NumIso;
-                var NumIsoDetected = Fields.Select(x => x.Isocentre).Distinct().Count();
-                Controls.TestListItem NumIsoCheck = new Controls.TestListItem("Number of isocentres", string.Format("{0:0}", NumIsoDetected), string.Format("{0:0}", Comp.NumIso), IsoCentreWarning, "Additional isocentres");
-                Beam_ViewModel.GroupTests.Tests.Add(NumIsoCheck);
-                // Num Fields Check
-                var NumFieldsWarning = Fields.Count() > Comp.MaxBeams || Fields.Count() < Comp.MinBeams;
-                string NumFieldsWarningString = "";
-                if (NumFieldsWarning)
-                    NumFieldsWarningString = "Out of range";
-                if (Comp.MinBeams > -1)
-                {
-                    Controls.TestListItem FieldCountCheck = new Controls.TestListItem("Number of fields", string.Format("{0:0}", Fields.Count()), string.Format("{0:0} - {1:0}", Comp.MinBeams, Comp.MaxBeams),
-                    IsoCentreWarning, NumFieldsWarningString);
-                    Beam_ViewModel.GroupTests.Tests.Add(FieldCountCheck);
-                }
-                // Min Col Offset
-                Controls.TestListItem MinColOffsetCheck;
-                if (Comp.MaxBeams > 1 && !double.IsNaN(Comp.MinColOffset) && Fields.Count > 1)
-                {
-                    if (Beam_ViewModel.Beams.Any(x => x.Field == null))
-                    {
-                        MinColOffsetCheck = new Controls.TestListItem("Min collimator offset", "", string.Format("{0:0.#}", Comp.MinColOffset), true, "Protocol fields not assigned");
-                    }
-                    else
-                    {
-                        var ColOffset = Beam_ViewModel.Beams.Select(x => x.Field).Select(x => x.CollimatorAngle);
-                        var MinColOffset = findMinDiff(ColOffset.ToArray());
-                        var MinColOFfsetWarning = MinColOffset < Comp.MinColOffset;
-                        MinColOffsetCheck = new Controls.TestListItem("Min collimator offset", string.Format("{0:0.#}", MinColOffset), string.Format("{0:0.#}", Comp.MinColOffset),
-                            MinColOFfsetWarning, "");
-                    }
-                    Beam_ViewModel.GroupTests.Tests.Add(MinColOffsetCheck);
-                }
-                // Target Structure Checks
-                Targets_ViewModel.Tests.Clear();
-                foreach (Ctr.ECSID E in Ctr.GetStructureList())
-                {
-                    if (E.CheckList != null)
-                    {
-                        var C = E.CheckList;
-                        if (C.isPointContourChecked)
-                        {
-                            var VolParts = await E.ES.PartVolumes();
-                            var MinVol = double.NaN;
-                            if (VolParts != null)
-                                MinVol = VolParts.Min();
-                            bool Warning = false;
-                            string RefValString = string.Format("{0:0.##} cc", C.PointContourVolumeThreshold);
-                            string CheckValString = "";
-                            string WarningString = "";
-                            var NumDetectedParts = await E.ES.NumParts();
-                            var VMS_NumParts = await E.ES.VMS_NumParts();
-
-                            if (double.IsNaN(MinVol))
-                            {
-                                Warning = true;
-                                WarningString = "Structure not found";
-                            }
-                            else if (MinVol < C.PointContourVolumeThreshold)
-                            {
-                                Warning = true;
-                                CheckValString = string.Format("{0:0.##} cc", MinVol);
-                                WarningString = "Subvolume less than threshold";
-                            }
-                            else if (VMS_NumParts > NumDetectedParts)
-                            {
-                                Warning = true;
-                                CheckValString = "< 0.01 cc";
-                                WarningString = "Potential point contour";
-                            }
-                            else
-                                CheckValString = string.Format("{0:0.##} cc", MinVol);
-                            Targets_ViewModel.Tests.Add(new Controls.TestListItem(string.Format(@"Min. Subvolume (""{0}"")", E.ProtocolStructureName, E.ES.Id), CheckValString, RefValString, Warning, WarningString));
-                        }
-                    }
-
-
-                }
+                await ChecklistViewModel.PopulateViews(p);
 
                 isPlanCheckCalculating = false;
             }
+        }
+
+        private async void EditPlanCheck(object param = null)
+        {
+            //ProtocolCheckVisible = false;
+            //PlanCheckVisible = true;
+            //isPlanCheckCalculating = true;
+            //Loading_ViewModel = new Controls.LoadingViewModel() { LoadingMessage = @"Checking plan, please wait..." };
+
+            //// Populate Simulation ViewModel
+            //var P = Ctr.GetActiveProtocol();
+            //var SliceSpacingReference = P.Checklist.SliceSpacing;
+            //TestListDoubleValueItem SliceSpacing = new TestListDoubleValueItem("Slice spacing", null, SliceSpacingReference, TestType.Equality) { EditMode = 1 };
+            //Simulation_ViewModel.Tests = new ObservableCollection<ITestListItem>() { SliceSpacing };
+
+            //// Populate Calculation ViewModel
+            //Calculation_ViewModel.Tests.Clear(); // = new ObservableCollection<Controls.TestListItem<string>>();
+            //var ProtocolAlgorithm = P.Checklist.Algorithm.Display();
+            //List<string> AlgoOptions = new List<string>() { "AAA_11031", "AAA_13623", "AAA_15606" };
+            //TestListStringValueItem Algorithm = new TestListStringValueItem("Algorithm", null, ProtocolAlgorithm, AlgoOptions, "Algorithm mismatch") { EditMode = 2 };
+            //Calculation_ViewModel.Tests.Add(Algorithm);
+            //var DGR_protocol = P.Checklist.AlgorithmResolution;
+
+            //TestListDoubleValueItem DoseGridResolution = new TestListDoubleValueItem("Dose grid resolution", null, DGR_protocol, TestType.Equality, null) { EditMode = 1 };
+            //Calculation_ViewModel.Tests.Add(DoseGridResolution);
+
+            //// Heterogeneity
+            //var ProtocolHeteroOn = P.Checklist.HeterogeneityOn;
+            //TestListBoolValueItem HeterogeneityOn = new TestListBoolValueItem("Heterogeneity On", null, ProtocolHeteroOn, TestType.Equality) { EditMode = 1 };
+            //Calculation_ViewModel.Tests.Add(HeterogeneityOn);
+
+            //// Field Normalization
+            //var ProtocolFieldNorm = P.Checklist.FieldNormalizationMode.Display();
+            //TestListStringValueItem FieldNormTest = new TestListStringValueItem("Field Norm Mode", null, ProtocolFieldNorm) { EditMode = 1 };
+            //Calculation_ViewModel.Tests.Add(FieldNormTest);
+
+            //// Support structures
+            //var RefCouchSurface = P.Checklist.CouchSurface;
+            //var RefCouchInterior = P.Checklist.CouchInterior;
+            //TestListDoubleValueItem CouchSurfaceTest = new TestListDoubleValueItem("Couch Surface HU", null, RefCouchSurface, TestType.Equality) { EditMode = 1 };
+            //TestListDoubleValueItem CouchInteriorTest = new TestListDoubleValueItem("Couch Interior HU", null, RefCouchInterior, TestType.Equality) { EditMode = 1 };
+            //Calculation_ViewModel.Tests.Add(CouchSurfaceTest);
+            //Calculation_ViewModel.Tests.Add(CouchInteriorTest);
+
+            //// Artifacts in calculaion
+            //foreach (var A in P.Checklist.Artifacts)
+            //{
+            //    var ArtifactWarningString = "Assigned HU deviates from protocol";
+            //    string NoCheckHUString = @"No artifact structure";
+            //    string NoRefHUString = @"Not specified";
+            //    double? CheckHU = null;
+            //    var RefHUString = string.Format("{0:0.#} \u00B1{1:0.#} HU", A.RefHU, A.ToleranceHU);
+            //    if (A.E.AssignedStructureId != "")
+            //    {
+            //        CheckHU = A.E.AssignedHU(p.StructureSetUID);
+            //    }
+            //    var ArtifactCheck = new TestListDoubleValueItem(string.Format(@"Artifact HU (""{0}"")", A.E.AssignedStructureId), CheckHU, A.RefHU, TestType.Equality, null, ArtifactWarningString, NoCheckHUString, NoRefHUString, A.ToleranceHU);
+            //    ArtifactCheck.ParameterOption = ParameterOptions.Optional;
+            //    Calculation_ViewModel.Tests.Add(ArtifactCheck);
+            //}
+
+            //// Course Intent
+            //var RefCourseIntent = Ctr.GetActiveProtocol().TreatmentIntent.Display();
+            //var CheckCourseIntent = await Ctr.GetCourseIntent(p.CourseId, p.PlanId);
+            //var CourseIntentWarningString = "";
+            //TestListStringValueItem CourseIntentTest = new TestListStringValueItem("Course Intent", CheckCourseIntent, RefCourseIntent, null, CourseIntentWarningString);
+
+            //// Plan normalization
+            //var ProtocolPNVMax = P.Checklist.PNVMax;
+            //var ProtocolPNVMin = P.Checklist.PNVMin;
+            //var PNVWarning = "Out of range";
+            //var PlanPNV = await Ctr.GetPNV(p.CourseId, p.PlanId);
+            //TestListDoubleValueItem PNVCheck = new TestListDoubleValueItem("Plan Normalization Value Range", PlanPNV, null, TestType.Range, null, PNVWarning, "-", "Not specified", 0, ProtocolPNVMin, ProtocolPNVMax);
+
+            //// Prescription percentage
+            //var PlanRxPercentage = await Ctr.GetPrescribedPercentage(p.CourseId, p.PlanId);
+            //TestListDoubleValueItem PlanRxPc = new TestListDoubleValueItem("Prescribed percentage", PlanRxPercentage, 100, TestType.Equality, null, "Not set to 100");
+
+            //// Check Rx and fractions
+            //var CheckRxDose = Ctr.GetRxDose(p.CourseId, p.PlanId);
+            //var RxDoseWarningString = "Plan dose different from protocol";
+            //TestListDoubleValueItem RxCheck = new TestListDoubleValueItem("Prescription dose", CheckRxDose, Comp.ReferenceDose, TestType.Equality, null, RxDoseWarningString);
+
+            //var CheckFractions = Ctr.GetNumFractions(p.CourseId, p.PlanId);
+            //var RefFractions = Comp.NumFractions;
+            //var CheckFractionWarningString = "Plan fractions different from protocol";
+            //TestListIntValueItem FxCheck = new TestListIntValueItem("Number of fractions", CheckFractions, Comp.NumFractions, TestType.Equality, null, CheckFractionWarningString);
+            //Prescription_ViewModel.Tests = new ObservableCollection<ITestListItem>() { RxCheck, FxCheck, CourseIntentTest, PNVCheck, PlanRxPc };
+
+            //// Beam checks
+            //Beam_ViewModel.Beams.Clear();
+            //Beam_ViewModel.GroupTests.Tests.Clear();
+            //var Fields = await Ctr.GetTxFieldItems(p.CourseId, p.PlanId);
+            //foreach (var Beam in Comp.GetBeams())
+            //{
+            //    var BLI = new Controls.BeamListItem(Beam, Fields);
+            //    Beam_ViewModel.Beams.Add(BLI);
+            //    BLI.FieldChanged += new EventHandler((s, e) => BLI_PropertyChanged(s, e, Comp)); // this updates the MinColOffsetCheck if the field assignments on any reference beam are changed
+            //}
+
+            //// Iso Check
+            //var IsoCentreWarning = Fields.Select(x => x.Isocentre).Distinct().Count() != Comp.NumIso;
+            //var NumIsoDetected = Fields.Select(x => x.Isocentre).Distinct().Count();
+            //TestListIntValueItem NumIsoCheck = new TestListIntValueItem("Number of isocentres", NumIsoDetected, Comp.NumIso, TestType.Equality, null, "Num isocentres differs");
+            //Beam_ViewModel.GroupTests.Tests.Add(NumIsoCheck);
+
+            //// Num Fields Check
+            //int? MaxBeams = Comp.MaxBeams;
+            //if (MaxBeams < 0) MaxBeams = null;
+            //int? MinBeams = Comp.MinBeams;
+            //if (MinBeams < 0) MinBeams = null;
+            //string BeamRangeWarning = "Number of beams outside range";
+            //TestListIntValueItem FieldCountCheck = new TestListIntValueItem("Number of fields", Fields.Count(), null, TestType.Range, null, BeamRangeWarning, "-", "Not specified", 0, MinBeams, MaxBeams);
+            //Beam_ViewModel.GroupTests.Tests.Add(FieldCountCheck);
+
+            //// Min Col Offset
+            //if (Comp.MaxBeams > 1 && !double.IsNaN(Comp.MinColOffset) && Fields.Count > 1)
+            //{
+            //    TestListDoubleValueItem MinColOffsetCheck;
+            //    if (Beam_ViewModel.Beams.Any(x => x.Field == null))
+            //    {
+            //        MinColOffsetCheck = new TestListDoubleValueItem("Min collimator offset", null, Comp.MinColOffset, TestType.Range, null, "Protocol fields not assigned");
+            //    }
+            //    else
+            //    {
+            //        var ColOffset = Beam_ViewModel.Beams.Select(x => x.Field).Select(x => x.CollimatorAngle);
+            //        var MinColOffset = findMinDiff(ColOffset.ToArray());
+            //        double? ProtocolMinColOffset = Comp.MinColOffset;
+            //        if (ProtocolMinColOffset < 0) ProtocolMinColOffset = null;
+            //        MinColOffsetCheck = new TestListDoubleValueItem("Min collimator offset", MinColOffset, ProtocolMinColOffset, TestType.GreaterThan, null, "Insufficient collimator offset");
+            //    }
+            //    Beam_ViewModel.GroupTests.Tests.Add(MinColOffsetCheck);
+            //}
+
+
+            //// Target Structure Checks
+            //Targets_ViewModel.Tests.Clear();
+            //foreach (Ctr.ProtocolStructure E in Ctr.GetStructureList())
+            //{
+            //    if (E.CheckList != null)
+            //    {
+            //        var C = E.CheckList;
+            //        if (C.isPointContourChecked)
+            //        {
+            //            var VolParts = await E.PartVolumes(p.StructureSetUID);
+            //            double MinVol = double.NaN;
+            //            if (VolParts != null)
+            //                MinVol = VolParts.Min();
+            //            string WarningString = "Subvolume less than threshold";
+            //            if (!double.IsNaN(MinVol))
+            //            {
+            //                var NumDetectedParts = await E.NumParts(p.StructureSetUID);
+            //                var VMS_NumParts = await E.VMS_NumParts(p.StructureSetUID);
+            //                if (VMS_NumParts > NumDetectedParts)
+            //                {
+            //                    MinVol = 0.01;
+            //                }
+            //            }
+            //            var TL = new TestListDoubleValueItem(string.Format(@"Min. Subvolume (""{0}"") [cc]", E.ProtocolStructureName, E.AssignedStructureId),
+            //                MinVol, C.PointContourVolumeThreshold, TestType.GreaterThan, null, WarningString, "Not found", "Not specified");
+            //            TL.CheckNullWarningString = "Structure not found";
+            //            TL.ParameterOption = ParameterOptions.Required;
+            //            Targets_ViewModel.Tests.Add(TL);
+            //        }
+
+            //    }
+            //}
+
+
+
         }
 
         private void BLI_PropertyChanged(object sender, EventArgs e, Ctr.Component Comp)
@@ -2198,11 +2049,10 @@ namespace SquintScript
             var MinColOffset = findMinDiff(ColOffset.ToArray());
             var OldTest = Beam_ViewModel.GroupTests.Tests.Where(x => x.TestName == "Min collimator offset").FirstOrDefault();
             Beam_ViewModel.GroupTests.Tests.Remove(OldTest);
-            var MinColOFfsetWarning = MinColOffset < Comp.MinColOffset;
-            Controls.TestListItem MinColOffsetCheck = new Controls.TestListItem("Min collimator offset", string.Format("{0:0.#}", MinColOffset), string.Format("{0:0.#}", Comp.MinColOffset),
-                MinColOFfsetWarning, "");
+            double? ProtocolMinColOffset = Comp.MinColOffset;
+            if (ProtocolMinColOffset < 0) ProtocolMinColOffset = null;
+            TestListDoubleValueItem MinColOffsetCheck = new TestListDoubleValueItem("Min collimator offset", MinColOffset, ProtocolMinColOffset, TestType.LessThan, null, "Insufficient collimator offset");
             Beam_ViewModel.GroupTests.Tests.Add(MinColOffsetCheck);
-
         }
         private double findMinDiff(double[] arr)
         {
@@ -2272,6 +2122,7 @@ namespace SquintScript
                 AssessmentPresenter = new AssessmentsView();
                 UpdateAssessmentsView();
                 UpdateProtocolView();
+                Ctr.UpdateAllConstraints();
                 isLinkProtocolVisible = true;
             }
             else
@@ -2445,6 +2296,8 @@ namespace SquintScript
         {
             get { return new DelegateCommand(DeleteSelectedProtocol); }
         }
+
+       
         private async void DeleteSelectedProtocol(object param = null)
         {
             var PS = (param as ProtocolView.ProtocolSelector);
@@ -2454,7 +2307,7 @@ namespace SquintScript
             {
                 var Result = MessageBox.Show(string.Format("Are you sure you want to delete this protocol ({0})", PS.ProtocolName), "Confirm deletion", MessageBoxButton.OKCancel);
                 if (Result == MessageBoxResult.OK)
-                    await Task.Run(() => Ctr.DeleteProtocol(PS.ID));
+                    await Task.Run(() => Ctr.DeleteProtocol(PS.Id));
             }
             isLoading = false;
         }
@@ -2475,6 +2328,10 @@ namespace SquintScript
                     Protocol.Unsubscribe();
                     Ctr.CloseProtocol();
                     Protocol = new ProtocolView();
+                    foreach (string CourseId in Ctr.GetCourseNames())
+                    {
+                        PatientPresenter.Courses.Add(new CourseSelector(CourseId));
+                    }
                 }
                 Ctr.LoadPatientFromDatabase(PatientPresenter.PatientId);
                 SessionsPresenter = new SessionsView();
@@ -2482,10 +2339,6 @@ namespace SquintScript
                     PatientPresenter.TextBox_Background_Color = new System.Windows.Media.SolidColorBrush(wpfcolors.AliceBlue);
                 else
                     PatientPresenter.TextBox_Background_Color = new System.Windows.Media.SolidColorBrush(wpfcolors.DarkOrange);
-                foreach (string CourseId in Ctr.GetCourseNames())
-                {
-                    PatientPresenter.Courses.Add(new CourseSelector(CourseId));
-                }
             }
             catch (Exception ex)
             {
@@ -2493,7 +2346,7 @@ namespace SquintScript
             }
         }
         private static EventHandler SynchronizeHandler;
-        private void SynchronizePatient(object param = null)
+        private async void SynchronizePatient(object param = null)
         {
             if (Ctr.PatientLoaded && Ctr.ProtocolLoaded && Ctr.GetAssessmentList().Count > 0)
             {
@@ -2502,28 +2355,34 @@ namespace SquintScript
                 SynchronizeHandler = new EventHandler((sender, e) => OnSynchronizationComplete(sender, e, W));
                 Ctr.SynchronizationComplete += SynchronizeHandler;
                 Ctr.SynchronizePlans();
-
             }
         }
         private void OnSynchronizationComplete(object sender, EventArgs E, Window W)
         {
             Ctr.SynchronizationComplete -= SynchronizeHandler;
             // Refresh ViewModel
-            var CurrentStructureSetId = PatientPresenter.CurrentStructureSet.StructureSetId; // store these as clearing the list will null this as it is databound.
-            var CurrentStructureSetUID = PatientPresenter.CurrentStructureSet.StructureSetUID;
+            PatientPresenter.CalculateOnUpdate = false; // disable automatic calculation while model is updated
+            string CurrentStructureSetId = ""; // store these as clearing the list will null this as it is databound.
+            string CurrentStructureSetUID = "";
+            if (PatientPresenter.CurrentStructureSet != null)
+            {
+                CurrentStructureSetId = PatientPresenter.CurrentStructureSet.StructureSetId; // store these as clearing the list will null this as it is databound.
+                CurrentStructureSetUID = PatientPresenter.CurrentStructureSet.StructureSetUID;
+            }
             PatientPresenter.StructureSets.Clear();
             foreach (var StS in Ctr.GetAvailableStructureSets())
             {
                 PatientPresenter.StructureSets.Add(new StructureSetSelector(StS));
             }
-            var UnchangedStructureSet = PatientPresenter.StructureSets.FirstOrDefault(x => x.StructureSetId == CurrentStructureSetId && x.StructureSetUID == CurrentStructureSetUID);
-            if (UnchangedStructureSet != null)
+            if (CurrentStructureSetId != "")
             {
-                PatientPresenter.CurrentStructureSet = UnchangedStructureSet;
+                // Set structure set back to pre-update
+                var UnchangedStructureSet = PatientPresenter.StructureSets.FirstOrDefault(x => x.StructureSetId == CurrentStructureSetId && x.StructureSetUID == CurrentStructureSetUID);
+                if (UnchangedStructureSet != null)
+                {
+                    PatientPresenter.CurrentStructureSet = UnchangedStructureSet;
+                }
             }
-
-
-
             foreach (AssessmentView AV in AssessmentPresenter.Assessments)
             {
                 foreach (AssessmentComponentView ACV in AV.ACVs)
@@ -2534,19 +2393,20 @@ namespace SquintScript
                         UpdatedCourses.Add(new CourseSelector(CourseName));
                     }
                     string PrevSelectedCourseId = "";
-                    string PrevSelectedPlanId = "";
+                    string PrevSelectedPlanUID = "";
                     if (ACV.SelectedCourse != null)
                         PrevSelectedCourseId = ACV.SelectedCourse.CourseId;
                     if (ACV.SelectedPlan != null)
-                        PrevSelectedPlanId = ACV.SelectedPlan.PlanId;
+                        PrevSelectedPlanUID = ACV.SelectedPlan.PlanUID;
                     ACV.Courses = UpdatedCourses;
                     if (PrevSelectedCourseId != "")
                         ACV.SelectedCourse = UpdatedCourses.FirstOrDefault(x => PrevSelectedCourseId == x.CourseId);
-                    if (PrevSelectedPlanId != null)
-                        ACV.SelectedPlan = ACV.Plans.FirstOrDefault(x => PrevSelectedPlanId == x.PlanId);
-                    //ACV.DisableAutomaticAssociation = false;
+                    if (PrevSelectedPlanUID != "")
+                        ACV.SelectedPlan = ACV.Plans.FirstOrDefault(x => PrevSelectedPlanUID == x.PlanUID);
                 }
             }
+            PatientPresenter.CalculateOnUpdate = true; // disable automatic calculation while model is updated
+            Ctr.UpdateAllConstraints();
             W.Close();
         }
         private void AddAssessment(object param = null)
@@ -2666,5 +2526,6 @@ namespace SquintScript
                 // AssessmentPresenter.RowHeaderWidth = new DataGridLength(1, DataGridLengthUnitType.Auto);
             }
         }
+
     }
 }

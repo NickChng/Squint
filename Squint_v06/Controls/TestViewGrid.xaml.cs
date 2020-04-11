@@ -1,4 +1,5 @@
-﻿using System;
+﻿using SquintScript.Interfaces;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -27,12 +28,12 @@ namespace SquintScript.Controls
         }
 
         public static readonly DependencyProperty TestItemsProperty =
-          DependencyProperty.Register("TestItems", typeof(ObservableCollection<TestListItem>), typeof(TestViewGrid), new
-             PropertyMetadata(new ObservableCollection<TestListItem>(), new PropertyChangedCallback(OnSetTestItems)));
+          DependencyProperty.Register("TestItems", typeof(ObservableCollection<ITestListItem>), typeof(TestViewGrid), new
+             PropertyMetadata(new ObservableCollection<ITestListItem>(), new PropertyChangedCallback(OnSetTestItems)));
 
-        public ObservableCollection<TestListItem> TestItems
+        public ObservableCollection<ITestListItem> TestItems
         {
-            get { return (ObservableCollection<TestListItem>)GetValue(TestItemsProperty); }
+            get { return (ObservableCollection<ITestListItem>)GetValue(TestItemsProperty); }
             set { SetValue(TestListTitleProperty, value); }
         }
 
@@ -45,7 +46,7 @@ namespace SquintScript.Controls
 
         private void OnSetTestItems(DependencyPropertyChangedEventArgs e)
         {
-            MainTestListView.ItemsSource = (ObservableCollection<TestListItem>)e.NewValue;
+            MainTestListView.ItemsSource = (ObservableCollection<ITestListItem>)e.NewValue;
         }
 
         public static readonly DependencyProperty TestListTitleProperty =

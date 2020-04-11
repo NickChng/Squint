@@ -8,6 +8,7 @@ using System.Windows.Input;
 using System.ComponentModel;
 using System.Collections;
 using System;
+using System.Windows.Data;
 
 namespace System.Windows.Controls
 {
@@ -470,7 +471,10 @@ namespace SquintScript
         {
             return (Key)element.GetValue(UpdateSourceOnKeyProperty);
         }
+
     }
+
+
 
     public class ItemsChangeObservableCollection<T> : ObservableCollection<T> where T : INotifyPropertyChanged
     {

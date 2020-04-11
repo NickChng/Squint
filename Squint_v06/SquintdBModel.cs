@@ -366,13 +366,13 @@ namespace SquintScript
                     ID = 1,
                 };
                 context.DbStructureChecklists.Add(DbStructureChecklistDefault);
-                DbECSID RootStructureID = new DbECSID
+                DbProtocolStructure RootStructureID = new DbProtocolStructure
                 {
                     ProtocolID = 1,
                     StructureLabelID = 1,
                     DbStructureChecklist = DbStructureChecklistDefault
                 };
-                context.DbECSIDs.Add(RootStructureID);
+                context.DbProtocolStructures.Add(RootStructureID);
                 context.SaveChanges();
                 DbComponent RootComponent = new DbComponent
                 {
@@ -409,12 +409,12 @@ namespace SquintScript
                     ImagingProtocolName = "Default"
                 };
                 context.DbImagings.Add(DbI);
-                DbComponentChecklist DbCC = new DbComponentChecklist()
+                DbProtocolChecklist DbCC = new DbProtocolChecklist()
                 {
                     ID = 1,
-                    ComponentID = 1
+                    ProtocolID = 1
                 };
-                context.DbComponentChecklists.Add(DbCC);
+                context.DbProtocolChecklists.Add(DbCC);
                 context.SaveChanges();
                 base.Seed(context);
             }
@@ -425,9 +425,9 @@ namespace SquintScript
         public DbSet<DbStructureLabelGroup> DbStructureLabelGroups { get; set; }
         public DbSet<DbStructureLabelException> DbStructureLabelExceptions { get; set; }
         public DbSet<DbStructureLabel> DbStructureLabels { get; set; }
-        public DbSet<DbECSID> DbECSIDs { get; set; }
+        public DbSet<DbProtocolStructure> DbProtocolStructures { get; set; }
         // Plan Checks
-        public DbSet<DbComponentChecklist> DbComponentChecklists { get; set; }
+        public DbSet<DbProtocolChecklist> DbProtocolChecklists { get; set; }
         public DbSet<DbArtifact> DbArtifacts { get; set; }
         public DbSet<DbStructureChecklist> DbStructureChecklists { get; set; }
         // Imaging Protocols
@@ -445,11 +445,12 @@ namespace SquintScript
         public DbSet<DbAssessment> DbAssessments { get; set; }
         public DbSet<DbSessionConstraint> DbSessionConstraints { get; set; }
         public DbSet<DbSessionComponent> DbSessionComponents { get; set; }
-        public DbSet<DbSessionECSID> DbSessionECSIDs { get; set; }
+        public DbSet<DbSessionProtocolStructure> DbSessionProtocolStructures { get; set; }
         public DbSet<DbSessionConThreshold> DbSessionConThresholds { get; set; }
         //Component
         public DbSet<DbComponent> DbComponents { get; set; }
         //Beams
+        public DbSet<DbBolus> DbBoluses { get; set; }
         public DbSet<DbBeamGeometry> DbBeamGeometries { get; set; }
         public DbSet<DbBeam> DbBeams { get; set; }
         public DbSet<DbBeamAlias> DbBeamAliases { get; set; }
@@ -493,7 +494,7 @@ namespace SquintScript
         public int StructureType { get; set; } // target, oar etc.
         public string Code { get; set; }
         public string Designator { get; set; }
-        public virtual ICollection<DbECSID> DbECSID { get; set; }
+        public virtual ICollection<DbProtocolStructure> DbProtocolStructure { get; set; }
         //
         public int? private1 { get; set; }
         public string private2 { get; set; }
@@ -618,6 +619,29 @@ namespace SquintScript
         public virtual DbComponent DbComponent { get; set; }
         public virtual ICollection<DbImaging> Imaging { get; set; }
     }
+
+    public class DbBolus
+    {
+        [Key]
+        public int ID { get; set; }
+        
+        [ForeignKey("DbBeam")]
+        public int BeamId { get; set; }
+
+        public virtual DbBeam DbBeam { get; set; }
+
+
+        [XmlAttribute]
+        public double HU { get; set; } 
+        [XmlAttribute]
+        public double Thickness { get; set; } 
+        [XmlAttribute]
+        public double ToleranceHU { get; set; }
+        [XmlAttribute]
+        public double ToleranceThickness { get; set; } 
+        [XmlAttribute]
+        public int Indication { get; set; }
+    }
     public class DbBeam
     {
         [Key]
@@ -645,6 +669,7 @@ namespace SquintScript
         public double BolusClinicalMaxThickness { get; set; }
         public int VMAT_JawTracking { get; set; }
         public virtual ICollection<DbEnergy> DbEnergies { get; set; }
+        public virtual ICollection<DbBolus> DbBoluses { get; set; }
         public virtual ICollection<DbBeamAlias> DbBeamAliases { get; set; }
         public virtual ICollection<DbBeamGeometry> DbBeamGeometries { get; set; }
     }
@@ -659,18 +684,18 @@ namespace SquintScript
         public virtual DbBeam DbBeam { get; set; }
         public int Trajectory { get; set; }
         public string GeometryName { get; set; }
-        public double MinStartAngle { get; set; } = -1;
-        public double MinEndAngle { get; set; } = -1;
-        public double MaxStartAngle { get; set; } = -1;
-        public double MaxEndAngle { get; set; } = -1;
+        public double StartAngle { get; set; } = -1;
+        public double EndAngle { get; set; } = -1;
+        public double StartAngleTolerance { get; set; } = 1;
+        public double EndAngleTolerance { get; set; } = 1;
     }
     public class DbTreatmentTechnique
     {
         [Key]
         public int ID { get; set; }
         [ForeignKey("DbComponentChecklist")]
-        public int DbComponentChecklistID { get; set; }
-        public virtual DbComponentChecklist DbComponentChecklist { get; set; }
+        public int DbProtocolChecklistId { get; set; }
+        public virtual DbProtocolChecklist DbProtocolChecklist { get; set; }
         public int TreatmentTechniqueType { get; set; }
         public double MinFields { get; set; }
         public double MaxFields { get; set; }
@@ -690,30 +715,30 @@ namespace SquintScript
         public int ID { get; set; }
         public double HU { get; set; }
         public double ToleranceHU { get; set; }
-        [ForeignKey("DbECSID")]
-        public int ECSID_ID { get; set; }
-        public virtual DbECSID DbECSID { get; set; }
-        [ForeignKey("DbComponentChecklist")]
-        public int ComponentChecklistID { get; set; }
-        public virtual DbComponentChecklist DbComponentChecklist { get; set; }
+        [ForeignKey("DbProtocolStructure")]
+        public int ProtocolStructure_ID { get; set; }
+        public virtual DbProtocolStructure DbProtocolStructure { get; set; }
+        [ForeignKey("DbProtocolChecklist")]
+        public int DbProtocolChecklistId { get; set; }
+        public virtual DbProtocolChecklist DbProtocolChecklist { get; set; }
     }
 
     public class DbStructureChecklist
     {
         [Key]
         public int ID { get; set; }
-        public virtual ICollection<DbECSID> DbECSIDs { get; set; }
+        public virtual ICollection<DbProtocolStructure> DbProtocolStructures { get; set; }
         public bool isPointContourChecked { get; set; } = false;
         public double PointContourThreshold { get; set; }
     }
 
-    public class DbComponentChecklist
+    public class DbProtocolChecklist
     {
         [Key]
         public int ID { get; set; }
-        [ForeignKey("DbComponent")]
-        public int ComponentID { get; set; }
-        public virtual DbComponent DbComponent { get; set; }
+        [ForeignKey("DbProtocol")]
+        public int ProtocolID { get; set; }
+        public virtual DbProtocol DbProtocol { get; set; }
         public bool ProtocolDefault { get; set; }
         public int TreatmentTechniqueType { get; set; }
         public double MinFields { get; set; }
@@ -742,11 +767,14 @@ namespace SquintScript
         //Artifacts
         public virtual ICollection<DbArtifact> Artifacts { get; set; }
 
+        //Bolus
+        public virtual ICollection<DbBolus> Boluses { get; set; }
+
 
         // Methods
-        public DbComponentChecklist Clone(DbComponentChecklist DbO)
+        public DbProtocolChecklist Clone(DbProtocolChecklist DbO)
         {
-            var Clone = (DbComponentChecklist)this.MemberwiseClone();
+            var Clone = (DbProtocolChecklist)this.MemberwiseClone();
             Clone.ID = Ctr.IDGenerator();
             return Clone;
         }
@@ -757,9 +785,10 @@ namespace SquintScript
         [Key]
         public int ID { get; set; }
         //FK
+        public virtual ICollection<DbProtocolChecklist> ProtocolChecklists { get; set; }
         public virtual ICollection<DbAssessment> Assessments { get; set; }
         public virtual ICollection<DbComponent> Components { get; set; }
-        public virtual ICollection<DbECSID> ECSIDs { get; set; }
+        public virtual ICollection<DbProtocolStructure> ProtocolStructures { get; set; }
         public virtual ICollection<DbSessionProtocol> SessionProtocols { get; set; }
         [ForeignKey("DbTreatmentSite")]
         public int TreatmentSiteID { get; set; } // Author
@@ -857,7 +886,7 @@ namespace SquintScript
         public virtual ICollection<DbSessionComponent> DbSessionComponents { get; set; }
         public virtual ICollection<DbConstraint> Constraints { get; set; }
         public virtual ICollection<DbComponentImaging> ImagingProtocols { get; set; }
-        public virtual ICollection<DbComponentChecklist> Checklists { get; set; }
+        
         //Properties
         public bool isException { get; set; }
         public int DisplayOrder { get; set; } // the order to display in Squint
@@ -921,12 +950,12 @@ namespace SquintScript
         [ForeignKey("DbComponent")]
         public int ComponentID { get; set; }
         public virtual DbComponent DbComponent { get; set; }
-        [ForeignKey("DbECSID_Primary")]
+        [ForeignKey("DbProtocolStructure_Primary")]
         public int PrimaryStructureID { get; set; } // the primary structure to which this constraint applies
-        public virtual DbECSID DbECSID_Primary { get; set; }
-        [ForeignKey("DbECSID_Secondary")]
+        public virtual DbProtocolStructure DbProtocolStructure_Primary { get; set; }
+        [ForeignKey("DbProtocolStructure_Secondary")]
         public int SecondaryStructureID { get; set; } // the primary structure to which this constraint applies
-        public virtual DbECSID DbECSID_Secondary { get; set; }
+        public virtual DbProtocolStructure DbProtocolStructure_Secondary { get; set; }
         public virtual ICollection<DbConThreshold> DbConThresholds { get; set; }
         public virtual ICollection<DbSessionConstraint> DbSessionConstraints { get; set; }
         public virtual ICollection<DbConstraintChangelog> DbConstraintChangelogs { get; set; }
@@ -1023,7 +1052,7 @@ namespace SquintScript
         public virtual DbBeam DbBeam { get; set; }
         public string EclipseFieldId { get; set; }
     }
-    public class DbECSID
+    public class DbProtocolStructure
     {
         [Key]
         public int ID { get; set; }
@@ -1042,11 +1071,11 @@ namespace SquintScript
         public bool isException { get; set; }
         public int DisplayOrder { get; set; }
         //
-        public virtual ICollection<DbSessionECSID> DbSessionECSIDs { get; set; }
+        public virtual ICollection<DbSessionProtocolStructure> DbSessionProtocolStructures { get; set; }
         public virtual ICollection<DbArtifact> DbArtifacts { get; set; }
     }
 
-    public class DbSessionECSID : DbECSID
+    public class DbSessionProtocolStructure : DbProtocolStructure
     {
         [ForeignKey("DbSession")]
         public int SessionId { get; set; }
@@ -1055,7 +1084,7 @@ namespace SquintScript
         public string AssignedEclipseId { get; set; }
         public string AssignedEclipseLabel { get; set; }
         public string AssignedEclipseStructureSetUID { get; set; }
-        public int ParentECSID_Id { get; set; }
+        public int ParentProtocolStructure_Id { get; set; }
     }
 
     public class DbSession
@@ -1065,7 +1094,7 @@ namespace SquintScript
         [ForeignKey("DbSessionProtocol")]
         public int SessionProtocolId { get; set; }
         public virtual DbSessionProtocol DbSessionProtocol { get; set; }
-        public virtual ICollection<DbSessionECSID> SessionECSIDs { get; set; }
+        public virtual ICollection<DbSessionProtocolStructure> SessionProtocolStructures { get; set; }
         public virtual ICollection<DbSessionComponent> SessionComponents { get; set; }
         public virtual ICollection<DbSessionConstraint> SessionConstraints { get; set; }
         public virtual ICollection<DbAssessment> SessionAssessments { get; set; }

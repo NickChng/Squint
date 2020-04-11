@@ -67,17 +67,16 @@ namespace SquintScript
         }
 
         private readonly AppTaskScheduler m_taskScheduler = new AppTaskScheduler();
-        private Application m_application;
+        private EApp m_application;
         private Patient P = null;
-        private Dictionary<int, PlanSetup> plans = new Dictionary<int, PlanSetup>();
-        private Dictionary<int, PlanSum> plansums = new Dictionary<int, PlanSum>();
+        //private Dictionary<int, PlanSetup> plans = new Dictionary<int, PlanSetup>();
+        //private Dictionary<int, PlanSum> plansums = new Dictionary<int, PlanSum>();
         public bool isInit { get; private set; } = false;
 
         public AsyncESAPI(string username = null, string password = null)
         {
             m_application = Execute(new Func<EApp>(() =>
             {
-                //return EApp.CreateApplication(username, password);
                 return EApp.CreateApplication();
             }));
             isInit = true;
@@ -89,7 +88,7 @@ namespace SquintScript
                 return null;
             if (P != null)
             {
-                Execute(new Action<Application>((application) =>
+                Execute(new Action<EApp>((application) =>
                 {
                     application.ClosePatient();
                     P = null;
@@ -112,7 +111,7 @@ namespace SquintScript
                 return;
             if (P != null)
             {
-                Execute(new Action<Application>((application) =>
+                Execute(new Action<EApp>((application) =>
                 {
                     application.ClosePatient();
                     P = null;
@@ -973,6 +972,8 @@ namespace SquintScript
         public string Code { get; private set; }
         public double HU { get; private set; }
         public bool isEmpty { get; private set; }
+
+        public string Label { get; private set; }
         public AsyncStructure(AsyncESAPI ACurrent, Structure Sin, string SSID, string SSUID)
         {
             A = ACurrent;
@@ -983,7 +984,8 @@ namespace SquintScript
             StructureSetUID = SSUID;
             StructureSetID = SSID;
             Code = S.StructureCodeInfos.FirstOrDefault().Code;
-            S.GetAssignedHU(out double HU_out);
+            double HU_out = Double.NaN;
+            S.GetAssignedHU(out HU_out);
             HU = HU_out;
             DicomType = S.DicomType;
             Volume = S.Volume;

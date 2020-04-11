@@ -40,17 +40,6 @@ namespace SquintScript
             {
                 string debugme = "hi";
             }
-            //StructuresTree.SelectedItemChanged += OnSelectedStructureChanged;
-            //DbUser User = SquintDb.Context.DbUsers.Where(x => x.ARIA_ID == Ctr.SquintUser).SingleOrDefault();
-            //if (User == null) // create new user
-            //{
-            //    MessageBox.Show("User not found, please contact Nick to add you...");
-            //    //User = SquintDb.Context.DbUsers.Create();
-            //    //User.ARIA_ID = Ctr.SquintUser;
-            //    //User.PermissionGroupID = 2; // Dosimetry by default
-            //    //SquintDb.Context.DbUsers.Add(User);
-            //    //SquintDb.Context.SaveChanges();
-            //}
         }
 
         private void OnSelectedStructureChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
@@ -96,19 +85,28 @@ namespace SquintScript
                 {
                     string[] filenames = System.IO.Directory.GetFiles(f.SelectedPath);
                     List<Task> importTasks = new List<Task>();
+                    Task finaltask = new Task(new Action(()=> { }));
                     int count = 0;
                     double total = filenames.Count();
+                    int filecount = 0;
                     foreach (string file in filenames)
                     {
+                        filecount++;
                         string ext = System.IO.Path.GetExtension(file);
                         if (ext == ".xml")
                             try
                             {
-                                count++;
-                                importTasks.Add(Task.Run(() =>
+                                if (filecount == filenames.Count())
+                                    finaltask = Task.Run(() => Ctr.ImportProtocolFromXML(file, true));
+                                else
                                 {
-                                    Ctr.ImportProtocolFromXML(file);
-                                }));
+                                    importTasks.Add(Task.Run(() =>
+                                    {
+                                        Ctr.ImportProtocolFromXML(file, false);
+                                    }
+                                    ));
+                                    count++;
+                                }
                             }
                             catch
                             {
@@ -116,6 +114,7 @@ namespace SquintScript
                             }
                     }
                     await Task.WhenAll(importTasks);
+                    await finaltask;
                 }
                 catch (Exception ex)
                 {
@@ -147,7 +146,7 @@ namespace SquintScript
             {
                 MessageBox.Show(d.FileName.ToString());
             }
-            bool ImportSuccessful = await Task.Run(() => Ctr.ImportProtocolFromXML(d.FileName));
+            bool ImportSuccessful = await Task.Run(() => Ctr.ImportProtocolFromXML(d.FileName, true));
             if (ImportSuccessful)
                 Cursor = Cursors.Arrow;
             else

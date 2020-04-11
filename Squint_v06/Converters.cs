@@ -253,6 +253,43 @@ namespace SquintScript
             throw new NotImplementedException();
         }
     }
+
+    public class VisibilityEditModeConverter : IMultiValueConverter
+    {
+        public object Convert(object[] value, Type targetType,
+               object parameter, System.Globalization.CultureInfo culture)
+        {
+            int? V = value[0] as int?; // is Edit mode visible
+            if (V == null || value[1] == null)
+                return Visibility.Collapsed;
+            else
+            {
+                switch (V)
+                {
+                    case 0:
+                        if (value[1] is TextBlock)
+                            return Visibility.Visible;
+                        else return Visibility.Collapsed;
+                    case 1:
+                        if (value[1] is TextBox)
+                            return Visibility.Visible;
+                        else return Visibility.Collapsed;
+                    case 2:
+                        if (value[1] is ComboBox)
+                            return Visibility.Visible;
+                        else return Visibility.Collapsed;
+                    default:
+                        return Visibility.Collapsed;
+                }
+            }
+        }
+        public object[] ConvertBack(object value, Type[] targetTypes,
+               object parameter, System.Globalization.CultureInfo culture)
+        {
+            throw new NotImplementedException();
+        }
+    }
+
     public class TypeToBooleanConverter : IValueConverter
     {
         public object Convert(object value, Type targetType,
@@ -289,6 +326,27 @@ namespace SquintScript
                     return new SolidColorBrush(Colors.WhiteSmoke);
             }
         }
+        public object ConvertBack(object value, Type targetTypes,
+               object parameter, System.Globalization.CultureInfo culture)
+        {
+            return "";
+        }
+    }
+
+    public class EditModeIconConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType,
+              object parameter, System.Globalization.CultureInfo culture)
+        {
+            if (value != null)
+                if ((bool)value)
+                    return new SolidColorBrush(Colors.PapayaWhip);
+                else
+                    return new SolidColorBrush(Colors.LightSteelBlue);
+            else
+                return new SolidColorBrush(Colors.LightSteelBlue);
+        }
+
         public object ConvertBack(object value, Type targetTypes,
                object parameter, System.Globalization.CultureInfo culture)
         {
@@ -533,10 +591,10 @@ namespace SquintScript
                object parameter, System.Globalization.CultureInfo culture)
         {
             StructureSelector SS = (value[0] as StructureSelector);
-            ObservableCollection<Ctr.EclipseStructure> AvailableStructures = value[1] as ObservableCollection<Ctr.EclipseStructure>;
+            ObservableCollection<string> AvailableStructures = value[1] as ObservableCollection<string>;
             if (SS == null)
             {
-                return AvailableStructures.OrderBy(x => x.Id);
+                return AvailableStructures;
             }
             if (AvailableStructures.Count != 0)
             {
@@ -546,9 +604,9 @@ namespace SquintScript
                     LD[i] = double.PositiveInfinity;
                 }
                 int c = 0;
-                foreach (string S in AvailableStructures.Select(x => x.Id))
+                foreach (string S in AvailableStructures)
                 {
-                    var CurrentId = SS.ES.Id.ToUpper();
+                    var CurrentId = SS.AssignedStructureId.ToUpper();
                     var stripString = S.Replace(@"B_", @"").Replace(@"_", @"").ToUpper();
                     if (CurrentId == "") // if not assigned, use first alias
                     {
@@ -556,7 +614,7 @@ namespace SquintScript
                         {
                             var CompString = Alias.Replace(@"B_", @"").Replace(@"_", @"").ToUpper();
                             double LDist = LevenshteinDistance.Compute(stripString, CompString);
-                            if (stripString.ToUpper().Contains(CompString) && stripString != "" && CompString !="")
+                            if (stripString.ToUpper().Contains(CompString) && stripString != "" && CompString != "")
                                 LDist = Math.Min(LDist, 1.5);
                             LD[c] = Math.Min(LD[c], LDist);
                         }
@@ -571,7 +629,7 @@ namespace SquintScript
                     }
                     c++;
                 }
-                var temp = new ObservableCollection<Ctr.EclipseStructure>(AvailableStructures.Zip(LD, (s, l) => new { key = s, LD = l }).OrderBy(x => x.LD).Select(x => x.key).ToList());
+                var temp = new ObservableCollection<string>(AvailableStructures.Zip(LD, (s, l) => new { key = s, LD = l }).OrderBy(x => x.LD).Select(x => x.key).ToList());
                 return temp;
             }
             else
@@ -723,7 +781,7 @@ namespace SquintScript
                object parameter, System.Globalization.CultureInfo culture)
         {
             StructureSelector V = value as StructureSelector;
-            return string.Format("{0} (Label={1})", V.ES.Id, V.ES.LabelName);
+            return string.Format("{0} (Label={1})", V.AssignedStructureId, V.LabelName);
         }
         public object ConvertBack(object value, Type targetTypes,
                object parameter, System.Globalization.CultureInfo culture)
@@ -887,19 +945,19 @@ namespace SquintScript
         }
     }
 
-    public class RefreshListConverter : IMultiValueConverter
-    {
-        public object Convert(object[] value, Type targetType,
-              object parameter, System.Globalization.CultureInfo culture)
-        {
-            return (value[0] as ConstraintSelector).GetStructureColors;
-        }
+    //public class RefreshListConverter : IMultiValueConverter
+    //{
+    //    public object Convert(object[] value, Type targetType,
+    //          object parameter, System.Globalization.CultureInfo culture)
+    //    {
+    //        return (value[0] as ConstraintSelector).GetStructureColors;
+    //    }
 
-        public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture)
-        {
-            throw new NotImplementedException();
-        }
-    }
+    //    public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture)
+    //    {
+    //        throw new NotImplementedException();
+    //    }
+    //}
 
     public class VisibilityMultiConverter : IMultiValueConverter
     {

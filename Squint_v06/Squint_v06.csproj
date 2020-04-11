@@ -132,8 +132,16 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
-    <Compile Include="Controls\AdminWindow.xaml.cs" />
+    <Compile Include="AdminWindow.xaml.cs" />
     <Compile Include="AsyncESAPI.cs" />
+    <Compile Include="Controls\ChecklistControl.xaml.cs">
+      <DependentUpon>ChecklistControl.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Controls\TestEditView.xaml.cs">
+      <DependentUpon>TestEditView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Interfaces\ITestListItem.cs" />
+    <Compile Include="SquintExtensions.cs" />
     <Compile Include="TrackedValue.cs" />
     <Compile Include="DoseFunctions.cs" />
     <Compile Include="CacheManagement.cs" />
@@ -164,6 +172,8 @@
     <Compile Include="Controls\ObjectiveControl.xaml.cs">
       <DependentUpon>ObjectiveControl.xaml</DependentUpon>
     </Compile>
+    <Compile Include="ViewModelClasses\TestListItems.cs" />
+    <Compile Include="ViewModels\Checklist_ViewModel.cs" />
     <Compile Include="ViewModels\Control_ViewModel.cs" />
     <Compile Include="Controls\SavePopup.xaml.cs">
       <DependentUpon>SavePopup.xaml</DependentUpon>
@@ -187,7 +197,6 @@
     <Compile Include="SquintdBModel.cs" />
     <Compile Include="SquintEclipseProtocol.cs" />
     <Compile Include="SquintEnums.cs" />
-    <Compile Include="SquintModel.cs" />
     <Compile Include="SquintPlanChecks.cs" />
     <Compile Include="SquintProtocol.cs" />
     <Compile Include="SquintProtocolXML.cs" />
@@ -198,11 +207,15 @@
     <Compile Include="WaitWindow.xaml.cs">
       <DependentUpon>WaitWindow.xaml</DependentUpon>
     </Compile>
-    <Page Include="Controls\AdminWindow.xaml">
+    <Page Include="AdminWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
     <Page Include="Controls\BeamCheckView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Controls\ChecklistControl.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -219,6 +232,10 @@
       <SubType>Designer</SubType>
     </Page>
     <Page Include="Controls\StructureCheckView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Controls\TestEditView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -569,9 +586,6 @@
     <Resource Include="Resources\appbar.question.png" />
   </ItemGroup>
   <ItemGroup>
-    <SplashScreen Include="Resources\Squint_splash_v052.png" />
-  </ItemGroup>
-  <ItemGroup>
     <Resource Include="Resources\section_collapse_small.png" />
   </ItemGroup>
   <ItemGroup>
@@ -579,6 +593,12 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="ConstraintProperties\" />
+  </ItemGroup>
+  <ItemGroup>
+    <SplashScreen Include="Resources\SquintSplash_v06.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\edit_trans.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="..\packages\Fody.3.3.2\build\Fody.targets" Condition="Exists('..\packages\Fody.3.3.2\build\Fody.targets')" />

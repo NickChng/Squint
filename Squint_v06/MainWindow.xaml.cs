@@ -68,18 +68,8 @@ namespace SquintScript
         }
 
         public int counter = 0;
-   
-        //private void TreeViewItem_Selected(object sender, RoutedEventArgs e)
-        //{
-        //    TreeViewItem tvi = e.OriginalSource as TreeViewItem;
 
-        //    if (tvi == null || e.Handled) return;
-
-        //    tvi.IsExpanded = !tvi.IsExpanded;
-        //    e.Handled = true;
-        //}
-
-        private void ScrollViewer_PreviewMouseWheel(object sender, MouseWheelEventArgs e)
+              private void ScrollViewer_PreviewMouseWheel(object sender, MouseWheelEventArgs e)
         {
             ScrollViewer scv = (ScrollViewer)sender;
             scv.ScrollToVerticalOffset(scv.VerticalOffset - e.Delta);
@@ -114,7 +104,7 @@ namespace SquintScript
                             count++;
                             importTasks.Add(Task.Run(() =>
                             {
-                                Ctr.ImportProtocolFromXML(file);
+                                Ctr.ImportProtocolFromXML(file, false);
                             }));
                         }
                         catch
@@ -147,7 +137,7 @@ namespace SquintScript
             {
                 MessageBox.Show(d.FileName.ToString());
             }
-            bool ImportSuccessful = await Task.Run(() => Ctr.ImportProtocolFromXML(d.FileName));
+            bool ImportSuccessful = await Task.Run(() => Ctr.ImportProtocolFromXML(d.FileName, true));
             if (ImportSuccessful)
                 Cursor = Cursors.Arrow;
             else

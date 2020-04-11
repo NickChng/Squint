@@ -24,19 +24,10 @@ namespace SquintScript
             public int ID { get; set; }
             public ImagingProtocols Type { get; set; }
         }
-        public class Protocol : INotifyPropertyChanged
+        public class Protocol
         {
             //Required notification class
-            public event PropertyChangedEventHandler PropertyChanged;
-            private void NotifyPropertyChanged([CallerMemberName] String propertyName = "")
-            {
-                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-            }
-            //Events
-            public event EventHandler ProtocolNameChanged;
-            public event EventHandler NewProtocolCommitting;
-            public event EventHandler ProtocolUpdated;
-            public event EventHandler ProtocolClosed;
+            //public event PropertyChangedEventHandler PropertyChanged;
             public class ProtocolArgs : EventArgs
             {
                 public object Value;
@@ -58,6 +49,9 @@ namespace SquintScript
                 TreatmentCentre = (TreatmentCentres)DbO.DbTreatmentCentre.TreatmentCentre;
                 TreatmentSite = (TreatmentSites)DbO.DbTreatmentSite.TreatmentSite;
                 TreatmentIntent = (TreatmentIntents)DbO.TreatmentIntent;
+                var DbChecklist = DbO.ProtocolChecklists.FirstOrDefault();
+                if (DbChecklist != null)
+                    Checklist = new ProtocolChecklist(DbChecklist);
             }
             //Properties
             public int ID { get; private set; }
@@ -79,6 +73,8 @@ namespace SquintScript
             public double PNVMax { get; set; }
             public double SliceSpacing { get; set; }
             public bool HeterogeneityOn { get; set; }
+
+            public ProtocolChecklist Checklist { get; set; }
 
         }
         public class Session
@@ -325,16 +321,9 @@ namespace SquintScript
                         break;
                     default:
                         var test = ID;
-                        UpdateOnEvaluatedPropertyChange(propertyName);
+                        //UpdateOnEvaluatedPropertyChange(propertyName);
                         break;
                 }
-            }
-            private async void UpdateOnEvaluatedPropertyChange(string propertyName)
-            {
-
-                foreach (int SA_ID in new List<int>(RegisteredAssessmentIDs)) // new list created to avoid user chaning the list while constraints being calculated
-                    if (DataCache.GetAssessment(SA_ID).AutoCalculate)
-                        await Task.Run(() => EvaluateConstraint(DataCache.GetAssessment(SA_ID))); // this has to be awaited so the while loop doesn't lock up the UI thread
             }
             public Constraint(DbConstraint DbO)
             {
@@ -347,22 +336,31 @@ namespace SquintScript
                 {
                     _PrimaryStructureID = new TrackedValue<int>(DbOS.OriginalPrimaryStructureID);
                     PrimaryStructureID = DbOS.PrimaryStructureID;
+                    _PrimaryStructureID.AcceptChanges(); // Don't flag new ID as a change;
                     _SecondaryStructureID = new TrackedValue<int>(DbOS.OriginalSecondaryStructureID);
                     SecondaryStructureID = DbOS.SecondaryStructureID;
+                    _SecondaryStructureID.AcceptChanges();
                     _ConstraintType = new TrackedValue<ConstraintTypeCodes>((ConstraintTypeCodes)DbOS.OriginalConstraintType);
-                    ConstraintType = (ConstraintTypeCodes)DbOS.ConstraintType;
+                    if (DbOS.ConstraintType != DbOS.OriginalConstraintType)
+                        ConstraintType = (ConstraintTypeCodes)DbOS.ConstraintType;
                     _ReferenceValue = new TrackedValueWithReferences<double>(DbOS.OriginalReferenceValue);
-                    _ReferenceValue.Value = DbO.ReferenceValue;
+                    if (DbOS.ReferenceValue != DbOS.OriginalReferenceValue)
+                        _ReferenceValue.Value = DbO.ReferenceValue;
                     _ReferenceType = new TrackedValue<ReferenceTypes>((ReferenceTypes)DbOS.OriginalReferenceType);
-                    ReferenceType = (ReferenceTypes)DbOS.ReferenceType;
+                    if (DbOS.ReferenceType != DbOS.OriginalReferenceType)
+                        ReferenceType = (ReferenceTypes)DbOS.ReferenceType;
                     _ReferenceScale = new TrackedValue<UnitScale>((UnitScale)DbOS.OriginalReferenceScale);
-                    ReferenceScale = (UnitScale)DbOS.ReferenceScale;
+                    if (DbOS.ReferenceScale != DbOS.OriginalReferenceScale)
+                        ReferenceScale = (UnitScale)DbOS.ReferenceScale;
                     _ConstraintValue = new TrackedValue<double>(DbOS.OriginalConstraintValue);
-                    ConstraintValue = DbO.ConstraintValue;
+                    if (DbOS.ConstraintValue != DbOS.OriginalConstraintValue)
+                        ConstraintValue = DbO.ConstraintValue;
                     _NumFractions = new TrackedValue<int>(DbOS.OriginalNumFractions);
-                    NumFractions = DbOS.Fractions;
+                    if (DbOS.Fractions != DbOS.OriginalNumFractions)
+                        NumFractions = DbOS.Fractions;
                     _ConstraintScale = new TrackedValue<UnitScale>((UnitScale)DbOS.OriginalConstraintScale);
-                    ConstraintScale = (UnitScale)DbOS.ConstraintScale;
+                    if (DbOS.ConstraintScale != DbOS.OriginalConstraintScale)
+                        ConstraintScale = (UnitScale)DbOS.ConstraintScale;
                 }
                 else
                 {
@@ -378,19 +376,19 @@ namespace SquintScript
                     DisplayOrder = new TrackedValue<int>(DbO.DisplayOrder);
                 }
 
-                var ECSID = DataCache.GetECSID(DbO.PrimaryStructureID);
-                if (ECSID == null)
+                var ProtocolStructure = DataCache.GetProtocolStructure(DbO.PrimaryStructureID);
+                if (ProtocolStructure == null)
                 {
-                    throw new Exception("Referenced ECSID is not present in cache (Constraint constructor)");
+                    throw new Exception("Referenced ProtocolStructure is not present in cache (Constraint constructor)");
                 }
                 else
                 {
-                    ECSID.PropertyChanged += OnECSIDChanged;
+                    ProtocolStructure.PropertyChanged += OnProtocolStructureChanged;
                 }
                 var SC = DataCache.GetComponent(DbO.ComponentID);
                 if (SC == null)
                 {
-                    throw new Exception("Referenced ECSID is not present in cache (Constraint constructor)");
+                    throw new Exception("Referenced ProtocolStructure is not present in cache (Constraint constructor)");
                 }
                 else
                 {
@@ -410,23 +408,24 @@ namespace SquintScript
                 _ConstraintValue = new TrackedValue<double>(0);
                 _NumFractions = new TrackedValue<int>(SC.NumFractions);
                 _PrimaryStructureID = new TrackedValue<int>(StructureId);
+                _ReferenceType = new TrackedValue<ReferenceTypes>(ReferenceTypes.Unset);
                 _ConstraintType = new TrackedValue<ConstraintTypeCodes>(TypeCode);
                 _ReferenceValue = new TrackedValueWithReferences<double>(0);
                 _SecondaryStructureID = new TrackedValue<int>(1);
                 _ReferenceScale = new TrackedValue<UnitScale>(UnitScale.Unset);
                 DisplayOrder = DataCache.GetAllConstraints().Select(x => x.DisplayOrder).Max();
-                var ECSID = DataCache.GetECSID(PrimaryStructureID);
-                if (ECSID == null)
+                var ProtocolStructure = DataCache.GetProtocolStructure(PrimaryStructureID);
+                if (ProtocolStructure == null)
                 {
-                    throw new Exception("Referenced ECSID is not present in cache (Constraint constructor)");
+                    throw new Exception("Referenced ProtocolStructure is not present in cache (Constraint constructor)");
                 }
                 else
                 {
-                    ECSID.PropertyChanged += OnECSIDChanged;
+                    ProtocolStructure.PropertyChanged += OnProtocolStructureChanged;
                 }
                 if (SC == null)
                 {
-                    throw new Exception("Referenced ECSID is not present in cache (Constraint constructor)");
+                    throw new Exception("Referenced ProtocolStructure is not present in cache (Constraint constructor)");
                 }
                 else
                 {
@@ -452,22 +451,21 @@ namespace SquintScript
                 ReferenceScale = Con.ReferenceScale;
                 DisplayOrder = new TrackedValue<int>(Con.DisplayOrder.Value + 1);
 
-                var ECSID = DataCache.GetECSID(PrimaryStructureID);
-                if (ECSID == null)
+                var ProtocolStructure = DataCache.GetProtocolStructure(PrimaryStructureID);
+                if (ProtocolStructure == null)
                 {
-                    throw new Exception("Referenced ECSID is not present in cache (Constraint constructor)");
+                    throw new Exception("Referenced ProtocolStructure is not present in cache (Constraint constructor)");
                 }
                 else
                 {
-                    ECSID.PropertyChanged += OnECSIDChanged;
+                    ProtocolStructure.PropertyChanged += OnProtocolStructureChanged;
                 }
                 if (SC == null)
                 {
-                    throw new Exception("Referenced ECSID is not present in cache (Constraint constructor)");
+                    throw new Exception("Referenced ProtocolStructure is not present in cache (Constraint constructor)");
                 }
                 else
                 {
-
                     SC.ReferenceDoseChanged += OnComponentDoseChanging;
                     SC.ReferenceFractionsChanged += OnComponentFractionsChanging;
                 }
@@ -483,7 +481,7 @@ namespace SquintScript
                 //DataCache.SquintDb.Context.DbConstraints.Add(_DbO);
                 //_DbO.ID = Ctr.IDGenerator();
                 //_DbO.SecondaryStructureID = 1; // temp.. need to set this for Eclipse CI
-                //_DbO.PrimaryStructureID = ECSIDs.Values.Where(x => x.EclipseStructureName == Item.ID).SingleOrDefault().ID;
+                //_DbO.PrimaryStructureID = ProtocolStructures.Values.Where(x => x.EclipseStructureName == Item.ID).SingleOrDefault().ID;
                 //bool setThreshold = true;
                 //if (Item.Dose == null)
                 //{
@@ -579,16 +577,16 @@ namespace SquintScript
                 //    ConstraintThreshold newCT = new ConstraintThreshold(MajorViolation, _DbO.ID, _DbO.ReferenceValue);
                 //}
                 //Component SC = Components[_DbO.ComponentID];
-                //ECSID ECSID_DvH = ECSIDs.Values.Where(x => x.ID == _DbO.PrimaryStructureID && x.ProtocolID == DataCache.CurrentProtocol.ID).SingleOrDefault();
-                //ECSID_DvH.NewECSIDCommitting += OnNewECSIDChanged_Primary;
-                //ECSID_DvH.ECSIDDeleting += OnECSIDDeleting_Primary;
-                //ECSID_DvH.ECSIDChanged += OnECSIDChanged;
+                //ProtocolStructure ProtocolStructure_DvH = ProtocolStructures.Values.Where(x => x.ID == _DbO.PrimaryStructureID && x.ProtocolID == DataCache.CurrentProtocol.ID).SingleOrDefault();
+                //ProtocolStructure_DvH.NewProtocolStructureCommitting += OnNewProtocolStructureChanged_Primary;
+                //ProtocolStructure_DvH.ProtocolStructureDeleting += OnProtocolStructureDeleting_Primary;
+                //ProtocolStructure_DvH.ProtocolStructureChanged += OnProtocolStructureChanged;
                 //if (_DbO.SecondaryStructureID != 1)
                 //{
-                //    ECSID ECSID_CI = ECSIDs.Values.Where(x => x.ID == _DbO.SecondaryStructureID && x.ProtocolID == DataCache.CurrentProtocol.ID).SingleOrDefault();
-                //    ECSID_CI.NewECSIDCommitting += OnNewECSIDChanged_Secondary;
-                //    ECSID_CI.ECSIDDeleting += OnECSIDDeleting_Secondary;
-                //    ECSID_CI.ECSIDChanged += OnECSIDChanged;
+                //    ProtocolStructure ProtocolStructure_CI = ProtocolStructures.Values.Where(x => x.ID == _DbO.SecondaryStructureID && x.ProtocolID == DataCache.CurrentProtocol.ID).SingleOrDefault();
+                //    ProtocolStructure_CI.NewProtocolStructureCommitting += OnNewProtocolStructureChanged_Secondary;
+                //    ProtocolStructure_CI.ProtocolStructureDeleting += OnProtocolStructureDeleting_Secondary;
+                //    ProtocolStructure_CI.ProtocolStructureChanged += OnProtocolStructureChanged;
                 //}
                 //SC.ComponentDeleted += OnComponentDeleted;
                 //SC.ReferenceDoseChanged += OnComponentDoseChanging;
@@ -609,7 +607,7 @@ namespace SquintScript
                 //DataCache.SquintDb.Context.DbConstraints.Add(_DbO);
                 //_DbO.ID = IDGenerator();
                 //_DbO.SecondaryStructureID = 1; // temp.. need to set this for Eclipse CI
-                //_DbO.PrimaryStructureID = ECSIDs.Values.Where(x => x.EclipseStructureName.ToUpper() == MI.ID.ToUpper()).SingleOrDefault().ID;
+                //_DbO.PrimaryStructureID = ProtocolStructures.Values.Where(x => x.EclipseStructureName.ToUpper() == MI.ID.ToUpper()).SingleOrDefault().ID;
                 //if (MI.ReportDQPValueInAbsoluteUnits)
                 //    _DbO.ReferenceScale = (int)UnitScale.Absolute;
                 //else
@@ -689,16 +687,16 @@ namespace SquintScript
                 //    ConstraintThreshold newCT = new ConstraintThreshold(MajorViolation, _DbO.ID, _DbO.ReferenceValue);
                 //}
                 //Component SC = Components[_DbO.ComponentID];
-                //ECSID ECSID_DvH = ECSIDs.Values.Where(x => x.ID == _DbO.PrimaryStructureID && x.ProtocolID == DataCache.CurrentProtocol.ID).SingleOrDefault();
-                //ECSID_DvH.NewECSIDCommitting += OnNewECSIDChanged_Primary;
-                //ECSID_DvH.ECSIDDeleting += OnECSIDDeleting_Primary;
-                //ECSID_DvH.ECSIDChanged += OnECSIDChanged;
+                //ProtocolStructure ProtocolStructure_DvH = ProtocolStructures.Values.Where(x => x.ID == _DbO.PrimaryStructureID && x.ProtocolID == DataCache.CurrentProtocol.ID).SingleOrDefault();
+                //ProtocolStructure_DvH.NewProtocolStructureCommitting += OnNewProtocolStructureChanged_Primary;
+                //ProtocolStructure_DvH.ProtocolStructureDeleting += OnProtocolStructureDeleting_Primary;
+                //ProtocolStructure_DvH.ProtocolStructureChanged += OnProtocolStructureChanged;
                 //if (_DbO.SecondaryStructureID != 1)
                 //{
-                //    ECSID ECSID_CI = ECSIDs.Values.Where(x => x.ID == _DbO.SecondaryStructureID && x.ProtocolID == DataCache.CurrentProtocol.ID).SingleOrDefault();
-                //    ECSID_CI.NewECSIDCommitting += OnNewECSIDChanged_Secondary;
-                //    ECSID_CI.ECSIDDeleting += OnECSIDDeleting_Secondary;
-                //    ECSID_CI.ECSIDChanged += OnECSIDChanged;
+                //    ProtocolStructure ProtocolStructure_CI = ProtocolStructures.Values.Where(x => x.ID == _DbO.SecondaryStructureID && x.ProtocolID == DataCache.CurrentProtocol.ID).SingleOrDefault();
+                //    ProtocolStructure_CI.NewProtocolStructureCommitting += OnNewProtocolStructureChanged_Secondary;
+                //    ProtocolStructure_CI.ProtocolStructureDeleting += OnProtocolStructureDeleting_Secondary;
+                //    ProtocolStructure_CI.ProtocolStructureChanged += OnProtocolStructureChanged;
                 //}
                 //SC.ComponentDeleted += OnComponentDeleted;
                 //SC.ReferenceDoseChanged += OnComponentDoseChanging;
@@ -756,7 +754,7 @@ namespace SquintScript
                 }
             }
             private TrackedValue<int> _NumFractions;
-            public int NumFractions { get { return _NumFractions.Value; } set { _NumFractions.Value = value; } }
+            public int NumFractions { get { return _NumFractions.Value; } private set { _NumFractions.Value = value; } }
             private TrackedValue<int> _ComponentID;
             public int ComponentID { get { return _ComponentID.Value; } set { _ComponentID.Value = value; } }
             public string ComponentName { get { return DataCache.GetComponent(ComponentID).ComponentName; } }
@@ -810,21 +808,21 @@ namespace SquintScript
             {
                 get
                 {
-                    var E = DataCache.GetECSID(PrimaryStructureID);
+                    var E = DataCache.GetProtocolStructure(PrimaryStructureID);
                     if (E != null)
                         return E.ProtocolStructureName;
                     else
                         return "Cannot find referenced structure";
                 }
             }
-
             public string PrimaryStructureName
             {
                 get
                 {
-                    var E = DataCache.GetECSID(PrimaryStructureID);
+
+                    var E = DataCache.GetProtocolStructure(PrimaryStructureID);
                     if (E != null)
-                        return E.EclipseStructureName;
+                        return E.AssignedStructureId;
                     else
                         return "Cannot find referenced structure";
                 }
@@ -956,7 +954,7 @@ namespace SquintScript
             public string GetRefStructureName()
             {
                 if (SecondaryStructureID != 1)
-                    return DataCache.GetECSID(SecondaryStructureID).ProtocolStructureName;
+                    return DataCache.GetProtocolStructure(SecondaryStructureID).ProtocolStructureName;
                 else
                     return @"(ID not set)";
             }
@@ -1195,7 +1193,7 @@ namespace SquintScript
             private void ApplyBEDScaling()
             {
                 Component SC = DataCache.GetComponent(ComponentID);
-                ECSID E = DataCache.GetECSID(PrimaryStructureID);
+                ProtocolStructure E = DataCache.GetProtocolStructure(PrimaryStructureID);
                 double abRatio = DataCache.GetStructureLabel(E.StructureLabelID).AlphaBetaRatio;
                 if (abRatio > 0)
                 {
@@ -1267,7 +1265,12 @@ namespace SquintScript
                 SA.ComponentAssociationChange += OnComponentAssociationChanged;
                 SA.ComponentUnlinked += OnComponentUnlinked;
                 SA.PlanMappingChanged += OnPlanMappingChanged;
+                SA.AssessmentDeleted += OnAssessmentDeleted;
                 RegisteredAssessmentIDs.Add(SA.ID);
+            }
+            private void OnAssessmentDeleted(object sender, int AssessmentID)
+            {
+                RegisteredAssessmentIDs.Remove(AssessmentID);
             }
             public void OnComponentUnlinked(object sender, int ComponentID)
             {
@@ -1280,8 +1283,8 @@ namespace SquintScript
                 Assessment SA = (sender as Assessment);
                 if (ComponentID == ChangedComponentID)
                 {
-                    if (SA.AutoCalculate)
-                        await Task.Run(() => EvaluateConstraint(SA));
+                    // if (SA.AutoCalculate)
+                    //await EvaluateConstraint(SA);
                 }
             }
             public async void OnPlanMappingChanged(object sender, int ChangedComponentID)
@@ -1290,32 +1293,41 @@ namespace SquintScript
                 string.Format("{0}", ID);
                 if (ComponentID == ChangedComponentID)
                 {
-                    if (SA.AutoCalculate)
-                        await Task.Run(() => EvaluateConstraint(SA));
+                    // if (SA.AutoCalculate)
+                    //await Task.Run(() => EvaluateConstraint(SA));
                     //await EvaluateConstraint(SA);
                 }
             }
-            public async Task EvaluateConstraint(Assessment SA)
+            public async Task EvaluateConstraint()
+            {
+                foreach (int AssessmentId in RegisteredAssessmentIDs)
+                {
+                    await EvaluateConstraint(AssessmentId);
+                }
+            }
+            public async Task EvaluateConstraint(int AssessmentId)
             {
                 try
                 {
                     ConstraintResult CR = null;
-                    lock (Ctr.LockConstraint)
+                    var SA = DataCache.GetAssessment(AssessmentId);
+                    //lock (Ctr.LockConstraint)
+                    //{
+                    if (ConstraintResults.ContainsKey(SA.ID))
+                        CR = ConstraintResults[SA.ID];
+                    if (CR == null)
                     {
-                        if (ConstraintResults.ContainsKey(SA.ID))
-                            CR = ConstraintResults[SA.ID];
-                        if (CR == null)
-                        {
-                            CR = new ConstraintResult(SA.ID, ID);
-                            ConstraintResults.Add(SA.ID, CR);
-                        }
+                        CR = new ConstraintResult(SA.ID, ID);
+                        ConstraintResults.Add(SA.ID, CR);
                     }
-                    lock (CR.LockSimultaneousEvaluation)
-                    {
-                        while (CR.isCalculating) // wait for any other threads using this constraint to finish
-                            Thread.Sleep(100);
-                        CR.isCalculating = true; // this locks any other threads from passing this point if the UI invokes an update
-                    }
+                    CR.isCalculating = true;
+                    //}
+                    //lock (CR.LockSimultaneousEvaluation)
+                    //{
+                    //    while (CR.isCalculating) // wait for any other threads using this constraint to finish
+                    //        Thread.Sleep(100);
+                    //    CR.isCalculating = true; // this locks any other threads from passing this point if the UI invokes an update
+                    //}
                     CR.ClearStatusCodes();
                     if (!isValid())
                     {
@@ -1349,7 +1361,7 @@ namespace SquintScript
 
                         return;
                     }
-                    string targetId = DataCache.GetECSID(PrimaryStructureID).EclipseStructureName;
+                    string targetId = DataCache.GetProtocolStructure(PrimaryStructureID).AssignedStructureId;
                     DoseValue doseQuery; // = new DoseValue(Dvh_Val, DoseValue.DoseUnit.Percent); // set a default
                     double rawresult = double.NaN;
                     Component comp = DataCache.GetComponent(ComponentID);
@@ -1379,7 +1391,7 @@ namespace SquintScript
                         CR.LinkedLabelName = DataCache.GetLabelByCode(p.Structures[targetId].Code);
                     // Constraint is evaluable
                     ConstraintEvaluating?.Raise(new ConstraintResultView(CR), SA.ID); // this notifies the view class, no need to raise to UI
-                    if ((p.Structures[targetId].Code != DataCache.GetStructureCode(DataCache.GetECSID(PrimaryStructureID).StructureLabelID)))
+                    if ((p.Structures[targetId].Code != DataCache.GetStructureCode(DataCache.GetProtocolStructure(PrimaryStructureID).StructureLabelID)))
                     {
                         CR.AddStatusCode(ConstraintResultStatusCodes.LabelMismatch);
                     }
@@ -1471,7 +1483,7 @@ namespace SquintScript
                             }
                             break;
                         case ConstraintTypeCodes.CI:
-                            string refStructId = DataCache.GetECSID(SecondaryStructureID).EclipseStructureName;
+                            string refStructId = DataCache.GetProtocolStructure(SecondaryStructureID).AssignedStructureId;
                             bool refStructExists = p.StructureIds.Contains(refStructId);
                             if (refStructExists)
                             {
@@ -1818,15 +1830,23 @@ namespace SquintScript
             }
             public void Delete()
             {
+                foreach (int SAId in RegisteredAssessmentIDs)
+                {
+                    var SA = DataCache.GetAssessment(SAId);
+                    SA.ComponentAssociationChange -= OnComponentAssociationChanged;
+                    SA.ComponentUnlinked -= OnComponentUnlinked;
+                    SA.PlanMappingChanged -= OnPlanMappingChanged;
+                    SA.AssessmentDeleted -= OnAssessmentDeleted;
+                }
                 ConstraintDeleted?.Invoke(this, ID);
             }
-            private void OnECSIDChanged(object sender, PropertyChangedEventArgs e)
+            private void OnProtocolStructureChanged(object sender, PropertyChangedEventArgs e)
             {
                 switch (e.PropertyName)
                 {
                     case "ES":
                         {
-                            if ((sender as ECSID).ID == PrimaryStructureID)
+                            if ((sender as ProtocolStructure).ID == PrimaryStructureID)
                                 NotifyPropertyChanged("PrimaryStructureName");
                             else
                                 NotifyPropertyChanged("SecondaryStructureName");
@@ -1960,26 +1980,38 @@ namespace SquintScript
             {
                 RefHU = DbA.HU;
                 ToleranceHU = DbA.ToleranceHU;
-                E = DataCache.GetECSID(DbA.DbECSID.ID);
+                E = DataCache.GetProtocolStructure(DbA.DbProtocolStructure.ID);
             }
             public double RefHU { get; set; }
             public double ToleranceHU { get; set; }
-            public double CheckHU
-            {
-                get
-                {
-                    return E.AssignedHU;
-                }
-            }
-            public ECSID E { get; set; }
+            public ProtocolStructure E { get; set; }
         }
         [AddINotifyPropertyChangedInterface]
-        public class ComponentChecklist
+        public class BolusDefinition
         {
-            public ComponentChecklist(DbComponentChecklist DbO)
+            public BolusDefinition(DbBolus DbB)
+            {
+                HU = DbB.HU;
+                Thickness = DbB.Thickness;
+                ToleranceThickness = DbB.ToleranceThickness;
+                ToleranceHU = DbB.ToleranceHU;
+                Indication = (ParameterOptions)DbB.Indication;
+
+            }
+            public double HU { get; set; }
+            public double Thickness { get; set; }
+            public ParameterOptions Indication { get; set; }
+            public double ToleranceThickness { get; set; }
+            public double ToleranceHU { get; set; }
+        }
+
+        [AddINotifyPropertyChangedInterface]
+        public class ProtocolChecklist
+        {
+            public ProtocolChecklist(DbProtocolChecklist DbO)
             {
                 ID = DbO.ID;
-                ComponentID = DbO.ComponentID;
+                ProtocolId = DbO.ProtocolID;
                 TreatmentTechniqueType = (TreatmentTechniques)DbO.TreatmentTechniqueType;
                 MinFields = DbO.MinFields;
                 MaxFields = DbO.MaxFields;
@@ -2007,10 +2039,16 @@ namespace SquintScript
                     Artifact A = new Artifact(DbA);
                     Artifacts.Add(A);
                 }
+                foreach (DbBolus DbB in DbO.Boluses)
+                {
+                    BolusDefinition B = new BolusDefinition(DbB);
+                    Boluses.Add(B);
+                }
+
             }
 
             public int ID { get; set; }
-            public int ComponentID { get; set; }
+            public int ProtocolId { get; set; }
             public TreatmentTechniques TreatmentTechniqueType { get; set; }
             public double MinFields { get; set; }
             public double MaxFields { get; set; }
@@ -2035,10 +2073,8 @@ namespace SquintScript
             public ParameterOptions SupportIndication { get; set; }
             public double CouchSurface { get; set; }
             public double CouchInterior { get; set; }
-            public ParameterOptions BolusClinicalIndication { get; set; }
-            public double BolusClinicalHU { get; set; }
-            public double BolusClinicalThickness { get; set; }
             public List<Artifact> Artifacts { get; set; } = new List<Artifact>();
+            public List<BolusDefinition> Boluses { get; set; } = new List<BolusDefinition>();
         }
         [AddINotifyPropertyChangedInterface]
         public class Component : INotifyPropertyChanged
@@ -2059,7 +2095,6 @@ namespace SquintScript
                 NumFractions = SC.NumFractions;
                 ReferenceDose = SC.ReferenceDose;
                 DisplayOrder = SC.DisplayOrder;
-                Checklist = SC.Checklist;
             }
             public Component(DbComponent DbO)
             {
@@ -2087,11 +2122,11 @@ namespace SquintScript
                     DisplayOrder = 1;
                 ProtocolID = DataCache.CurrentProtocol.ID;
             }
-            public event EventHandler ComponentChanged;
+            //public event EventHandler ComponentChanged;
             public event EventHandler<int> ComponentDeleted;
-            public event EventHandler ComponentExceptionLoaded;
-            public event EventHandler NewComponentCommitting;
-            public event EventHandler NewComponentCommitted;
+            //public event EventHandler ComponentExceptionLoaded;
+            //public event EventHandler NewComponentCommitting;
+            //public event EventHandler NewComponentCommitted;
             public event EventHandler<double> ReferenceDoseChanged;
             public event EventHandler ReferenceFractionsChanged;
             public class ComponentArgs : EventArgs
@@ -2152,8 +2187,7 @@ namespace SquintScript
             {
                 return DataCache.GetBeams(ID);
             }
-            public ComponentChecklist Checklist { get; set; }
-            private Dictionary<int, EventHandler> HandlerRegister = new Dictionary<int, EventHandler>();
+            //private Dictionary<int, EventHandler> HandlerRegister = new Dictionary<int, EventHandler>();
             //public List<Constituent> GetConstituents()
             //{
             //    // includes ones flagged as deleted
@@ -2235,9 +2269,6 @@ namespace SquintScript
                 SquintUser = Ctr.SquintUser;
             }
             public int DisplayOrder { get; set; } = 0;
-            public bool AutoCalculate { get; set; } = true;
-            private const double binWidthRel = 0.01;
-            private const double binWidthAbs = 0.01;
             public int ID { get; private set; }
             public int ProtocolID { get; private set; }
             public string PID { get; private set; }
@@ -2397,7 +2428,7 @@ namespace SquintScript
             public ECPlan(DbPlan DbO)
             {
                 ID = DbO.ID;
-                LinkedPlan = DataCache.GetAsyncPlan(DbO.PlanName, DbO.CourseName, (ComponentTypes)DbO.PlanType);
+                UpdateLinkedPlan(DataCache.GetAsyncPlan(DbO.PlanName, DbO.CourseName, (ComponentTypes)DbO.PlanType), false);
                 if (LinkedPlan == null)
                 {
                     LoadWarning = true;
@@ -2416,14 +2447,57 @@ namespace SquintScript
             public ECPlan(AsyncPlan p, int AssessmentID_in, int ComponentID_in)
             {
                 ID = Ctr.IDGenerator();
-                LinkedPlan = p;
-                //if (p.PlanType == ComponentTypes.Plan)
+                UpdateLinkedPlan(p, false);
                 AssessmentID = AssessmentID_in;
                 ComponentID = ComponentID_in;
                 DataCache.GetComponent(ComponentID).PropertyChanged += OnComponentPropertyChanged;
             }
-            public AsyncPlan LinkedPlan { get; set; }
-            //public DateTime RefreshTime { get; set; }
+            public AsyncPlan LinkedPlan { get; private set; }
+            public string PlanId { get; private set; } // deliberately don't reference these as the reference gets lost on a resync
+
+            public string PlanUID { get; private set; }
+            public string CourseId { get; private set; }
+            public string StructureSetId { get; private set; }
+            public string StructureSetUID { get; private set; }
+            public DateTime LastModified { get; private set; }
+            public string LastModifiedBy { get; private set; }
+            public async void UpdateLinkedPlan(AsyncPlan p, bool ClearWarnings)
+            {
+                bool Changed = true;
+                if (ClearWarnings) // only want to do this if Reassociation is done by user
+                {
+                    LoadWarning = false;
+                    LoadWarningString = "";
+                }
+                LinkedPlan = p;
+                if (p != null)
+                {
+                    PlanId = p.Id;
+                    CourseId = p.Course.Id;
+                    PlanUID = p.UID;
+                    StructureSetId = p.StructureSetId;
+                    StructureSetUID = p.StructureSetUID;
+                    var prevLastMod = LastModified;
+                    LastModified = p.HistoryDateTime;
+                    LastModifiedBy = await p.GetLastModifiedDBy();
+                    Changed = prevLastMod != LastModified;
+                }
+                else
+                {
+                    PlanId = "Not Linked";
+                    PlanUID = "Not Linked";
+                    CourseId = "Not Linked";
+                    StructureSetId = "Not Linked";
+                    StructureSetUID = "Not Linked";
+                    LastModifiedBy = "Not Linked";
+                    LastModified = DateTime.MinValue;
+
+                }
+                if (Changed)
+                    PlanMappingChanged?.Invoke(this, ComponentID);
+
+                ValidateComponentAssociations();
+            }
             public bool LoadWarning { get; private set; } = false;
             public string LoadWarningString { get; private set; } = "";
             public string PID { get; private set; }
@@ -2446,26 +2520,6 @@ namespace SquintScript
                 {
                     if (LinkedPlan != null)
                         return LinkedPlan.UID;
-                    else
-                        return "";
-                }
-            }
-            public string PlanName
-            {
-                get
-                {
-                    if (LinkedPlan != null)
-                        return LinkedPlan.Id;
-                    else
-                        return "";
-                }
-            }
-            public string CourseName
-            {
-                get
-                {
-                    if (LinkedPlan != null)
-                        return LinkedPlan.Course.Id;
                     else
                         return "";
                 }
@@ -2501,32 +2555,11 @@ namespace SquintScript
                 get { if (LinkedPlan != null) return true; else return false; }
             }
             //methods
-            public System.Windows.Media.Color? GetStructureColor(string Id)
-            {
-                if (!Linked)
-                    return null;
-                if (LinkedPlan.Structures.ContainsKey(Id))
-                    return LinkedPlan.Structures[Id].Color;
-                else
-                    return null;
-            }
             public List<ComponentStatusCodes> GetErrorCodes()
             {
                 return ValidateComponentAssociations();
             }
-            public void Reassociate(AsyncPlan p, bool ClearWarnings)
-            {
-                if (ClearWarnings) // only want to do this if Reassociation is done by user
-                {
-                    LoadWarning = false;
-                    LoadWarningString = "";
-                }
-                LinkedPlan = p;
-                PlanMappingChanged?.Invoke(this, ComponentID);
-                if (p == null)
-                    return;
-                ValidateComponentAssociations();
-            }
+
             private List<ComponentStatusCodes> ValidateComponentAssociations()
             {
                 // This performs error checking on the plans linked to this component and returns a status code indicating an error. 0 is no error
@@ -2558,39 +2591,10 @@ namespace SquintScript
                         ErrorCodes.Add(ComponentStatusCodes.NumFractionsMismatch);
                     }
                 }
-                if (LinkedPlan.StructureSetUID != CurrentStructureSet.UID)
-                    ErrorCodes.Add(ComponentStatusCodes.StructureSetDiscrepancy);
+                if (CurrentStructureSet != null)
+                    if (LinkedPlan.StructureSetUID != CurrentStructureSet.UID)
+                        ErrorCodes.Add(ComponentStatusCodes.StructureSetDiscrepancy);
 
-                //else if (SC.ComponentType == ComponentTypes.Sum)
-                //{
-                //    // First confirm that all constituent components do not have errors
-                //    int numValidAssociations = 0;
-                //    //foreach (Constituent SCs in DataCache.GetConstituentsByComponentID(ComponentID))
-                //    //{
-                //    //    ECPlan ECPConstituent = DataCache.GetAllPlans().Where(x => x.ComponentID == SCs.ConstituentCompID && x.AssessmentID == AssessmentID).SingleOrDefault();
-                //    //    if (ECPConstituent != null)
-                //    //    {
-                //    //        if (LinkedPlan.ConstituentPlans.Contains(ECPConstituent.LinkedPlan))
-                //    //        {
-                //    //            numValidAssociations++;
-                //    //        }
-                //    //        else
-                //    //        {
-                //    //            ErrorCodes.Add(ComponentStatusCodes.ConstituentNotInSum);
-                //    //        }
-                //    //    }
-                //    //    else
-                //    //    {
-                //    //        ErrorCodes.Add(ComponentStatusCodes.ConstituentNotInSum);
-                //    //    }
-
-                //    //}
-                //    List<string> PlanSumUIDs = LinkedPlan.ConstituentPlans.Select(x => x.UID).ToList();
-                //    if (numValidAssociations != PlanSumUIDs.Count)
-                //    {
-                //        ErrorCodes.Add(ComponentStatusCodes.PlansNotEqualToConstituents);// some constituents are linked to plans which are not in the sum
-                //    }
-                //}
                 return ErrorCodes;
             }
             public void Delete()
@@ -2630,17 +2634,17 @@ namespace SquintScript
         //{
         //    public event PropertyChangedEventHandler PropertyChanged;
         //    public int SessionId { get; private set; }
-        //    public int ECSID_Id { get; private set; }
+        //    public int ProtocolStructure_Id { get; private set; }
         //    public string EclipseId { get; private set; }
         //    public string LabelName { get; private set; }
         //    public bool Valid { get; private set; } = false;
         //    public AssignedId(DbAssignedStructureId DbO)
         //    {
         //        SessionId = DbO.SessionId;
-        //        ECSID_Id = DbO.DbECSID_Id;
+        //        ProtocolStructure_Id = DbO.DbProtocolStructure_Id;
         //        EclipseId = DbO.EclipseId;
         //    }
-        //    public AssignedId(ECSID ECSID_in, AsyncPlan p, string StructureId)
+        //    public AssignedId(ProtocolStructure ProtocolStructure_in, AsyncPlan p, string StructureId)
         //    {
         //        if (!p.Structures.ContainsKey(StructureId))
         //        {
@@ -2654,12 +2658,12 @@ namespace SquintScript
         //        }
         //        SessionId = DataCache.CurrentSession.ID;
         //        EclipseId = StructureId;
-        //        ECSID_Id = ECSID_in.ID;
+        //        ProtocolStructure_Id = ProtocolStructure_in.ID;
         //    }
-        //    public void UpdateAssignedId(ECSID ECSID_in, AsyncPlan p, string StructureId)
+        //    public void UpdateAssignedId(ProtocolStructure ProtocolStructure_in, AsyncPlan p, string StructureId)
         //    {
         //        EclipseId = StructureId;
-        //        ECSID_Id = ECSID_in.ID;
+        //        ProtocolStructure_Id = ProtocolStructure_in.ID;
         //        if (!p.Structures.ContainsKey(StructureId))
         //        {
         //            LabelName = p.Structures[StructureId].Code;
@@ -2674,19 +2678,19 @@ namespace SquintScript
         //    }
         //}
         [AddINotifyPropertyChangedInterface]
-        public class ECSID : INotifyPropertyChanged
+        public class ProtocolStructure : INotifyPropertyChanged
         {
             public event PropertyChangedEventHandler PropertyChanged;
             private void NotifyPropertyChanged([CallerMemberName] String propertyName = "")
             {
                 PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
             }
-            public EventHandler NewECSIDCommitting;
-            public EventHandler NewECSIDCommitted;
-            public EventHandler ECSIDExceptionLoaded;
-            public EventHandler ECSIDChanged;
-            public EventHandler<int> ECSIDDeleting;
-            public ECSID(DbECSID DbO)
+            public EventHandler NewProtocolStructureCommitting;
+            public EventHandler NewProtocolStructureCommitted;
+            public EventHandler ProtocolStructureExceptionLoaded;
+            public EventHandler ProtocolStructureChanged;
+            public EventHandler<int> ProtocolStructureDeleting;
+            public ProtocolStructure(DbProtocolStructure DbO)
             {
                 ID = DbO.ID;
                 ProtocolStructureName = DbO.ProtocolStructureName;
@@ -2698,18 +2702,26 @@ namespace SquintScript
                 {
                     CheckList = new StructureCheckList(DbO.DbStructureChecklist);
                 }
-                ES.PropertyChanged += OnESPropertyChanged;
+                var DbOS = DbO as DbSessionProtocolStructure;
+
+                if (DbOS != null)
+                {
+                    AssignedStructureId = DbOS.AssignedEclipseId;
+                }
+                //ES.PropertyChanged += OnESPropertyChanged;
             }
-            public ECSID(string NewStructureName, int StructureLabelID_in = 1)
+
+
+            public ProtocolStructure(string NewStructureName, int StructureLabelID_in = 1)
             {
                 ID = Ctr.IDGenerator();
-                ES.PropertyChanged += OnESPropertyChanged;
+                //ES.PropertyChanged += OnESPropertyChanged;
                 CheckList = new StructureCheckList();
                 ProtocolStructureName = NewStructureName;
-                DisplayOrder = DataCache.GetAllECSIDs().Count() + 1;
+                DisplayOrder = DataCache.GetAllProtocolStructures().Count() + 1;
                 ProtocolID = DataCache.CurrentProtocol.ID;
                 StructureLabelID = StructureLabelID_in;
-                ES.PropertyChanged += OnESPropertyChanged;
+                //ES.PropertyChanged += OnESPropertyChanged;
             }
             public List<string> DefaultEclipseAliases { get; private set; } = new List<string>();
             public string GetStructureDescription(bool GetParentValues = false)
@@ -2717,9 +2729,9 @@ namespace SquintScript
                 //if (GetParentValues)
                 //{
                 //    return
-                //        string.Format("{0} (Label: {1}, \u03B1/\u03B2={2})", DbO.DbECSID_Parent.ProtocolStructureName,
-                //        DataCache.SquintDb.Context.DbStructureLabels.Find(DbO.DbECSID_Parent.StructureLabelID).StructureLabel,
-                //        DataCache.SquintDb.Context.DbStructureLabels.Find(DbO.DbECSID_Parent.StructureLabelID).AlphaBetaRatio);
+                //        string.Format("{0} (Label: {1}, \u03B1/\u03B2={2})", DbO.DbProtocolStructure_Parent.ProtocolStructureName,
+                //        DataCache.SquintDb.Context.DbStructureLabels.Find(DbO.DbProtocolStructure_Parent.StructureLabelID).StructureLabel,
+                //        DataCache.SquintDb.Context.DbStructureLabels.Find(DbO.DbProtocolStructure_Parent.StructureLabelID).AlphaBetaRatio);
                 //}
                 //else
                 return string.Format("{0} (Label: {1}, \u03B1/\u03B2={2})", ProtocolStructureName,
@@ -2744,69 +2756,27 @@ namespace SquintScript
             public int StructureLabelID { get; set; }
             public string ProtocolStructureName { get; set; }
             public StructureCheckList CheckList { get; set; }
-            private EclipseStructure _ES = new EclipseStructure(null);
-            public EclipseStructure ES
+            public string AssignedStructureId { get; set; } = "";
+
+            public System.Windows.Media.Color? GetStructureColor(string SSUID)
             {
-                get
-                {
-                    return _ES;
-                }
-                set
-                {
-                    _ES.PropertyChanged -= OnESPropertyChanged;
-                    _ES = value;
-                    _ES.PropertyChanged += OnESPropertyChanged;
-                }
+
+                if (AssignedStructureId != "")
+                    return DataCache.GetStructureSet(SSUID).GetStructure(AssignedStructureId).Color;
+                else
+                    return null;
             }
-            public double AssignedHU
+            public string EclipseStructureLabel(string SSUID)
             {
-                get
-                {
-                    return ES.HU();
-                }
+                if (AssignedStructureId == "")
+                    return "";
+                else
+                    return DataCache.GetLabelByCode(DataCache.GetStructureSet(SSUID).GetStructure(AssignedStructureId).Code);
             }
-            public string EclipseStructureLabel
-            {
-                get { return ES.LabelName; }
-            }
-            public string EclipseStructureName
-            {
-                get
-                {
-                    return ES.Id;
-                }
-            }
-            public string EclipseStructureSetUID { get { return ES.StructureSetUID; } }
             public void Delete()
             {
-                ECSIDDeleting?.Invoke(this, ID);
+                ProtocolStructureDeleting?.Invoke(this, ID);
             }
-            //public void ApplyAliasing(ECPlan ECP)
-            //{
-            //    // this will assign a structure Id if that structure exists in the plan ECP
-            //    AsyncPlan P = ECP.LinkedPlan;
-            //    List<int> rank = new List<int>();
-            //    List<string> matchedIDs = new List<string>();
-            //    int AliasRank = 0;
-            //    foreach (string Alias in DefaultEclipseAliases)
-            //    {
-            //        foreach (string StructureId in P.StructureIds.OrderByDescending(x => x.Count()))
-            //        {
-            //            if (StructureId.ToUpper().Replace(@"_", @"").Replace(@"B_", @"") == Alias.ToUpper().Replace(@"_", @""))
-            //            {
-            //                rank.Add(AliasRank);
-            //                matchedIDs.Add(StructureId);
-            //                break;
-            //            }
-            //        }
-            //        AliasRank++;
-            //    }
-            //    if (matchedIDs.Count > 0)
-            //    {
-            //        var sorted_Ids = matchedIDs.Zip(rank, (Ids, Order) => new { Ids, Order }).OrderBy(x => x.Order).Select(x => x.Ids);
-            //        ES.Update(P.Structures[sorted_Ids.First()]);
-            //    }
-            //}
             public void ApplyAliasing(AsyncStructureSet SS)
             {
                 // this will assign a structure Id if that structure exists in the plan ECP
@@ -2819,7 +2789,7 @@ namespace SquintScript
                 {
                     foreach (string StructureId in SS.GetStructureIds().OrderByDescending(x => x.Count()))
                     {
-                        if (StructureId.ToUpper().Replace(@"_", @"").Replace(@"B_", @"") == Alias.ToUpper().Replace(@"_", @""))
+                        if (StructureId.TrimStart(@"B_").ToUpper().Replace(@"_", @"") == Alias.ToUpper().Replace(@"_", @""))
                         {
                             rank.Add(AliasRank);
                             matchedIDs.Add(StructureId);
@@ -2831,12 +2801,42 @@ namespace SquintScript
                 if (matchedIDs.Count > 0)
                 {
                     var sorted_Ids = matchedIDs.Zip(rank, (Ids, Order) => new { Ids, Order }).OrderBy(x => x.Order).Select(x => x.Ids);
-                    ES.Update(SS.GetStructure(sorted_Ids.First()));
+                    AssignedStructureId = sorted_Ids.First();
                 }
                 else
                 {
-                    ES.Update(null);
+                    AssignedStructureId = "";
                 }
+            }
+
+            public async Task<int> VMS_NumParts(string SSUID)
+            {
+                var AS = DataCache.GetStructureSet(SSUID).GetStructure(AssignedStructureId);
+                if (AS == null)
+                    return -1;
+                return await AS.GetVMS_NumParts();
+            }
+
+            public async Task<List<double>> PartVolumes(string SSUID)
+            {
+                var AS = DataCache.GetStructureSet(SSUID).GetStructure(AssignedStructureId);
+                if (AS == null)
+                    return null;
+                return await AS.GetPartVolumes();
+            }
+            public async Task<int> NumParts(string SSUID)
+            {
+                var AS = DataCache.GetStructureSet(SSUID).GetStructure(AssignedStructureId);
+                if (AS == null)
+                    return -1;
+                return await AS.GetNumSeperateParts();
+            }
+            public double AssignedHU(string SSUID)
+            {
+                var AS = DataCache.GetStructureSet(SSUID).GetStructure(AssignedStructureId);
+                if (AS == null)
+                    return double.NaN;
+                return Math.Round(AS.HU);
             }
             private void OnESPropertyChanged(object sender, PropertyChangedEventArgs e)
             {

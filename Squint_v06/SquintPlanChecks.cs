@@ -22,10 +22,10 @@ namespace SquintScript
         {
             public Trajectories Trajectory { get; set; } = Trajectories.Unset;
             public string GeometryName { get; set; } = "Unset";
-            public double MinStartAngle { get; set; } = -1;
-            public double MinEndAngle { get; set; } = -1;
-            public double MaxStartAngle { get; set; } = -1;
-            public double MaxEndAngle { get; set; } = -1;
+            public double StartAngle { get; set; } = double.NaN;
+            public double EndAngle { get; set; } = double.NaN;
+            public double StartAngleTolerance { get; set; } = 1;
+            public double EndAngleTolerance { get; set; } = 1;
             public double GetInvariantAngle(double A)
             {
                 switch (Trajectory)
@@ -45,7 +45,7 @@ namespace SquintScript
                 }
             }
         }
-        
+
         [AddINotifyPropertyChangedInterface]
         public class Beam
         {
@@ -57,23 +57,19 @@ namespace SquintScript
             public FieldType Technique { get; set; } = FieldType.Unset;
             public List<Energies> ValidEnergies { get; set; } = new List<Energies>();
             public string ToleranceTable { get; set; } = "unset";
-            public double MinMUWarning { get; set; } 
-            public double MaxMUWarning { get; set; } 
+            public double MinMUWarning { get; set; }
+            public double MaxMUWarning { get; set; }
             public double MinColRotation { get; set; }
             public double MaxColRotation { get; set; }
-            public double CouchRotation { get; set; } 
+            public double CouchRotation { get; set; }
             public double MinX { get; set; } = 3;
             public double MaxX { get; set; } = 3;
-            public double MinY { get; set; } 
-            public double MaxY { get; set; } 
-            public ParameterOptions BolusParameter { get; set; }
-            public double RefBolusHU { get; set; }
-            public double BolusClinicalMinThickness { get; set; }
-            public double BolusClinicalMaxThickness { get; set; }
+            public double MinY { get; set; }
+            public double MaxY { get; set; }
             public ParameterOptions VMAT_JawTracking { get; set; }
-
             public List<string> EclipseAliases { get; set; } = new List<string>();
             public List<BeamGeometry> ValidGeometries { get; set; } = new List<BeamGeometry>();
+            public List<BolusDefinition> Boluses { get; set; } = new List<BolusDefinition>();
             // Methods
             public void Delete()
             {
@@ -82,7 +78,7 @@ namespace SquintScript
 
             // Events
             public event EventHandler<int> BeamDeleted;
-            
+
 
             public Beam(DbBeam DbO)
             {
@@ -96,7 +92,11 @@ namespace SquintScript
                     EclipseAliases.Add(A.EclipseFieldId);
                 foreach (var G in DbO.DbBeamGeometries)
                 {
-                    ValidGeometries.Add(new BeamGeometry() { MinEndAngle = G.MinEndAngle, MinStartAngle = G.MinStartAngle, MaxEndAngle = G.MaxEndAngle, MaxStartAngle = G.MaxStartAngle, GeometryName = G.GeometryName, Trajectory = (Trajectories)G.Trajectory});
+                    ValidGeometries.Add(new BeamGeometry() { EndAngle = G.EndAngle, StartAngle = G.StartAngle, EndAngleTolerance = G.EndAngleTolerance, StartAngleTolerance = G.StartAngleTolerance, GeometryName = G.GeometryName, Trajectory = (Trajectories)G.Trajectory });
+                }
+                foreach (var B in DbO.DbBoluses)
+                {
+                    Boluses.Add(new BolusDefinition(B));
                 }
                 ToleranceTable = DbO.ToleranceTable;
                 MinMUWarning = DbO.MinMUWarning;
@@ -104,17 +104,13 @@ namespace SquintScript
                 MinColRotation = DbO.MinColRotation;
                 MaxColRotation = DbO.MaxColRotation;
                 CouchRotation = DbO.CouchRotation;
-                BolusParameter = (ParameterOptions)DbO.BolusClinicalIndication;
                 VMAT_JawTracking = (ParameterOptions)DbO.VMAT_JawTracking;
-                RefBolusHU = DbO.BolusClinicalHU;
-                BolusClinicalMinThickness = DbO.BolusClinicalMinThickness;
-                BolusClinicalMaxThickness = DbO.BolusClinicalMaxThickness;
                 MinX = DbO.MinX;
                 MaxX = DbO.MaxX;
                 MinY = DbO.MinY;
                 MaxY = DbO.MaxY;
             }
         }
-        
+
     }
 }

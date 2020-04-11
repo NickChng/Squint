@@ -18,17 +18,17 @@ using System.Windows.Shapes;
 namespace SquintScript.Controls
 {
     /// <summary>
-    /// Interaction logic for CalculationView.xaml
+    /// Interaction logic for TestEditView.xaml
     /// </summary>
-    public partial class TestView : UserControl
+    public partial class TestEditView : UserControl
     {
-        public TestView()
+        public TestEditView()
         {
             InitializeComponent();
         }
 
         public static readonly DependencyProperty TestItemsProperty =
-          DependencyProperty.Register("TestItems", typeof(ObservableCollection<ITestListItem>), typeof(TestView), new
+          DependencyProperty.Register("TestItems", typeof(ObservableCollection<ITestListItem>), typeof(TestEditView), new
              PropertyMetadata(new ObservableCollection<ITestListItem>(), new PropertyChangedCallback(OnSetTestItems)));
 
         public ObservableCollection<ITestListItem> TestItems
@@ -40,7 +40,7 @@ namespace SquintScript.Controls
         private static void OnSetTestItems(DependencyObject d,
          DependencyPropertyChangedEventArgs e)
         {
-            TestView UserControl1Control = d as TestView;
+            TestEditView UserControl1Control = d as TestEditView;
             UserControl1Control.OnSetTestItems(e);
         }
 
@@ -50,7 +50,7 @@ namespace SquintScript.Controls
         }
 
         public static readonly DependencyProperty ReferenceHeaderProperty =
-           DependencyProperty.Register("ReferenceHeaderProperty", typeof(string), typeof(TestView), new
+           DependencyProperty.Register("ReferenceHeaderProperty", typeof(string), typeof(TestEditView), new
               PropertyMetadata("", new PropertyChangedCallback(OnReferenceHeaderChanged)));
 
         public string SetReferenceHeader
@@ -62,7 +62,7 @@ namespace SquintScript.Controls
         private static void OnReferenceHeaderChanged(DependencyObject d,
            DependencyPropertyChangedEventArgs e)
         {
-            TestView UserControl1Control = d as TestView;
+            TestEditView UserControl1Control = d as TestEditView;
             UserControl1Control.OnReferenceHeaderChanged(e);
         }
 

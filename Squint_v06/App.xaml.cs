@@ -16,13 +16,28 @@ namespace WpfApp1
     {
         void App_DispatcherUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs args)
         {
-           
-                MessageBox.Show("An unexpected exception has occurred. Shutting down the application. Please check the log file for more details.");
 
+            Helpers.Logger.AddLog(string.Format("{0}\r\n{1}\r\n{2}", args.Exception.Message, args.Exception.InnerException, args.Exception.StackTrace));
+            MessageBox.Show("An unexpected exception has occurred. Shutting down the application. Please check the log file for more details.");
             // Prevent default unhandled exception processing
             args.Handled = true;
 
             Environment.Exit(0);
+        }
+    }
+
+    public static class Helpers
+    {
+        public static class Logger
+        {
+            private static string logpath = @"\\spvaimapcn\data$\Apps\Squint\Logs\Log.txt";
+            public static void AddLog(string log_entry)
+            {
+                using (var data = new System.IO.StreamWriter(logpath, true))
+                {
+                    data.WriteLine(log_entry);
+                }
+            }
         }
     }
 }

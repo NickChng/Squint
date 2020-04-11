@@ -5,6 +5,7 @@ using System.Text;
 using System.Xml;
 using System.Xml.Serialization;
 using System.ComponentModel;
+using VMS.TPS.Common.Model.API;
 
 namespace SquintScript
 {
@@ -83,7 +84,7 @@ namespace SquintScript
             }
             [XmlElement("Beam")]
             public List<BeamDefinition> Beam { get; set; }
-            
+
             [XmlAttribute]
             public int MinBeams { get; set; } = -1;
             [XmlAttribute]
@@ -104,10 +105,10 @@ namespace SquintScript
         }
         public class EnergyDefinition
         {
-            [XmlAttribute] 
+            [XmlAttribute]
             public string Mode { get; set; }
         }
-        
+
         public class ValidGeometriesDefintiion
         {
             [XmlElement("Geometry")]
@@ -120,14 +121,14 @@ namespace SquintScript
             [XmlAttribute]
             public string Trajectory { get; set; } = "unset";
             [XmlAttribute]
-            public double MinStartAngle { get; set; } = -1;
+            public double StartAngle { get; set; } = double.NaN;
             [XmlAttribute]
-            public double MinEndAngle { get; set; } = -1;
-            [XmlAttribute] 
-            public double MaxStartAngle { get; set; } = -1;
+            public double EndAngle { get; set; } = double.NaN;
+            [XmlAttribute]
+            public double StartAngleTolerance { get; set; } = double.NaN;
 
-            [XmlAttribute] 
-            public double MaxEndAngle { get; set; } = -1;
+            [XmlAttribute]
+            public double EndAngleTolerance { get; set; } = double.NaN;
         }
         public class BeamDefinition
         {
@@ -139,45 +140,39 @@ namespace SquintScript
             public string Energy { get; set; } = "6X";
             [XmlAttribute]
             public string ToleranceTable { get; set; } = "unset";
-          
+
             [XmlAttribute]
-            public double MinMUWarning { get; set; } = -1;
+            public double MinMUWarning { get; set; } = double.NaN;
             [XmlAttribute]
-            public double MaxMUWarning { get; set; } = -1;
+            public double MaxMUWarning { get; set; } = double.NaN;
             [XmlAttribute]
-            public double MinColRotation { get; set; } = -1;
+            public double MinColRotation { get; set; } = double.NaN;
             [XmlAttribute]
-            public double MaxColRotation { get; set; } = -1;
+            public double MaxColRotation { get; set; } = double.NaN;
             [XmlAttribute]
-            public double CouchRotation { get; set; } = -1;
+            public double CouchRotation { get; set; } = double.NaN;
             [XmlAttribute]
-            public double MinX { get; set; } = 3;
+            public double MinX { get; set; } = double.NaN;
             [XmlAttribute]
-            public double MaxX { get; set; } = 3;
+            public double MaxX { get; set; } = double.NaN;
             [XmlAttribute]
-            public double MinY { get; set; } = -1;
+            public double MinY { get; set; } = double.NaN;
             [XmlAttribute]
-            public double MaxY { get; set; } = -1;
-            [XmlAttribute]
-            public string BolusIndication { get; set; }
-            [XmlAttribute]
-            public double RefBolusHU { get; set; }
-            [XmlAttribute]
-            public double BolusClinicalMinThickness { get; set; }
-            [XmlAttribute]
-            public double BolusClinicalMaxThickness { get; set; }
+            public double MaxY { get; set; } = double.NaN;
+
             [XmlAttribute]
             public string VMAT_JawTracking { get; set; }
             [XmlElement("ValidEnergies")]
             public EnergiesDefintion Energies { get; set; } = new EnergiesDefintion();
-            [XmlElement("Bolus")]
-            public BolusDefinition Bolus { get; set; } = new BolusDefinition();
-            
+
             [XmlElement("EclipseAliases")]
             public EclipseAliases EclipseAliases { get; set; }
             [XmlElement("ValidGeometries")]
             public ValidGeometriesDefintiion ValidGeometries { get; set; }
 
+            private BolusDefinition[] _BolusDefinitions;
+            [System.Xml.Serialization.XmlArrayItemAttribute("Bolus", IsNullable = false)]
+            public BolusDefinition[] BolusDefinitions { get { return _BolusDefinitions; } set { _BolusDefinitions = value; } }
 
         }
         public class SupportsDefinition
@@ -189,14 +184,18 @@ namespace SquintScript
             [XmlAttribute]
             public string Indication { get; set; } = "Optional";
         }
+
         public class BolusDefinition
         {
+
             [XmlAttribute]
             public double HU { get; set; } = double.NaN;
             [XmlAttribute]
-            public double MinThickness { get; set; } = double.NaN;
+            public double Thickness { get; set; } = double.NaN;
             [XmlAttribute]
-            public double MaxThickness { get; set; } = double.NaN;
+            public double ToleranceHU { get; set; } = double.NaN;
+            [XmlAttribute]
+            public double ToleranceThickness { get; set; } = double.NaN;
             [XmlAttribute]
             public string Indication { get; set; } = "Optional";
         }
@@ -239,12 +238,12 @@ namespace SquintScript
             [XmlAttribute]
             public double PrescribedPercentage;
         }
-        public class ComponentDefaultsDefinition
+        public class ProtocolChecklistDefinition
         {
+
             [XmlElement("Supports")]
             public SupportsDefinition Supports { get; set; } = new SupportsDefinition();
-            [XmlElement("BolusClinical")]
-            public BolusDefinition Bolus { get; set; } = new BolusDefinition();
+
             [XmlElement("Artifacts")]
             public ArtifactsDefinition Artifacts { get; set; } = new ArtifactsDefinition();
             [XmlElement("Simulation")]
@@ -552,8 +551,8 @@ namespace SquintScript
         public ImagingProtocolsDefinition ImagingProtocols { get; set; }
         [XmlElement("Structures")]
         public StructuresDefinition Structures { get; set; }
-        [XmlElement("ComponentDefaults")]
-        public ComponentDefaultsDefinition ComponentDefaults { get; set; }
+        [XmlElement("ProtocolChecklist")]
+        public ProtocolChecklistDefinition ProtocolChecklist { get; set; }
         [XmlElement("Components")]
         public ComponentsDefinition Components { get; set; }
         [XmlElement("DVHConstraints")]

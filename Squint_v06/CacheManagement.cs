@@ -43,7 +43,7 @@ namespace SquintScript
             public static event EventHandler<int> ConstraintDeleted;
             public static event EventHandler<int> ComponentDeleted;
             public static event EventHandler<int> PlanDeleted;
-            public static event EventHandler<int> ECSIDDeleted;
+            public static event EventHandler<int> ProtocolStructureDeleted;
 
             public static Session CurrentSession { get; private set; }
             public static Protocol CurrentProtocol { get; private set; }
@@ -60,11 +60,12 @@ namespace SquintScript
             private static Dictionary<string, AsyncCourse> _Courses = new Dictionary<string, AsyncCourse>();
             //private static Dictionary<int, object> _EclipsePlans = new Dictionary<int, object>(); // may be PlanSetup or PlanSum
             private static Dictionary<string, int> _CourseIDbyName = new Dictionary<string, int>();
-            private static Dictionary<int, ECSID> _ECSIDs = new Dictionary<int, ECSID>();
+            private static Dictionary<int, ProtocolStructure> _ProtocolStructures = new Dictionary<int, ProtocolStructure>();
             private static Dictionary<string, bool> _isCourseLoaded = new Dictionary<string, bool>(); // check to see whether course has been loaded by EclipseID/name
             public static Dictionary<int, int> CourseLookupFromPlan = new Dictionary<int, int>(); // lookup course PK by planPK
             public static Dictionary<int, int> CourseLookupFromSum = new Dictionary<int, int>(); // lookup course PK by plansumPK
             private static Dictionary<int, StructureLabel> _StructureLabels = new Dictionary<int, StructureLabel>();
+            private static List<AsyncStructureSet> _asyncStructureSets = new List<AsyncStructureSet>();
             //private static List<AssignedId> AssignedIds = new List<AssignedId>();
             private static bool areStructuresLoaded = false;
             private static readonly object CourseLoadLock = new object();
@@ -99,7 +100,7 @@ namespace SquintScript
             {
                 ClearAssessments(); // method notifies that DataCache.Assessments have been cleared
                 ClearPlans();
-                ClearCourses();
+                ClearEclipseData();
                 if (A != null)
                     A.ClosePatient();
             }
@@ -107,8 +108,8 @@ namespace SquintScript
             {
                 if (PatientLoaded)
                 {
-                    ClearCourses();
-                    ClearAsyncPlans();
+                    ClearEclipseData();
+
                     if (A != null)
                         A.ClosePatient();
                     Patient = A.OpenPatient(PatientID);
@@ -321,51 +322,67 @@ namespace SquintScript
             //}
             //public static IEnumerable<Constituent> GetAllConstituents()
 
-            public static void AddECSID(ECSID E)
+            public static void AddProtocolStructure(ProtocolStructure E)
             {
-                _ECSIDs.Add(E.ID, E);
-                E.ECSIDDeleting += OnECSIDDeleting;
+                if (!_ProtocolStructures.ContainsKey(E.ID))
+                {
+                    _ProtocolStructures.Add(E.ID, E);
+                    E.ProtocolStructureDeleting += OnProtocolStructureDeleting;
+                }
             }
-            public static void OnECSIDDeleting(object sender, int ID)
+            public static void OnProtocolStructureDeleting(object sender, int ID)
             {
-                _ECSIDs[ID].ECSIDDeleting -= OnECSIDDeleting;
-                _ECSIDs.Remove(ID);
+                _ProtocolStructures[ID].ProtocolStructureDeleting -= OnProtocolStructureDeleting;
+                _ProtocolStructures.Remove(ID);
 
             }
-            public static ECSID GetECSID(int ID)
+            public static ProtocolStructure GetProtocolStructure(int ID)
             {
-                if (!_ECSIDs.ContainsKey(ID))
+                if (!_ProtocolStructures.ContainsKey(ID))
                 {
-                    DbECSID DbE = SquintDb.Context.DbECSIDs.Find(ID);
+                    DbProtocolStructure DbE = SquintDb.Context.DbProtocolStructures.Find(ID);
                     if (DbE == null)
                     {
-                        throw new Exception("Can't find key in GetECSID");
+                        throw new Exception("Can't find key in GetProtocolStructure");
                     }
                     else
                     {
-                        _ECSIDs.Add(DbE.ID, new ECSID(DbE));
+                        AddProtocolStructure(new ProtocolStructure(DbE));
                     }
                 }
-                return _ECSIDs[ID];
+                return _ProtocolStructures[ID];
             }
-            public static IEnumerable<ECSID> GetAllECSIDs()
+            public static IEnumerable<ProtocolStructure> GetAllProtocolStructures()
             {
-                return _ECSIDs.Values;
+                return _ProtocolStructures.Values;
             }
             public static List<StructureSetHeader> GetAvailableStructureSets()
             {
                 var L = new List<StructureSetHeader>();
                 foreach (var p in _Plans.Values)
                 {
-                    L.Add(new StructureSetHeader(p.LinkedPlan.StructureSetId, p.LinkedPlan.StructureSetUID, p.LinkedPlan.Id));
+                    if (p.Linked)
+                        L.Add(new StructureSetHeader(p.StructureSetId, p.StructureSetUID, p.PlanId));
                 }
                 return L;
             }
             public static AsyncStructureSet GetStructureSet(string ssuid)
             {
-                return Patient.GetStructureSet(ssuid);
+                var ass = _asyncStructureSets.FirstOrDefault(x => x.UID == ssuid);
+                if (ass != null)
+                    return ass;
+                else
+                {
+                    ass = Patient.GetStructureSet(ssuid);
+                    if (ass != null)
+                    {
+                        _asyncStructureSets.Add(ass);
+                        return ass;
+                    }
+                    else return null;
+                }
             }
-       
+
             private static void LoadStructures()
             {
                 _StructureLabels.Clear();
@@ -422,7 +439,9 @@ namespace SquintScript
                 if (_Assessments.ContainsKey(ID))
                     return _Assessments[ID];
                 else
+                {
                     throw new Exception("Attempt to get assessment that doesn't exist in cache (GetAssessment)");
+                }
             }
             public static IEnumerable<Assessment> GetAllAssessments()
             {
@@ -434,9 +453,9 @@ namespace SquintScript
             {
                 _AsyncPlans.Add(P.HashId, P);
             }
-            public static bool isPlanLoaded(string CourseName, string PlanName)
+            public static bool isPlanLoaded(string CourseName, string PlanId)
             {
-                AsyncPlan p = _AsyncPlans.Values.Where(x => x.Course.Id == CourseName && x.Id == PlanName).SingleOrDefault();
+                AsyncPlan p = _AsyncPlans.Values.Where(x => x.Course.Id == CourseName && x.Id == PlanId).SingleOrDefault();
                 if (p == null)
                     return false;
                 else
@@ -446,11 +465,11 @@ namespace SquintScript
             {
                 return _AsyncPlans[ID];
             }
-            public static AsyncPlan GetAsyncPlan(string PlanName, string CourseName, ComponentTypes PlanType)
+            public static AsyncPlan GetAsyncPlan(string PlanId, string CourseName, ComponentTypes PlanType)
             {
                 if (!_Courses.ContainsKey(CourseName))
                     LoadCourse(CourseName);
-                return _AsyncPlans.Values.FirstOrDefault(x => x.Id == PlanName && x.Course.Id == CourseName && x.PlanType == PlanType);
+                return _AsyncPlans.Values.FirstOrDefault(x => x.Id == PlanId && x.Course.Id == CourseName && x.PlanType == PlanType);
             }
             private static async void LoadCourse(string CourseName)
             {
@@ -471,10 +490,10 @@ namespace SquintScript
                 }
                 return _AsyncPlans.Values.Where(x => x.Course.Id == CourseName).ToList();
             }
-            public async static Task<List<string>> GetPlanIdsByCourseName(string CourseName, IProgress<int> progress = null)
+            public async static Task<List<PlanDescriptor>> GetPlanIdsByCourseName(string CourseName, IProgress<int> progress = null)
             {
-                List<AsyncPlan> P = await DataCache.GetPlansByCourseName(CourseName, progress);
-                return P.Select(x => x.Id).ToList();
+                List<AsyncPlan> P = await GetPlansByCourseName(CourseName, progress);
+                return P.Select(x => new PlanDescriptor(x.Id, x.UID, x.StructureSetUID)).ToList();
             }
             public static void ClearAsyncPlans()
             {
@@ -531,16 +550,18 @@ namespace SquintScript
                     return C;
                 }
             }
-            public static void ClearCourses()
+            public static void ClearEclipseData()
             {
                 _isCourseLoaded.Clear();
                 _Courses.Clear();
                 _AsyncPlans.Clear();
+                _asyncStructureSets.Clear();
+
             }
 
-            public static List<ProtocolView> GetProtocolList()
+            public static List<ProtocolPreview> GetProtocolPreviews()
             {
-                List<ProtocolView> previewlist = new List<ProtocolView>();
+                List<ProtocolPreview> previewlist = new List<ProtocolPreview>();
                 using (var Context = new SquintdBModel())
                 {
                     if (Context.DbLibraryProtocols != null)
@@ -548,16 +569,20 @@ namespace SquintScript
                         List<DbLibraryProtocol> Protocols = Context.DbLibraryProtocols.Where(x => !x.isRetired).ToList();
                         foreach (DbLibraryProtocol DbP in Protocols)
                         {
-                            Protocol P = new Protocol(DbP);
-                            previewlist.Add(new ProtocolView(P));
+                            previewlist.Add(new ProtocolPreview(DbP.ID, DbP.ProtocolName)
+                            {
+                                TreatmentCentre = (TreatmentCentres)DbP.DbTreatmentCentre.TreatmentCentre,
+                                TreatmentSite = (TreatmentSites)DbP.DbTreatmentSite.TreatmentSite,
+                                LastModifiedBy = DbP.LastModifiedBy,
+                                Approval = (ApprovalLevels)DbP.DbApprovalLevel.ApprovalLevel
+                            });
                         }
                     }
                 }
                 return previewlist;
             }
-            public static ProtocolView GetProtocolList(int Id)
+            public static Protocol GetProtocol(int Id)
             {
-                ProtocolView PV = null;
                 using (var Context = new SquintdBModel())
                 {
                     if (Context.DbLibraryProtocols != null)
@@ -565,12 +590,11 @@ namespace SquintScript
                         DbProtocol DbP = Context.DbLibraryProtocols.FirstOrDefault(x => x.ID == Id);
                         if (DbP != null)
                         {
-                            Protocol P = new Protocol(DbP);
-                            PV = new ProtocolView(P);
+                            return new Protocol(DbP);
                         }
                     }
                 }
-                return PV;
+                return null;
             }
 
             public static void CreateNewProtocol()
@@ -607,15 +631,15 @@ namespace SquintScript
                         CurrentProtocol = new Protocol(DbP);
                         CurrentSession.AddProtocol(CurrentProtocol);
                         bool AtLeastOneStructure = false;
-                        var test = _ECSIDs;
-                        foreach (DbECSID DbECSID in DbP.ECSIDs)
+                        var test = _ProtocolStructures;
+                        foreach (DbProtocolStructure DbProtocolStructure in DbP.ProtocolStructures)
                         {
-                            ECSID E = new ECSID(DbECSID);
-                            AddECSID(E);
+                            ProtocolStructure E = new ProtocolStructure(DbProtocolStructure);
+                            AddProtocolStructure(E);
                             AtLeastOneStructure = true;
                         }
                         if (!AtLeastOneStructure)
-                            new ECSID(Context.DbECSIDs.Find(1));  //Initialize non-defined structure
+                            new ProtocolStructure(Context.DbProtocolStructures.Find(1));  //Initialize non-defined structure
                         foreach (DbComponent DbC in DbP.Components)
                         {
                             Component SC = new Component(DbC);
@@ -630,20 +654,6 @@ namespace SquintScript
                             foreach (DbBeam DbB in DbC.DbBeams)
                             {
                                 AddBeam(new Beam(DbB));
-                            }
-                            if (DbC.Checklists != null)
-                            {
-                                if (DbC.Checklists.Count > 0)
-                                {
-                                    var DbChecklist = DbC.Checklists.FirstOrDefault(x => x.ProtocolDefault == false);
-                                    if (DbChecklist != null)
-                                        SC.Checklist = new ComponentChecklist(DbChecklist);
-                                    else
-                                    {
-                                        DbChecklist = DbC.Checklists.FirstOrDefault(x => x.ProtocolDefault == true);
-                                        SC.Checklist = new ComponentChecklist(DbChecklist);
-                                    }
-                                }
                             }
                             if (DbC.Constraints != null)
                             {
@@ -684,7 +694,7 @@ namespace SquintScript
             }
             private static void ClearProtocolData()
             {
-                foreach (ECSID E in _ECSIDs.Values.ToList())
+                foreach (ProtocolStructure E in _ProtocolStructures.Values.ToList())
                     E.Delete();
                 foreach (Constraint C in _Constraints.Values.ToList())
                     C.Delete();
@@ -727,22 +737,22 @@ namespace SquintScript
                             // Load associated course
                             await GetCourse(DbP.CourseName); // this will load all of the Eclipse Courses and populate _AsyncPlans, but we don't create the ECPlan objects until the components are loaded
                         bool AtLeastOneStructure = false;
-                        foreach (DbSessionECSID DbECSID in DbSP.ECSIDs)
+                        foreach (DbSessionProtocolStructure DbProtocolStructure in DbSP.ProtocolStructures)
                         {
-                            ECSID E = new ECSID(DbECSID);
-                            AddECSID(E);
-                            var P = _AsyncPlans.Values.FirstOrDefault(x => x.StructureSetUID == DbECSID.AssignedEclipseStructureSetUID);
-                            if (P != null)
-                            {
-                                if (P.Structures.ContainsKey(DbECSID.AssignedEclipseId))
-                                {
-                                    E.ES = new EclipseStructure(P.Structures[DbECSID.AssignedEclipseId]);
-                                }
-                            }
+                            ProtocolStructure E = new ProtocolStructure(DbProtocolStructure);
+                            AddProtocolStructure(E);
+                            //var P = _AsyncPlans.Values.FirstOrDefault(x => x.StructureSetUID == DbProtocolStructure.AssignedEclipseStructureSetUID);
+                            //if (P != null)
+                            //{
+                                //if (P.Structures.ContainsKey(DbProtocolStructure.AssignedEclipseId))
+                                //{
+                              //      E.AssignedStructureId = DbProtocolStructure.AssignedEclipseId;
+                                //}
+                            //}
                             AtLeastOneStructure = true;
                         }
                         if (!AtLeastOneStructure)
-                            new ECSID(Context.DbECSIDs.Find(1));  //Initialize non-defined structure
+                            new ProtocolStructure(Context.DbProtocolStructures.Find(1));  //Initialize non-defined structure
                         foreach (DbSessionComponent DbC in DbSP.Components)
                         {
                             Component SC = new Component(DbC);
@@ -751,17 +761,6 @@ namespace SquintScript
                                 foreach (DbImaging I in DbCI.Imaging)
                                 {
                                     SC.ImagingProtocolsAttached.Add((ImagingProtocols)I.ImagingProtocol);
-                                }
-                            }
-                            if (DbC.Checklists != null)
-                            {
-                                var DbChecklist = DbC.Checklists.FirstOrDefault(x => x.ProtocolDefault == false);
-                                if (DbChecklist != null)
-                                    SC.Checklist = new ComponentChecklist(DbChecklist);
-                                else
-                                {
-                                    DbChecklist = DbC.Checklists.FirstOrDefault(x => x.ProtocolDefault == true);
-                                    SC.Checklist = new ComponentChecklist(DbChecklist);
                                 }
                             }
                             if (DbC.Constraints != null)
@@ -787,6 +786,17 @@ namespace SquintScript
                                         throw new NotImplementedException();
                                     }
                                 }
+                            }
+                        }
+                        if (DbSP.ProtocolChecklists != null)
+                        {
+                            var DbChecklist = DbSP.ProtocolChecklists.FirstOrDefault(x => x.ProtocolDefault == false);
+                            if (DbChecklist != null)
+                                CurrentProtocol.Checklist = new ProtocolChecklist(DbChecklist);
+                            else
+                            {
+                                DbChecklist = DbSP.ProtocolChecklists.FirstOrDefault(x => x.ProtocolDefault == true);
+                                CurrentProtocol.Checklist = new ProtocolChecklist(DbChecklist);
                             }
                         }
                         foreach (DbAssessment DbA in DbS.SessionAssessments)
@@ -877,18 +887,16 @@ namespace SquintScript
                         DbA.SquintUser = Ctr.SquintUser;
                         DbA.AssessmentName = A.AssessmentName;
                     }
-                    var SessionECSID_Lookup = new Dictionary<int, int>();
-                    foreach (ECSID S in _ECSIDs.Values)
+                    var SessionProtocolStructure_Lookup = new Dictionary<int, int>();
+                    foreach (ProtocolStructure S in _ProtocolStructures.Values)
                     {
-                        DbSessionECSID DbE = Context.DbSessionECSIDs.Create();
-                        Context.DbSessionECSIDs.Add(DbE);
+                        DbSessionProtocolStructure DbE = Context.DbSessionProtocolStructures.Create();
+                        Context.DbSessionProtocolStructures.Add(DbE);
                         DbE.ID = IDGenerator();
-                        SessionECSID_Lookup.Add(S.ID, DbE.ID);
+                        SessionProtocolStructure_Lookup.Add(S.ID, DbE.ID);
                         DbE.SessionId = DbS.ID;
-                        DbE.ParentECSID_Id = S.ID;
-                        DbE.AssignedEclipseId = S.EclipseStructureName;
-                        DbE.AssignedEclipseLabel = S.EclipseStructureLabel;
-                        DbE.AssignedEclipseStructureSetUID = S.EclipseStructureSetUID;
+                        DbE.ParentProtocolStructure_Id = S.ID;
+                        DbE.AssignedEclipseId = S.AssignedStructureId;
                         StructureLookup.Add(S.ID, DbE.ID);
                         DbE.ProtocolID = DbP.ID;
                         DbE.ProtocolStructureName = S.ProtocolStructureName;
@@ -902,6 +910,46 @@ namespace SquintScript
                         DbSC.PointContourThreshold = S.CheckList.PointContourVolumeThreshold;
                         DbE.DbStructureChecklist = DbSC;
                     }
+                    // Checklist
+                    var DbPC = Context.DbProtocolChecklists.Create();
+                    Context.DbProtocolChecklists.Add(DbPC);
+                    if (CurrentProtocol.Checklist != null)
+                    {
+                        var C = CurrentProtocol.Checklist;
+                        DbPC.DbProtocol = DbP;
+                        DbPC.TreatmentTechniqueType = (int)C.TreatmentTechniqueType;
+                        DbPC.MinFields = C.MinFields;
+                        DbPC.MaxFields = C.MaxFields;
+                        DbPC.VMAT_MinFieldColSeparation = C.VMAT_MinFieldColSeparation;
+                        DbPC.NumIso = C.NumIso;
+                        DbPC.MinXJaw = C.MinXJaw;
+                        DbPC.MaxXJaw = C.MaxXJaw;
+                        DbPC.MinYJaw = C.MinYJaw;
+                        DbPC.MaxYJaw = C.MaxYJaw;
+                        DbPC.VMAT_JawTracking = (int)C.VMAT_JawTracking;
+                        DbPC.Algorithm = (int)C.Algorithm;
+                        DbPC.FieldNormalizationMode = (int)C.FieldNormalizationMode;
+                        DbPC.AlgorithmResolution = C.AlgorithmResolution;
+                        DbPC.PNVMin = C.PNVMin;
+                        DbPC.PNVMax = C.PNVMax;
+                        DbPC.SliceSpacing = C.SliceSpacing;
+                        DbPC.HeterogeneityOn = C.HeterogeneityOn;
+                        //Couch
+                        DbPC.SupportIndication = (int)C.SupportIndication;
+                        DbPC.CouchSurface = C.CouchSurface;
+                        DbPC.CouchInterior = C.CouchInterior;
+                        //Artifact
+                        foreach (Artifact A in C.Artifacts)
+                        {
+                            DbArtifact DbA = Context.DbArtifacts.Create();
+                            Context.DbArtifacts.Add(DbA);
+                            DbA.DbProtocolChecklist = DbPC;
+                            DbA.ProtocolStructure_ID = SessionProtocolStructure_Lookup[A.E.ID]; // will have been duplicated above;
+                            DbA.HU = A.RefHU;
+                            DbA.DbProtocolChecklist = DbPC;
+                        }
+                    }
+                    // structures
                     foreach (Component SC in _Components.Values)
                     {
                         DbSessionComponent DbC = Context.DbSessionComponents.Create();
@@ -917,53 +965,10 @@ namespace SquintScript
                         DbC.NumFractions = SC.NumFractions;
                         DbC.ReferenceDose = SC.ReferenceDose;
                         DbC.DisplayOrder = SC.DisplayOrder;
-                        //Add component checklist
-                        if (SC.Checklist != null)
-                        {
-                            var C = SC.Checklist;
-                            var DbCC = Context.DbComponentChecklists.Create();
-                            Context.DbComponentChecklists.Add(DbCC);
-                            DbCC.DbComponent = DbC;
-                            DbCC.TreatmentTechniqueType = (int)C.TreatmentTechniqueType;
-                            DbCC.MinFields = C.MinFields;
-                            DbCC.MaxFields = C.MaxFields;
-                            DbCC.VMAT_MinFieldColSeparation = C.VMAT_MinFieldColSeparation;
-                            DbCC.NumIso = C.NumIso;
-                            DbCC.MinXJaw = C.MinXJaw;
-                            DbCC.MaxXJaw = C.MaxXJaw;
-                            DbCC.MinYJaw = C.MinYJaw;
-                            DbCC.MaxYJaw = C.MaxYJaw;
-                            DbCC.VMAT_JawTracking = (int)C.VMAT_JawTracking;
-                            DbCC.Algorithm = (int)C.Algorithm;
-                            DbCC.FieldNormalizationMode = (int)C.FieldNormalizationMode;
-                            DbCC.AlgorithmResolution = C.AlgorithmResolution;
-                            DbCC.PNVMin = C.PNVMin;
-                            DbCC.PNVMax = C.PNVMax;
-                            DbCC.SliceSpacing = C.SliceSpacing;
-                            DbCC.HeterogeneityOn = C.HeterogeneityOn;
-                            //Couch
-                            DbCC.SupportIndication = (int)C.SupportIndication;
-                            DbCC.CouchSurface = C.CouchSurface;
-                            DbCC.CouchInterior = C.CouchInterior;
-                            //Artifact
-                            foreach (Artifact A in C.Artifacts)
-                            {
-                                DbArtifact DbA = Context.DbArtifacts.Create();
-                                Context.DbArtifacts.Add(DbA);
-                                DbA.DbComponentChecklist = DbCC;
-                                DbA.ECSID_ID = SessionECSID_Lookup[A.E.ID]; // will have been duplicated above;
-                                DbA.HU = A.CheckHU;
-                                DbA.DbComponentChecklist = DbCC;
-                            }
-                        }
                         foreach (Beam B in SC.Beams())
                         {
                             var DbB = Context.DbBeams.Create();
                             Context.DbBeams.Add(DbB);
-                            DbB.BolusClinicalHU = B.RefBolusHU;
-                            DbB.BolusClinicalIndication = (int)B.BolusParameter;
-                            DbB.BolusClinicalMaxThickness = B.BolusClinicalMaxThickness;
-                            DbB.BolusClinicalMinThickness = B.BolusClinicalMinThickness;
                             DbB.ComponentID = DbC.ID;
                             DbB.CouchRotation = B.CouchRotation;
                             foreach (string Alias in B.EclipseAliases)
@@ -979,10 +984,10 @@ namespace SquintScript
                                 Context.DbBeamGeometries.Add(DbBG);
                                 DbBG.DbBeam = DbB;
                                 DbBG.GeometryName = BG.GeometryName;
-                                DbBG.MaxEndAngle = BG.MaxEndAngle;
-                                DbBG.MaxStartAngle = BG.MaxStartAngle;
-                                DbBG.MinEndAngle = BG.MinEndAngle;
-                                DbBG.MinStartAngle = BG.MinStartAngle;
+                                DbBG.EndAngle = BG.EndAngle;
+                                DbBG.StartAngle = BG.StartAngle;
+                                DbBG.EndAngleTolerance = BG.EndAngleTolerance;
+                                DbBG.StartAngleTolerance = BG.StartAngleTolerance;
                             }
                             if (DbB.DbEnergies == null && B.ValidEnergies.Count > 0)
                             {
@@ -1003,10 +1008,10 @@ namespace SquintScript
                             DbPl.SessionId = DbS.ID;
                             DbPl.AssessmentID = AssessmentLookup[P.AssessmentID];
                             DbPl.SessionComponentID = ComponentLookup[P.ComponentID];
-                            DbPl.LastModified = P.LinkedPlan.HistoryDateTime.ToBinary();
-                            DbPl.LastModifiedBy = await P.LinkedPlan.GetLastModifiedDBy();
-                            DbPl.CourseName = P.CourseName;
-                            DbPl.PlanName = P.PlanName;
+                            DbPl.LastModified = P.LastModified.ToBinary();
+                            DbPl.LastModifiedBy = P.LastModifiedBy;
+                            DbPl.CourseName = P.CourseId;
+                            DbPl.PlanName = P.PlanId;
                             DbPl.UID = P.UID;
                             DbPl.PlanType = (int)P.PlanType;
                             Context.DbPlans.Add(DbPl);
@@ -1209,10 +1214,10 @@ namespace SquintScript
                     //Update Components
                     Dictionary<int, int> ComponentLookup = new Dictionary<int, int>();
                     Dictionary<int, int> StructureLookup = new Dictionary<int, int>();
-                    foreach (ECSID S in _ECSIDs.Values)
+                    foreach (ProtocolStructure S in _ProtocolStructures.Values)
                     {
-                        DbECSID DbE = Context.DbECSIDs.Create();
-                        Context.DbECSIDs.Add(DbE);
+                        DbProtocolStructure DbE = Context.DbProtocolStructures.Create();
+                        Context.DbProtocolStructures.Add(DbE);
                         DbE.ID = IDGenerator();
                         StructureLookup.Add(S.ID, DbE.ID);
                         DbE.ProtocolID = DbP.ID;

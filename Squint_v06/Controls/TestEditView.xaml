@@ -1,4 +1,4 @@
-﻿<UserControl x:Class="SquintScript.Controls.TestView"
+﻿<UserControl x:Class="SquintScript.Controls.TestEditView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
@@ -105,13 +105,9 @@
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="250"/>
                         <ColumnDefinition Width="150"/>
-                        <ColumnDefinition Width="150"/>
-                        <ColumnDefinition Width="150"/>
                     </Grid.ColumnDefinitions>
                     <TextBlock Grid.Column="0" Text="Property" FontWeight="Bold" FontSize="13" HorizontalAlignment="Left"/>
-                    <TextBlock Grid.Column="1" Text="Check Value"  FontWeight="Bold" FontSize="13" HorizontalAlignment="Left" Margin="0,0,0,0"/>
-                    <TextBlock Grid.Column="2" Name="ReferenceHeader" Text="Reference" FontWeight="Bold" FontSize="13" HorizontalAlignment="Left" Margin="0,0,0,0"/>
-                    <TextBlock Grid.Column="3" Text="Result" FontWeight="Bold" FontSize="13" HorizontalAlignment="Left" Margin="0,0,0,0"/>
+                    <TextBlock Grid.Column="1" Name="ReferenceHeader" Text="Edit Reference" FontWeight="Bold" FontSize="13" HorizontalAlignment="Left" Margin="0,0,0,0"/>
                 </Grid>
                 <ListView Grid.Row="1" Margin ="10,5,0,0" Name="MainTestListView" ItemsSource="{Binding Tests}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch" AlternationCount="2"
                      ScrollViewer.HorizontalScrollBarVisibility="Disabled" Background="Transparent" BorderThickness="0">
@@ -145,13 +141,10 @@
                             <Grid HorizontalAlignment="Stretch">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="250"/>
-                                    <ColumnDefinition Width="150"/>
-                                    <ColumnDefinition Width="150"/>
                                     <ColumnDefinition Width="*"/>
                                 </Grid.ColumnDefinitions>
                                 <TextBlock Grid.Column="0" Text="{Binding TestName, Mode=OneTime, UpdateSourceTrigger=PropertyChanged}" FontWeight="Bold" VerticalAlignment="Center"/>
-                                <TextBlock Grid.Column="1" Text="{Binding CheckValueString, Mode=OneTime, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Center"/>
-                                <Grid Grid.Column="2">
+                                <Grid Grid.Column="1">
                                     <TextBlock Text="{Binding ReferenceValueString, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Center">
                                         <TextBlock.Visibility>
                                             <MultiBinding Converter="{StaticResource VisibilityEditModeConverter}">
@@ -159,7 +152,7 @@
                                                 <Binding RelativeSource="{RelativeSource Self}"/>
                                             </MultiBinding>
                                         </TextBlock.Visibility>
-                                    </TextBlock> 
+                                    </TextBlock>
                                     <ComboBox  ItemsSource="{Binding ReferenceValueOptions, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Center" Margin="0,0,5,0" Style="{DynamicResource ConstraintComboBoxStyle}">
                                         <ComboBox.Visibility>
                                             <MultiBinding Converter="{StaticResource VisibilityEditModeConverter}">
@@ -194,6 +187,6 @@
             </Rectangle.Effect>
         </Rectangle>
     </Grid>
-   
+
 </UserControl>
 
