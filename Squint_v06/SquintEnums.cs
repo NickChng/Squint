@@ -11,6 +11,10 @@ using System.ComponentModel.DataAnnotations;
 namespace SquintScript
 {
     //Type Definitions
+    public enum CheckTypes
+    {
+        [Description("Slice spacing")] SliceSpacing,
+    }
     public enum Energies
     {
         [Description("Unset")] Unset = 1,
@@ -32,6 +36,14 @@ namespace SquintScript
         [Description("Optional")] Optional,
         [Description("Required")] Required,
         [Description("None")] None,
+    }
+    public enum EditTypes
+    {
+        [Description("Unset")] Unset,
+        [Description("SingleSelection")] SingleSelection,
+        [Description("SingleValue")] SingleValue,
+        [Description("RangeValues")] RangeValues,
+        [Description("AnyOfValues")] AnyOfValues,
     }
     public enum ImagingProtocols
     {

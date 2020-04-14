@@ -72,7 +72,34 @@ namespace SquintScript
         public string Label { get; set; } = "Label";
         public string abRatio { get; set; } = "-1";
     }
+    [AddINotifyPropertyChangedInterface]
+    public class ProtocolSelector : ObservableObject
+    {
+        private Ctr.ProtocolPreview _pp;
+        public ProtocolSelector(Ctr.ProtocolPreview pp)
+        {
+            _pp = pp;
+            //Ctr.ProtocolListUpdated += OnProtocolListUpdated;
+        }
 
+        public int Id { get { return _pp.ID; } }
+        public string ProtocolName { get { return _pp.ProtocolName; } }
+
+        public TreatmentCentres TreatmentCentre { get { return _pp.TreatmentCentre; } }
+        public TreatmentSites TreatmentSite { get { return _pp.TreatmentSite; } }
+
+        public string LastModifiedBy { get { return _pp.LastModifiedBy; } }
+        public ProtocolTypes ProtocolType { get { return _pp.ProtocolType; } }
+        public ApprovalLevels ApprovalLevel { get { return _pp.Approval; } }
+        //private void OnProtocolListUpdated(object sender, EventArgs e)
+        //{
+        //    ProtocolName = Ctr.GetProtocol(Id).ProtocolName;
+        //}
+        public void Unsubscribe()
+        {
+            //Ctr.ProtocolListUpdated -= OnProtocolListUpdated;
+        }
+    }
     public class StructureSelector : ObservableObject
     {
         private bool isSelected { get; set; }
@@ -982,16 +1009,17 @@ namespace SquintScript
         {
             try
             {
-                ParentView.ParentView.WaitingForUpdate = true;
-                ParentView.ParentView.WaitingDescription = "Loading plans...";
-                List<Ctr.PlanDescriptor> result = await Ctr.GetPlanIdsByCourseName(_SelectedCourse.CourseId);
+                ParentView.ParentView.ParentView.ParentView.isLoading = true;
+                ParentView.ParentView.ParentView.ParentView.LoadingString = "Loading course plans...";
+                List<Ctr.PlanDescriptor> result = await Ctr.GetPlanDescriptors(_SelectedCourse.CourseId);
                 ObservableCollection<PlanSelector> NewPlans = new ObservableCollection<PlanSelector>();
                 foreach (var d in result)
                 {
                     NewPlans.Add(new PlanSelector(d.PlanId, d.PlanUID, CourseId, d.StructureSetUID, this));
                 }
                 Plans = NewPlans;
-                ParentView.ParentView.WaitingForUpdate = false;
+                ParentView.ParentView.ParentView.ParentView.isLoading = false;
+                ParentView.ParentView.ParentView.ParentView.LoadingString = "";
                 EnableCourseSelection = true;
             }
             catch (Exception ex)
@@ -1051,11 +1079,13 @@ namespace SquintScript
             {
                 try
                 {
-                    ParentView.ParentView.WaitingForUpdate = true;
-                    var CSC = await Ctr.AssociatePlanToComponent(A.ID, Comp.ID, _SelectedCourse.CourseId, _SelectedPlan.PlanId, true);
+                    ParentView.ParentView.ParentView.ParentView.isLoading = true;
+                    ParentView.ParentView.ParentView.ParentView.LoadingString = "Loading plan...";
+                    var CSC = await Ctr.AssociatePlanToComponent(A.ID, Comp.ID, _SelectedCourse.CourseId, _SelectedPlan.PlanId, Comp.ComponentType, true);
                     Ctr.UpdateComponentConstraints(Comp.ID, A.ID);
                     UpdateWarning(CSC);
-                    ParentView.ParentView.WaitingForUpdate = false;
+                    ParentView.ParentView.ParentView.ParentView.isLoading = false;
+                    ParentView.ParentView.ParentView.ParentView.LoadingString = "";
                 }
                 catch (Exception ex)
                 {
@@ -1098,37 +1128,10 @@ namespace SquintScript
     [AddINotifyPropertyChangedInterface]
     public class ProtocolView : ObservableObject
     {
-        public class ProtocolSelector : ObservableObject
+        public ProtocolView(Presenter parentView)
         {
-            private Ctr.ProtocolPreview _pp;
-            public ProtocolSelector(Ctr.ProtocolPreview pp)
-            {
-                _pp = pp;
-                //Ctr.ProtocolListUpdated += OnProtocolListUpdated;
-            }
-
-            public int Id { get { return _pp.ID; } }
-            public string ProtocolName { get { return _pp.ProtocolName; } }
-
-            public TreatmentCentres TreatmentCentre { get { return _pp.TreatmentCentre; } }
-            public TreatmentSites TreatmentSite { get { return _pp.TreatmentSite; } }
-
-            public string LastModifiedBy { get { return _pp.LastModifiedBy; } }
-            public ProtocolTypes ProtocolType { get { return _pp.ProtocolType; } }
-            public ApprovalLevels ApprovalLevel { get { return _pp.Approval; } }
-            //private void OnProtocolListUpdated(object sender, EventArgs e)
-            //{
-            //    ProtocolName = Ctr.GetProtocol(Id).ProtocolName;
-            //}
-            public void Unsubscribe()
-            {
-                //Ctr.ProtocolListUpdated -= OnProtocolListUpdated;
-            }
-        }
-        public ProtocolView(string inputProtocolName = "No protocol loaded")
-        {
-            _P = Ctr.GetActiveProtocol();
-            //RaisePropertyChangedEvent(nameof(LastModifiedBy));
+            ParentView = parentView;
+            AssessmentPresenter = new AssessmentsView(this);
             var ProtocolPreviews = Ctr.GetProtocolPreviewList();
             foreach (var PP in ProtocolPreviews)
             {
@@ -1140,9 +1143,8 @@ namespace SquintScript
             Ctr.ProtocolConstraintOrderChanged += UpdateConstraintOrder;
             Ctr.ConstraintAdded += OnConstraintAdded;
             Ctr.ConstraintRemoved += OnConstraintRemoved;
-            //if (_P != null)
-            //    _P.PropertyChanged += OnProtocolPropertyChanged;
         }
+        public Presenter ParentView { get; set; }
         public void Unsubscribe()
         {
             Ctr.CurrentStructureSetChanged -= UpdateAvailableStructureIds;
@@ -1158,6 +1160,10 @@ namespace SquintScript
             }
         }
         private Ctr.Protocol _P;
+        public ProtocolSelector SelectedProtocol { get; set; }
+
+        public bool isProtocolLoaded { get; set; }
+
         private string _ProtocolName = "No protocol loaded";
         public string ProtocolName
         {
@@ -1186,16 +1192,7 @@ namespace SquintScript
             get { return _P.TreatmentSite; }
             set { _P.TreatmentSite = value; }
         }
-        //public string LastModifiedBy
-        //{
-        //    get
-        //    {
-        //        if (_P != null)
-        //            return _P.LastModifiedBy;
-        //        else
-        //            return "";
-        //    }
-        //}
+
         public bool RefreshFlag { get; private set; } = false;
         public bool DragSelected { get; set; } = false;
         private int _SelectedIndex = -2;
@@ -1231,6 +1228,7 @@ namespace SquintScript
         public ObservableCollection<ProtocolSelector> Protocols { get; set; } = new ObservableCollection<ProtocolSelector>();
         public ObservableCollection<ComponentSelector> Components { get; set; } = new ObservableCollection<ComponentSelector>();
         public ObservableCollection<ConstraintSelector> Constraints { get; set; } = new ObservableCollection<ConstraintSelector>();
+        public AssessmentsView AssessmentPresenter { get; set; } = new AssessmentsView(null);
         private ConstraintSelector _SelectedConstraint;
         public ConstraintSelector SelectedConstraint
         {
@@ -1305,6 +1303,103 @@ namespace SquintScript
         {
             var E = Ctr.AddNewStructure();
             Structures.Add(new StructureSelector(E));
+        }
+        public ICommand LoadSelectedProtocolCommand
+        {
+            get { return new DelegateCommand(LoadSelectedProtocol); }
+        }
+        private async void LoadSelectedProtocol(object param)
+        {
+            if (ParentView.isLoading == true)
+                return;
+            var PS = (ProtocolSelector)param;
+            if (PS == null)
+                return; // no protocol selected;
+            ParentView.LoadingString = "Loading selected protocol...";
+            ParentView.isLoading = true;
+            AssessmentPresenter = new AssessmentsView(this);
+            await Task.Run(() => Ctr.LoadProtocolFromDb(PS.ProtocolName));
+            UpdateProtocolView();
+            isProtocolLoaded = true;
+            ParentView.isLoading = false;
+        }
+        public void UpdateProtocolView()
+        {
+            Structures.Clear();
+            Constraints.Clear();
+            foreach (var S in Ctr.GetStructureList().OrderBy(x => x.DisplayOrder))
+            {
+                Structures.Add(new StructureSelector(S));
+            }
+            foreach (var C in Ctr.GetConstraints().OrderBy(x => x.DisplayOrder))
+            {
+                StructureSelector SS = Structures.FirstOrDefault(x => x.Id == C.PrimaryStructureID);
+                ConstraintSelector CS = new ConstraintSelector(C, SS);
+                Constraints.Add(CS);
+            }
+            foreach (var Comp in Ctr.GetComponentList().OrderBy(x => x.DisplayOrder))
+            {
+                Components.Add(new ComponentSelector(Comp));
+            }
+            AssessmentPresenter = new AssessmentsView(this);
+            AssessmentPresenter.LoadAssessmentViews();
+        }
+
+        private async void UpdateProtocol(object param = null)
+        {
+            ParentView.LoadingString = "Validating changes...";
+            bool areChangeDescriptionsComplete = true;
+            List<string> IncompleteChangeDefinitions = new List<string>() { "Please enter Change Descriptions for the following modified constraints:" };
+            foreach (ConstraintSelector CS in Constraints.Where(x => x.isModified == true))
+            {
+                if (CS.ChangeDescription == "")
+                {
+                    areChangeDescriptionsComplete = false;
+                    IncompleteChangeDefinitions.Add(CS.ShortConstraintDefinition);
+                }
+            }
+            if (!areChangeDescriptionsComplete)
+            {
+                MessageBox.Show(string.Join(Environment.NewLine, IncompleteChangeDefinitions));
+                return;
+            }
+
+            ParentView.LoadingString = "Updating Protocol...";
+            ParentView.isLoading = true;
+            await Task.Run(() => Ctr.Save_UpdateProtocol());
+            ParentView.isLoading = false;
+            LoadSelectedProtocol(ProtocolName);
+        }
+        public ICommand UpdateProtocolCommand
+        {
+            get { return new DelegateCommand(UpdateProtocol); }
+        }
+
+        public ICommand DuplicateProtocolCommand
+        {
+            get { return new DelegateCommand(DuplicateProtocol); }
+        }
+        private void DuplicateProtocol(object param = null)
+        {
+            Ctr.Save_DuplicateProtocol();
+            LoadSelectedProtocol(ProtocolName);
+        }
+        public ICommand DeleteSelectedProtocolCommand
+        {
+            get { return new DelegateCommand(DeleteSelectedProtocol); }
+        }
+        private async void DeleteSelectedProtocol(object param = null)
+        {
+            var PS = (param as ProtocolSelector);
+            ParentView.LoadingString = "Deleting selected protocol...";
+            ParentView.isLoading = true;
+            if (PS != null)
+            {
+                var Result = MessageBox.Show(string.Format("Are you sure you want to delete this protocol ({0})", PS.ProtocolName), "Confirm deletion", MessageBoxButton.OKCancel);
+                if (Result == MessageBoxResult.OK)
+                    await Task.Run(() => Ctr.DeleteProtocol(PS.Id));
+            }
+            ParentView.isLoading = false;
         }
 
     }
@@ -1410,6 +1505,10 @@ namespace SquintScript
     [AddINotifyPropertyChangedInterface]
     public class AssessmentsView : ObservableObject
     {
+        public AssessmentsView(ProtocolView parentView)
+        {
+            ParentView = parentView;
+        }
         public Progress<int> Progress { get; set; }
         public Thickness ColHeaderMargin { get; set; } = new Thickness(10, 5, 10, 5);
         //public DataGridLength RowHeaderWidth { get; set; } = new DataGridLength(1, DataGridLengthUnitType.Auto);
@@ -1417,6 +1516,8 @@ namespace SquintScript
         public int AssessmentCounter { get; private set; } = 1;
         public bool WaitingForUpdate { get; set; } = false;
         public string WaitingDescription { get; set; } = "";
+
+        public ProtocolView ParentView { get; set; }
         public double FontSize { get; set; } = 12;
         private List<wpfcolor> DefaultAssessmentColors = new List<wpfcolor> { wpfcolors.LightSteelBlue, wpfcolors.AliceBlue, wpfcolors.PapayaWhip, wpfcolors.PaleGoldenrod };
         private List<wpfcolor> DefaultAssessmentTextColors = new List<wpfcolor> { wpfcolors.White, wpfcolors.Black, wpfcolors.Black, wpfcolors.Black };
@@ -1490,6 +1591,60 @@ namespace SquintScript
             }
             Assessments = UpdatedAssessments;
             AssessmentColumns.Remove(AssessmentColumns.FirstOrDefault(x => x.Header.ToString() == AS.AssessmentName));
+        }
+        private void AddAssessment(object param = null)
+        {
+            AddAssessment();
+        }
+        public ICommand AddAssessmentCommand
+        {
+            get { return new DelegateCommand(AddAssessment); }
+        }
+
+        public ICommand ChangeLinkVisibilityCommand
+        {
+            get { return new DelegateCommand(ChangeLinkProtocolVisibility); }
+        }
+        private void ChangeLinkProtocolVisibility(object param = null)
+        {
+            ParentView.ParentView.isLinkProtocolVisible = !ParentView.ParentView.isLinkProtocolVisible;
+            // Add an assessment if there aren't any
+            if (Assessments.Count == 0 && ParentView.ParentView.isLinkProtocolVisible == true)
+                AddAssessment();
+        }
+        //private void UpdateAssessmentsView()
+        //{
+        //    AssessmentPresenter = new AssessmentsView(this);
+        //    AssessmentPresenter.LoadAssessmentViews();
+        //}
+        public ICommand FontSizeIncreaseCommand
+        {
+            get { return new DelegateCommand(FontSizeIncrease); }
+        }
+        public ICommand FontSizeDecreaseCommand
+        {
+            get { return new DelegateCommand(FontSizeDecrease); }
+        }
+        private void FontSizeIncrease(object param = null)
+        {
+            var AP = param as AssessmentsView;
+            if (AP != null)
+                AP.FontSize = AP.FontSize + 1;
+        }
+        private void FontSizeDecrease(object param = null)
+        {
+            var AP = param as AssessmentsView;
+            if (AP != null)
+            {
+                AP.FontSize = AP.FontSize - 1;
+                foreach (SquintDataColumn C in AssessmentColumns)
+                {
+                    C.Width = new DataGridLength(0);
+                    C.Width = new DataGridLength(1, DataGridLengthUnitType.Auto);
+                }
+                RowHeaderWidth = 0;
+                RowHeaderWidth = double.NaN;
+            }
         }
     }
     [AddINotifyPropertyChangedInterface]
@@ -1676,9 +1831,9 @@ namespace SquintScript
                 RaisePropertyChangedEvent("ComboSelectedItem");
             }
         }
-        
 
-        public ViewModels.Checklist_ViewModel ChecklistViewModel { get; set;} = new ViewModels.Checklist_ViewModel();
+
+        public ViewModels.Checklist_ViewModel ChecklistViewModel { get; set; } = new ViewModels.Checklist_ViewModel();
         public Controls.Beam_ViewModel Beam_ViewModel { get; set; } = new Controls.Beam_ViewModel();
         public Controls.LoadingViewModel Loading_ViewModel { get; set; } = new Controls.LoadingViewModel();
         public Controls.Control_ViewModel Objectives_ViewModel { get; set; } = new Controls.Control_ViewModel();
@@ -1687,9 +1842,8 @@ namespace SquintScript
         public Controls.TestList_ViewModel Targets_ViewModel { get; set; } = new Controls.TestList_ViewModel();
         public Controls.TestList_ViewModel Calculation_ViewModel { get; set; } = new Controls.TestList_ViewModel();
         public Controls.TestList_ViewModel Prescription_ViewModel { get; set; } = new Controls.TestList_ViewModel();
-        public ProtocolView Protocol { get; set; } = new ProtocolView();
+        public ProtocolView Protocol { get; set; } = new ProtocolView(null);
         public PatientView PatientPresenter { get; set; } = new PatientView(null);
-        public AssessmentsView AssessmentPresenter { get; set; } = new AssessmentsView();
         public SessionsView SessionsPresenter { get; set; } = new SessionsView();
         //public ObservableCollection<ConstraintResultsView> SquintResults { get; set; } = new ObservableCollection<ConstraintResultsView>();
         public FilterComboBox CentreComboBox { get; set; } = new FilterComboBox(ViewEnums.Centre);
@@ -1734,26 +1888,9 @@ namespace SquintScript
         {
             get { return new DelegateCommand(ExpandStructures); }
         }
-        public ICommand ChangeLinkVisibilityCommand
-        {
-            get { return new DelegateCommand(ChangeLinkProtocolVisibility); }
-        }
-        public ICommand AddAssessmentCommand
-        {
-            get { return new DelegateCommand(AddAssessment); }
-        }
-        public ICommand FontSizeIncreaseCommand
-        {
-            get { return new DelegateCommand(FontSizeIncrease); }
-        }
-        public ICommand FontSizeDecreaseCommand
-        {
-            get { return new DelegateCommand(FontSizeDecrease); }
-        }
-        public ICommand LoadSelectedProtocolCommand
-        {
-            get { return new DelegateCommand(LoadSelectedProtocol); }
-        }
+      
+        
+      
         public ICommand EnterKeyCommand_PID
         {
             get { return new DelegateCommand(LoadPatient); }
@@ -1862,7 +1999,6 @@ namespace SquintScript
                 Loading_ViewModel = new Controls.LoadingViewModel() { LoadingMessage = @"Checking plan, please wait..." };
 
                 await ChecklistViewModel.PopulateViews(p);
-
                 isPlanCheckCalculating = false;
             }
         }
@@ -2051,7 +2187,7 @@ namespace SquintScript
             Beam_ViewModel.GroupTests.Tests.Remove(OldTest);
             double? ProtocolMinColOffset = Comp.MinColOffset;
             if (ProtocolMinColOffset < 0) ProtocolMinColOffset = null;
-            TestListDoubleValueItem MinColOffsetCheck = new TestListDoubleValueItem("Min collimator offset", MinColOffset, ProtocolMinColOffset, TestType.LessThan, null, "Insufficient collimator offset");
+            TestListDoubleValueItem MinColOffsetCheck = new TestListDoubleValueItem("Min collimator offset", MinColOffset, ProtocolMinColOffset, "Insufficient collimator offset") { TestType = TestType.LessThan };
             Beam_ViewModel.GroupTests.Tests.Add(MinColOffsetCheck);
         }
         private double findMinDiff(double[] arr)
@@ -2119,9 +2255,7 @@ namespace SquintScript
             LoadingString = "Loading session...";
             if (await Task.Run(() => Ctr.Load_Session(E.ID)))
             {
-                AssessmentPresenter = new AssessmentsView();
-                UpdateAssessmentsView();
-                UpdateProtocolView();
+                Protocol.UpdateProtocolView();
                 Ctr.UpdateAllConstraints();
                 isLinkProtocolVisible = true;
             }
@@ -2251,72 +2385,20 @@ namespace SquintScript
         private void DeleteAssessment(object param = null)
         {
             var AS = (AssessmentView)param;
-            AssessmentPresenter.DeleteAssessment(AS);
+            Protocol.AssessmentPresenter.DeleteAssessment(AS);
             AS.Delete();
         }
-        public ICommand UpdateProtocolCommand
-        {
-            get { return new DelegateCommand(UpdateProtocol); }
-        }
-        private async void UpdateProtocol(object param = null)
-        {
-            LoadingString = "Validating changes...";
-            bool areChangeDescriptionsComplete = true;
-            List<string> IncompleteChangeDefinitions = new List<string>() { "Please enter Change Descriptions for the following modified constraints:" };
-            foreach (ConstraintSelector CS in Protocol.Constraints.Where(x => x.isModified == true))
-            {
-                if (CS.ChangeDescription == "")
-                {
-                    areChangeDescriptionsComplete = false;
-                    IncompleteChangeDefinitions.Add(CS.ShortConstraintDefinition);
-                }
-            }
-            if (!areChangeDescriptionsComplete)
-            {
-                MessageBox.Show(string.Join(Environment.NewLine, IncompleteChangeDefinitions));
-                return;
-            }
+    
 
-            LoadingString = "Updating Protocol...";
-            isLoading = true;
-            await Task.Run(() => Ctr.Save_UpdateProtocol());
-            isLoading = false;
-            LoadSelectedProtocol(Protocol.ProtocolName);
-        }
-        public ICommand DuplicateProtocolCommand
-        {
-            get { return new DelegateCommand(DuplicateProtocol); }
-        }
-        private void DuplicateProtocol(object param = null)
-        {
-            Ctr.Save_DuplicateProtocol();
-            LoadSelectedProtocol(Protocol.ProtocolName);
-        }
-        public ICommand DeleteSelectedProtocolCommand
-        {
-            get { return new DelegateCommand(DeleteSelectedProtocol); }
-        }
 
-       
-        private async void DeleteSelectedProtocol(object param = null)
-        {
-            var PS = (param as ProtocolView.ProtocolSelector);
-            LoadingString = "Deleting selected protocol...";
-            isLoading = true;
-            if (PS != null)
-            {
-                var Result = MessageBox.Show(string.Format("Are you sure you want to delete this protocol ({0})", PS.ProtocolName), "Confirm deletion", MessageBoxButton.OKCancel);
-                if (Result == MessageBoxResult.OK)
-                    await Task.Run(() => Ctr.DeleteProtocol(PS.Id));
-            }
-            isLoading = false;
-        }
+      
         private void LoadPatient(object param = null)
         {
             try
             {
                 if (PatientPresenter.ParentView == null)
                     PatientPresenter.ParentView = this; // pass the current view so it can access the isLoading variable
+                Protocol = new ProtocolView(this);
                 if (Ctr.PatientLoaded)
                 {
                     var Result = MessageBox.Show("Close current patient and all assessments?", "Close Patient?", MessageBoxButton.OKCancel);
@@ -2324,10 +2406,8 @@ namespace SquintScript
                         return;
                     CloseCheckList();
                     Ctr.ClosePatient();
-                    AssessmentPresenter = new AssessmentsView();
                     Protocol.Unsubscribe();
                     Ctr.CloseProtocol();
-                    Protocol = new ProtocolView();
                     foreach (string CourseId in Ctr.GetCourseNames())
                     {
                         PatientPresenter.Courses.Add(new CourseSelector(CourseId));
@@ -2383,7 +2463,7 @@ namespace SquintScript
                     PatientPresenter.CurrentStructureSet = UnchangedStructureSet;
                 }
             }
-            foreach (AssessmentView AV in AssessmentPresenter.Assessments)
+            foreach (AssessmentView AV in Protocol.AssessmentPresenter.Assessments)
             {
                 foreach (AssessmentComponentView ACV in AV.ACVs)
                 {
@@ -2409,10 +2489,8 @@ namespace SquintScript
             Ctr.UpdateAllConstraints();
             W.Close();
         }
-        private void AddAssessment(object param = null)
-        {
-            AssessmentPresenter.AddAssessment();
-        }
+
+        
         private void ChangeVisibility(object param = null)
         {
             if (isPIDVisible && Ctr.PatientLoaded)
@@ -2424,20 +2502,14 @@ namespace SquintScript
                 CloseCheckList();
                 PatientPresenter.Dispose();
                 PatientPresenter = new PatientView();
-                AssessmentPresenter = new AssessmentsView();
+                Protocol = new ProtocolView(this);
                 Protocol.Unsubscribe();
                 Ctr.CloseProtocol();
-                Protocol = new ProtocolView();
+                
             }
             isPIDVisible = !isPIDVisible;
         }
-        private void ChangeLinkProtocolVisibility(object param = null)
-        {
-            isLinkProtocolVisible = !isLinkProtocolVisible;
-            // Add an assessment if there aren't any
-            if (AssessmentPresenter.Assessments.Count == 0 && isLinkProtocolVisible == true)
-                AssessmentPresenter.AddAssessment();
-        }
+      
         private void ExpandLoadProtocol(object param = null)
         {
             isLoadProtocolPanelVisible = !isLoadProtocolPanelVisible;
@@ -2450,82 +2522,12 @@ namespace SquintScript
         {
             isUserPanelVisible = !isUserPanelVisible;
         }
-        private async void LoadSelectedProtocol(object param)
-        {
-            if (isLoading == true)
-                return;
-            string ProtocolId = (string)param;
-            if (ProtocolId == null)
-                return; // no protocol selected;
-            LoadingString = "Loading selected protocol...";
-            isLoading = true;
-            AssessmentPresenter = new AssessmentsView();
-            await Task.Run(() => Ctr.LoadProtocolFromDb(ProtocolId, Protocol.Progress as IProgress<int>));
-            UpdateProtocolView();
-            isLoading = false;
-        }
-        private void UpdateAssessmentsView()
-        {
-            AssessmentPresenter = new AssessmentsView();
-            AssessmentPresenter.LoadAssessmentViews();
-        }
-        private void UpdateProtocolView()
-        {
-            if (Protocol != null)
-                Protocol.Unsubscribe();
-            Protocol = new ProtocolView();
-            Protocol.Structures.Clear();
-            Protocol.Constraints.Clear();
-            foreach (var S in Ctr.GetStructureList().OrderBy(x => x.DisplayOrder))
-            {
-                Protocol.Structures.Add(new StructureSelector(S));
-            }
-            foreach (var C in Ctr.GetConstraints().OrderBy(x => x.DisplayOrder))
-            {
-                StructureSelector SS = Protocol.Structures.FirstOrDefault(x => x.Id == C.PrimaryStructureID);
-                ConstraintSelector CS = new ConstraintSelector(C, SS);
-                Protocol.Constraints.Add(CS);
-            }
-            foreach (var Comp in Ctr.GetComponentList().OrderBy(x => x.DisplayOrder))
-            {
-                Protocol.Components.Add(new ComponentSelector(Comp));
-            }
-            try
-            {
-                isProtocolLoaded = true;
-            }
-            catch (Exception ex)
-            {
-                string debugme = "hi";
-            }
-        }
-        private void OnConstraintPropertyChanged(object sender, PropertyChangedEventArgs e)
+             private void OnConstraintPropertyChanged(object sender, PropertyChangedEventArgs e)
         {
             // This captures changes to constraint properties that affect the layout of the constraints, i.e. displayorder
 
         }
-        private void FontSizeIncrease(object param = null)
-        {
-            var AP = param as AssessmentsView;
-            if (AP != null)
-                AP.FontSize = AP.FontSize + 1;
-        }
-        private void FontSizeDecrease(object param = null)
-        {
-            var AP = param as AssessmentsView;
-            if (AP != null)
-            {
-                AP.FontSize = AP.FontSize - 1;
-                foreach (SquintDataColumn C in AssessmentPresenter.AssessmentColumns)
-                {
-                    C.Width = new DataGridLength(0);
-                    C.Width = new DataGridLength(1, DataGridLengthUnitType.Auto);
-                }
-                AssessmentPresenter.RowHeaderWidth = 0;
-                AssessmentPresenter.RowHeaderWidth = double.NaN;
-                // AssessmentPresenter.RowHeaderWidth = new DataGridLength(1, DataGridLengthUnitType.Auto);
-            }
-        }
+       
 
     }
 }

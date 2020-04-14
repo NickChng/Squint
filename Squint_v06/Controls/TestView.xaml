@@ -96,96 +96,179 @@
             <ColumnDefinition Width="40"/>
         </Grid.ColumnDefinitions>
         <ScrollViewer Grid.Column="0" ScrollViewer.HorizontalScrollBarVisibility="Auto" Template="{DynamicResource ScrollViewerTestViewControlTemplate}" Name="sv">
-            <Grid Background="White" VerticalAlignment="Top" HorizontalAlignment="Stretch"  x:Name="TestGrid">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="*"/>
-                </Grid.RowDefinitions>
-                <Grid Grid.Row="0" Margin="10,5,3,0" HorizontalAlignment="Left" Background="Transparent" >
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="250"/>
-                        <ColumnDefinition Width="150"/>
-                        <ColumnDefinition Width="150"/>
-                        <ColumnDefinition Width="150"/>
-                    </Grid.ColumnDefinitions>
-                    <TextBlock Grid.Column="0" Text="Property" FontWeight="Bold" FontSize="13" HorizontalAlignment="Left"/>
-                    <TextBlock Grid.Column="1" Text="Check Value"  FontWeight="Bold" FontSize="13" HorizontalAlignment="Left" Margin="0,0,0,0"/>
-                    <TextBlock Grid.Column="2" Name="ReferenceHeader" Text="Reference" FontWeight="Bold" FontSize="13" HorizontalAlignment="Left" Margin="0,0,0,0"/>
-                    <TextBlock Grid.Column="3" Text="Result" FontWeight="Bold" FontSize="13" HorizontalAlignment="Left" Margin="0,0,0,0"/>
-                </Grid>
-                <ListView Grid.Row="1" Margin ="10,5,0,0" Name="MainTestListView" ItemsSource="{Binding Tests}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch" AlternationCount="2"
+            <Grid>
+                <Grid Background="White" VerticalAlignment="Top" HorizontalAlignment="Stretch"  x:Name="TestGrid" Visibility="{Binding DataContext.amEditing, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:ChecklistControl}},  UpdateSourceTrigger=PropertyChanged, Converter={StaticResource VisibilityInverseConverter}}">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+                    <Grid Grid.Row="0" Margin="10,5,3,0" HorizontalAlignment="Left" Background="Transparent" >
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="250"/>
+                            <ColumnDefinition Width="150"/>
+                            <ColumnDefinition Width="150"/>
+                            <ColumnDefinition Width="150"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="0" Text="Property" FontWeight="Bold" FontSize="13" HorizontalAlignment="Left"/>
+                        <TextBlock Grid.Column="1" Text="Check Value"  FontWeight="Bold" FontSize="13" HorizontalAlignment="Left" Margin="0,0,0,0"/>
+                        <TextBlock Grid.Column="2" Name="ReferenceHeader" Text="Reference" FontWeight="Bold" FontSize="13" HorizontalAlignment="Left" Margin="0,0,0,0"/>
+                        <TextBlock Grid.Column="3" Text="Result" FontWeight="Bold" FontSize="13" HorizontalAlignment="Left" Margin="0,0,0,0"/>
+                    </Grid>
+                    <ListView Grid.Row="1" Margin ="10,5,0,0" Name="MainTestListView" ItemsSource="{Binding Tests}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch" AlternationCount="2"
                      ScrollViewer.HorizontalScrollBarVisibility="Disabled" Background="Transparent" BorderThickness="0">
-                    <ListView.ItemContainerStyle>
-                        <Style TargetType="ListViewItem">
-                            <Setter Property="Template">
-                                <Setter.Value>
-                                    <ControlTemplate TargetType="{x:Type ListViewItem}">
-                                        <Grid>
-                                            <Grid.Style>
-                                                <Style TargetType="Grid">
-                                                    <Style.Triggers>
-                                                        <DataTrigger Binding="{Binding RelativeSource={RelativeSource AncestorType={x:Type ListViewItem}}, Path=(ItemsControl.AlternationIndex), UpdateSourceTrigger=PropertyChanged, Converter={StaticResource TestConverter}}" Value="0">
-                                                            <Setter Property="Background" Value="AliceBlue"/>
-                                                        </DataTrigger>
-                                                        <DataTrigger Binding="{Binding RelativeSource={RelativeSource AncestorType={x:Type ListViewItem}}, Path=(ItemsControl.AlternationIndex), UpdateSourceTrigger=PropertyChanged, Converter={StaticResource TestConverter}}" Value="1">
-                                                            <Setter Property="Background" Value="Transparent"/>
-                                                        </DataTrigger>
-                                                    </Style.Triggers>
-                                                </Style>
-                                            </Grid.Style>
-                                            <ContentPresenter Name="CP" Margin="0,8,0,8" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
-                                        </Grid>
-                                    </ControlTemplate>
-                                </Setter.Value>
-                            </Setter>
-                        </Style>
-                    </ListView.ItemContainerStyle>
-                    <ListView.ItemTemplate>
-                        <DataTemplate>
-                            <Grid HorizontalAlignment="Stretch">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="250"/>
-                                    <ColumnDefinition Width="150"/>
-                                    <ColumnDefinition Width="150"/>
-                                    <ColumnDefinition Width="*"/>
-                                </Grid.ColumnDefinitions>
-                                <TextBlock Grid.Column="0" Text="{Binding TestName, Mode=OneTime, UpdateSourceTrigger=PropertyChanged}" FontWeight="Bold" VerticalAlignment="Center"/>
-                                <TextBlock Grid.Column="1" Text="{Binding CheckValueString, Mode=OneTime, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Center"/>
-                                <Grid Grid.Column="2">
-                                    <TextBlock Text="{Binding ReferenceValueString, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Center">
-                                        <TextBlock.Visibility>
-                                            <MultiBinding Converter="{StaticResource VisibilityEditModeConverter}">
-                                                <Binding Path="EditMode"/>
-                                                <Binding RelativeSource="{RelativeSource Self}"/>
-                                            </MultiBinding>
-                                        </TextBlock.Visibility>
-                                    </TextBlock> 
-                                    <ComboBox  ItemsSource="{Binding ReferenceValueOptions, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Center" Margin="0,0,5,0" Style="{DynamicResource ConstraintComboBoxStyle}">
-                                        <ComboBox.Visibility>
-                                            <MultiBinding Converter="{StaticResource VisibilityEditModeConverter}">
-                                                <Binding Path="EditMode"/>
-                                                <Binding RelativeSource="{RelativeSource Self}"/>
-                                            </MultiBinding>
-                                        </ComboBox.Visibility>
-                                    </ComboBox>
-                                    <TextBox Text="{Binding ReferenceValueString, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Center" Margin="0,0,5,0">
-                                        <TextBox.Visibility>
-                                            <MultiBinding Converter="{StaticResource VisibilityEditModeConverter}">
-                                                <Binding Path="EditMode"/>
-                                                <Binding RelativeSource="{RelativeSource Self}"/>
-                                            </MultiBinding>
-                                        </TextBox.Visibility>
-                                    </TextBox>
+                        <ListView.ItemContainerStyle>
+                            <Style TargetType="ListViewItem">
+                                <Setter Property="Template">
+                                    <Setter.Value>
+                                        <ControlTemplate TargetType="{x:Type ListViewItem}">
+                                            <Grid>
+                                                <Grid.Style>
+                                                    <Style TargetType="Grid">
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding RelativeSource={RelativeSource AncestorType={x:Type ListViewItem}}, Path=(ItemsControl.AlternationIndex), UpdateSourceTrigger=PropertyChanged, Converter={StaticResource TestConverter}}" Value="0">
+                                                                <Setter Property="Background" Value="AliceBlue"/>
+                                                            </DataTrigger>
+                                                            <DataTrigger Binding="{Binding RelativeSource={RelativeSource AncestorType={x:Type ListViewItem}}, Path=(ItemsControl.AlternationIndex), UpdateSourceTrigger=PropertyChanged, Converter={StaticResource TestConverter}}" Value="1">
+                                                                <Setter Property="Background" Value="Transparent"/>
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </Grid.Style>
+                                                <ContentPresenter Name="CP" Margin="0,8,0,8" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
+                                            </Grid>
+                                        </ControlTemplate>
+                                    </Setter.Value>
+                                </Setter>
+                            </Style>
+                        </ListView.ItemContainerStyle>
+                        <ListView.ItemTemplate>
+                            <DataTemplate>
+                                <Grid HorizontalAlignment="Stretch">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="250"/>
+                                        <ColumnDefinition Width="150"/>
+                                        <ColumnDefinition Width="150"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Grid.Column="0" Text="{Binding TestName, Mode=OneTime, UpdateSourceTrigger=PropertyChanged}" FontWeight="Bold" VerticalAlignment="Center"/>
+                                    <TextBlock Grid.Column="1" Text="{Binding CheckValueString, Mode=OneTime, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Center"/>
+                                    <Grid Grid.Column="2">
+                                        <TextBlock Text="{Binding ReferenceValueString, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Center"/>
+                                    </Grid>
+                                    <StackPanel Grid.Column="3" Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Center" Visibility="{Binding DataContext.CheckVisibility, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}">
+                                        <local:CircleCheck Pass="{Binding Warning, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" CheckHeight="20" CheckWidth="20" HorizontalAlignment="Right"/>
+                                        <TextBlock Text="{Binding WarningString, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" Foreground="Tomato" HorizontalAlignment="Right" Margin="10,0,0,0" VerticalAlignment="Center" Visibility="{Binding Warning, Converter={StaticResource VisibilityConverter}, UpdateSourceTrigger=PropertyChanged}"/>
+                                    </StackPanel>
                                 </Grid>
-                                <StackPanel Grid.Column="3" Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Center" Visibility="{Binding DataContext.CheckVisibility, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}">
-                                    <local:CircleCheck Pass="{Binding Warning, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" CheckHeight="20" CheckWidth="20" HorizontalAlignment="Right"/>
-                                    <TextBlock Text="{Binding WarningString, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" Foreground="Tomato" HorizontalAlignment="Right" Margin="10,0,0,0" VerticalAlignment="Center" Visibility="{Binding Warning, Converter={StaticResource VisibilityConverter}, UpdateSourceTrigger=PropertyChanged}"/>
-                                </StackPanel>
-                            </Grid>
 
-                        </DataTemplate>
-                    </ListView.ItemTemplate>
-                </ListView>
+                            </DataTemplate>
+                        </ListView.ItemTemplate>
+                    </ListView>
+                </Grid>
+                <Grid Background="White" VerticalAlignment="Top" HorizontalAlignment="Stretch"  x:Name="EditTestGrid" Visibility="{Binding DataContext.amEditing, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:ChecklistControl}}, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource VisibilityConverter}}">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+                    <Grid Grid.Row="0" Margin="10,5,3,0" HorizontalAlignment="Left" Background="Transparent" >
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="250"/>
+                            <ColumnDefinition Width="150"/>
+                            <ColumnDefinition Width="150"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="0" Text="Property" FontWeight="Bold" FontSize="13" HorizontalAlignment="Left"/>
+                        <TextBlock Grid.Column="1" Text="Current Reference" FontWeight="Bold" FontSize="13" HorizontalAlignment="Left" Margin="0,0,0,0"/>
+                        <TextBlock Grid.Column="2" Text="New Reference" FontWeight="Bold" FontSize="13" HorizontalAlignment="Left" Margin="0,0,0,0"/>
+                    </Grid>
+                    <ListView Grid.Row="1" Margin ="10,5,0,0" Name="EditTestListView" ItemsSource="{Binding Tests}" 
+                              HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch" AlternationCount="2"
+                     ScrollViewer.HorizontalScrollBarVisibility="Disabled" Background="Transparent" BorderThickness="0">
+                        <ListView.ItemContainerStyle>
+                            <Style TargetType="ListViewItem">
+                                <Setter Property="Template">
+                                    <Setter.Value>
+                                        <ControlTemplate TargetType="{x:Type ListViewItem}">
+                                            <Grid>
+                                                <Grid.Style>
+                                                    <Style TargetType="Grid">
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding RelativeSource={RelativeSource AncestorType={x:Type ListViewItem}}, Path=(ItemsControl.AlternationIndex), UpdateSourceTrigger=PropertyChanged, Converter={StaticResource TestConverter}}" Value="0">
+                                                                <Setter Property="Background" Value="AliceBlue"/>
+                                                            </DataTrigger>
+                                                            <DataTrigger Binding="{Binding RelativeSource={RelativeSource AncestorType={x:Type ListViewItem}}, Path=(ItemsControl.AlternationIndex), UpdateSourceTrigger=PropertyChanged, Converter={StaticResource TestConverter}}" Value="1">
+                                                                <Setter Property="Background" Value="Transparent"/>
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </Grid.Style>
+                                                <ContentPresenter Name="CP" Margin="0,2,0,2" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
+                                            </Grid>
+                                        </ControlTemplate>
+                                    </Setter.Value>
+                                </Setter>
+                            </Style>
+                        </ListView.ItemContainerStyle>
+                        <ListView.ItemTemplate>
+                            <DataTemplate>
+                                <Grid HorizontalAlignment="Stretch">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="250"/>
+                                        <ColumnDefinition Width="150"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Grid.Column="0" Text="{Binding TestName, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" FontWeight="Bold" VerticalAlignment="Center"/>
+                                    <TextBlock Grid.Column="1" Text="{Binding ReferenceValueString, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Center"/>
+                                    <Grid Grid.Column="2">
+                                        <Grid x:Name="SingleSelection">
+                                            <Grid.Visibility>
+                                                <MultiBinding Converter="{StaticResource VisibilityEditModeConverter}">
+                                                    <Binding Path="EditType"/>
+                                                    <Binding Path="Name" RelativeSource="{RelativeSource Self}"/>
+                                                </MultiBinding>
+                                            </Grid.Visibility>
+                                            <ComboBox ItemsSource="{Binding ReferenceValueOptions, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
+                                                   VerticalAlignment="Center" Style="{DynamicResource ChecklistComboBoxStyle}"/>
+                                        </Grid>
+                                        <Grid x:Name="SingleValue">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+                                            <Grid.Visibility>
+                                                <MultiBinding Converter="{StaticResource VisibilityEditModeConverter}">
+                                                    <Binding Path="EditType"/>
+                                                    <Binding Path="Name" RelativeSource="{RelativeSource Self}"/>
+                                                </MultiBinding>
+                                            </Grid.Visibility>
+                                            <TextBox Grid.Column="0" Text="{Binding ReferenceValue, Mode=TwoWay}" 
+                                                     Style="{StaticResource ChecklistTextBoxStyle}" global:TextBoxExtensions.UpdateSourceOnKey="Return"/>
+                                            <StackPanel Grid.Column="1" Orientation="Horizontal">
+                                                <TextBlock Text="&#x00B1;" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                                                <TextBox Text="{Binding Eps, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"  Style="{StaticResource ChecklistTextBoxStyle}" Width="50"/>
+                                            </StackPanel>
+                                        </Grid>
+                                        <Grid x:Name="RangeValues">
+                                            <Grid.Visibility>
+                                                <MultiBinding Converter="{StaticResource VisibilityEditModeConverter}">
+                                                    <Binding Path="EditType"/>
+                                                    <Binding Path="Name" RelativeSource="{RelativeSource Self}"/>
+                                                </MultiBinding>
+                                            </Grid.Visibility>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="150"/>
+                                                <ColumnDefinition Width="150"/>
+                                            </Grid.ColumnDefinitions>
+                                            <TextBox Grid.Column="0" Text="{Binding ReferenceValue, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
+                                                     Style="{StaticResource ChecklistTextBoxStyle}"/>
+                                            <TextBox Grid.Column="1" Text="{Binding ReferenceValue1, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
+                                                      Style="{StaticResource ChecklistTextBoxStyle}"/>
+                                        </Grid>
+                                    </Grid>
+                                </Grid>
+                            </DataTemplate>
+                        </ListView.ItemTemplate>
+                    </ListView>
+                </Grid>
             </Grid>
         </ScrollViewer>
         <Rectangle Grid.Column="1" Grid.RowSpan="2" Opacity="0.5" Fill="{DynamicResource WarningBackground}" Width="Auto" Visibility="{Binding ComputedHorizontalScrollBarVisibility, ElementName=sv}" Margin="0,30,5,20">
@@ -194,6 +277,6 @@
             </Rectangle.Effect>
         </Rectangle>
     </Grid>
-   
+
 </UserControl>
 

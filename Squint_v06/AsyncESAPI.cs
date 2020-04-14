@@ -340,7 +340,40 @@ namespace SquintScript
         private Patient pt;
         private Course c;
         public string Id { get; private set; }
-        public List<AsyncPlan> Plans { get; private set; } = new List<AsyncPlan>();
+        //public List<AsyncPlan> Plans { get; private set; } = new List<AsyncPlan>();
+        public List<Ctr.PlanDescriptor> PlanDescriptors { get; private set; } = new List<Ctr.PlanDescriptor>();
+        private Dictionary<string, bool> isPlanASum = new Dictionary<string, bool>();
+        public async Task<AsyncPlan> GetPlan(string Id)
+        {
+            AsyncPlan AP = null;
+            return await A.ExecuteAsync(new Func<EApp, AsyncPlan>((app) =>
+            {
+                if (PlanDescriptors.Select(x => x.PlanId).Contains(Id))
+                {
+                    if (isPlanASum[Id])
+                        AP = new AsyncPlan(A, c.PlanSums.FirstOrDefault(x => x.Id == Id), pt, this);
+                    else
+                        AP = new AsyncPlan(A, c.PlanSetups.FirstOrDefault(x => x.Id == Id), pt, this);
+                }
+                else
+                    AP = null;
+                return AP;
+            }));
+        }
+        public async Task<AsyncPlan> GetPlanByUID(string UID)
+        {
+            AsyncPlan AP = null;
+            return await A.ExecuteAsync(new Func<EApp, AsyncPlan>((app) =>
+            {
+                if (PlanDescriptors.Select(x=>x.PlanUID).Contains(UID))
+                {
+                    return new AsyncPlan(A, c.PlanSetups.FirstOrDefault(x => x.UID == UID), pt, this);
+                }
+                else
+                    AP = null;
+            return AP;
+            }));
+        }
         public AsyncCourse(AsyncESAPI ACurrent, Course cIn, Patient ptIn, IProgress<int> progress = null)
         {
             A = ACurrent;
@@ -351,18 +384,29 @@ namespace SquintScript
             double count = 1;
             if (progress != null)
                 totalplans = c.PlanSetups.Count() + c.PlanSums.Count();
-            foreach (PlanSetup p in c.PlanSetups)
+            //foreach (PlanSetup p in c.PlanSetups)
+            //{
+            //    if (progress != null)
+            //        progress.Report(Convert.ToInt32(count++ / totalplans * 100));
+            //    Plans.Add(new AsyncPlan(A, p, pt, this));
+            //}
+            //foreach (PlanSum p in c.PlanSums)
+            //{
+            //    if (progress != null)
+            //        progress.Report(Convert.ToInt32(count++ / totalplans * 100));
+            //    Plans.Add(new AsyncPlan(A, p, pt, this));
+            //}
+            foreach (var PD in c.PlanSetups.Select(x=> new Ctr.PlanDescriptor(x.Id, x.UID, x.StructureSet.UID)))
             {
-                if (progress != null)
-                    progress.Report(Convert.ToInt32(count++ / totalplans * 100));
-                Plans.Add(new AsyncPlan(A, p, pt, this));
+                PlanDescriptors.Add(PD);
+                isPlanASum.Add(PD.PlanId, false);
             }
-            foreach (PlanSum p in c.PlanSums)
+            foreach (var PD in c.PlanSums.Select(x => new Ctr.PlanDescriptor(x.Id, null, x.StructureSet.UID)))
             {
-                if (progress != null)
-                    progress.Report(Convert.ToInt32(count++ / totalplans * 100));
-                Plans.Add(new AsyncPlan(A, p, pt, this));
+                PlanDescriptors.Add(PD);
+                isPlanASum.Add(Id, true);
             }
+            
         }
     }
     public class AsyncPlan

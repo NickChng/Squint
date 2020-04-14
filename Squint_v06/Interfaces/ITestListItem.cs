@@ -11,10 +11,10 @@ namespace SquintScript.Interfaces
     public interface ITestListItem
     {
         string TestName { get; set; }
+        void CommitChanges();
     }
     public interface ITestListItem<T> : ITestListItem
     {
-        ObservableCollection<string> ReferenceValueOptions { get; set; }
         TestType TestType { get; set; }
         string ReferenceValueString { get; set; }
         string CheckValueString { get; }
@@ -22,7 +22,6 @@ namespace SquintScript.Interfaces
         T CheckValue { get; set; }
         bool Warning { get; }
         string WarningString { get; set; }
-        int EditMode { get; set; }
         Visibility TestVisibility { get; }
     }
 }

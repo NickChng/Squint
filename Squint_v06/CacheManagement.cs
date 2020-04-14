@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data.Entity.Infrastructure;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -461,25 +462,51 @@ namespace SquintScript
                 else
                     return true;
             }
-            public static AsyncPlan GetAsyncPlan(int ID)
-            {
-                return _AsyncPlans[ID];
-            }
-            public static AsyncPlan GetAsyncPlan(string PlanId, string CourseName, ComponentTypes PlanType)
+            //public static AsyncPlan GetAsyncPlan(int ID)
+            //{
+            //    return _AsyncPlans[ID];
+            //}
+            public async static Task<AsyncPlan> GetAsyncPlan(string PlanId, string CourseName, ComponentTypes PlanType)
             {
                 if (!_Courses.ContainsKey(CourseName))
                     LoadCourse(CourseName);
-                return _AsyncPlans.Values.FirstOrDefault(x => x.Id == PlanId && x.Course.Id == CourseName && x.PlanType == PlanType);
+                AsyncPlan AP = _AsyncPlans.Values.FirstOrDefault(x => x.Id == PlanId && x.Course.Id == CourseName && x.PlanType == PlanType);
+                if (AP == null)
+                {
+                    AP = await _Courses[CourseName].GetPlan(PlanId);
+                    if (AP != null)
+                        AddAsyncPlan(AP);
+                    return AP;
+                }
+                else
+                    return AP;
+                //return _AsyncPlans.Values.FirstOrDefault(x => x.Id == PlanId && x.Course.Id == CourseName && x.PlanType == PlanType);
+            }
+            public async static Task<AsyncPlan> GetAsyncPlan(string PlanUID, string CourseName)
+            {
+                if (!_Courses.ContainsKey(CourseName))
+                    LoadCourse(CourseName);
+                AsyncPlan AP = _AsyncPlans.Values.FirstOrDefault(x => x.UID == PlanUID);
+                if (AP == null)
+                {
+                    AP = await _Courses[CourseName].GetPlanByUID(PlanUID);
+                    if (AP != null)
+                        AddAsyncPlan(AP);
+                    return AP;
+                }
+                else
+                    return AP;
+                //return _AsyncPlans.Values.FirstOrDefault(x => x.Id == PlanId && x.Course.Id == CourseName && x.PlanType == PlanType);
             }
             private static async void LoadCourse(string CourseName)
             {
                 var C = await GetCourse(CourseName);
             }
 
-            public static IEnumerable<AsyncPlan> GetAsyncPlans()
-            {
-                return _AsyncPlans.Values;
-            }
+            //public static IEnumerable<AsyncPlan> GetAsyncPlans()
+            //{
+            //    return _AsyncPlans.Values;
+            //}
             public static async Task<List<AsyncPlan>> GetPlansByCourseName(string CourseName, IProgress<int> progress = null)
             {
                 if (!_isCourseLoaded.ContainsKey(CourseName))
@@ -490,10 +517,12 @@ namespace SquintScript
                 }
                 return _AsyncPlans.Values.Where(x => x.Course.Id == CourseName).ToList();
             }
-            public async static Task<List<PlanDescriptor>> GetPlanIdsByCourseName(string CourseName, IProgress<int> progress = null)
+            public async static Task<List<PlanDescriptor>> GetPlanDescriptors(string CourseName)
             {
-                List<AsyncPlan> P = await GetPlansByCourseName(CourseName, progress);
-                return P.Select(x => new PlanDescriptor(x.Id, x.UID, x.StructureSetUID)).ToList();
+                if (!_Courses.ContainsKey(CourseName))
+                    await GetCourse(CourseName);
+                return _Courses[CourseName].PlanDescriptors;
+
             }
             public static void ClearAsyncPlans()
             {
@@ -516,10 +545,10 @@ namespace SquintScript
                         return null; // no such course
                     }
                     _Courses.Add(C.Id, C);
-                    foreach (AsyncPlan P in C.Plans)
-                    {
-                        AddAsyncPlan(P);
-                    }
+                    //foreach (AsyncPlan P in C.Plans)
+                    //{
+                    //    AddAsyncPlan(P);
+                    //}
                     return C;
                 }
             }
@@ -539,10 +568,10 @@ namespace SquintScript
                         if (!_Courses.ContainsKey(CourseName))
                         {
                             _Courses.Add(C.Id, C);
-                            foreach (AsyncPlan P in C.Plans)
-                            {
-                                AddAsyncPlan(P);
-                            }
+                            //foreach (AsyncPlan P in C.Plans)
+                            //{
+                            //    AddAsyncPlan(P);
+                            //}
                         }
                         else
                             return _Courses[CourseName];
@@ -1284,6 +1313,20 @@ namespace SquintScript
                         return false;
                 }
 
+            }
+
+            // Checklist functions
+            public async static void Save_UpdateProtocolCheckList()
+            {
+                using (SquintdBModel Context = new SquintdBModel())
+                {
+                    DbProtocolChecklist DbPC = Context.DbProtocolChecklists.FirstOrDefault(x => x.ProtocolID == CurrentProtocol.ID);
+                    if (DbPC != null)
+                    {
+                        DbPC.SliceSpacing = CurrentProtocol.Checklist.SliceSpacing;
+                    }
+                    await Context.SaveChangesAsync();
+                }
             }
         }
     }

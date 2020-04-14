@@ -137,10 +137,14 @@
     <Compile Include="Controls\ChecklistControl.xaml.cs">
       <DependentUpon>ChecklistControl.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Controls\SquintProgressBar.xaml.cs">
+      <DependentUpon>SquintProgressBar.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Controls\TestEditView.xaml.cs">
       <DependentUpon>TestEditView.xaml</DependentUpon>
     </Compile>
     <Compile Include="Interfaces\ITestListItem.cs" />
+    <Compile Include="PlanCheckController.cs" />
     <Compile Include="SquintExtensions.cs" />
     <Compile Include="TrackedValue.cs" />
     <Compile Include="DoseFunctions.cs" />
@@ -230,6 +234,10 @@
     <Page Include="Controls\ConstraintInformation.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Controls\SquintProgressBar.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Controls\StructureCheckView.xaml">
       <SubType>Designer</SubType>
@@ -599,6 +607,9 @@
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Resources\edit_trans.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\check_trans_dark.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="..\packages\Fody.3.3.2\build\Fody.targets" Condition="Exists('..\packages\Fody.3.3.2\build\Fody.targets')" />

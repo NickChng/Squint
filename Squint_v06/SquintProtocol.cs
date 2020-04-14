@@ -65,15 +65,7 @@ namespace SquintScript
             public TreatmentCentres TreatmentCentre { get; set; }
             public TreatmentSites TreatmentSite { get; set; }
             public TreatmentIntents TreatmentIntent { get; set; }
-            // Protocol Wide Calc Defaults
-            public AlgorithmTypes Algorithm { get; set; }
-            public FieldNormalizationTypes FieldNormalizationMode { get; set; }
-            public double AlgorithmResolution { get; set; }
-            public double PNVMin { get; set; }
-            public double PNVMax { get; set; }
-            public double SliceSpacing { get; set; }
-            public bool HeterogeneityOn { get; set; }
-
+            // Protocol Checklist
             public ProtocolChecklist Checklist { get; set; }
 
         }
@@ -2428,18 +2420,7 @@ namespace SquintScript
             public ECPlan(DbPlan DbO)
             {
                 ID = DbO.ID;
-                UpdateLinkedPlan(DataCache.GetAsyncPlan(DbO.PlanName, DbO.CourseName, (ComponentTypes)DbO.PlanType), false);
-                if (LinkedPlan == null)
-                {
-                    LoadWarning = true;
-                    LoadWarningString = string.Format(@"{0}\{1} Not Found!", DbO.CourseName, DbO.PlanName);
-                }
-                else
-                if (LinkedPlan.HistoryDateTime != DateTime.FromBinary(DbO.LastModified))
-                {
-                    LoadWarning = true;
-                    LoadWarningString = ComponentStatusCodes.ChangedSinceLastSession.Display();
-                }
+                LoadLinkedPlan(DbO);
                 AssessmentID = DbO.AssessmentID;
                 ComponentID = DbO.SessionComponentID;
                 DataCache.GetComponent(ComponentID).PropertyChanged += OnComponentPropertyChanged;
@@ -2497,6 +2478,23 @@ namespace SquintScript
                     PlanMappingChanged?.Invoke(this, ComponentID);
 
                 ValidateComponentAssociations();
+            }
+
+            public async void LoadLinkedPlan(DbPlan DbO)
+            {
+                AsyncPlan p = await DataCache.GetAsyncPlan(DbO.PlanName, DbO.CourseName, (ComponentTypes)DbO.PlanType);
+                UpdateLinkedPlan(p, false);
+                if (LinkedPlan == null)
+                {
+                    LoadWarning = true;
+                    LoadWarningString = string.Format(@"{0}\{1} Not Found!", DbO.CourseName, DbO.PlanName);
+                }
+                else
+               if (LinkedPlan.HistoryDateTime != DateTime.FromBinary(DbO.LastModified))
+                {
+                    LoadWarning = true;
+                    LoadWarningString = ComponentStatusCodes.ChangedSinceLastSession.Display();
+                }
             }
             public bool LoadWarning { get; private set; } = false;
             public string LoadWarningString { get; private set; } = "";

@@ -769,7 +769,7 @@ namespace SquintScript
         }
         public async static Task<VMSTypes.VVector> GetPlanIsocentre(string CourseId, string PlanId)
         {
-            AsyncPlan p = DataCache.GetAsyncPlans().FirstOrDefault(x => x.Id == PlanId && x.Course.Id == CourseId);
+            AsyncPlan p = await DataCache.GetAsyncPlan(PlanId, CourseId, ComponentTypes.Plan);
             if (p.PlanType == ComponentTypes.Plan)
                 return await p.GetPlanIsocentre();
             else
@@ -781,7 +781,7 @@ namespace SquintScript
                 return null;
             else
             {
-                AsyncPlan p = DataCache.GetAsyncPlans().FirstOrDefault(x => x.Id == PlanId && x.Course.Id == CourseId);
+                AsyncPlan p = await DataCache.GetAsyncPlan(PlanId, CourseId, ComponentTypes.Plan);
                 if (p.PlanType == ComponentTypes.Plan)
                 {
                     var Objectives = await p.GetObjectiveItems();
@@ -792,7 +792,7 @@ namespace SquintScript
         }
         public async static Task<double> GetSliceSpacing(string CourseId, string PlanId)
         {
-            AsyncPlan p = DataCache.GetAsyncPlans().FirstOrDefault(x => x.Id == PlanId && x.Course.Id == CourseId);
+            AsyncPlan p = await DataCache.GetAsyncPlan(PlanId, CourseId, ComponentTypes.Plan);
             if (p.PlanType == ComponentTypes.Plan)
                 return await p.GetSliceSpacing();
             else
@@ -800,7 +800,7 @@ namespace SquintScript
         }
         public async static Task<double> GetDoseGridResolution(string CourseId, string PlanId)
         {
-            AsyncPlan p = DataCache.GetAsyncPlans().FirstOrDefault(x => x.Id == PlanId && x.Course.Id == CourseId);
+            AsyncPlan p = await DataCache.GetAsyncPlan(PlanId, CourseId, ComponentTypes.Plan);
             if (p.PlanType == ComponentTypes.Plan)
                 return await p.GetDoseGridResolution();
             else
@@ -808,7 +808,7 @@ namespace SquintScript
         }
         public async static Task<string> GetFieldNormalizationMode(string CourseId, string PlanId)
         {
-            AsyncPlan p = DataCache.GetAsyncPlans().FirstOrDefault(x => x.Id == PlanId && x.Course.Id == CourseId);
+            AsyncPlan p = await DataCache.GetAsyncPlan(PlanId, CourseId, ComponentTypes.Plan);
             if (p.PlanType == ComponentTypes.Plan)
                 return await p.GetFieldNormalizationMode();
             else
@@ -816,24 +816,24 @@ namespace SquintScript
         }
         public async static Task<double> GetPNV(string CourseId, string PlanId)
         {
-            AsyncPlan p = DataCache.GetAsyncPlans().FirstOrDefault(x => x.Id == PlanId && x.Course.Id == CourseId);
+            AsyncPlan p = await DataCache.GetAsyncPlan(PlanId, CourseId, ComponentTypes.Plan);
             if (p.PlanType == ComponentTypes.Plan)
                 return await p.GetPNV();
             else return double.NaN;
         }
-        public static double? GetRxDose(string CourseId, string PlanId)
+        public static async Task<double?> GetRxDose(string CourseId, string PlanId)
         {
-            AsyncPlan p = DataCache.GetAsyncPlans().FirstOrDefault(x => x.Id == PlanId && x.Course.Id == CourseId);
-            if (p.PlanType == ComponentTypes.Plan)
+            AsyncPlan p = await DataCache.GetAsyncPlan(PlanId, CourseId, ComponentTypes.Plan);
+            if (p != null)
                 return p.Dose;
             else
             {
                 return double.NaN;
             }
         }
-        public static int? GetNumFractions(string CourseId, string PlanId)
+        public static async Task<int?> GetNumFractions(string CourseId, string PlanId)
         {
-            AsyncPlan p = DataCache.GetAsyncPlans().FirstOrDefault(x => x.Id == PlanId && x.Course.Id == CourseId);
+            AsyncPlan p = await DataCache.GetAsyncPlan(PlanId, CourseId, ComponentTypes.Plan);
             if (p.PlanType == ComponentTypes.Plan)
                 return p.NumFractions;
             else
@@ -841,7 +841,7 @@ namespace SquintScript
         }
         public async static Task<double> GetPrescribedPercentage(string CourseId, string PlanId)
         {
-            AsyncPlan p = DataCache.GetAsyncPlans().FirstOrDefault(x => x.Id == PlanId && x.Course.Id == CourseId);
+            AsyncPlan p = await DataCache.GetAsyncPlan(PlanId, CourseId, ComponentTypes.Plan);
             if (p.PlanType == ComponentTypes.Plan)
                 return await p.GetPrescribedPercentage();
             else
@@ -849,12 +849,12 @@ namespace SquintScript
         }
         public async static Task<string> GetCourseIntent(string CourseId, string PlanId)
         {
-            AsyncPlan p = DataCache.GetAsyncPlans().FirstOrDefault(x => x.Id == PlanId && x.Course.Id == CourseId);
+            AsyncPlan p = await DataCache.GetAsyncPlan(PlanId, CourseId, ComponentTypes.Plan);
             return await p.GetCourseIntent();
         }
         public async static Task<string> GetAlgorithmModel(string CourseId, string PlanId)
         {
-            AsyncPlan p = DataCache.GetAsyncPlans().FirstOrDefault(x => x.Id == PlanId && x.Course.Id == CourseId);
+            AsyncPlan p = await DataCache.GetAsyncPlan(PlanId, CourseId, ComponentTypes.Plan);
             if (p.PlanType == ComponentTypes.Plan)
                 return await p.GetAlgorithmModel();
             else
@@ -862,7 +862,7 @@ namespace SquintScript
         }
         public async static Task<double> GetCouchSurface(string CourseId, string PlanId)
         {
-            AsyncPlan p = DataCache.GetAsyncPlans().FirstOrDefault(x => x.Id == PlanId && x.Course.Id == CourseId);
+            AsyncPlan p = await DataCache.GetAsyncPlan(PlanId, CourseId, ComponentTypes.Plan);
             if (p.PlanType == ComponentTypes.Plan)
                 return await p.GetCouchSurface();
             else
@@ -879,14 +879,14 @@ namespace SquintScript
         }
         public async static Task<double> GetCouchInterior(string CourseId, string PlanId)
         {
-            AsyncPlan p = DataCache.GetAsyncPlans().FirstOrDefault(x => x.Id == PlanId && x.Course.Id == CourseId);
+            AsyncPlan p = await DataCache.GetAsyncPlan(PlanId, CourseId, ComponentTypes.Plan);
             if (p.PlanType == ComponentTypes.Plan)
                 return await p.GetCouchInterior();
             else return double.NaN;
         }
         public async static Task<bool?> GetHeterogeneityOn(string CourseId, string PlanId)
         {
-            AsyncPlan p = DataCache.GetAsyncPlans().FirstOrDefault(x => x.Id == PlanId && x.Course.Id == CourseId);
+            AsyncPlan p = await DataCache.GetAsyncPlan(PlanId, CourseId, ComponentTypes.Plan);
             if (p.PlanType == ComponentTypes.Sum)
                 return null;
             string HeteroStatus = await p.GetHeterogeneityOn();
@@ -902,21 +902,21 @@ namespace SquintScript
         }
         public async static Task<string> GetStudyId(string CourseId, string PlanId)
         {
-            AsyncPlan p = DataCache.GetAsyncPlans().FirstOrDefault(x => x.Id == PlanId && x.Course.Id == CourseId);
+            AsyncPlan p = await DataCache.GetAsyncPlan(PlanId, CourseId, ComponentTypes.Plan);
             if (p.PlanType == ComponentTypes.Plan)
                 return await p.GetStudyId();
             else return "";
         }
         public async static Task<string> GetSeriesId(string CourseId, string PlanId)
         {
-            AsyncPlan p = DataCache.GetAsyncPlans().FirstOrDefault(x => x.Id == PlanId && x.Course.Id == CourseId);
+            AsyncPlan p = await DataCache.GetAsyncPlan(PlanId, CourseId, ComponentTypes.Plan);
             if (p.PlanType == ComponentTypes.Plan)
                 return await p.GetSeriesId();
             else return "";
         }
         public async static Task<string> GetSeriesComments(string CourseId, string PlanId)
         {
-            AsyncPlan p = DataCache.GetAsyncPlans().FirstOrDefault(x => x.Id == PlanId && x.Course.Id == CourseId);
+            AsyncPlan p = await DataCache.GetAsyncPlan(PlanId, CourseId, ComponentTypes.Plan);
             if (p.PlanType == ComponentTypes.Plan)
                 return await p.GetSeriesComments();
             else
@@ -924,7 +924,7 @@ namespace SquintScript
         }
         public async static Task<double> GetBolusThickness(string CourseId, string PlanId, string BolusId)
         {
-            AsyncPlan p = DataCache.GetAsyncPlans().FirstOrDefault(x => x.Id == PlanId && x.Course.Id == CourseId);
+            AsyncPlan p = await DataCache.GetAsyncPlan(PlanId, CourseId, ComponentTypes.Plan);
             var Bolus = p.Structures.Values.FirstOrDefault(x => x.DicomType == @"BOLUS" && x.Id == BolusId);
             if (Bolus != null)
             {
@@ -936,21 +936,21 @@ namespace SquintScript
 
         public async static Task<string> GetImageComments(string CourseId, string PlanId)
         {
-            AsyncPlan p = DataCache.GetAsyncPlans().FirstOrDefault(x => x.Id == PlanId && x.Course.Id == CourseId);
+            AsyncPlan p = await DataCache.GetAsyncPlan(PlanId, CourseId, ComponentTypes.Plan);
             if (p.PlanType == ComponentTypes.Plan)
                 return await p.GetImageComments();
             else return "";
         }
         public async static Task<int?> GetNumSlices(string CourseId, string PlanId)
         {
-            AsyncPlan p = DataCache.GetAsyncPlans().FirstOrDefault(x => x.Id == PlanId && x.Course.Id == CourseId);
+            AsyncPlan p = await DataCache.GetAsyncPlan(PlanId, CourseId, ComponentTypes.Plan);
             if (p.PlanType == ComponentTypes.Plan)
                 return await p.GetNumSlices();
             else return null;
         }
         public async static Task<List<TxFieldItem>> GetTxFieldItems(string CourseId, string PlanId)
         {
-            AsyncPlan p = DataCache.GetAsyncPlans().FirstOrDefault(x => x.Id == PlanId && x.Course.Id == CourseId);
+            AsyncPlan p = await DataCache.GetAsyncPlan(PlanId, CourseId, ComponentTypes.Plan);
             return await p.GetTxFields();
         }
         public async static Task<List<ImagingFieldItem>> GetImagingFieldList(string CourseId, string PlanId)
@@ -959,7 +959,7 @@ namespace SquintScript
                 return new List<ImagingFieldItem>();
             else
             {
-                AsyncPlan p = DataCache.GetAsyncPlans().FirstOrDefault(x => x.Id == PlanId && x.Course.Id == CourseId);
+                AsyncPlan p = await DataCache.GetAsyncPlan(PlanId, CourseId, ComponentTypes.Plan);
                 if (p.PlanType != ComponentTypes.Plan)
                     return new List<ImagingFieldItem>();
                 var Isocentre = await p.GetPlanIsocentre();
@@ -1022,7 +1022,7 @@ namespace SquintScript
                 return null;
             else
             {
-                AsyncPlan p = DataCache.GetAsyncPlans().FirstOrDefault(x => x.Id == PlanId && x.Course.Id == CourseId);
+                AsyncPlan p = await DataCache.GetAsyncPlan(PlanId, CourseId, ComponentTypes.Plan);
                 if (p.PlanType == ComponentTypes.Plan)
                     return await p.GetNTOObjective();
                 else
@@ -1216,47 +1216,6 @@ namespace SquintScript
 
         }
 
-        //Squint Protocol Control functions
-        //public static bool CopyConstraintsBetweenProtocols(int ComponentID_Source, int ComponentID_Target)
-        //{
-        //    if (DataCache.CurrentProtocol == null)
-        //        return false;
-        //    int LastDisplayOrder = 1;
-        //    Component SC_Source = DataCache.GetComponent(ComponentID_Source);
-        //    Component SC_Target = DataCache.GetComponent(ComponentID_Target);
-        //    if (SC_Source.ReferenceDose != SC_Target.ReferenceDose || SC_Source.NumFractions != SC_Target.NumFractions)
-        //        return false;
-        //    if (DataCache.GetConstraintsInComponent(SC_Target.ID).Count() > 0)
-        //        LastDisplayOrder = DataCache.GetConstraintsInComponent(SC_Target.ID).Select(y => y.DisplayOrder).Max() + 1;
-        //    List<Task> tasks = new List<Task>();
-        //    foreach (Constraint Con in DataCache.GetConstraintsInComponent(SC_Source.ID).OrderBy(x => x.DisplayOrder).ToList())
-        //    {
-        //        Constraint DupCon = new Constraint(Con, SC_Target.ID);
-        //        DataCache.AddConstraint(DupCon);
-        //        new ConstraintView(DupCon);
-        //        foreach (Assessment SA in DataCache.GetAllAssessments())
-        //        {
-        //            DupCon.RegisterAssessment(SA);
-        //        }
-        //        ConstraintAdded?.Raise(null, DupCon.ID);
-        //    }
-        //    return true;
-        //}
-        //public static ConstraintView CopySingleConstraintToNewComponent(int ComponentID_Target, int ConstraintID_Copied)
-        //{
-        //    if (DataCache.CurrentProtocol == null)
-        //        return null;
-        //    Component SC_Target = DataCache.GetComponent(ComponentID_Target);
-        //    Constraint Con = DataCache.GetConstraint(ConstraintID_Copied);
-        //    Constraint DupCon = new Constraint(Con, SC_Target.ID);
-        //    foreach (Assessment SA in DataCache.GetAllAssessments())
-        //    {
-        //        DupCon.RegisterAssessment(SA);
-        //    }
-        //    ConstraintView CV = new ConstraintView(DupCon);
-        //    ConstraintAdded?.Invoke(null, CV.ID);
-        //    return CV;
-        //}
         public static Constraint AddConstraint(ConstraintTypeCodes TypeCode, int ComponentID = 0, int StructureId = 1)
         {
             if (!ProtocolLoaded)
@@ -2359,7 +2318,7 @@ namespace SquintScript
                         DataCache.GetAssessment(P.AssessmentID).RegisterPlan(P);
                         if (P.Linked)
                         {
-                            var AP = C.Plans.FirstOrDefault(x => x.Id == P.PlanId);
+                            var AP = await C.GetPlan(P.PlanId);
                             if (AP != null)
                                 P.UpdateLinkedPlan(AP, false);
                         }
@@ -2395,7 +2354,7 @@ namespace SquintScript
                         AsyncCourse C = await DataCache.GetCourse(ECP.CourseId);
                         if (C != null)
                         {
-                            p = C.Plans.Find(x => x.UID == ECP.PlanUID); // note the ECP.PlanUID & StructureSetUID are not updated till the updatelinkedplan method is called below
+                            p = await DataCache.GetAsyncPlan(ECP.PlanUID, ECP.CourseId); // note the ECP.PlanUID & StructureSetUID are not updated till the updatelinkedplan method is called below
                             if (p == null)
                             {
                                 MessageBox.Show(string.Format("Plan {0} in Course {1} is no longer found", ECP.PlanId, ECP.CourseId));
@@ -2586,12 +2545,12 @@ namespace SquintScript
             return true;
         }
 
-        public async static Task<List<ComponentStatusCodes>> AssociatePlanToComponent(int AssessmentID, int ComponentID, string CourseId, string PlanId, bool ClearWarnings) // ClearWarnings
+        public async static Task<List<ComponentStatusCodes>> AssociatePlanToComponent(int AssessmentID, int ComponentID, string CourseId, string PlanId, ComponentTypes Type, bool ClearWarnings) // ClearWarnings
         {
             try
             {
                 Ctr.StartingLongProcess?.Invoke(null, EventArgs.Empty);
-                AsyncPlan p = DataCache.GetAsyncPlans().FirstOrDefault(x => x.Id == PlanId && x.Course.Id == CourseId);
+                AsyncPlan p = await DataCache.GetAsyncPlan(PlanId, CourseId, Type);
                 return await Task.Run(() =>
                {
                    ECPlan ECP = DataCache.GetAllPlans().Where(x => x.AssessmentID == AssessmentID && x.ComponentID == ComponentID).SingleOrDefault();
@@ -2724,13 +2683,15 @@ namespace SquintScript
                 StructureSetUID = structureSetUID;
             }
         }
-        public async static Task<List<PlanDescriptor>> GetPlanIdsByCourseName(string CourseName)
+        public async static Task<List<PlanDescriptor>> GetPlanDescriptors(string CourseName)
         {
-            return await DataCache.GetPlanIdsByCourseName(CourseName);
+            return await DataCache.GetPlanDescriptors(CourseName);
         }
         public static List<string> GetCourseNames()
         {
             return DataCache.Patient.CourseIds;
         }
+
+
     }
 }

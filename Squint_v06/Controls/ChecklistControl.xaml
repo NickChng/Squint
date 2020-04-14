@@ -10,6 +10,7 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
         <Border Grid.Row="0" CornerRadius="5,5,5,5" Background="LightSteelBlue" Margin="0,0,0,0">
             <Grid>
@@ -21,29 +22,32 @@
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
                 <TextBlock Grid.Column="0" Text="Plan Checklist" FontSize="18" FontWeight="Bold" Foreground="White" Margin="5,5,5,5" VerticalAlignment="Center" ></TextBlock>
-                <Button Grid.Column="1" ToolTip="Edit reference values"  Style="{DynamicResource ButtonStyle_Medium}" Padding="5,5,5,5" HorizontalAlignment="Right" VerticalAlignment="Center" 
-                            Background="{Binding amEditing, Converter={StaticResource EditModeIconConverter}}" Margin="0,0,5,0"
+                <Button Grid.Column="1" ToolTip="Edit reference values"  Style="{DynamicResource ButtonStyle_Small}" Padding="5,5,5,5" HorizontalAlignment="Right" VerticalAlignment="Center" 
+                            Background="{Binding amEditing, Converter={StaticResource EditModeIconConverter}}" Margin="0,0,5,0" 
+                        Visibility="{Binding amEditing, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource VisibilityInverseConverter}}"
                         Command="{Binding StartEditingCommand}">
                     <ContentControl>
                         <Image Source="/Resources/edit_trans.png"></Image>
                     </ContentControl>
                 </Button>
-                <Button Grid.Column="2" ToolTip="Accept changes"  Style="{DynamicResource ButtonStyle_Medium}" HorizontalAlignment="Right" VerticalAlignment="Center" 
+                <Button Grid.Column="2" ToolTip="Accept changes"  Style="{DynamicResource ButtonStyle_Small}" HorizontalAlignment="Right" VerticalAlignment="Center" 
                             Background="{Binding amEditing, Converter={StaticResource EditModeIconConverter}}" Margin="0,0,5,0"
+                        Visibility="{Binding amEditing, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource VisibilityConverter}}"
                         Command="{Binding AcceptEditsCommand}">
                     <ContentControl>
-                        <Image Source="/Resources/check_trans.png"></Image>
+                        <Image Source="/Resources/check_trans_dark.png"></Image>
                     </ContentControl>
                 </Button>
-                <Button Grid.Column="3" ToolTip="Reject changes"  Style="{DynamicResource ButtonStyle_Medium}" Padding="5,5,5,5" HorizontalAlignment="Right" VerticalAlignment="Center"
+                <Button Grid.Column="3" ToolTip="Reject changes"  Padding="5,5,5,5" Style="{DynamicResource ButtonStyle_Small}" HorizontalAlignment="Right" VerticalAlignment="Center"
                             Background="{Binding amEditing, Converter={StaticResource EditModeIconConverter}}" Margin="0,0,5,0"
+                        Visibility="{Binding amEditing, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource VisibilityConverter}}"
                         Command="{Binding RejectEditsCommand}">
                     <ContentControl>
                         <Image Source="/Resources/x_trans.png"></Image>
                     </ContentControl>
                 </Button>
                 <Button Grid.Column="4" ToolTip="Close checklist" Style="{DynamicResource ButtonStyle_Small}" HorizontalAlignment="Right" VerticalAlignment="Center" Background="LightSteelBlue" Margin="0,0,5,0"
-                        DataContext="{Binding DataContext, ElementName=SquintWindow}" Command="{Binding CloseCheckListCommand}">
+                        Command="{Binding DataContext.CloseCheckListCommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Window}}}">
                     <ContentControl>
                         <Image Source="/Resources/section_collapse.png"></Image>
                     </ContentControl>

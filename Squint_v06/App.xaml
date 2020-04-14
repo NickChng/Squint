@@ -688,7 +688,7 @@
             <Setter Property="Foreground" Value="Black" />
             <Setter Property="Background" Value="White" />
             <Setter Property="VerticalContentAlignment" Value="Center" />
-            <Setter Property="Width" Value="{Binding ElementName=SquintWindow,Path=DataContext.AssessmentPresenter.RowHeaderWidth, UpdateSourceTrigger=PropertyChanged}"/>
+            <Setter Property="Width" Value="{Binding ElementName=SquintWindow,Path=DataContext.Protocol.AssessmentPresenter.RowHeaderWidth, UpdateSourceTrigger=PropertyChanged}"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate>
@@ -698,8 +698,8 @@
                                     <ColumnDefinition Width="Auto"/>
                                     <ColumnDefinition Width="*"/>
                                 </Grid.ColumnDefinitions>
-                                <TextBlock Grid.Column="0" HorizontalAlignment="Left" Text="{Binding Component.ComponentName}" Margin="0,5,10,0" FontSize="{Binding ElementName=SquintWindow, UpdateSourceTrigger=PropertyChanged, Path=DataContext.AssessmentPresenter.FontSize}"/>
-                                <TextBlock Grid.Column="1" HorizontalAlignment="Left" Margin="5,5,5,5" FontWeight="Medium" VerticalAlignment="Center" FontSize="{Binding ElementName=SquintWindow, UpdateSourceTrigger=PropertyChanged, Path=DataContext.AssessmentPresenter.FontSize}">
+                                <TextBlock Grid.Column="0" HorizontalAlignment="Left" Text="{Binding Component.ComponentName}" Margin="0,5,10,0" FontSize="{Binding ElementName=SquintWindow, UpdateSourceTrigger=PropertyChanged, Path=DataContext.Protocol.AssessmentPresenter.FontSize}"/>
+                                <TextBlock Grid.Column="1" HorizontalAlignment="Left" Margin="5,5,5,5" FontWeight="Medium" VerticalAlignment="Center" FontSize="{Binding ElementName=SquintWindow, UpdateSourceTrigger=PropertyChanged, Path=DataContext.Protocol.AssessmentPresenter.FontSize}">
                                     <TextBlock.Foreground>
                                         <MultiBinding Converter="{StaticResource ConstraintSelectedHighlight}" UpdateSourceTrigger="PropertyChanged">
                                             <Binding Path="DataContext.Protocol.SelectedConstraint" ElementName="SquintWindow" UpdateSourceTrigger="PropertyChanged"/>
@@ -780,6 +780,21 @@
             <Setter Property="Background" Value="AliceBlue"></Setter>
             <Setter Property="Margin" Value="5,5,5,5"/>
             <Setter Property="HorizontalContentAlignment" Value="Center"/>
+        </Style>
+        <Style x:Key="ChecklistTextBoxStyle" TargetType="TextBox">
+            <Setter Property="Background" Value="AliceBlue"></Setter>
+            <Setter Property="Margin" Value="0,2,5,2"/>
+            <Setter Property="Width" Value="150"/>
+            <Setter Property="HorizontalAlignment" Value="Left"/>
+            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+        </Style>
+        <Style x:Key="ChecklistComboBoxStyle" TargetType="ComboBox">
+            <Setter Property="Background" Value="AliceBlue"></Setter>
+            <Setter Property="BorderBrush" Value="LightSteelBlue"></Setter>
+            <Setter Property="Width" Value="150"/>
+            <Setter Property="HorizontalContentAlignment" Value="Center"></Setter>
+            <Setter Property="HorizontalAlignment" Value="Left"/>
+            <Setter Property="Margin" Value="0,2,5,2"></Setter>
         </Style>
         <Style x:Key="ExpandCollapseToggleStyle" TargetType="{x:Type ToggleButton}">
             <Setter Property="Focusable" Value="False"/>
@@ -1216,7 +1231,7 @@
                                     Foreground="Black"
                                     HorizontalAlignment="Center"
                                     Background="Transparent"  
-                                           Margin="{Binding ElementName=SquintWindow, Path=DataContext.AssessmentPresenter.ColHeaderMargin, UpdateSourceTrigger=PropertyChanged}" FontSize="{Binding ElementName=SquintWindow, UpdateSourceTrigger=PropertyChanged, Path=DataContext.AssessmentPresenter.FontSize}"/>
+                                           Margin="{Binding ElementName=SquintWindow, Path=DataContext.Protocol.AssessmentPresenter.ColHeaderMargin, UpdateSourceTrigger=PropertyChanged}" FontSize="{Binding ElementName=SquintWindow, UpdateSourceTrigger=PropertyChanged, Path=DataContext.Protocol.AssessmentPresenter.FontSize}"/>
                             <Border Grid.Row="1" Background="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type DataGridColumnHeader}}, Converter={StaticResource ColumnHeaderColorConverter}, ConverterParameter='Background', UpdateSourceTrigger=PropertyChanged}" 
                                     CornerRadius="1,1,1,1" Height="2" Margin="10,3,10,5"/>
                         </Grid>
@@ -1249,7 +1264,7 @@
                             <Binding Path="RefreshFlag" UpdateSourceTrigger="PropertyChanged"/>
                         </MultiBinding>
                     </Border.Background>
-                    <TextBlock Foreground="Black" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="{Binding ElementName=SquintWindow, UpdateSourceTrigger=PropertyChanged, Path=DataContext.AssessmentPresenter.FontSize}">
+                    <TextBlock Foreground="Black" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="{Binding ElementName=SquintWindow, UpdateSourceTrigger=PropertyChanged, Path=DataContext.Protocol.AssessmentPresenter.FontSize}">
                         <TextBlock.Text>
                             <MultiBinding Converter="{StaticResource ResultConverter}">
                                 <Binding UpdateSourceTrigger="PropertyChanged" Mode="OneWay"></Binding>

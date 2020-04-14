@@ -57,16 +57,16 @@
                     <Button Style="{StaticResource ButtonStyle}" ToolTip="Synchronize assessments with Eclipse" VerticalAlignment="Bottom" Command="{Binding SyncrhonizePatientCommand}" Margin="0,0,0,10">
                         <Image Source="/Resources/refreshPatient.png" Stretch="Fill" Margin="0,0,0,0"></Image>
                     </Button>
-                    <Button Style="{StaticResource ButtonStyle}" Command="{Binding FontSizeIncreaseCommand}" ToolTip="Increase font size" CommandParameter="{Binding ElementName=SquintWindow, Path=DataContext.AssessmentPresenter}" Margin="0,0,0,10">
+                    <Button Style="{StaticResource ButtonStyle}" Command="{Binding FontSizeIncreaseCommand}" ToolTip="Increase font size" CommandParameter="{Binding ElementName=SquintWindow, Path=DataContext.Protocol.AssessmentPresenter}" Margin="0,0,0,10">
                         <Image Source="/Resources/appbar.text.size.plus.png" Stretch="Fill" Margin="0,0,0,0" Height="36" VerticalAlignment="Bottom"></Image>
                     </Button>
-                    <Button Style="{StaticResource ButtonStyle}" Command="{Binding FontSizeDecreaseCommand}" ToolTip="Decrease font size" CommandParameter="{Binding ElementName=SquintWindow, Path=DataContext.AssessmentPresenter}" Margin="0,0,0,10">
+                    <Button Style="{StaticResource ButtonStyle}" Command="{Binding FontSizeDecreaseCommand}" ToolTip="Decrease font size" CommandParameter="{Binding ElementName=SquintWindow, Path=DataContext.Protocol.AssessmentPresenter}" Margin="0,0,0,10">
                         <Image Source="/Resources/appbar.text.size.minus.png" Stretch="Fill" Margin="0,0,0,0" Height="36" VerticalAlignment="Bottom"></Image>
                     </Button>
-                    <Button Name="SaveSessionButton" Style="{StaticResource ButtonStyle}" Command="{Binding SaveWorkspaceCommand}" ToolTip="Save patient workspace" CommandParameter="{Binding ElementName=SquintWindow, Path=DataContext.AssessmentPresenter}" Margin="0,0,0,10">
+                    <Button Name="SaveSessionButton" Style="{StaticResource ButtonStyle}" Command="{Binding SaveWorkspaceCommand}" ToolTip="Save patient workspace" CommandParameter="{Binding ElementName=SquintWindow, Path=DataContext.Protocol.AssessmentPresenter}" Margin="0,0,0,10">
                         <Image Source="/Resources/save_fontawesome.png" Stretch="Fill" Margin="0,0,0,0" Height="36" VerticalAlignment="Bottom"></Image>
                     </Button>
-                    <Button Name="OpenSessionsButton" Style="{StaticResource ButtonStyle}" Command="{Binding LoadWorkspaceCommand}" ToolTip="Load patient workspace" Padding="0,0,0,0" CommandParameter="{Binding ElementName=SquintWindow, Path=DataContext.AssessmentPresenter}" Margin="0,0,0,10">
+                    <Button Name="OpenSessionsButton" Style="{StaticResource ButtonStyle}" Command="{Binding LoadWorkspaceCommand}" ToolTip="Load patient workspace" Padding="0,0,0,0" CommandParameter="{Binding ElementName=SquintWindow, Path=DataContext.Protocol.AssessmentPresenter}" Margin="0,0,0,10">
                         <Image Source="/Resources/folder-open.png" Stretch="Fill" Margin="0,0,0,0" Height="36" VerticalAlignment="Bottom"></Image>
                     </Button>
                     <Popup Name="LoadSessionsPopup" PlacementTarget="{Binding ElementName=OpenSessionsButton}" Placement="Left" StaysOpen="False" AllowsTransparency="True" PopupAnimation="Fade"  IsOpen="{Binding SessionSelectVisibility, UpdateSourceTrigger=PropertyChanged}" >
@@ -119,7 +119,7 @@
                                         <ColumnDefinition Width="*"/>
                                     </Grid.ColumnDefinitions>
                                     <TextBlock Grid.Column="0" Text="Manage Assessments" VerticalAlignment="Center" Margin="10,10,10,10" FontSize="13" FontWeight="Bold"/>
-                                    <Button Grid.Column="1" Style="{StaticResource ButtonStyle_Small}" Command="{Binding ChangeLinkVisibilityCommand}" HorizontalAlignment="Right" Margin="0,0,10,0">
+                                    <Button Grid.Column="1" Style="{StaticResource ButtonStyle_Small}" Command="{Binding Protocol.AssessmentPresenter.ChangeLinkVisibilityCommand}" HorizontalAlignment="Right" Margin="0,0,10,0">
                                         <Image>
                                             <Image.Style>
                                                 <Style TargetType="Image">
@@ -139,7 +139,7 @@
                             </Border>
                             <Button Grid.Column="1" Name="button_AddAssessment" DockPanel.Dock="Right" ToolTip="Add new assessment"
                                     Style="{StaticResource ButtonStyle_Medium}" VerticalAlignment="Center" HorizontalAlignment="Stretch" Margin="5,0,5,0" 
-                                         Command="{Binding AddAssessmentCommand}" CommandParameter="{Binding ElementName=listbox_ProtocolList, Path=SelectedValue}">
+                                         Command="{Binding Protocol.AssessmentPresenter.AddAssessmentCommand}" CommandParameter="{Binding ElementName=listbox_ProtocolList, Path=SelectedValue}">
                                 <Image Source="/Resources/plus.png"></Image>
                             </Button>
                         </Grid>
@@ -150,7 +150,7 @@
                             <Grid.MaxHeight>
                                 <MultiBinding Converter="{StaticResource ExpanderConverter}" ConverterParameter="200">
                                     <Binding Path="Tag" RelativeSource="{RelativeSource Self}"/>
-                                    <Binding Path="DataContext.AssessmentPresenter.AssessmentCounter" ElementName="SquintWindow"/>
+                                    <Binding Path="DataContext.Protocol.AssessmentPresenter.AssessmentCounter" ElementName="SquintWindow"/>
                                 </MultiBinding>
                             </Grid.MaxHeight>
                             <Grid.Style>
@@ -167,7 +167,7 @@
                                     </Style.Triggers>
                                 </Style>
                             </Grid.Style>
-                            <ListView HorizontalAlignment="Stretch" Name="listView_AssessmentList" ItemsSource="{Binding AssessmentPresenter.Assessments, UpdateSourceTrigger=PropertyChanged}" Margin="5,0,5,0" BorderThickness="0" VerticalAlignment="Stretch" ItemContainerStyle="{DynamicResource ListViewItemStyle}"
+                            <ListView HorizontalAlignment="Stretch" Name="listView_AssessmentList" ItemsSource="{Binding Protocol.AssessmentPresenter.Assessments, UpdateSourceTrigger=PropertyChanged}" Margin="5,0,5,0" BorderThickness="0" VerticalAlignment="Stretch" ItemContainerStyle="{DynamicResource ListViewItemStyle}"
                                           HorizontalContentAlignment="Stretch" SelectedItem ="{Binding SelectedAssessment, UpdateSourceTrigger=PropertyChanged}" Style="{DynamicResource ListViewStyle1}">
                                 <ListView.ItemTemplate>
                                     <DataTemplate>
@@ -357,17 +357,17 @@
                                         <ColumnDefinition Width="Auto"/>
                                     </Grid.ColumnDefinitions>
                                     <ListBox Grid.Column="0" Name="listbox_ProtocolList" ItemsSource="{Binding Protocol.Protocols,  UpdateSourceTrigger=PropertyChanged}" Margin="5,5,5,5" BorderThickness="0" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Style="{DynamicResource ListBoxStyle1}"
-                                                 DisplayMemberPath="ProtocolName" SelectedValuePath="ProtocolName" ItemContainerStyle="{DynamicResource SquintProtocolListBoxItemStyle}" Background="White">
+                                                 DisplayMemberPath="ProtocolName" SelectedItem="{Binding Protocol.SelectedProtocol, Mode=TwoWay}" ItemContainerStyle="{DynamicResource SquintProtocolListBoxItemStyle}" Background="White">
                                     </ListBox>
                                     <Button Grid.Column="1" Name="button_OpenProtocol" ToolTip="Load selected protocol" Style="{StaticResource ButtonStyle_Medium}" VerticalAlignment="Bottom" HorizontalAlignment="Right" Margin="5,5,5,5" 
-                                           Command="{Binding LoadSelectedProtocolCommand}" CommandParameter="{Binding ElementName=listbox_ProtocolList, Path=SelectedValue}">
+                                           Command="{Binding Protocol.LoadSelectedProtocolCommand}" CommandParameter="{Binding Protocol.SelectedProtocol}">
                                         <Image Source="/Resources/check.png"></Image>
                                     </Button>
                                 </Grid>
                             </GroupBox>
                         </Grid>
                     </Grid>
-                    <Grid Name="CurrentProtocolGrid" Grid.Row="2" Height="Auto" Margin="0,0,0,10" VerticalAlignment="Top" Visibility="{Binding isProtocolLoaded, Converter={StaticResource VisibilityConverter}, UpdateSourceTrigger=PropertyChanged}">
+                    <Grid Name="CurrentProtocolGrid" Grid.Row="2" Height="Auto" Margin="0,0,0,10" VerticalAlignment="Top" Visibility="{Binding Protocol.isProtocolLoaded, Converter={StaticResource VisibilityConverter}, UpdateSourceTrigger=PropertyChanged}">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="*"/>
@@ -874,28 +874,19 @@
                     </Grid>
                 </Grid>
             </ScrollViewer>
-            <Grid Grid.Row="1" Margin="0,10,0,10">
-                <Grid.Visibility>
+            <Grid Grid.Row="1" Margin="0,10,0,10" Visibility="{Binding isLoading, Converter={StaticResource VisibilityConverter}}">
+                <!--<Grid.Visibility>
                     <MultiBinding Converter="{StaticResource VisibilityMultiConverter}">
                         <Binding ElementName="SquintWindow" Path="DataContext.AssessmentPresenter.WaitingForUpdate" UpdateSourceTrigger="PropertyChanged" Mode="OneWay"/>
                         <Binding Path="isLoading" UpdateSourceTrigger="PropertyChanged" Mode="OneWay"/>
                     </MultiBinding>
-                </Grid.Visibility>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="Auto"/>
-                </Grid.ColumnDefinitions>
-                <ProgressBar Grid.Column="0" Height="25" DockPanel.Dock="Left" BorderBrush="Black" Minimum="0" Maximum="100" Margin="10,0,5,0" VerticalAlignment="Stretch"  Template="{StaticResource ProgressBarNC}"
-                                     IsIndeterminate="True">
-                </ProgressBar>
-                <TextBlock Grid.Column="0" Text="{Binding LoadingString}" Visibility="{Binding isLoading, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource VisibilityConverter}, FallbackValue=Visibility.Visible}"  HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                <TextBlock Grid.Column="0" Text="{Binding ElementName=SquintWindow, Path=DataContext.AssessmentPresenter.WaitingDescription, UpdateSourceTrigger=PropertyChanged,FallbackValue=''}" HorizontalAlignment="Center" VerticalAlignment="Center" 
-                                               Visibility="{Binding ElementName=SquintWindow, Path=DataContext.AssessmentPresenter.WaitingForUpdate, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource VisibilityConverter}, FallbackValue=Visible}"></TextBlock>
+                </Grid.Visibility>-->
+                <SC:SquintProgressBar/>
             </Grid>
         </Grid>
         <DataGrid Name="dg" Grid.Row="1" Grid.RowSpan="3" Grid.Column="1" BorderThickness="0" Background="White" Margin="15,5,5,5" RowHeaderStyle="{DynamicResource SquintRowHeaderStyle}" 
                   AutoGenerateColumns="False" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" ColumnHeaderStyle="{DynamicResource SquintColumnHeaderStyle}" 
-                      local:DataGridColumnsBehavior.BindableColumns="{Binding AssessmentPresenter.AssessmentColumns}" RowHeaderWidth="{Binding ElementName=SquintWindow, Path=DataContext.AssessmentPresenter.RowHeaderWidth, UpdateSourceTrigger=PropertyChanged}"
+                      local:DataGridColumnsBehavior.BindableColumns="{Binding Protocol.AssessmentPresenter.AssessmentColumns}" RowHeaderWidth="{Binding ElementName=SquintWindow, Path=DataContext.Protocol.AssessmentPresenter.RowHeaderWidth, UpdateSourceTrigger=PropertyChanged}"
                   ItemsSource="{Binding Protocol.Constraints, UpdateSourceTrigger=PropertyChanged, Mode=OneWay}" GridLinesVisibility="None" Style="{DynamicResource SquintDataGridStyle}"
                   Visibility="{Binding ProtocolCheckVisible, Converter={StaticResource VisibilityConverter}, UpdateSourceTrigger=PropertyChanged}">
         </DataGrid>
@@ -903,7 +894,9 @@
             <SC:LoadingControl DataContext="{Binding DataContext, ElementName=SquintWindow}"
                                LoadingMessage="{Binding PlanCheckLoadingMessage, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" 
                                 Visibility="{Binding isPlanCheckCalculating, Mode=OneWay, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource VisibilityConverter}}"/>
-            <SC:ChecklistControl DataContext="{Binding DataContext.ChecklistViewModel, ElementName=SquintWindow}"/>
+            <Grid Visibility="{Binding isPlanCheckCalculating, Mode=OneWay, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource VisibilityInverseConverter}}">
+                <SC:ChecklistControl DataContext="{Binding DataContext.ChecklistViewModel, ElementName=SquintWindow}" />
+            </Grid>
         </Grid>
     </Grid>
 </Window>

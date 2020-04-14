@@ -96,7 +96,7 @@
             <ColumnDefinition Width="40"/>
         </Grid.ColumnDefinitions>
         <ScrollViewer Grid.Column="0" ScrollViewer.HorizontalScrollBarVisibility="Auto" Template="{DynamicResource ScrollViewerTestViewControlTemplate}" Name="sv">
-            <Grid Background="White" VerticalAlignment="Top" HorizontalAlignment="Stretch"  x:Name="TestGrid">
+            <Grid Background="White" VerticalAlignment="Top" HorizontalAlignment="Stretch"  x:Name="TestGrid" Visibility="{Binding amEditing, Converter={StaticResource VisibilityConverter}}">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="*"/>

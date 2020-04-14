@@ -195,7 +195,7 @@ namespace SquintScript
                 return "";
             else
             {
-                var PS = value as ProtocolView.ProtocolSelector;
+                var PS = value as ProtocolSelector;
                 switch (parameter)
                 {
                     case "Centre":
@@ -259,29 +259,28 @@ namespace SquintScript
         public object Convert(object[] value, Type targetType,
                object parameter, System.Globalization.CultureInfo culture)
         {
-            int? V = value[0] as int?; // is Edit mode visible
-            if (V == null || value[1] == null)
+            if (!(value[0] is EditTypes) || value[1] == null)
                 return Visibility.Collapsed;
-            else
+            EditTypes V = (EditTypes)value[0]; // determine the test edittype
+            string controlName = (string)value[1];
+            switch (V) // determine the control type.  if it matches the edittype, display it
             {
-                switch (V)
-                {
-                    case 0:
-                        if (value[1] is TextBlock)
-                            return Visibility.Visible;
-                        else return Visibility.Collapsed;
-                    case 1:
-                        if (value[1] is TextBox)
-                            return Visibility.Visible;
-                        else return Visibility.Collapsed;
-                    case 2:
-                        if (value[1] is ComboBox)
-                            return Visibility.Visible;
-                        else return Visibility.Collapsed;
-                    default:
-                        return Visibility.Collapsed;
-                }
+                case EditTypes.SingleSelection:
+                    if (controlName == "SingleSelection") // not obvious how to avoid magic strings here with xaml
+                        return Visibility.Visible;
+                    else return Visibility.Collapsed;
+                case EditTypes.SingleValue:
+                    if (controlName == "SingleValue")
+                        return Visibility.Visible;
+                    else return Visibility.Collapsed;
+                case EditTypes.RangeValues:
+                    if (controlName == "RangeValues")
+                        return Visibility.Visible;
+                    else return Visibility.Collapsed;
+                default:
+                    return Visibility.Collapsed;
             }
+
         }
         public object[] ConvertBack(object value, Type[] targetTypes,
                object parameter, System.Globalization.CultureInfo culture)
