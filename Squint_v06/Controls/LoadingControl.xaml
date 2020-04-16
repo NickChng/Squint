@@ -33,7 +33,7 @@
                     <Grid x:Name="Foreground">
                         <Rectangle x:Name="Indicator" Fill="{TemplateBinding Foreground}"/>
                         <Grid x:Name="Animation" ClipToBounds="True">
-                            <Rectangle x:Name="GR" HorizontalAlignment="Stretch" Width="100" Margin="0,0,0,0">
+                            <Rectangle x:Name="GR" HorizontalAlignment="Left" Width="250" Margin="0,0,0,0"> <!--Width here is size of the moving bar.  Animation bounds are below in the trigger-->
                                 <Rectangle.Fill>
                                     <LinearGradientBrush EndPoint="1,0" StartPoint="0,0">
                                         <GradientStop Color="Transparent" Offset="0"/>
@@ -154,18 +154,15 @@
                             <Storyboard RepeatBehavior="Forever">
                                 <ThicknessAnimationUsingKeyFrames BeginTime="0:0:0" Duration="0:0:4" Storyboard.TargetName="GR" Storyboard.TargetProperty="Margin">
                                     <ThicknessAnimationUsingKeyFrames.KeyFrames>
-                                        <LinearThicknessKeyFrame KeyTime="0:0:0" Value="-800,0,0,0"/>
-                                        <LinearThicknessKeyFrame KeyTime="0:0:2" Value="800,0,0,0"/>
-                                        <LinearThicknessKeyFrame KeyTime="0:0:4" Value="-800,0,0,0"/>
+                                        <LinearThicknessKeyFrame KeyTime="0:0:0" Value="0,0,0,0"/>  <!--This animates the "GR" bar above.  Unclear how to make this relative to size of the underlying bar, seems to be absolute-->
+                                        <LinearThicknessKeyFrame KeyTime="0:0:2" Value="1000,0,0,0"/>
+                                        <LinearThicknessKeyFrame KeyTime="0:0:4" Value="0,0,0,0"/>
                                     </ThicknessAnimationUsingKeyFrames.KeyFrames>
                                 </ThicknessAnimationUsingKeyFrames>
                             </Storyboard>
                         </BeginStoryboard>
                     </Trigger.EnterActions>
                 </Trigger>
-                <!--<Trigger Property="IsIndeterminate" Value="False">
-                    <Setter Property="Background" TargetName="Animation" Value="Green"/>
-                </Trigger>-->
             </ControlTemplate.Triggers>
         </ControlTemplate>
     </UserControl.Resources>

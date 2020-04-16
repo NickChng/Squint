@@ -24,13 +24,31 @@ namespace SquintScript
 {
     public static partial class Ctr
     {
-        public static void UpdateChecklistReferenceValue(CheckTypes CheckType, double ReferenceValue)
+        public static void UpdateChecklistReferenceValue(CheckTypes CheckType, object ReferenceValue)
         {
             switch (CheckType)
             {
-                case CheckTypes.SliceSpacing:
-                    CurrentProtocol.Checklist.SliceSpacing = ReferenceValue;
+                case CheckTypes.Unset:
+                    MessageBox.Show("Error: Attempt to save undefined CheckType");
                     break;
+                case CheckTypes.SliceSpacing:
+                    CurrentProtocol.Checklist.SliceSpacing.Value = (double)ReferenceValue;
+                    break;
+                    
+            }
+        }
+        public static void UpdateChecklistReferenceRange(CheckTypes CheckType, object Min, object Max)
+        {
+            switch (CheckType)
+            {
+                case CheckTypes.Unset:
+                    MessageBox.Show("Error: Attempt to save undefined CheckType");
+                    break;
+                case CheckTypes.PlanNormalization:
+                    CurrentProtocol.Checklist.PNVMax.Value = (double)Max;
+                    CurrentProtocol.Checklist.PNVMin.Value = (double)Min;
+                    break;
+
             }
         }
         public static void Save_UpdateProtocolChecklist()

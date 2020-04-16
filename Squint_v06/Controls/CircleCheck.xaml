@@ -7,10 +7,6 @@
              xmlns:global="clr-namespace:SquintScript"
              mc:Ignorable="d" 
              d:DesignHeight="50" d:DesignWidth="50">
-    <UserControl.Resources>
-        <global:VisibilityConverter x:Key="VisibilityConverter"/>
-        <global:VisibilityInverseConverter x:Key="VisibilityInverseConverter"/>
-    </UserControl.Resources>
     <Grid Name="ControlGrid" Height="50" Width="50">
         <Grid Name="PassGrid" Visibility="{Binding Pass, RelativeSource={RelativeSource AncestorType=UserControl}, Converter={StaticResource VisibilityInverseConverter}, UpdateSourceTrigger=PropertyChanged}">
             <Ellipse Height="Auto" Width="Auto" Fill="LightGreen"/>

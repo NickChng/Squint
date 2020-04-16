@@ -19,13 +19,15 @@ using VMSTypes = VMS.TPS.Common.Model.Types;
 using ESAPI = VMS.TPS.Common.Model.API.Application;
 using System.Text.RegularExpressions;
 using System.Data.Entity;
+using SquintScript.ViewModels;
+using SquintScript.Extensions;
 
 namespace SquintScript
 {
     public static class VersionContextConnection
     {
         private static string providerName = "Npgsql";
-        private static string databaseName = "Squint_v06_CN_Prod";
+        private static string databaseName = "Squint_v06_CN_Test";
         private static string userName = "postgres";
         private static string password = "bccacn";
         private static string host = "sprtqacn001";
@@ -1896,13 +1898,13 @@ namespace SquintScript
                             }
                             else
                                 B.Technique = (int)FieldType.Unset;
-                            ParameterOptions VMAT_JawTracking;
-                            if (Enum.TryParse(b.VMAT_JawTracking, out VMAT_JawTracking))
+                            ParameterOptions JawTracking_Indication;
+                            if (Enum.TryParse(b.JawTracking_Indication, out JawTracking_Indication))
                             {
-                                B.VMAT_JawTracking = (int)VMAT_JawTracking;
+                                B.JawTracking_Indication = (int)JawTracking_Indication;
                             }
                             else
-                                B.VMAT_JawTracking = (int)ParameterOptions.Unset;
+                                B.JawTracking_Indication = (int)ParameterOptions.Unset;
 
                             if (b.BolusDefinitions != null)
                             {
@@ -2239,10 +2241,6 @@ namespace SquintScript
                 CloseProtocol();
                 DataCache.LoadProtocol(ProtocolName);
                 CurrentProtocol = DataCache.CurrentProtocol;
-                foreach (Component Comp in DataCache.GetAllComponents())
-                {
-                    new Component(Comp);
-                }
                 ProtocolLoaded = true;
                 ProtocolOpened?.Invoke(null, EventArgs.Empty);
             }
@@ -2314,13 +2312,16 @@ namespace SquintScript
                     }
                     foreach (ECPlan P in DataCache.GetAllPlans())
                     {
-                        var C = await DataCache.GetCourseAsync(P.CourseId);
-                        DataCache.GetAssessment(P.AssessmentID).RegisterPlan(P);
                         if (P.Linked)
                         {
-                            var AP = await C.GetPlan(P.PlanId);
-                            if (AP != null)
-                                P.UpdateLinkedPlan(AP, false);
+                            var C = await DataCache.GetCourseAsync(P.CourseId);
+                            DataCache.GetAssessment(P.AssessmentID).RegisterPlan(P);
+                            if (P.Linked)
+                            {
+                                var AP = await C.GetPlan(P.PlanId);
+                                if (AP != null)
+                                    P.UpdateLinkedPlan(AP, false);
+                            }
                         }
                     }
                     ProtocolLoaded = true;

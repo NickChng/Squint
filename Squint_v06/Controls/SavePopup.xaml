@@ -9,8 +9,6 @@
              x:Name="SavePopupControl"
              Height="Auto" Width="AUto">
     <UserControl.Resources>
-        <main:TestConverter x:Key="TestConverter"/>
-        <main:Color2Brush x:Key="Color2Brush"/>
         <Style x:Key="RoundedButton" TargetType="{x:Type Button}">
             <Setter Property="HorizontalContentAlignment" Value="Center"/>
             <Setter Property="VerticalContentAlignment" Value="Center"/>

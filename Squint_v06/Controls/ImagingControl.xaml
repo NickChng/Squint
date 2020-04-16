@@ -4,6 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:SquintScript.Controls"
+             xmlns:converters="clr-namespace:SquintScript.Converters"
              xmlns:global="clr-namespace:SquintScript"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
@@ -11,48 +12,10 @@
         <local:Imaging_ViewModel/>
     </UserControl.DataContext>
     <UserControl.Resources>
-        <global:TestConverter x:Key="TestConverter"/>
-        <global:CollimatorAngleCheckConverter x:Key="CollimatorAngleCheckConverter"/>
-        <global:TypeToBooleanConverter x:Key="TypeToBooleanConverter"/>
-        <global:VisibilityConverter x:Key="VisibilityConverter"/>
-        <global:TypeToStringConverter x:Key="TypeToStringConverter"/>
-        <global:TypeToColorConverter x:Key="TypeToColorConverter"/>
-        <SolidColorBrush x:Key="ListBorder" Color="#828790"/>
-        <Style x:Key="ImagingListViewStyle" TargetType="{x:Type ListView}">
-            <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="BorderBrush" Value="{StaticResource ListBorder}"/>
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Foreground" Value="{DynamicResource {x:Static SystemColors.ControlTextBrushKey}}"/>
-            <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Auto"/>
-            <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Auto"/>
-            <Setter Property="ScrollViewer.CanContentScroll" Value="true"/>
-            <Setter Property="ScrollViewer.PanningMode" Value="Both"/>
-            <Setter Property="Stylus.IsFlicksEnabled" Value="False"/>
-            <Setter Property="VerticalContentAlignment" Value="Center"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="{x:Type ListView}">
-                        <Border x:Name="Bd" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Background="{TemplateBinding Background}" Padding="1" SnapsToDevicePixels="true">
-                            <ScrollViewer Focusable="false" Padding="{TemplateBinding Padding}">
-                                <ItemsPresenter SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"/>
-                            </ScrollViewer>
-                        </Border>
-                        <ControlTemplate.Triggers>
-                            <Trigger Property="IsEnabled" Value="false">
-                                <Setter Property="Background" TargetName="Bd" Value="{DynamicResource {x:Static SystemColors.ControlBrushKey}}"/>
-                            </Trigger>
-                            <MultiTrigger>
-                                <MultiTrigger.Conditions>
-                                    <Condition Property="IsGrouping" Value="true"/>
-                                    <Condition Property="VirtualizingPanel.IsVirtualizingWhenGrouping" Value="false"/>
-                                </MultiTrigger.Conditions>
-                                <Setter Property="ScrollViewer.CanContentScroll" Value="false"/>
-                            </MultiTrigger>
-                        </ControlTemplate.Triggers>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
+        <converters:CollimatorAngleCheckConverter x:Key="CollimatorAngleCheckConverter"/>
+        <converters:TypeToBooleanConverter x:Key="TypeToBooleanConverter"/>
+        <converters:TypeToStringConverter x:Key="TypeToStringConverter"/>
+        <converters:TypeToColorConverter x:Key="TypeToColorConverter"/>
     </UserControl.Resources>
     <Grid Background="White" VerticalAlignment="Top" HorizontalAlignment="Stretch">
         <Grid.RowDefinitions>

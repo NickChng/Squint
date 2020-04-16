@@ -4,6 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:SquintScript.Controls"
+             xmlns:VM="clr-namespace:SquintScript.ViewModels"
              xmlns:global="clr-namespace:SquintScript"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
@@ -11,8 +12,6 @@
         <local:Beam_ViewModel/>
     </UserControl.DataContext>
     <UserControl.Resources>
-        <global:VisibilityConverter x:Key="VisibilityConverter"/>
-        <SolidColorBrush x:Key="ListBorder" Color="#828790"/>
         <Style x:Key="BeamCheckViewListStyle" TargetType="{x:Type ListView}">
             <Setter Property="Background" Value="Transparent"/>
             <Setter Property="BorderBrush" Value="{StaticResource ListBorder}"/>

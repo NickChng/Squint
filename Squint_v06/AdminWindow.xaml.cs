@@ -19,6 +19,7 @@ using VMS.TPS.Common.Model.API;
 using ESAPI = VMS.TPS.Common.Model.API.Application;
 using System.Windows.Controls.Primitives;
 using GongSolutions.Wpf.DragDrop;
+using SquintScript.ViewModels;
 
 namespace SquintScript
 {

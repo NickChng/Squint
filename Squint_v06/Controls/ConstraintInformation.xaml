@@ -4,13 +4,12 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:main="clr-namespace:SquintScript"
+             xmlns:converters="clr-namespace:SquintScript.Converters"
              xmlns:local="clr-namespace:SquintScript.Controls"
              mc:Ignorable="d" 
              x:Name="SavePopupControl"
              Height="Auto" Width="AUto">
     <UserControl.Resources>
-        <main:TestConverter x:Key="TestConverter"/>
-        <main:Color2Brush x:Key="Color2Brush"/>
         <Style x:Key="RoundedButton" TargetType="{x:Type Button}">
             <Setter Property="HorizontalContentAlignment" Value="Center"/>
             <Setter Property="VerticalContentAlignment" Value="Center"/>

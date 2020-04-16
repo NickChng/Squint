@@ -5,19 +5,18 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:SquintScript.Controls"
              xmlns:global="clr-namespace:SquintScript"
+             xmlns:converters="clr-namespace:SquintScript.Converters"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
     <UserControl.DataContext>
         <local:TestList_ViewModel/>
     </UserControl.DataContext>
     <UserControl.Resources>
-        <global:TestConverter x:Key="TestConverter"/>
-        <global:CollimatorAngleCheckConverter x:Key="CollimatorAngleCheckConverter"/>
-        <global:TypeToBooleanConverter x:Key="TypeToBooleanConverter"/>
-        <global:VisibilityConverter x:Key="VisibilityConverter"/>
-        <global:TypeToStringConverter x:Key="TypeToStringConverter"/>
-        <global:TypeToColorConverter x:Key="TypeToColorConverter"/>
-        <SolidColorBrush x:Key="ListBorder" Color="#828790"/>
+        <converters:CollimatorAngleCheckConverter x:Key="CollimatorAngleCheckConverter"/>
+        <converters:TypeToBooleanConverter x:Key="TypeToBooleanConverter"/>
+        <converters:VisibilityConverter x:Key="VisibilityConverter"/>
+        <converters:TypeToStringConverter x:Key="TypeToStringConverter"/>
+        <converters:TypeToColorConverter x:Key="TypeToColorConverter"/>
         <Style x:Key="TestListViewStyle" TargetType="{x:Type ListView}">
             <Setter Property="Background" Value="Transparent"/>
             <Setter Property="BorderBrush" Value="{StaticResource ListBorder}"/>

@@ -12,16 +12,15 @@ namespace SquintScript.Interfaces
     {
         string TestName { get; set; }
         void CommitChanges();
+        void RejectChanges();
     }
-    public interface ITestListItem<T> : ITestListItem
+    public interface ITestListItem<T> : ITestListItem 
     {
-        TestType TestType { get; set; }
-        string ReferenceValueString { get; set; }
+        string ReferenceValueString { get; }
         string CheckValueString { get; }
-        T ReferenceValue { get; set; }
-        T CheckValue { get; set; }
+        TrackedValue<T> Reference{ get; set; }
+        T Check{ get; set; }
         bool Warning { get; }
-        string WarningString { get; set; }
-        Visibility TestVisibility { get; }
+        string WarningString { get; }
     }
 }

@@ -5,7 +5,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:SquintScript.Controls">
     <Grid>
-        <Button Name="OpenSessionsButton" Style="{DynamicResource ButtonStyle}" Command="{Binding LoadWorkspaceCommand}" ToolTip="Save patient workspace" Padding="0,0,0,0" CommandParameter="{Binding ElementName=SquintWindow, Path=DataContext.AssessmentPresenter}" Margin="0,0,0,10">
+        <Button Name="OpenSessionsButton" Style="{DynamicResource ButtonStyle}" Command="{Binding LoadWorkspaceCommand}" ToolTip="Save patient workspace" Padding="0,0,0,0" CommandParameter="{Binding ElementName=SquintWindow, Path=DataContext.Protocol.AssessmentPresenter}" Margin="0,0,0,10">
             <Image Source="/Resources/folder-open.png" Stretch="Fill" Margin="0,0,0,0" Height="36" VerticalAlignment="Bottom"></Image>
         </Button>
         <Popup Name="myPopup" Placement="Left"  PlacementTarget="{Binding ElementName=OpenSessionsButton}" AllowsTransparency="True" PopupAnimation="Fade" StaysOpen="False" IsOpen="{Binding SessionSelectVisibility, UpdateSourceTrigger=PropertyChanged}">

@@ -7,7 +7,7 @@ using System.ComponentModel;
 using System.Reflection;
 using System.ComponentModel.DataAnnotations;
 
-namespace SquintScript
+namespace SquintScript.Extensions
 {
     public static class Extensions
     {

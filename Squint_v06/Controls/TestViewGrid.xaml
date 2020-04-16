@@ -4,6 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:SquintScript.Controls"
+             xmlns:converters="clr-namespace:SquintScript.Converters"
              xmlns:global="clr-namespace:SquintScript"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
@@ -11,14 +12,12 @@
         <local:TestList_ViewModel/>
     </UserControl.DataContext>
     <UserControl.Resources>
-        <global:TestConverter x:Key="TestConverter"/>
-        <global:WidthConverter x:Key="WidthConverter"/>
-        <global:CollimatorAngleCheckConverter x:Key="CollimatorAngleCheckConverter"/>
-        <global:TypeToBooleanConverter x:Key="TypeToBooleanConverter"/>
-        <global:VisibilityConverter x:Key="VisibilityConverter"/>
-        <global:TypeToStringConverter x:Key="TypeToStringConverter"/>
-        <global:TypeToColorConverter x:Key="TypeToColorConverter"/>
-        <SolidColorBrush x:Key="ListBorder" Color="#828790"/>
+
+        <converters:WidthConverter x:Key="WidthConverter"/>
+        <converters:CollimatorAngleCheckConverter x:Key="CollimatorAngleCheckConverter"/>
+        <converters:TypeToBooleanConverter x:Key="TypeToBooleanConverter"/>
+        <converters:TypeToStringConverter x:Key="TypeToStringConverter"/>
+        <converters:TypeToColorConverter x:Key="TypeToColorConverter"/>
         <Style TargetType="ListViewItem">
             <Setter Property="HorizontalContentAlignment" Value="Stretch" />
         </Style>

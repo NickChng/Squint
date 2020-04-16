@@ -22,6 +22,8 @@ using VMSAPI = VMS.TPS.Common.Model.API;
 using PropertyChanged;
 using SquintScript.Interfaces;
 using SquintScript.ViewModelClasses;
+using SquintScript.ViewModels;
+using SquintScript.Extensions;
 
 namespace SquintScript.Controls
 {
@@ -257,51 +259,13 @@ namespace SquintScript.Controls
         {
             get { return Field.ToleranceTable; }
         }
-        public FieldType Technique_ref
-        {
-            get { return RefBeam.Technique; }
-            set { RefBeam.Technique = value; }
-        }
-
-        public string ToleranceTable_ref
-        {
-            get { return RefBeam.ToleranceTable; }
-            set { RefBeam.ToleranceTable = value; }
-        }
         public double Xmin { get { return Field.Xmin; } }
         public double Ymin { get { return Field.Ymin; } }
         public double Xmax { get { return Field.Xmax; } }
         public double Ymax { get { return Field.Ymax; } }
-        public double MinX_ref { get { return RefBeam.MinX; } set { RefBeam.MinX = value; } }
-        public double MinY_ref { get { return RefBeam.MinY; } set { RefBeam.MinY = value; } }
-        public double MaxX_ref { get { return RefBeam.MaxX; } set { RefBeam.MaxX = value; } }
-        public double MaxY_ref { get { return RefBeam.MaxY; } set { RefBeam.MaxY = value; } }
         public double MU
         {
             get { return Field.MU; }
-        }
-        public bool MinMUWarning
-        {
-            get
-            {
-
-                if (MU < RefBeam.MinMUWarning)
-                    return true;
-                else
-                    return false;
-            }
-        }
-        public bool MaxMUWarning
-        {
-            get
-            {
-                if (double.IsNaN(MU))
-                    return true;
-                if (MU > RefBeam.MaxMUWarning)
-                    return true;
-                else
-                    return false;
-            }
         }
         public double ColRotation { get { return Field.CollimatorAngle; } }
         public double MinColRotation { get; set; }
@@ -309,8 +273,6 @@ namespace SquintScript.Controls
         public double CouchRotation { get { return Field.CouchRotation; } }
         public double StartAngle { get { return Field.GantryStart; } }
         public double EndAngle { get { return Field.GantryEnd; } }
-        public double CouchRotation_ref { get { return RefBeam.CouchRotation; } set { RefBeam.CouchRotation = value; } }
-
         public bool NoFieldAssigned { get; set; } = true;
         public BeamListItem(Ctr.Beam RefBeam_in, List<Ctr.TxFieldItem> TxFields)
         {
@@ -343,15 +305,15 @@ namespace SquintScript.Controls
                 return;
             // Add default checks:
 
-            BeamTests.Tests.Add(new TestListDoubleRangeItem(string.Format(@"MU range"), MU, RefBeam.MinMUWarning, RefBeam.MaxMUWarning, "MU outside normal range"));
+            BeamTests.Tests.Add(new CheckRangeItem<double>(string.Format(@"MU range"), MU, RefBeam.MinMUWarning, RefBeam.MaxMUWarning, "MU outside normal range"));
 
             // Energies           
-            var ValidEnergiesString = new List<string>();
+            var ValidEnergies = new List<TrackedValue<Energies>>();
             foreach (var E in RefBeam.ValidEnergies)
             {
-                ValidEnergiesString.Add(E.Display());
+                ValidEnergies.Add(new TrackedValue<Energies>(E));
             }
-            BeamTests.Tests.Add(new TestListStringAnyItem(@"Valid energies", Field.Energy.Display(), ValidEnergiesString, "Not a valid energy"));
+            BeamTests.Tests.Add(new CheckContainsItem<Energies>(@"Valid energies", Field.Energy, ValidEnergies, "Not a valid energy"));
 
             // Beam Geometries
             Trajectories BeamTrajectory = Trajectories.Static;
@@ -368,32 +330,30 @@ namespace SquintScript.Controls
             }
             var CheckBeam = new Ctr.BeamGeometry() { StartAngle = Field.GantryStart, EndAngle = Field.GantryEnd, Trajectory=BeamTrajectory };
             BeamTests.Tests.Add(new TestListBeamStartStopItem(string.Format(@"Beam geometry"), CheckBeam, RefBeam.ValidGeometries, "No valid geometry found"));
-            BeamTests.Tests.Add(new TestListDoubleValueItem(string.Format(@"Couch rotation"), CouchRotation, CouchRotation_ref, "Non-standard couch rotation"));
-            if (RefBeam.VMAT_JawTracking == ParameterOptions.Required)
-            {
-                BeamTests.Tests.Add(new TestListBoolValueItem("Jaw tracking", Field.isJawTracking, true, "No tracking detected"));
-            }
+            BeamTests.Tests.Add(new CheckValueItem<double>(string.Format(@"Couch rotation"), CouchRotation, RefBeam.CouchRotation, new TrackedValue<double>(1E-2), "Non-standard couch rotation"));
+            if (RefBeam.JawTracking_Indication.Value == ParameterOptions.Required)
+                BeamTests.Tests.Add(new CheckValueItem<bool>("Jaw tracking", Field.isJawTracking, new TrackedValue<bool>(true), null, "No tracking detected"));
+            else if (RefBeam.JawTracking_Indication.Value == ParameterOptions.None)
+                BeamTests.Tests.Add(new CheckValueItem<bool>("Jaw tracking", Field.isJawTracking, new TrackedValue<bool>(false), null, "Tracking detected"));
+
 
             // Col rotation
-            bool MinColRotationWarning;
-            double Offset = ColRotation;
+            double Offset = double.NaN;
             if (ColRotation < 90)
-                MinColRotationWarning = ColRotation < RefBeam.MinColRotation;
+                Offset = ColRotation;
             else if (ColRotation < 180)
                 Offset = (180 - ColRotation);
             else if (ColRotation < 270)
                 Offset = (ColRotation - 180);
             else
                 Offset = 360 - ColRotation;
-            BeamTests.Tests.Add(new TestListDoubleValueItem(string.Format(@"Minimum MLC offset from axial plane"), Offset, RefBeam.MinColRotation, "Collimator less than minimum offset") 
-            { ParameterOption = ParameterOptions.Optional, TestType = TestType.GreaterThan });
-
-
-            BeamTests.Tests.Add(new TestListDoubleValueItem(string.Format(@"Minimum X field size"), Xmin, RefBeam.MinX, "X field too small"){ TestType = TestType.GreaterThan});
-            BeamTests.Tests.Add(new TestListDoubleValueItem(string.Format(@"Maximum X field size"), Xmax, RefBeam.MaxX, "X field too large"){ TestType = TestType.LessThan});
-            BeamTests.Tests.Add(new TestListDoubleValueItem(string.Format(@"Minimum Y field size"), Ymin, RefBeam.MinY, "Y field too small"){ TestType = TestType.GreaterThan});
-            BeamTests.Tests.Add(new TestListDoubleValueItem(string.Format(@"Maximum Y field size"), Ymax, RefBeam.MaxY, "Y field too large"){ TestType = TestType.LessThan});
-            BeamTests.Tests.Add(new TestListStringValueItem("Tolerance Table", ToleranceTable, ToleranceTable_ref, "Incorrect Tol Table"));
+            BeamTests.Tests.Add(new CheckValueItem<double>(string.Format(@"Minimum MLC offset from axial plane"), Offset, RefBeam.MinColRotation, new TrackedValue<double>(1E-2), "Collimator less than minimum offset")
+            { ParameterOption = ParameterOptions.Optional, Test = TestType.GreaterThan });
+            BeamTests.Tests.Add(new CheckValueItem<double>(string.Format(@"Minimum X field size"), Xmin, RefBeam.MinX, null, "X field too small") { Test = TestType.GreaterThan });
+            BeamTests.Tests.Add(new CheckValueItem<double>(string.Format(@"Maximum X field size"), Xmax, RefBeam.MaxX, null, "X field too large") { Test = TestType.LessThan });
+            BeamTests.Tests.Add(new CheckValueItem<double>(string.Format(@"Minimum Y field size"), Ymin, RefBeam.MinY, null, "Y field too small") { Test = TestType.GreaterThan });
+            BeamTests.Tests.Add(new CheckValueItem<double>(string.Format(@"Maximum Y field size"), Ymax, RefBeam.MaxY, null, "Y field too large") { Test = TestType.LessThan });
+            BeamTests.Tests.Add(new CheckValueItem<string>("Tolerance Table", ToleranceTable, RefBeam.ToleranceTable, null, "Incorrect Tol Table"));
 
             var CompletedBolusCheck = await AddBolusCheck();
 
@@ -401,7 +361,7 @@ namespace SquintScript.Controls
         public async Task<bool> AddBolusCheck()
         {
 
-            TestListDoubleValueItem BolusTest = null;
+            CheckValueItem<double> BolusTest = null;
             var ReqBoluses = Ctr.GetActiveProtocol().Checklist.Boluses;
             foreach (Ctr.BolusDefinition B in RefBeam.Boluses)
             {
@@ -409,37 +369,18 @@ namespace SquintScript.Controls
                 foreach (Ctr.TxFieldItem.BolusInfo BI in Field.BolusInfos)
                 {
                     numBoluses++;
-                    BolusTest = new TestListDoubleValueItem(string.Format(@"Bolus HU (""{0}"")", BI.Id), BI.HU, B.HU, @"HU deviation", null, null, B.ToleranceHU);
-                    BolusTest.ParameterOption = B.Indication;
-                    BolusTest.RefNullWarningString = "No bolus in protocol";
-                    BolusTest.CheckNullWarningString = "Bolus required";
-                    switch (B.Indication)
-                    {
-                        case ParameterOptions.None:
-                            BolusTest.RefNullWarningString = "Bolus not indicated in protocol";
-                            break;
-                        default:
-                            break;
-                    };
+                    BolusTest = new CheckValueItem<double>(string.Format(@"Bolus HU (""{0}"")", BI.Id), BI.HU, B.HU, B.ToleranceHU, @"HU deviation", "Bolus required", "No bolus in protocol");
+                    BolusTest.ParameterOption = B.Indication.Value;
                     BeamTests.Tests.Add(BolusTest);
                     //ThickCheck
                     var Thick = await Ctr.GetBolusThickness(Field.CourseId, Field.PlanId, BI.Id);
-                    var ThickCheck = new TestListDoubleValueItem(string.Format(@"Bolus Thickness (""{0}"") [cm]", BI.Id), Thick, B.Thickness, null, null, null, B.ToleranceThickness);
-                    ThickCheck.ParameterOption = B.Indication;
-                    switch (B.Indication)
-                    {
-                        case ParameterOptions.None:
-                            ThickCheck.RefNullWarningString = "Bolus not indicated in protocol";
-                            break;
-                        default:
-                            break;
-                    };
+                    var ThickCheck = new CheckValueItem<double>(string.Format(@"Bolus Thickness (""{0}"") [cm]", BI.Id), Thick, B.Thickness, B.ToleranceThickness, null, null, null);
+                    ThickCheck.ParameterOption = B.Indication.Value;
                     BeamTests.Tests.Add(ThickCheck);
                 }
-                if (numBoluses == 0 && B.Indication == ParameterOptions.Required)
+                if (numBoluses == 0 && B.Indication.Value == ParameterOptions.Required)
                 {
-                    var ThickCheck = new TestListDoubleRangeItem(@"Bolus Check [cm]", null);
-                    ThickCheck.CheckNullWarningString = "Bolus required";
+                    var ThickCheck = new CheckRangeItem<double?>(@"Bolus Check [cm]", null, null, null, "Bolus Required");
                     BeamTests.Tests.Add(ThickCheck);
                 }
             }

@@ -19,8 +19,9 @@ using VMS.TPS.Common.Model.API;
 using System.IO;
 using System.Windows.Controls.Primitives;
 using ESAPI = VMS.TPS.Common.Model.API.Application;
+using SquintScript.ViewModels;
 
-namespace SquintScript
+namespace SquintScript.Views
 {
     /// <summary>
     /// Interaction logic for MainWindow.xaml
@@ -58,8 +59,6 @@ namespace SquintScript
         private void OnSelectedStructureChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
         {
             var VM = (Presenter)DataContext;
-            var test = VM.Protocol.Structures;
-            string debugme = "hi";
         }
 
         private void OnClosing(object sender, CancelEventArgs e)

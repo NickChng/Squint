@@ -14,6 +14,7 @@ namespace SquintScript
     using System.Configuration;
     using Npgsql;
     using NpgsqlTypes;
+    using Extensions;
 
     public class SquintdBModel : DbContext
     {
@@ -667,7 +668,7 @@ namespace SquintScript
         public double BolusClinicalToleranceHU { get; set; }
         public double BolusClinicalMinThickness { get; set; }
         public double BolusClinicalMaxThickness { get; set; }
-        public int VMAT_JawTracking { get; set; }
+        public int JawTracking_Indication { get; set; }
         public virtual ICollection<DbEnergy> DbEnergies { get; set; }
         public virtual ICollection<DbBolus> DbBoluses { get; set; }
         public virtual ICollection<DbBeamAlias> DbBeamAliases { get; set; }
@@ -739,17 +740,7 @@ namespace SquintScript
         [ForeignKey("DbProtocol")]
         public int ProtocolID { get; set; }
         public virtual DbProtocol DbProtocol { get; set; }
-        public bool ProtocolDefault { get; set; }
         public int TreatmentTechniqueType { get; set; }
-        public double MinFields { get; set; }
-        public double MaxFields { get; set; }
-        public int NumIso { get; set; }
-        public double VMAT_MinFieldColSeparation { get; set; }
-        public double MinXJaw { get; set; }
-        public double MaxXJaw { get; set; }
-        public double MinYJaw { get; set; }
-        public double MaxYJaw { get; set; }
-        public int VMAT_JawTracking { get; set; }
         //Algorithm
         public int Algorithm { get; set; }
         public int FieldNormalizationMode { get; set; }

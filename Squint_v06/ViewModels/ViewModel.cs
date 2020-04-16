@@ -18,9 +18,10 @@ using wpfcolor = System.Windows.Media.Color;
 using wpfbrush = System.Windows.Media.SolidColorBrush;
 using Controls = SquintScript.Controls;
 using SquintScript.ViewModelClasses;
-using SquintScript.Interfaces;
+using SquintScript.Extensions;
+using SquintScript.Controls;
 
-namespace SquintScript
+namespace SquintScript.ViewModels
 {
     public abstract class ObservableObject : INotifyPropertyChanged
     {
@@ -241,8 +242,8 @@ namespace SquintScript
         }
         public ComponentTypes ComponentType
         {
-            get { return Comp.ComponentType; }
-            set { }
+            get { return Comp.ComponentType.Value; }
+            set { Comp.ComponentType.Value = value; }
         }
         public double ReferenceDose
         {
@@ -344,7 +345,8 @@ namespace SquintScript
                 if (_SS != value)
                 {
                     _SS = value;
-                    Con.PrimaryStructureID = _SS.Id;
+                    if (_SS != null)
+                        Con.PrimaryStructureID = _SS.Id;
                 }
             }
         }
@@ -946,7 +948,7 @@ namespace SquintScript
                 if (!StructureSets.Select(x => x.StructureSetUID).Contains(SS.StructureSetUID))
                 {
                     NewSSS = new StructureSetSelector(SS);
-                    WpfApp1.App.Current.Dispatcher.Invoke(() =>
+                    SquintScript.App.Current.Dispatcher.Invoke(() =>
                     {
                         StructureSets.Add(NewSSS);
                     });
@@ -958,7 +960,7 @@ namespace SquintScript
             {
                 if (!A.Select(x => x.StructureSetUID).Contains(SSS.StructureSetUID))
                 {
-                    WpfApp1.App.Current.Dispatcher.Invoke(() =>
+                    SquintScript.App.Current.Dispatcher.Invoke(() =>
                     {
                         StructureSets.Remove(SSS);
                     });
@@ -1081,7 +1083,7 @@ namespace SquintScript
                 {
                     ParentView.ParentView.ParentView.ParentView.isLoading = true;
                     ParentView.ParentView.ParentView.ParentView.LoadingString = "Loading plan...";
-                    var CSC = await Ctr.AssociatePlanToComponent(A.ID, Comp.ID, _SelectedCourse.CourseId, _SelectedPlan.PlanId, Comp.ComponentType, true);
+                    var CSC = await Ctr.AssociatePlanToComponent(A.ID, Comp.ID, _SelectedCourse.CourseId, _SelectedPlan.PlanId, Comp.ComponentType.Value, true);
                     Ctr.UpdateComponentConstraints(Comp.ID, A.ID);
                     UpdateWarning(CSC);
                     ParentView.ParentView.ParentView.ParentView.isLoading = false;
@@ -1125,284 +1127,7 @@ namespace SquintScript
             }
         }
     }
-    [AddINotifyPropertyChangedInterface]
-    public class ProtocolView : ObservableObject
-    {
-        public ProtocolView(Presenter parentView)
-        {
-            ParentView = parentView;
-            AssessmentPresenter = new AssessmentsView(this);
-            var ProtocolPreviews = Ctr.GetProtocolPreviewList();
-            foreach (var PP in ProtocolPreviews)
-            {
-                Protocols.Add(new ProtocolSelector(PP));
-            }
-            // Subscribe to events
-            Ctr.CurrentStructureSetChanged += UpdateAvailableStructureIds;
-            Ctr.ProtocolListUpdated += UpdateProtocolList;
-            Ctr.ProtocolConstraintOrderChanged += UpdateConstraintOrder;
-            Ctr.ConstraintAdded += OnConstraintAdded;
-            Ctr.ConstraintRemoved += OnConstraintRemoved;
-        }
-        public Presenter ParentView { get; set; }
-        public void Unsubscribe()
-        {
-            Ctr.CurrentStructureSetChanged -= UpdateAvailableStructureIds;
-            Ctr.ProtocolListUpdated -= UpdateProtocolList;
-            Ctr.ProtocolConstraintOrderChanged -= UpdateConstraintOrder;
-            Ctr.ConstraintAdded -= OnConstraintAdded;
-            Ctr.ConstraintRemoved -= OnConstraintRemoved;
-            //if (_P != null)
-            //    _P.PropertyChanged -= OnProtocolPropertyChanged;
-            foreach (ProtocolSelector PS in Protocols)
-            {
-                PS.Unsubscribe();
-            }
-        }
-        private Ctr.Protocol _P;
-        public ProtocolSelector SelectedProtocol { get; set; }
-
-        public bool isProtocolLoaded { get; set; }
-
-        private string _ProtocolName = "No protocol loaded";
-        public string ProtocolName
-        {
-            get { return _ProtocolName; }
-            set
-            {
-                if (value != _ProtocolName)
-                {
-                    _ProtocolName = value;
-                    _P.ProtocolName = value;
-                }
-            }
-        }
-        public ProtocolTypes ProtocolType
-        {
-            get { return _P.ProtocolType; }
-            set { _P.ProtocolType = value; }
-        }
-        public TreatmentCentres TreatmentCentre
-        {
-            get { return _P.TreatmentCentre; }
-            set { _P.TreatmentCentre = value; }
-        }
-        public TreatmentSites TreatmentSite
-        {
-            get { return _P.TreatmentSite; }
-            set { _P.TreatmentSite = value; }
-        }
-
-        public bool RefreshFlag { get; private set; } = false;
-        public bool DragSelected { get; set; } = false;
-        private int _SelectedIndex = -2;
-        public int SelectedIndex
-        {
-            get
-            {
-                return _SelectedIndex;
-            }
-            set
-            {
-                _SelectedIndex = value;
-            }
-        }
-
-        public static readonly DependencyProperty IsDraggingProperty = DependencyProperty.RegisterAttached("IsDragging", typeof(bool), typeof(ProtocolView), new UIPropertyMetadata(false));
-
-        public int DropIndex { get; set; } = -1;
-        public StructureSelector SelectedStructure { get; set; }
-        public int _ProgressPercentage;
-        public int ProgressPercentage
-        {
-            get { return _ProgressPercentage; }
-            set
-            {
-                _ProgressPercentage = value;
-                //RaisePropertyChangedEvent();
-            }
-        }
-        public Progress<int> Progress { get; set; }
-        public ObservableCollection<StructureSelector> Structures { get; set; } = new ObservableCollection<StructureSelector>();
-        public ObservableCollection<string> AvailableStructureIds { get; private set; } = new ObservableCollection<string>() { "default" };
-        public ObservableCollection<ProtocolSelector> Protocols { get; set; } = new ObservableCollection<ProtocolSelector>();
-        public ObservableCollection<ComponentSelector> Components { get; set; } = new ObservableCollection<ComponentSelector>();
-        public ObservableCollection<ConstraintSelector> Constraints { get; set; } = new ObservableCollection<ConstraintSelector>();
-        public AssessmentsView AssessmentPresenter { get; set; } = new AssessmentsView(null);
-        private ConstraintSelector _SelectedConstraint;
-        public ConstraintSelector SelectedConstraint
-        {
-            get { return _SelectedConstraint; }
-            set
-            {
-                if (value != _SelectedConstraint)
-                {
-                    _SelectedConstraint = value;
-                }
-            }
-        }
-        private void UpdateAvailableStructureIds(object sender, EventArgs e)
-        {
-            AvailableStructureIds = new ObservableCollection<string>(Ctr.GetCurrentStructures());
-        }
-        private void UpdateProtocolList(object sender, EventArgs e)
-        {
-            ObservableCollection<ProtocolSelector> UpdatedList = new ObservableCollection<ProtocolSelector>();
-            foreach (Ctr.ProtocolPreview P in Ctr.GetProtocolPreviewList())
-            {
-                UpdatedList.Add(new ProtocolSelector(P));
-            }
-            Protocols = UpdatedList;
-        }
-        private void UpdateConstraintOrder(object sender, EventArgs e)
-        {
-            //ObservableCollection<ConstraintSelector> CSReorder = new ObservableCollection<ConstraintSelector>();
-            //foreach (ConstraintSelector CS in Constraints.OrderBy(x => x.DisplayOrder))
-            //    CSReorder.Add(CS);
-            //for (int c = 0; c < CSReorder.Count; c++) // only re-bind collection if necessary
-            //{
-            //    if (CSReorder[c] != Constraints[c])
-            //    {
-            //        Constraints = CSReorder;
-            //        break;
-            //    }
-            //}
-        }
-        private void OnConstraintAdded(object sender, int Id)
-        {
-            Ctr.Constraint Con = Ctr.GetConstraint(Id);
-            if (Con != null)
-            {
-                StructureSelector SS = Structures.FirstOrDefault(x => x.Id == Con.PrimaryStructureID);
-                ConstraintSelector CS = new ConstraintSelector(Con, SS);
-                //var test = Constraints.FirstOrDefault(x => x.DisplayOrder == (Con.DisplayOrder - 1));
-                int Order = Constraints.IndexOf(Constraints.FirstOrDefault(x => x.DisplayOrder == (Con.DisplayOrder.Value - 1)));
-                Constraints.Insert(Order + 1, CS);
-            }
-        }
-        private void OnConstraintRemoved(object sender, int Id)
-        {
-            Constraints.Remove(Constraints.FirstOrDefault(x => x.Id == Id));
-        }
-        //private void OnProtocolPropertyChanged(object sender, PropertyChangedEventArgs e)
-        //{
-        //    switch (e.PropertyName)
-        //    {
-        //        case nameof(Ctr.Protocol.LastModifiedBy):
-        //            RaisePropertyChangedEvent(nameof(LastModifiedBy));
-        //            break;
-        //    }
-        //    RaisePropertyChangedEvent(nameof(Protocols));
-        //}
-        public void AddConstraint()
-        {
-            var Con = Ctr.AddConstraint(ConstraintTypeCodes.Unset, Components.FirstOrDefault().Id, Structures.FirstOrDefault().Id);
-            Constraints.Add(new ConstraintSelector(Con, Structures.FirstOrDefault()));
-        }
-        public void AddStructure()
-        {
-            var E = Ctr.AddNewStructure();
-            Structures.Add(new StructureSelector(E));
-        }
-        public ICommand LoadSelectedProtocolCommand
-        {
-            get { return new DelegateCommand(LoadSelectedProtocol); }
-        }
-        private async void LoadSelectedProtocol(object param)
-        {
-            if (ParentView.isLoading == true)
-                return;
-            var PS = (ProtocolSelector)param;
-            if (PS == null)
-                return; // no protocol selected;
-            ParentView.LoadingString = "Loading selected protocol...";
-            ParentView.isLoading = true;
-            AssessmentPresenter = new AssessmentsView(this);
-            await Task.Run(() => Ctr.LoadProtocolFromDb(PS.ProtocolName));
-            UpdateProtocolView();
-            isProtocolLoaded = true;
-            ParentView.isLoading = false;
-        }
-        public void UpdateProtocolView()
-        {
-            Structures.Clear();
-            Constraints.Clear();
-            foreach (var S in Ctr.GetStructureList().OrderBy(x => x.DisplayOrder))
-            {
-                Structures.Add(new StructureSelector(S));
-            }
-            foreach (var C in Ctr.GetConstraints().OrderBy(x => x.DisplayOrder))
-            {
-                StructureSelector SS = Structures.FirstOrDefault(x => x.Id == C.PrimaryStructureID);
-                ConstraintSelector CS = new ConstraintSelector(C, SS);
-                Constraints.Add(CS);
-            }
-            foreach (var Comp in Ctr.GetComponentList().OrderBy(x => x.DisplayOrder))
-            {
-                Components.Add(new ComponentSelector(Comp));
-            }
-            AssessmentPresenter = new AssessmentsView(this);
-            AssessmentPresenter.LoadAssessmentViews();
-        }
-
-        private async void UpdateProtocol(object param = null)
-        {
-            ParentView.LoadingString = "Validating changes...";
-            bool areChangeDescriptionsComplete = true;
-            List<string> IncompleteChangeDefinitions = new List<string>() { "Please enter Change Descriptions for the following modified constraints:" };
-            foreach (ConstraintSelector CS in Constraints.Where(x => x.isModified == true))
-            {
-                if (CS.ChangeDescription == "")
-                {
-                    areChangeDescriptionsComplete = false;
-                    IncompleteChangeDefinitions.Add(CS.ShortConstraintDefinition);
-                }
-            }
-            if (!areChangeDescriptionsComplete)
-            {
-                MessageBox.Show(string.Join(Environment.NewLine, IncompleteChangeDefinitions));
-                return;
-            }
-
-            ParentView.LoadingString = "Updating Protocol...";
-            ParentView.isLoading = true;
-            await Task.Run(() => Ctr.Save_UpdateProtocol());
-            ParentView.isLoading = false;
-            LoadSelectedProtocol(ProtocolName);
-        }
-        public ICommand UpdateProtocolCommand
-        {
-            get { return new DelegateCommand(UpdateProtocol); }
-        }
-
-        public ICommand DuplicateProtocolCommand
-        {
-            get { return new DelegateCommand(DuplicateProtocol); }
-        }
-        private void DuplicateProtocol(object param = null)
-        {
-            Ctr.Save_DuplicateProtocol();
-            LoadSelectedProtocol(ProtocolName);
-        }
-        public ICommand DeleteSelectedProtocolCommand
-        {
-            get { return new DelegateCommand(DeleteSelectedProtocol); }
-        }
-        private async void DeleteSelectedProtocol(object param = null)
-        {
-            var PS = (param as ProtocolSelector);
-            ParentView.LoadingString = "Deleting selected protocol...";
-            ParentView.isLoading = true;
-            if (PS != null)
-            {
-                var Result = MessageBox.Show(string.Format("Are you sure you want to delete this protocol ({0})", PS.ProtocolName), "Confirm deletion", MessageBoxButton.OKCancel);
-                if (Result == MessageBoxResult.OK)
-                    await Task.Run(() => Ctr.DeleteProtocol(PS.Id));
-            }
-            ParentView.isLoading = false;
-        }
-
-    }
+   
     [AddINotifyPropertyChangedInterface]
     public class AssessmentView : ObservableObject
     {
@@ -1575,11 +1300,11 @@ namespace SquintScript
                 }
             }
 
-            else
-            {
-                MessageBox.Show("Please load patient and protocol first", "No open Protocol/Patient");
-                return;
-            }
+            //else
+            //{
+            //    MessageBox.Show("Please load patient and protocol first", "No open Protocol/Patient");
+            //    return;
+            //}
         }
         public void DeleteAssessment(AssessmentView AS)
         {
@@ -1704,7 +1429,10 @@ namespace SquintScript
     [AddINotifyPropertyChangedInterface]
     public class Presenter
     {
-        public Presenter() { }
+        public Presenter() 
+        {
+            Protocol = new ProtocolView(this);
+        }
         [AddINotifyPropertyChangedInterface]
         public class FilterComboBox : ObservableObject
         {
@@ -1842,7 +1570,7 @@ namespace SquintScript
         public Controls.TestList_ViewModel Targets_ViewModel { get; set; } = new Controls.TestList_ViewModel();
         public Controls.TestList_ViewModel Calculation_ViewModel { get; set; } = new Controls.TestList_ViewModel();
         public Controls.TestList_ViewModel Prescription_ViewModel { get; set; } = new Controls.TestList_ViewModel();
-        public ProtocolView Protocol { get; set; } = new ProtocolView(null);
+        public ProtocolView Protocol { get; set; }
         public PatientView PatientPresenter { get; set; } = new PatientView(null);
         public SessionsView SessionsPresenter { get; set; } = new SessionsView();
         //public ObservableCollection<ConstraintResultsView> SquintResults { get; set; } = new ObservableCollection<ConstraintResultsView>();
@@ -2002,195 +1730,7 @@ namespace SquintScript
                 isPlanCheckCalculating = false;
             }
         }
-
-        private async void EditPlanCheck(object param = null)
-        {
-            //ProtocolCheckVisible = false;
-            //PlanCheckVisible = true;
-            //isPlanCheckCalculating = true;
-            //Loading_ViewModel = new Controls.LoadingViewModel() { LoadingMessage = @"Checking plan, please wait..." };
-
-            //// Populate Simulation ViewModel
-            //var P = Ctr.GetActiveProtocol();
-            //var SliceSpacingReference = P.Checklist.SliceSpacing;
-            //TestListDoubleValueItem SliceSpacing = new TestListDoubleValueItem("Slice spacing", null, SliceSpacingReference, TestType.Equality) { EditMode = 1 };
-            //Simulation_ViewModel.Tests = new ObservableCollection<ITestListItem>() { SliceSpacing };
-
-            //// Populate Calculation ViewModel
-            //Calculation_ViewModel.Tests.Clear(); // = new ObservableCollection<Controls.TestListItem<string>>();
-            //var ProtocolAlgorithm = P.Checklist.Algorithm.Display();
-            //List<string> AlgoOptions = new List<string>() { "AAA_11031", "AAA_13623", "AAA_15606" };
-            //TestListStringValueItem Algorithm = new TestListStringValueItem("Algorithm", null, ProtocolAlgorithm, AlgoOptions, "Algorithm mismatch") { EditMode = 2 };
-            //Calculation_ViewModel.Tests.Add(Algorithm);
-            //var DGR_protocol = P.Checklist.AlgorithmResolution;
-
-            //TestListDoubleValueItem DoseGridResolution = new TestListDoubleValueItem("Dose grid resolution", null, DGR_protocol, TestType.Equality, null) { EditMode = 1 };
-            //Calculation_ViewModel.Tests.Add(DoseGridResolution);
-
-            //// Heterogeneity
-            //var ProtocolHeteroOn = P.Checklist.HeterogeneityOn;
-            //TestListBoolValueItem HeterogeneityOn = new TestListBoolValueItem("Heterogeneity On", null, ProtocolHeteroOn, TestType.Equality) { EditMode = 1 };
-            //Calculation_ViewModel.Tests.Add(HeterogeneityOn);
-
-            //// Field Normalization
-            //var ProtocolFieldNorm = P.Checklist.FieldNormalizationMode.Display();
-            //TestListStringValueItem FieldNormTest = new TestListStringValueItem("Field Norm Mode", null, ProtocolFieldNorm) { EditMode = 1 };
-            //Calculation_ViewModel.Tests.Add(FieldNormTest);
-
-            //// Support structures
-            //var RefCouchSurface = P.Checklist.CouchSurface;
-            //var RefCouchInterior = P.Checklist.CouchInterior;
-            //TestListDoubleValueItem CouchSurfaceTest = new TestListDoubleValueItem("Couch Surface HU", null, RefCouchSurface, TestType.Equality) { EditMode = 1 };
-            //TestListDoubleValueItem CouchInteriorTest = new TestListDoubleValueItem("Couch Interior HU", null, RefCouchInterior, TestType.Equality) { EditMode = 1 };
-            //Calculation_ViewModel.Tests.Add(CouchSurfaceTest);
-            //Calculation_ViewModel.Tests.Add(CouchInteriorTest);
-
-            //// Artifacts in calculaion
-            //foreach (var A in P.Checklist.Artifacts)
-            //{
-            //    var ArtifactWarningString = "Assigned HU deviates from protocol";
-            //    string NoCheckHUString = @"No artifact structure";
-            //    string NoRefHUString = @"Not specified";
-            //    double? CheckHU = null;
-            //    var RefHUString = string.Format("{0:0.#} \u00B1{1:0.#} HU", A.RefHU, A.ToleranceHU);
-            //    if (A.E.AssignedStructureId != "")
-            //    {
-            //        CheckHU = A.E.AssignedHU(p.StructureSetUID);
-            //    }
-            //    var ArtifactCheck = new TestListDoubleValueItem(string.Format(@"Artifact HU (""{0}"")", A.E.AssignedStructureId), CheckHU, A.RefHU, TestType.Equality, null, ArtifactWarningString, NoCheckHUString, NoRefHUString, A.ToleranceHU);
-            //    ArtifactCheck.ParameterOption = ParameterOptions.Optional;
-            //    Calculation_ViewModel.Tests.Add(ArtifactCheck);
-            //}
-
-            //// Course Intent
-            //var RefCourseIntent = Ctr.GetActiveProtocol().TreatmentIntent.Display();
-            //var CheckCourseIntent = await Ctr.GetCourseIntent(p.CourseId, p.PlanId);
-            //var CourseIntentWarningString = "";
-            //TestListStringValueItem CourseIntentTest = new TestListStringValueItem("Course Intent", CheckCourseIntent, RefCourseIntent, null, CourseIntentWarningString);
-
-            //// Plan normalization
-            //var ProtocolPNVMax = P.Checklist.PNVMax;
-            //var ProtocolPNVMin = P.Checklist.PNVMin;
-            //var PNVWarning = "Out of range";
-            //var PlanPNV = await Ctr.GetPNV(p.CourseId, p.PlanId);
-            //TestListDoubleValueItem PNVCheck = new TestListDoubleValueItem("Plan Normalization Value Range", PlanPNV, null, TestType.Range, null, PNVWarning, "-", "Not specified", 0, ProtocolPNVMin, ProtocolPNVMax);
-
-            //// Prescription percentage
-            //var PlanRxPercentage = await Ctr.GetPrescribedPercentage(p.CourseId, p.PlanId);
-            //TestListDoubleValueItem PlanRxPc = new TestListDoubleValueItem("Prescribed percentage", PlanRxPercentage, 100, TestType.Equality, null, "Not set to 100");
-
-            //// Check Rx and fractions
-            //var CheckRxDose = Ctr.GetRxDose(p.CourseId, p.PlanId);
-            //var RxDoseWarningString = "Plan dose different from protocol";
-            //TestListDoubleValueItem RxCheck = new TestListDoubleValueItem("Prescription dose", CheckRxDose, Comp.ReferenceDose, TestType.Equality, null, RxDoseWarningString);
-
-            //var CheckFractions = Ctr.GetNumFractions(p.CourseId, p.PlanId);
-            //var RefFractions = Comp.NumFractions;
-            //var CheckFractionWarningString = "Plan fractions different from protocol";
-            //TestListIntValueItem FxCheck = new TestListIntValueItem("Number of fractions", CheckFractions, Comp.NumFractions, TestType.Equality, null, CheckFractionWarningString);
-            //Prescription_ViewModel.Tests = new ObservableCollection<ITestListItem>() { RxCheck, FxCheck, CourseIntentTest, PNVCheck, PlanRxPc };
-
-            //// Beam checks
-            //Beam_ViewModel.Beams.Clear();
-            //Beam_ViewModel.GroupTests.Tests.Clear();
-            //var Fields = await Ctr.GetTxFieldItems(p.CourseId, p.PlanId);
-            //foreach (var Beam in Comp.GetBeams())
-            //{
-            //    var BLI = new Controls.BeamListItem(Beam, Fields);
-            //    Beam_ViewModel.Beams.Add(BLI);
-            //    BLI.FieldChanged += new EventHandler((s, e) => BLI_PropertyChanged(s, e, Comp)); // this updates the MinColOffsetCheck if the field assignments on any reference beam are changed
-            //}
-
-            //// Iso Check
-            //var IsoCentreWarning = Fields.Select(x => x.Isocentre).Distinct().Count() != Comp.NumIso;
-            //var NumIsoDetected = Fields.Select(x => x.Isocentre).Distinct().Count();
-            //TestListIntValueItem NumIsoCheck = new TestListIntValueItem("Number of isocentres", NumIsoDetected, Comp.NumIso, TestType.Equality, null, "Num isocentres differs");
-            //Beam_ViewModel.GroupTests.Tests.Add(NumIsoCheck);
-
-            //// Num Fields Check
-            //int? MaxBeams = Comp.MaxBeams;
-            //if (MaxBeams < 0) MaxBeams = null;
-            //int? MinBeams = Comp.MinBeams;
-            //if (MinBeams < 0) MinBeams = null;
-            //string BeamRangeWarning = "Number of beams outside range";
-            //TestListIntValueItem FieldCountCheck = new TestListIntValueItem("Number of fields", Fields.Count(), null, TestType.Range, null, BeamRangeWarning, "-", "Not specified", 0, MinBeams, MaxBeams);
-            //Beam_ViewModel.GroupTests.Tests.Add(FieldCountCheck);
-
-            //// Min Col Offset
-            //if (Comp.MaxBeams > 1 && !double.IsNaN(Comp.MinColOffset) && Fields.Count > 1)
-            //{
-            //    TestListDoubleValueItem MinColOffsetCheck;
-            //    if (Beam_ViewModel.Beams.Any(x => x.Field == null))
-            //    {
-            //        MinColOffsetCheck = new TestListDoubleValueItem("Min collimator offset", null, Comp.MinColOffset, TestType.Range, null, "Protocol fields not assigned");
-            //    }
-            //    else
-            //    {
-            //        var ColOffset = Beam_ViewModel.Beams.Select(x => x.Field).Select(x => x.CollimatorAngle);
-            //        var MinColOffset = findMinDiff(ColOffset.ToArray());
-            //        double? ProtocolMinColOffset = Comp.MinColOffset;
-            //        if (ProtocolMinColOffset < 0) ProtocolMinColOffset = null;
-            //        MinColOffsetCheck = new TestListDoubleValueItem("Min collimator offset", MinColOffset, ProtocolMinColOffset, TestType.GreaterThan, null, "Insufficient collimator offset");
-            //    }
-            //    Beam_ViewModel.GroupTests.Tests.Add(MinColOffsetCheck);
-            //}
-
-
-            //// Target Structure Checks
-            //Targets_ViewModel.Tests.Clear();
-            //foreach (Ctr.ProtocolStructure E in Ctr.GetStructureList())
-            //{
-            //    if (E.CheckList != null)
-            //    {
-            //        var C = E.CheckList;
-            //        if (C.isPointContourChecked)
-            //        {
-            //            var VolParts = await E.PartVolumes(p.StructureSetUID);
-            //            double MinVol = double.NaN;
-            //            if (VolParts != null)
-            //                MinVol = VolParts.Min();
-            //            string WarningString = "Subvolume less than threshold";
-            //            if (!double.IsNaN(MinVol))
-            //            {
-            //                var NumDetectedParts = await E.NumParts(p.StructureSetUID);
-            //                var VMS_NumParts = await E.VMS_NumParts(p.StructureSetUID);
-            //                if (VMS_NumParts > NumDetectedParts)
-            //                {
-            //                    MinVol = 0.01;
-            //                }
-            //            }
-            //            var TL = new TestListDoubleValueItem(string.Format(@"Min. Subvolume (""{0}"") [cc]", E.ProtocolStructureName, E.AssignedStructureId),
-            //                MinVol, C.PointContourVolumeThreshold, TestType.GreaterThan, null, WarningString, "Not found", "Not specified");
-            //            TL.CheckNullWarningString = "Structure not found";
-            //            TL.ParameterOption = ParameterOptions.Required;
-            //            Targets_ViewModel.Tests.Add(TL);
-            //        }
-
-            //    }
-            //}
-
-
-
-        }
-
-        private void BLI_PropertyChanged(object sender, EventArgs e, Ctr.Component Comp)
-        {
-            //Refresh Field col separation check
-
-            if (Beam_ViewModel.Beams.Any(x => x.Field == null) || Comp.MaxBeams < 2 || double.IsNaN(Comp.MinColOffset))
-            {
-                return;
-            }
-            var ColOffset = Beam_ViewModel.Beams.Select(x => x.Field).Select(x => x.CollimatorAngle).ToList();
-            var MinColOffset = findMinDiff(ColOffset.ToArray());
-            var OldTest = Beam_ViewModel.GroupTests.Tests.Where(x => x.TestName == "Min collimator offset").FirstOrDefault();
-            Beam_ViewModel.GroupTests.Tests.Remove(OldTest);
-            double? ProtocolMinColOffset = Comp.MinColOffset;
-            if (ProtocolMinColOffset < 0) ProtocolMinColOffset = null;
-            TestListDoubleValueItem MinColOffsetCheck = new TestListDoubleValueItem("Min collimator offset", MinColOffset, ProtocolMinColOffset, "Insufficient collimator offset") { TestType = TestType.LessThan };
-            Beam_ViewModel.GroupTests.Tests.Add(MinColOffsetCheck);
-        }
-        private double findMinDiff(double[] arr)
+          private double findMinDiff(double[] arr)
         {
             // Sort array in  
             // non-decreasing order 
@@ -2256,6 +1796,7 @@ namespace SquintScript
             if (await Task.Run(() => Ctr.Load_Session(E.ID)))
             {
                 Protocol.UpdateProtocolView();
+                Protocol.isProtocolLoaded = true;
                 Ctr.UpdateAllConstraints();
                 isLinkProtocolVisible = true;
             }
@@ -2398,7 +1939,6 @@ namespace SquintScript
             {
                 if (PatientPresenter.ParentView == null)
                     PatientPresenter.ParentView = this; // pass the current view so it can access the isLoading variable
-                Protocol = new ProtocolView(this);
                 if (Ctr.PatientLoaded)
                 {
                     var Result = MessageBox.Show("Close current patient and all assessments?", "Close Patient?", MessageBoxButton.OKCancel);
@@ -2407,6 +1947,7 @@ namespace SquintScript
                     CloseCheckList();
                     Ctr.ClosePatient();
                     Protocol.Unsubscribe();
+                    Protocol = new ProtocolView(this);
                     Ctr.CloseProtocol();
                     foreach (string CourseId in Ctr.GetCourseNames())
                     {

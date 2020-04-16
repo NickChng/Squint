@@ -381,21 +381,8 @@ namespace SquintScript
             c = cIn;
             Id = c.Id;
             double totalplans = 1;
-            double count = 1;
             if (progress != null)
                 totalplans = c.PlanSetups.Count() + c.PlanSums.Count();
-            //foreach (PlanSetup p in c.PlanSetups)
-            //{
-            //    if (progress != null)
-            //        progress.Report(Convert.ToInt32(count++ / totalplans * 100));
-            //    Plans.Add(new AsyncPlan(A, p, pt, this));
-            //}
-            //foreach (PlanSum p in c.PlanSums)
-            //{
-            //    if (progress != null)
-            //        progress.Report(Convert.ToInt32(count++ / totalplans * 100));
-            //    Plans.Add(new AsyncPlan(A, p, pt, this));
-            //}
             foreach (var PD in c.PlanSetups.Select(x=> new Ctr.PlanDescriptor(x.Id, x.UID, x.StructureSet.UID)))
             {
                 PlanDescriptors.Add(PD);
@@ -404,7 +391,7 @@ namespace SquintScript
             foreach (var PD in c.PlanSums.Select(x => new Ctr.PlanDescriptor(x.Id, null, x.StructureSet.UID)))
             {
                 PlanDescriptors.Add(PD);
-                isPlanASum.Add(Id, true);
+                isPlanASum.Add(PD.PlanId, true);
             }
             
         }

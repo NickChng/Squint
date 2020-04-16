@@ -13,7 +13,9 @@ namespace SquintScript
     //Type Definitions
     public enum CheckTypes
     {
+        [Description("Unset")] Unset,
         [Description("Slice spacing")] SliceSpacing,
+        [Description("Plan Normalization")] PlanNormalization
     }
     public enum Energies
     {
@@ -42,6 +44,7 @@ namespace SquintScript
         [Description("Unset")] Unset,
         [Description("SingleSelection")] SingleSelection,
         [Description("SingleValue")] SingleValue,
+        [Description("SingleValueWithTolerance")] SingleValueWithTolerance,
         [Description("RangeValues")] RangeValues,
         [Description("AnyOfValues")] AnyOfValues,
     }

@@ -56,17 +56,17 @@ namespace SquintScript
             public string ProtocolBeamName { get; set; } = "unset";
             public FieldType Technique { get; set; } = FieldType.Unset;
             public List<Energies> ValidEnergies { get; set; } = new List<Energies>();
-            public string ToleranceTable { get; set; } = "unset";
-            public double MinMUWarning { get; set; }
-            public double MaxMUWarning { get; set; }
-            public double MinColRotation { get; set; }
-            public double MaxColRotation { get; set; }
-            public double CouchRotation { get; set; }
-            public double MinX { get; set; } = 3;
-            public double MaxX { get; set; } = 3;
-            public double MinY { get; set; }
-            public double MaxY { get; set; }
-            public ParameterOptions VMAT_JawTracking { get; set; }
+            public TrackedValue<string> ToleranceTable { get; set; }
+            public TrackedValue<double> MinMUWarning { get; set; }
+            public TrackedValue<double> MaxMUWarning { get; set; }
+            public TrackedValue<double> MinColRotation { get; set; }
+            public TrackedValue<double> MaxColRotation { get; set; }
+            public TrackedValue<double> CouchRotation { get; set; }
+            public TrackedValue<double> MinX { get; set; }
+            public TrackedValue<double> MaxX { get; set; }
+            public TrackedValue<double> MinY { get; set; }
+            public TrackedValue<double> MaxY { get; set; }
+            public TrackedValue<ParameterOptions> JawTracking_Indication { get; set; }
             public List<string> EclipseAliases { get; set; } = new List<string>();
             public List<BeamGeometry> ValidGeometries { get; set; } = new List<BeamGeometry>();
             public List<BolusDefinition> Boluses { get; set; } = new List<BolusDefinition>();
@@ -98,17 +98,17 @@ namespace SquintScript
                 {
                     Boluses.Add(new BolusDefinition(B));
                 }
-                ToleranceTable = DbO.ToleranceTable;
-                MinMUWarning = DbO.MinMUWarning;
-                MaxMUWarning = DbO.MaxMUWarning;
-                MinColRotation = DbO.MinColRotation;
-                MaxColRotation = DbO.MaxColRotation;
-                CouchRotation = DbO.CouchRotation;
-                VMAT_JawTracking = (ParameterOptions)DbO.VMAT_JawTracking;
-                MinX = DbO.MinX;
-                MaxX = DbO.MaxX;
-                MinY = DbO.MinY;
-                MaxY = DbO.MaxY;
+                ToleranceTable = new TrackedValue<string>(DbO.ToleranceTable);
+                MinMUWarning = new TrackedValue<double>(DbO.MinMUWarning);
+                MaxMUWarning = new TrackedValue<double>(DbO.MaxMUWarning);
+                MinColRotation = new TrackedValue<double>(DbO.MinColRotation);
+                MaxColRotation = new TrackedValue<double>(DbO.MaxColRotation);
+                CouchRotation = new TrackedValue<double>(DbO.CouchRotation);
+                JawTracking_Indication = new TrackedValue<ParameterOptions>((ParameterOptions)DbO.JawTracking_Indication);
+                MinX = new TrackedValue<double>(DbO.MinX);
+                MaxX = new TrackedValue<double>(DbO.MaxX);
+                MinY = new TrackedValue<double>(DbO.MinY);
+                MaxY = new TrackedValue<double>(DbO.MaxY);
             }
         }
 

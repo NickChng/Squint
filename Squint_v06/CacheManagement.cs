@@ -819,14 +819,14 @@ namespace SquintScript
                         }
                         if (DbSP.ProtocolChecklists != null)
                         {
-                            var DbChecklist = DbSP.ProtocolChecklists.FirstOrDefault(x => x.ProtocolDefault == false);
-                            if (DbChecklist != null)
+                            //var DbChecklist = DbSP.ProtocolChecklists.FirstOrDefault(x => x.ProtocolDefault == false);
+                            //if (DbChecklist != null)
+                            //    CurrentProtocol.Checklist = new ProtocolChecklist(DbChecklist);
+                            //else
+                            //{
+                                var DbChecklist = DbSP.ProtocolChecklists.FirstOrDefault();
                                 CurrentProtocol.Checklist = new ProtocolChecklist(DbChecklist);
-                            else
-                            {
-                                DbChecklist = DbSP.ProtocolChecklists.FirstOrDefault(x => x.ProtocolDefault == true);
-                                CurrentProtocol.Checklist = new ProtocolChecklist(DbChecklist);
-                            }
+                            
                         }
                         foreach (DbAssessment DbA in DbS.SessionAssessments)
                         {
@@ -836,6 +836,7 @@ namespace SquintScript
                         foreach (DbPlan DbP in DbS.SessionPlans)
                         {
                             ECPlan P = new ECPlan(DbP);
+                            await P.LoadLinkedPlan(DbP);
                             AddPlan(P);
                         }
                         return true;
@@ -935,8 +936,8 @@ namespace SquintScript
                         // Create new checklist
                         DbStructureChecklist DbSC = Context.DbStructureChecklists.Create();
                         Context.DbStructureChecklists.Add(DbSC);
-                        DbSC.isPointContourChecked = S.CheckList.isPointContourChecked;
-                        DbSC.PointContourThreshold = S.CheckList.PointContourVolumeThreshold;
+                        DbSC.isPointContourChecked = S.CheckList.isPointContourChecked.Value;
+                        DbSC.PointContourThreshold = S.CheckList.PointContourVolumeThreshold.Value;
                         DbE.DbStructureChecklist = DbSC;
                     }
                     // Checklist
@@ -946,27 +947,27 @@ namespace SquintScript
                     {
                         var C = CurrentProtocol.Checklist;
                         DbPC.DbProtocol = DbP;
-                        DbPC.TreatmentTechniqueType = (int)C.TreatmentTechniqueType;
-                        DbPC.MinFields = C.MinFields;
-                        DbPC.MaxFields = C.MaxFields;
-                        DbPC.VMAT_MinFieldColSeparation = C.VMAT_MinFieldColSeparation;
-                        DbPC.NumIso = C.NumIso;
-                        DbPC.MinXJaw = C.MinXJaw;
-                        DbPC.MaxXJaw = C.MaxXJaw;
-                        DbPC.MinYJaw = C.MinYJaw;
-                        DbPC.MaxYJaw = C.MaxYJaw;
-                        DbPC.VMAT_JawTracking = (int)C.VMAT_JawTracking;
-                        DbPC.Algorithm = (int)C.Algorithm;
-                        DbPC.FieldNormalizationMode = (int)C.FieldNormalizationMode;
-                        DbPC.AlgorithmResolution = C.AlgorithmResolution;
-                        DbPC.PNVMin = C.PNVMin;
-                        DbPC.PNVMax = C.PNVMax;
-                        DbPC.SliceSpacing = C.SliceSpacing;
-                        DbPC.HeterogeneityOn = C.HeterogeneityOn;
+                        //DbPC.TreatmentTechniqueType = (int)C.TreatmentTechniqueType;
+                        //DbPC.MinFields = C.MinFields;
+                        //DbPC.MaxFields = C.MaxFields;
+                        //DbPC.VMAT_MinFieldColSeparation = C.VMAT_MinFieldColSeparation;
+                        //DbPC.NumIso = C.NumIso;
+                        //DbPC.MinXJaw = C.MinXJaw;
+                        //DbPC.MaxXJaw = C.MaxXJaw;
+                        //DbPC.MinYJaw = C.MinYJaw;
+                        //DbPC.MaxYJaw = C.MaxYJaw;
+                        //DbPC.VMAT_JawTracking = (int)C.VMAT_JawTracking;
+                        DbPC.Algorithm = (int)C.Algorithm.Value;
+                        DbPC.FieldNormalizationMode = (int)C.FieldNormalizationMode.Value;
+                        DbPC.AlgorithmResolution = (double)C.AlgorithmResolution.Value;
+                        DbPC.PNVMin = (double)C.PNVMin.Value;
+                        DbPC.PNVMax = (double)C.PNVMax.Value;
+                        DbPC.SliceSpacing = (double)C.SliceSpacing.Value;
+                        DbPC.HeterogeneityOn = (bool)C.HeterogeneityOn.Value;
                         //Couch
-                        DbPC.SupportIndication = (int)C.SupportIndication;
-                        DbPC.CouchSurface = C.CouchSurface;
-                        DbPC.CouchInterior = C.CouchInterior;
+                        DbPC.SupportIndication = (int)C.SupportIndication.Value;
+                        DbPC.CouchSurface = (double)C.CouchSurface.Value;
+                        DbPC.CouchInterior = (double)C.CouchInterior.Value;
                         //Artifact
                         foreach (Artifact A in C.Artifacts)
                         {
@@ -974,7 +975,8 @@ namespace SquintScript
                             Context.DbArtifacts.Add(DbA);
                             DbA.DbProtocolChecklist = DbPC;
                             DbA.ProtocolStructure_ID = SessionProtocolStructure_Lookup[A.E.ID]; // will have been duplicated above;
-                            DbA.HU = A.RefHU;
+                            DbA.HU = (double)A.RefHU.Value;
+                            DbA.ToleranceHU = (double)A.ToleranceHU.Value;
                             DbA.DbProtocolChecklist = DbPC;
                         }
                     }
@@ -982,7 +984,7 @@ namespace SquintScript
                     foreach (Component SC in _Components.Values)
                     {
                         DbSessionComponent DbC = Context.DbSessionComponents.Create();
-                        DbC.ComponentType = (int)SC.ComponentType;
+                        DbC.ComponentType = (int)SC.ComponentType.Value;
                         Context.DbSessionComponents.Add(DbC);
                         DbC.ID = IDGenerator();
                         DbC.SessionID = DbS.ID;
@@ -999,7 +1001,7 @@ namespace SquintScript
                             var DbB = Context.DbBeams.Create();
                             Context.DbBeams.Add(DbB);
                             DbB.ComponentID = DbC.ID;
-                            DbB.CouchRotation = B.CouchRotation;
+                            DbB.CouchRotation = B.CouchRotation.Value;
                             foreach (string Alias in B.EclipseAliases)
                             {
                                 var DbBA = Context.DbBeamAliases.Create();
@@ -1323,7 +1325,7 @@ namespace SquintScript
                     DbProtocolChecklist DbPC = Context.DbProtocolChecklists.FirstOrDefault(x => x.ProtocolID == CurrentProtocol.ID);
                     if (DbPC != null)
                     {
-                        DbPC.SliceSpacing = CurrentProtocol.Checklist.SliceSpacing;
+                        DbPC.SliceSpacing = (double)CurrentProtocol.Checklist.SliceSpacing.Value;
                     }
                     await Context.SaveChangesAsync();
                 }

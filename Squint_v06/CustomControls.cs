@@ -9,6 +9,7 @@ using System.ComponentModel;
 using System.Collections;
 using System;
 using System.Windows.Data;
+using SquintScript.ViewModels;
 
 namespace System.Windows.Controls
 {
@@ -345,7 +346,7 @@ namespace System.Windows.Controls
     }
 }
 
-namespace SquintScript
+namespace SquintScript.Controls
 {
     public class SquintDataColumn : DataGridTemplateColumn
     {

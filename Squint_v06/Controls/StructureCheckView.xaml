@@ -11,8 +11,6 @@
         <local:Beam_ViewModel/>
     </UserControl.DataContext>
     <UserControl.Resources>
-        <global:VisibilityConverter x:Key="VisibilityConverter"/>
-        <SolidColorBrush x:Key="ListBorder" Color="#828790"/>
         <Style x:Key="StructureCheckViewListStyle" TargetType="{x:Type ListView}">
             <Setter Property="Background" Value="Transparent"/>
             <Setter Property="BorderBrush" Value="{StaticResource ListBorder}"/>

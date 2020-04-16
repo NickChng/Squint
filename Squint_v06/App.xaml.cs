@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Threading;
 
-namespace WpfApp1
+namespace SquintScript
 {
     /// <summary>
     /// Interaction logic for App.xaml
@@ -23,21 +23,6 @@ namespace WpfApp1
             args.Handled = true;
 
             Environment.Exit(0);
-        }
-    }
-
-    public static class Helpers
-    {
-        public static class Logger
-        {
-            private static string logpath = @"\\spvaimapcn\data$\Apps\Squint\Logs\Log.txt";
-            public static void AddLog(string log_entry)
-            {
-                using (var data = new System.IO.StreamWriter(logpath, true))
-                {
-                    data.WriteLine(log_entry);
-                }
-            }
         }
     }
 }

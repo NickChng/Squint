@@ -5,12 +5,12 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using PropertyChanged;
+using SquintScript.Extensions;
 
 namespace SquintScript
 {
-    
-    public class TrackedValue<T> : INotifyPropertyChanged, IRevertibleChangeTracking, IComparable<TrackedValue<T>> where T : IComparable
-    {
+        public class TrackedValue<T> : INotifyPropertyChanged, IRevertibleChangeTracking, IComparable<TrackedValue<T>> 
+        {
         public event PropertyChangedEventHandler PropertyChanged;
         public bool IsChanged { get; private set; } = false;
         protected T _ReferenceValue;
@@ -43,11 +43,18 @@ namespace SquintScript
 
         public int CompareTo(TrackedValue<T> other)
         {
-            if (_CurrentValue.CompareTo(other.Value) < 0) return -1;
-            else if (_CurrentValue.CompareTo(other.Value) > 0) return 1;
-            return 0;
+            if (_CurrentValue == null)
+                return 1;
+            else
+            {
+                if (((IComparable)_CurrentValue).CompareTo(other.Value) < 0)
+                    return -1;
+                else if (((IComparable)_CurrentValue).CompareTo(other.Value) > 0)
+                    return 1;
+                return 0;
+            }
         }
-
+        
         public T Value
         {
             get
@@ -59,7 +66,6 @@ namespace SquintScript
                 _CurrentValue = value;
                 IsChanged = true;
                 PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(this.Value)));
-                
             }
         }
         public T ReferenceValue { get { return _ReferenceValue; } }

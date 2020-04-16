@@ -9,8 +9,11 @@ using System.Linq;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using wpfcolor = System.Windows.Media.Colors;
+using SquintScript.ViewModels;
+using SquintScript.Extensions;
+using SquintScript.Controls;
 
-namespace SquintScript
+namespace SquintScript.Converters
 {
     public class VisibilityStructureEditorConverter : IValueConverter
     {
@@ -271,6 +274,10 @@ namespace SquintScript
                     else return Visibility.Collapsed;
                 case EditTypes.SingleValue:
                     if (controlName == "SingleValue")
+                        return Visibility.Visible;
+                    else return Visibility.Collapsed;
+                case EditTypes.SingleValueWithTolerance:
+                    if (controlName == "SingleValueWithTolerance")
                         return Visibility.Visible;
                     else return Visibility.Collapsed;
                 case EditTypes.RangeValues:

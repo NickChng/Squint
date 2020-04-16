@@ -4,6 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:SquintScript.Controls"
+             xmlns:converters="clr-namespace:SquintScript.Converters"
              xmlns:global="clr-namespace:SquintScript"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
@@ -11,13 +12,10 @@
         <local:TestList_ViewModel/>
     </UserControl.DataContext>
     <UserControl.Resources>
-        <global:TestConverter x:Key="TestConverter"/>
-        <global:CollimatorAngleCheckConverter x:Key="CollimatorAngleCheckConverter"/>
-        <global:TypeToBooleanConverter x:Key="TypeToBooleanConverter"/>
-        <global:VisibilityConverter x:Key="VisibilityConverter"/>
-        <global:TypeToStringConverter x:Key="TypeToStringConverter"/>
-        <global:TypeToColorConverter x:Key="TypeToColorConverter"/>
-        <SolidColorBrush x:Key="ListBorder" Color="#828790"/>
+        <converters:CollimatorAngleCheckConverter x:Key="CollimatorAngleCheckConverter"/>
+        <converters:TypeToBooleanConverter x:Key="TypeToBooleanConverter"/>
+        <converters:TypeToStringConverter x:Key="TypeToStringConverter"/>
+        <converters:TypeToColorConverter x:Key="TypeToColorConverter"/>
         <Style x:Key="TestListViewStyle" TargetType="{x:Type ListView}">
             <Setter Property="Background" Value="Transparent"/>
             <Setter Property="BorderBrush" Value="{StaticResource ListBorder}"/>
@@ -153,7 +151,7 @@
                                     <TextBlock Grid.Column="0" Text="{Binding TestName, Mode=OneTime, UpdateSourceTrigger=PropertyChanged}" FontWeight="Bold" VerticalAlignment="Center"/>
                                     <TextBlock Grid.Column="1" Text="{Binding CheckValueString, Mode=OneTime, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Center"/>
                                     <Grid Grid.Column="2">
-                                        <TextBlock Text="{Binding ReferenceValueString, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Center"/>
+                                        <TextBlock Text="{Binding ReferenceValueString, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Center"/>
                                     </Grid>
                                     <StackPanel Grid.Column="3" Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Center" Visibility="{Binding DataContext.CheckVisibility, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}">
                                         <local:CircleCheck Pass="{Binding Warning, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" CheckHeight="20" CheckWidth="20" HorizontalAlignment="Right"/>
@@ -226,7 +224,7 @@
                                                     <Binding Path="Name" RelativeSource="{RelativeSource Self}"/>
                                                 </MultiBinding>
                                             </Grid.Visibility>
-                                            <ComboBox ItemsSource="{Binding ReferenceValueOptions, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
+                                            <ComboBox ItemsSource="{Binding ReferenceValue.ReferenceCollection, Mode=OneWayToSource, UpdateSourceTrigger=PropertyChanged}" 
                                                    VerticalAlignment="Center" Style="{DynamicResource ChecklistComboBoxStyle}"/>
                                         </Grid>
                                         <Grid x:Name="SingleValue">
@@ -240,11 +238,26 @@
                                                     <Binding Path="Name" RelativeSource="{RelativeSource Self}"/>
                                                 </MultiBinding>
                                             </Grid.Visibility>
-                                            <TextBox Grid.Column="0" Text="{Binding ReferenceValue, Mode=TwoWay}" 
-                                                     Style="{StaticResource ChecklistTextBoxStyle}" global:TextBoxExtensions.UpdateSourceOnKey="Return"/>
+                                            <TextBox Grid.Column="0" Text="{Binding SetReference, Mode=OneWayToSource}" 
+                                                     Style="{StaticResource ChecklistTextBoxStyle}" local:TextBoxExtensions.UpdateSourceOnKey="Return"/>
+                                        </Grid>
+                                        <Grid x:Name="SingleValueWithTolerance">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+                                            <Grid.Visibility>
+                                                <MultiBinding Converter="{StaticResource VisibilityEditModeConverter}">
+                                                    <Binding Path="EditType"/>
+                                                    <Binding Path="Name" RelativeSource="{RelativeSource Self}"/>
+                                                </MultiBinding>
+                                            </Grid.Visibility>
+                                            <TextBox Grid.Column="0" Text="{Binding SetReference, Mode=OneWayToSource}" 
+                                                     Style="{StaticResource ChecklistTextBoxStyle}" local:TextBoxExtensions.UpdateSourceOnKey="Return"/>
                                             <StackPanel Grid.Column="1" Orientation="Horizontal">
                                                 <TextBlock Text="&#x00B1;" VerticalAlignment="Center" HorizontalAlignment="Center"/>
-                                                <TextBox Text="{Binding Eps, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"  Style="{StaticResource ChecklistTextBoxStyle}" Width="50"/>
+                                                <TextBox Text="{Binding SetTolerance, Mode=OneWayToSource}"  local:TextBoxExtensions.UpdateSourceOnKey="Return"
+                                                         Style="{StaticResource ChecklistTextBoxStyle}" Width="50"/>
                                             </StackPanel>
                                         </Grid>
                                         <Grid x:Name="RangeValues">
@@ -258,9 +271,9 @@
                                                 <ColumnDefinition Width="150"/>
                                                 <ColumnDefinition Width="150"/>
                                             </Grid.ColumnDefinitions>
-                                            <TextBox Grid.Column="0" Text="{Binding ReferenceValue, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
+                                            <TextBox Grid.Column="0" Text="{Binding SetReference, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
                                                      Style="{StaticResource ChecklistTextBoxStyle}"/>
-                                            <TextBox Grid.Column="1" Text="{Binding ReferenceValue1, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
+                                            <TextBox Grid.Column="1" Text="{Binding SetReference, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
                                                       Style="{StaticResource ChecklistTextBoxStyle}"/>
                                         </Grid>
                                     </Grid>

@@ -6,6 +6,7 @@ using System.Xml;
 using System.Xml.Serialization;
 using System.ComponentModel;
 using VMS.TPS.Common.Model.API;
+using SquintScript.Extensions;
 
 namespace SquintScript
 {
@@ -161,7 +162,8 @@ namespace SquintScript
             public double MaxY { get; set; } = double.NaN;
 
             [XmlAttribute]
-            public string VMAT_JawTracking { get; set; }
+            public string JawTracking_Indication { get; set; } = "Optional";
+
             [XmlElement("ValidEnergies")]
             public EnergiesDefintion Energies { get; set; } = new EnergiesDefintion();
 

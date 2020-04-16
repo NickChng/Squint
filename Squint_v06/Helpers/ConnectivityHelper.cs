@@ -8,6 +8,7 @@ using System.Windows.Media.Media3D;
 
 namespace SquintScript.Helpers
 {
+    
     static class ConnectivityHelper
     {
         public static List<int> GetConnectedVertices(int vertexId, out Point3D centerOfMass, int[] triangles, Point3D[] vertices)

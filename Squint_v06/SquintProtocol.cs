@@ -13,6 +13,7 @@ using System.Runtime.CompilerServices;
 using System.Data.Entity;
 using PropertyChanged;
 using System.Data;
+using SquintScript.Extensions;
 
 
 namespace SquintScript
@@ -48,7 +49,7 @@ namespace SquintScript
                 ProtocolType = (ProtocolTypes)DbO.DbProtocolType.ProtocolType;
                 TreatmentCentre = (TreatmentCentres)DbO.DbTreatmentCentre.TreatmentCentre;
                 TreatmentSite = (TreatmentSites)DbO.DbTreatmentSite.TreatmentSite;
-                TreatmentIntent = (TreatmentIntents)DbO.TreatmentIntent;
+                _TreatmentIntent = new TrackedValue<TreatmentIntents>((TreatmentIntents)DbO.TreatmentIntent);
                 var DbChecklist = DbO.ProtocolChecklists.FirstOrDefault();
                 if (DbChecklist != null)
                     Checklist = new ProtocolChecklist(DbChecklist);
@@ -64,7 +65,12 @@ namespace SquintScript
             public string LastModifiedBy { get; set; }
             public TreatmentCentres TreatmentCentre { get; set; }
             public TreatmentSites TreatmentSite { get; set; }
-            public TreatmentIntents TreatmentIntent { get; set; }
+            public TrackedValue<TreatmentIntents> _TreatmentIntent { get; private set; }
+            public TreatmentIntents TreatmentIntent
+            {
+                get { return _TreatmentIntent.Value; }
+                set { _TreatmentIntent.Value = value; }
+            }
             // Protocol Checklist
             public ProtocolChecklist Checklist { get; set; }
 
@@ -1847,7 +1853,7 @@ namespace SquintScript
                 }
 
             }
-            private void OnComponentDoseChanging(object sender, double OldReferenceDose)
+            private void OnComponentDoseChanging(object sender, EventArgs e)
             {
                 if (isConstraintValueDose())
                 {
@@ -1858,7 +1864,7 @@ namespace SquintScript
                     else if (ConstraintScale == UnitScale.Absolute && ReferenceType == ReferenceTypes.Lower && LowerConstraintDoseScalesWithComponent)
                     {
                         double CompDose = DataCache.GetComponent(ComponentID).ReferenceDose;
-                        ConstraintValue = ConstraintValue * CompDose / OldReferenceDose;
+                        ConstraintValue = ConstraintValue * CompDose / DataCache.GetComponent(ComponentID).ReferenceDoseOriginal;
                         NotifyPropertyChanged("ConstraintValue");
                     }
                 }
@@ -1872,7 +1878,7 @@ namespace SquintScript
                     {
 
                         double CompDose = DataCache.GetComponent(ComponentID).ReferenceDose;
-                        ReferenceValue = ReferenceValue * CompDose / OldReferenceDose;
+                        ReferenceValue = ReferenceValue * CompDose / DataCache.GetComponent(ComponentID).ReferenceDoseOriginal;
                         NotifyPropertyChanged("ReferenceValue");
                     }
                 }
@@ -1970,12 +1976,12 @@ namespace SquintScript
         {
             public Artifact(DbArtifact DbA)
             {
-                RefHU = DbA.HU;
-                ToleranceHU = DbA.ToleranceHU;
+                RefHU = new TrackedValue<double?>(DbA.HU);
+                ToleranceHU = new TrackedValue<double?>(DbA.ToleranceHU);
                 E = DataCache.GetProtocolStructure(DbA.DbProtocolStructure.ID);
             }
-            public double RefHU { get; set; }
-            public double ToleranceHU { get; set; }
+            public TrackedValue<double?> RefHU { get; set; }
+            public TrackedValue<double?> ToleranceHU { get; set; }
             public ProtocolStructure E { get; set; }
         }
         [AddINotifyPropertyChangedInterface]
@@ -1983,18 +1989,17 @@ namespace SquintScript
         {
             public BolusDefinition(DbBolus DbB)
             {
-                HU = DbB.HU;
-                Thickness = DbB.Thickness;
-                ToleranceThickness = DbB.ToleranceThickness;
-                ToleranceHU = DbB.ToleranceHU;
-                Indication = (ParameterOptions)DbB.Indication;
-
+                HU = new TrackedValue<double>(DbB.HU);
+                Thickness = new TrackedValue<double>(DbB.Thickness);
+                ToleranceThickness = new TrackedValue<double>(DbB.ToleranceThickness);
+                ToleranceHU = new TrackedValue<double>(DbB.ToleranceHU);
+                Indication = new TrackedValue<ParameterOptions>((ParameterOptions)DbB.Indication);
             }
-            public double HU { get; set; }
-            public double Thickness { get; set; }
-            public ParameterOptions Indication { get; set; }
-            public double ToleranceThickness { get; set; }
-            public double ToleranceHU { get; set; }
+            public TrackedValue<double> HU { get; set; }
+            public TrackedValue<double> Thickness { get; set; }
+            public TrackedValue<ParameterOptions> Indication { get; set; }
+            public TrackedValue<double> ToleranceThickness { get; set; }
+            public TrackedValue<double> ToleranceHU { get; set; }
         }
 
         [AddINotifyPropertyChangedInterface]
@@ -2004,27 +2009,27 @@ namespace SquintScript
             {
                 ID = DbO.ID;
                 ProtocolId = DbO.ProtocolID;
-                TreatmentTechniqueType = (TreatmentTechniques)DbO.TreatmentTechniqueType;
-                MinFields = DbO.MinFields;
-                MaxFields = DbO.MaxFields;
-                VMAT_MinFieldColSeparation = DbO.VMAT_MinFieldColSeparation;
-                NumIso = DbO.NumIso;
-                MinXJaw = DbO.MinXJaw;
-                MaxXJaw = DbO.MaxXJaw;
-                MinYJaw = DbO.MinYJaw;
-                MaxYJaw = DbO.MaxYJaw;
-                VMAT_JawTracking = (ParameterOptions)DbO.VMAT_JawTracking;
-                Algorithm = (AlgorithmTypes)DbO.Algorithm;
-                FieldNormalizationMode = (FieldNormalizationTypes)DbO.FieldNormalizationMode;
-                AlgorithmResolution = DbO.AlgorithmResolution;
-                PNVMin = DbO.PNVMin;
-                PNVMax = DbO.PNVMax;
-                SliceSpacing = DbO.SliceSpacing;
-                HeterogeneityOn = DbO.HeterogeneityOn;
+                //TreatmentTechniqueType = (TreatmentTechniques)DbO.TreatmentTechniqueType;
+                //MinFields = DbO.MinFields;
+                //MaxFields = DbO.MaxFields;
+                //VMAT_MinFieldColSeparation = DbO.VMAT_MinFieldColSeparation;
+                //NumIso = DbO.NumIso;
+                //MinXJaw = DbO.MinXJaw;
+                //MaxXJaw = DbO.MaxXJaw;
+                //MinYJaw = DbO.MinYJaw;
+                //MaxYJaw = DbO.MaxYJaw;
+                //VMAT_JawTracking = (ParameterOptions)DbO.VMAT_JawTracking;
+                Algorithm = new TrackedValue<AlgorithmTypes>((AlgorithmTypes)DbO.Algorithm);
+                FieldNormalizationMode = new TrackedValue<FieldNormalizationTypes>((FieldNormalizationTypes)DbO.FieldNormalizationMode);
+                AlgorithmResolution = new TrackedValue<double?>(DbO.AlgorithmResolution);
+                PNVMin = new TrackedValue<double?>(DbO.PNVMin);
+                PNVMax = new TrackedValue<double?>(DbO.PNVMax);
+                SliceSpacing = new TrackedValue<double?>(DbO.SliceSpacing);
+                HeterogeneityOn = new TrackedValue<bool?>(DbO.HeterogeneityOn);
                 //Couch
-                SupportIndication = (ParameterOptions)DbO.SupportIndication;
-                CouchSurface = DbO.CouchSurface;
-                CouchInterior = DbO.CouchInterior;
+                SupportIndication = new TrackedValue<ParameterOptions>((ParameterOptions)DbO.SupportIndication);
+                CouchSurface = new TrackedValue<double?>(DbO.CouchSurface);
+                CouchInterior = new TrackedValue<double?>(DbO.CouchInterior);
                 //Artifact
                 foreach (DbArtifact DbA in DbO.Artifacts)
                 {
@@ -2041,30 +2046,30 @@ namespace SquintScript
 
             public int ID { get; set; }
             public int ProtocolId { get; set; }
-            public TreatmentTechniques TreatmentTechniqueType { get; set; }
-            public double MinFields { get; set; }
-            public double MaxFields { get; set; }
-            public double MinMU { get; set; }
-            public double MaxMU { get; set; }
-            public double VMAT_MinColAngle { get; set; }
-            public double VMAT_MinFieldColSeparation { get; set; }
-            public int NumIso { get; set; }
-            public bool VMAT_SameStartStop { get; set; }
-            public double MinXJaw { get; set; }
-            public double MaxXJaw { get; set; }
-            public double MinYJaw { get; set; }
-            public double MaxYJaw { get; set; }
-            public ParameterOptions VMAT_JawTracking { get; set; }
-            public AlgorithmTypes Algorithm { get; set; }
-            public FieldNormalizationTypes FieldNormalizationMode { get; set; }
-            public double AlgorithmResolution { get; set; }
-            public double PNVMin { get; set; }
-            public double PNVMax { get; set; }
-            public double SliceSpacing { get; set; }
-            public bool HeterogeneityOn { get; set; }
-            public ParameterOptions SupportIndication { get; set; }
-            public double CouchSurface { get; set; }
-            public double CouchInterior { get; set; }
+            //public TreatmentTechniques TreatmentTechniqueType { get; set; }
+            //public double MinFields { get; set; }
+            //public double MaxFields { get; set; }
+            //public double MinMU { get; set; }
+            //public double MaxMU { get; set; }
+            //public double VMAT_MinColAngle { get; set; }
+            //public double VMAT_MinFieldColSeparation { get; set; }
+            //public int NumIso { get; set; }
+            //public bool VMAT_SameStartStop { get; set; }
+            //public double MinXJaw { get; set; }
+            //public double MaxXJaw { get; set; }
+            //public double MinYJaw { get; set; }
+            //public double MaxYJaw { get; set; }
+            public TrackedValue<ParameterOptions> VMAT_JawTracking { get; set; }
+            public TrackedValue<AlgorithmTypes> Algorithm { get; set; }
+            public TrackedValue<FieldNormalizationTypes> FieldNormalizationMode { get; set; }
+            public TrackedValue<double?> AlgorithmResolution { get; set; }
+            public TrackedValue<double?> PNVMin { get; set; }
+            public TrackedValue<double?> PNVMax { get; set; }
+            public TrackedValue<double?> SliceSpacing { get; set; }
+            public TrackedValue<bool?> HeterogeneityOn { get; set; }
+            public TrackedValue<ParameterOptions> SupportIndication { get; set; }
+            public TrackedValue<double?> CouchSurface { get; set; }
+            public TrackedValue<double?> CouchInterior { get; set; }
             public List<Artifact> Artifacts { get; set; } = new List<Artifact>();
             public List<BolusDefinition> Boluses { get; set; } = new List<BolusDefinition>();
         }
@@ -2082,7 +2087,8 @@ namespace SquintScript
             {
                 ID = Ctr.IDGenerator();
                 ProtocolID = SC.ProtocolID;
-                ComponentName = SC.ComponentName + "Copy";
+                ComponentName = SC.ComponentName;
+                ComponentName = ComponentName + "_copy";
                 ComponentType = SC.ComponentType;
                 NumFractions = SC.NumFractions;
                 ReferenceDose = SC.ReferenceDose;
@@ -2091,13 +2097,14 @@ namespace SquintScript
             public Component(DbComponent DbO)
             {
                 ID = DbO.ID;
-                MinColOffset = DbO.MinColOffset;
-                MinBeams = DbO.MinBeams;
-                MaxBeams = DbO.MaxBeams;
-                ComponentName = DbO.ComponentName;
-                ComponentType = (ComponentTypes)DbO.ComponentType;
-                NumFractions = DbO.NumFractions;
-                ReferenceDose = DbO.ReferenceDose;
+                MinColOffset = new TrackedValue<double>((double)DbO.MinColOffset);
+                MinBeams = new TrackedValue<int>(DbO.MinBeams);
+                MaxBeams = new TrackedValue<int>(DbO.MaxBeams);
+                NumIso = new TrackedValue<int>(DbO.NumIso);
+                _ComponentName = new TrackedValue<string>(DbO.ComponentName);
+                ComponentType = new TrackedValue<ComponentTypes>((ComponentTypes)DbO.ComponentType);
+                _NumFractions = new TrackedValue<int>(DbO.NumFractions);
+                _ReferenceDose = new TrackedValue<double>(DbO.ReferenceDose);
                 DisplayOrder = DbO.DisplayOrder;
                 ProtocolID = DbO.ProtocolID;
             }
@@ -2105,7 +2112,7 @@ namespace SquintScript
             {
                 ID = Ctr.IDGenerator();
                 ComponentName = ComponentName_in;
-                ComponentType = ComponentType_in;
+                ComponentType = new TrackedValue<ComponentTypes>(ComponentType_in);
                 NumFractions = ReferenceFractions_in;
                 ReferenceDose = ReferenceDose_in;
                 if (DataCache.GetAllComponents().Count() > 0)
@@ -2119,7 +2126,7 @@ namespace SquintScript
             //public event EventHandler ComponentExceptionLoaded;
             //public event EventHandler NewComponentCommitting;
             //public event EventHandler NewComponentCommitted;
-            public event EventHandler<double> ReferenceDoseChanged;
+            public event EventHandler ReferenceDoseChanged;
             public event EventHandler ReferenceFractionsChanged;
             public class ComponentArgs : EventArgs
             {
@@ -2128,47 +2135,77 @@ namespace SquintScript
             public int ID { get; private set; }
             public int DisplayOrder { get; set; }
             public int ProtocolID { get; private set; }
-            public string ComponentName { get; set; }
-            public ComponentTypes ComponentType { get; set; }
-            public int MinBeams { get; set; } = -1;
-            public int MaxBeams { get; set; } = -1;
-            public int NumIso { get; set; } = 1;
-            public int MinColOffset { get; set; } = 0;
 
+            private TrackedValue<string> _ComponentName;
+            public string ComponentName
+            {
+                get { return _ComponentName.Value; }
+                set { if (value != null) { _ComponentName.Value = value; } }
+            }
+            public TrackedValue<ComponentTypes> ComponentType { get; private set; }
+            //public ComponentTypes ComponentType
+            //{
+            //    get { return _ComponentType.Value; }
+            //    set { _ComponentType.Value = value; }
+            //}
+            public TrackedValue<int> MinBeams { get; private set; }
+            //public int MinBeams
+            //{
+            //    get { return _MinBeams.Value; }
+            //    set { if { _MinBeams.Value = value; } }
+            //}
+            public TrackedValue<int> MaxBeams { get; private set; }
+            //public int MaxBeams
+            //{
+            //    get { return _MaxBeams.Value; }
+            //    set { _MaxBeams.Value = value; }
+            //}
+            public TrackedValue<int> NumIso { get; private set; }
+            //public int NumIso
+            //{
+            //    get { return _NumIso.Value; }
+            //    set { _NumIso.Value = value; }
+            //}
+            public TrackedValue<double> MinColOffset { get; private set; }
+            //public int MinColOffset
+            //{
+            //    get { return _MinColOffset.Value; }
+            //    set { _MinColOffset.Value = value; }
+            //}
             public List<Beam> GetBeams()
             {
                 return DataCache.GetBeams(ID);
             }
             public bool isTDFmodified { get; private set; }
-            private double _ReferenceDose;
+            public TrackedValue<double> _ReferenceDose;
+            public double ReferenceDoseOriginal { get { return _ReferenceDose.ReferenceValue; } }
             public double ReferenceDose
             {
                 get
                 {
-                    return _ReferenceDose;
+                    return _ReferenceDose.Value;
                 }
                 set
                 {
-                    if (Math.Abs(ReferenceDose - value) > 1E-5 && value > 0)
+                    if (Math.Abs(_ReferenceDose.Value - value) > 1E-5 && value > 0)
                     {
-                        double PrevDose = _ReferenceDose;
-                        _ReferenceDose = value;
-                        ReferenceDoseChanged?.Invoke(this, _ReferenceDose);
+                        _ReferenceDose.Value = value;
+                        ReferenceDoseChanged?.Invoke(this, EventArgs.Empty);
                     }
                 }
             }
-            private int _NumFractions;
+            public TrackedValue<int> _NumFractions;
             public int NumFractions
             {
                 get
                 {
-                    return _NumFractions;
+                    return _NumFractions.Value;
                 }
                 set
                 {
                     if (value != NumFractions && value > 0)
                     {
-                        _NumFractions = value;
+                        _NumFractions.Value = value;
                         ReferenceFractionsChanged?.Invoke(this, EventArgs.Empty);
                     }
                 }
@@ -2420,7 +2457,6 @@ namespace SquintScript
             public ECPlan(DbPlan DbO)
             {
                 ID = DbO.ID;
-                LoadLinkedPlan(DbO);
                 AssessmentID = DbO.AssessmentID;
                 ComponentID = DbO.SessionComponentID;
                 DataCache.GetComponent(ComponentID).PropertyChanged += OnComponentPropertyChanged;
@@ -2480,7 +2516,7 @@ namespace SquintScript
                 ValidateComponentAssociations();
             }
 
-            public async void LoadLinkedPlan(DbPlan DbO)
+            public async Task LoadLinkedPlan(DbPlan DbO)
             {
                 AsyncPlan p = await DataCache.GetAsyncPlan(DbO.PlanName, DbO.CourseName, (ComponentTypes)DbO.PlanType);
                 UpdateLinkedPlan(p, false);
@@ -2574,7 +2610,7 @@ namespace SquintScript
                 }
                 ErrorCodes.Add(ComponentStatusCodes.Evaluable);
                 Component SC = DataCache.GetComponent(ComponentID);
-                if (SC.ComponentType == ComponentTypes.Plan)
+                if (SC.ComponentType.Value == ComponentTypes.Plan)
                 {
                     if (!LinkedPlan.IsDoseValid)
                         ErrorCodes.Add(ComponentStatusCodes.NoDoseDistribution);
@@ -2850,11 +2886,11 @@ namespace SquintScript
             }
             public StructureCheckList(DbStructureChecklist DbO)
             {
-                isPointContourChecked = DbO.isPointContourChecked;
-                PointContourVolumeThreshold = DbO.PointContourThreshold;
+                isPointContourChecked = new TrackedValue<bool>(DbO.isPointContourChecked);
+                PointContourVolumeThreshold = new TrackedValue<double>(DbO.PointContourThreshold);
             }
-            public bool isPointContourChecked { get; set; } = false;
-            public double PointContourVolumeThreshold { get; set; } = double.NaN;
+            public TrackedValue<bool> isPointContourChecked { get; set; } = new TrackedValue<bool>(false);
+            public TrackedValue<double> PointContourVolumeThreshold { get; set; } = new TrackedValue<double>(double.NaN);
         }
         public class ConThresholdDef
         {

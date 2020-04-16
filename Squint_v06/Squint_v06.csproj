@@ -143,6 +143,7 @@
     <Compile Include="Controls\TestEditView.xaml.cs">
       <DependentUpon>TestEditView.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Helpers\Logger.cs" />
     <Compile Include="Interfaces\ITestListItem.cs" />
     <Compile Include="PlanCheckController.cs" />
     <Compile Include="SquintExtensions.cs" />
@@ -207,6 +208,7 @@
     <Compile Include="StructureLabelXML.cs">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Compile>
+    <Compile Include="ViewModels\ProtocolViewModel.cs" />
     <Compile Include="ViewModels\ViewModel.cs" />
     <Compile Include="WaitWindow.xaml.cs">
       <DependentUpon>WaitWindow.xaml</DependentUpon>
