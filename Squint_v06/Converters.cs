@@ -189,6 +189,50 @@ namespace SquintScript.Converters
             return "";
         }
     }
+
+    public class BusyToCursorConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            if (value == null || !(value is bool))
+                return System.Windows.Input.Cursors.Arrow;
+
+            var isBusy = (bool)value;
+
+            if (isBusy)
+                return System.Windows.Input.Cursors.Wait;
+            else
+                return System.Windows.Input.Cursors.Arrow;
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    public class ReferenceEditConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType,
+              object parameter, System.Globalization.CultureInfo culture)
+        {
+            bool? isChanged = value as bool?;
+            if (isChanged != null)
+            {
+                if ((bool)isChanged)
+                    return new SolidColorBrush(Colors.DarkOrange);
+                else
+                    return new SolidColorBrush(Colors.Black);
+            }
+            else
+                return new SolidColorBrush(Colors.Black);
+        }
+        public object ConvertBack(object value, Type targetTypes,
+               object parameter, System.Globalization.CultureInfo culture)
+        {
+            return "";
+        }
+    }
     public class ItemToDisplay : IValueConverter
     {
         public object Convert(object value, Type targetType,
@@ -198,22 +242,10 @@ namespace SquintScript.Converters
                 return "";
             else
             {
-                var PS = value as ProtocolSelector;
-                switch (parameter)
-                {
-                    case "Centre":
-                        return PS.TreatmentCentre.Display();
-                    case "Site":
-                        return PS.TreatmentSite.Display();
-                    case "Type":
-                        return PS.ProtocolType.Display();
-                    case "Modified":
-                        return PS.LastModifiedBy;
-                    case "ApprovalLevel":
-                        return PS.ApprovalLevel.Display();
-                    default:
-                        return "missing converter parameter";
-                }
+                if (value is Enum)
+                    return (value as Enum).Display();
+                else
+                    return "";
             }
         }
         public object ConvertBack(object value, Type targetTypes,
@@ -503,12 +535,6 @@ namespace SquintScript.Converters
     {
         public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
         {
-            //double result = 1.0;
-            //for (int i = 0; i < values.Length; i++)
-            //{
-            //    if (values[i] is double)
-            //        result *= (double)values[i];
-            //}
             if (values.Count() > 1)
             {
                 if (values[1] is int)

@@ -6,16 +6,21 @@ using System.Text;
 using System.Threading.Tasks;
 using PropertyChanged;
 using SquintScript.Extensions;
+using SquintScript.ViewModels;
 
 namespace SquintScript
 {
-        public class TrackedValue<T> : INotifyPropertyChanged, IRevertibleChangeTracking, IComparable<TrackedValue<T>> 
-        {
-        public event PropertyChangedEventHandler PropertyChanged;
-        public bool IsChanged { get; private set; } = false;
+
+    public interface ITrackedValue
+    {
+        bool IsChanged { get; }
+    }
+    [AddINotifyPropertyChangedInterface]
+    public class TrackedValue<T> : ObservableObject, ITrackedValue, INotifyPropertyChanged, IRevertibleChangeTracking, IComparable<TrackedValue<T>>
+    {
         protected T _ReferenceValue;
         protected T _CurrentValue;
-
+        public bool IsChanged { get; private set; }
         public string Display()
         {
             var TE = _CurrentValue as Enum;
@@ -24,6 +29,22 @@ namespace SquintScript
             else return _CurrentValue.ToString();
         }
 
+        public bool isDefined
+        {
+            get
+            {
+                if (_ReferenceValue == null)
+                    return false;
+                else
+                {
+                    if (_ReferenceValue is double)
+                        return !double.IsNaN(Convert.ToDouble(_ReferenceValue));
+                    if (_ReferenceValue is int)
+                        return Convert.ToInt32(_ReferenceValue) == int.MinValue;
+                }
+                return true;
+            }
+        }
         public TrackedValue(T value)
         {
             _ReferenceValue = value;
@@ -33,6 +54,7 @@ namespace SquintScript
         public void AcceptChanges()
         {
             IsChanged = false;
+            RaisePropertyChangedEvent(nameof(IsChanged));
             _ReferenceValue = _CurrentValue;
         }
 
@@ -54,7 +76,7 @@ namespace SquintScript
                 return 0;
             }
         }
-        
+
         public T Value
         {
             get
@@ -65,7 +87,6 @@ namespace SquintScript
             {
                 _CurrentValue = value;
                 IsChanged = true;
-                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(this.Value)));
             }
         }
         public T ReferenceValue { get { return _ReferenceValue; } }

@@ -10,7 +10,8 @@ namespace SquintScript.Interfaces
 {
     public interface ITestListItem
     {
-        string TestName { get; set; }
+        void SetCheckValue(object value);
+        CheckTypes CheckType { get; set; }
         void CommitChanges();
         void RejectChanges();
     }
@@ -20,6 +21,15 @@ namespace SquintScript.Interfaces
         string CheckValueString { get; }
         TrackedValue<T> Reference{ get; set; }
         T Check{ get; set; }
+        bool Warning { get; }
+        string WarningString { get; }
+    }
+    public interface ITestListClassItem<T> : ITestListItem 
+    {
+        string ReferenceValueString { get; }
+        string CheckValueString { get; }
+        TrackedValue<T> Reference { get; set; }
+        T Check { get; set; }
         bool Warning { get; }
         string WarningString { get; }
     }

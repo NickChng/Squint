@@ -12,6 +12,8 @@ using VMS.TPS.Common.Model.Types;
 using EApp = VMS.TPS.Common.Model.API.Application;
 using System.Collections.Concurrent;
 
+//[assembly: ESAPIScript(IsWriteable = true)]
+
 namespace SquintScript
 {
     public class AsyncESAPI : IDisposable
@@ -97,7 +99,10 @@ namespace SquintScript
             return Execute(new Func<EApp, AsyncPatient>((application) =>
             {
                 if (P == null)
+                {
                     P = application.OpenPatientById(PID);
+                    //P.BeginModifications();
+                }
                 if (P == null)
                     return null;
                 else
@@ -986,6 +991,32 @@ namespace SquintScript
                 }
                 else
                     return double.NaN;
+            }), p);
+        }
+
+        public async Task<double> CheckMargin(string StructureId, double MarginExpansion)
+        {
+            return await A.ExecuteAsync(new Func<PlanSetup, double>((pl) =>
+            {
+                Structure S = pl.StructureSet.Structures.FirstOrDefault(x => x.Id == StructureId);
+                if (S != null)
+                {
+                    if (!S.IsEmpty)
+                    {
+
+                        var testExpansion = S.Margin(MarginExpansion);
+                        var S2 = pl.StructureSet.AddStructure("Control", "Temp");
+                        S2.SegmentVolume = testExpansion;
+                        return S2.Volume;
+                    }
+                    else
+                        return double.NaN;
+                }
+                else
+                {
+                    return double.NaN;
+                }
+
             }), p);
         }
     }

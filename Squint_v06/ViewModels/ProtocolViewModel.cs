@@ -31,6 +31,7 @@ namespace SquintScript.ViewModels
             ParentView = parentView;
             AssessmentPresenter = new AssessmentsView(this);
             var ProtocolPreviews = Ctr.GetProtocolPreviewList();
+            ChecklistViewModel = new Checklist_ViewModel(this);
             foreach (var PP in ProtocolPreviews)
             {
                 Protocols.Add(new ProtocolSelector(PP));
@@ -42,7 +43,10 @@ namespace SquintScript.ViewModels
             Ctr.ConstraintAdded += OnConstraintAdded;
             Ctr.ConstraintRemoved += OnConstraintRemoved;
         }
+        // ViewModels
         public Presenter ParentView { get; set; }
+        public ViewModels.Checklist_ViewModel ChecklistViewModel { get; set; } 
+
         public void Unsubscribe()
         {
             Ctr.CurrentStructureSetChanged -= UpdateAvailableStructureIds;
@@ -59,11 +63,10 @@ namespace SquintScript.ViewModels
         {
             get { return Ctr.GetActiveProtocol(); }
         }
-        public ProtocolSelector SelectedProtocol { get; set; }
+        public ProtocolSelector SelectedProtocol { get; set; } = new ProtocolSelector(new Ctr.ProtocolPreview());
 
         public bool isProtocolLoaded { get; set; }
 
-        private string _ProtocolName = "No protocol loaded";
         public string ProtocolName
         {
             get
@@ -130,6 +133,33 @@ namespace SquintScript.ViewModels
                 {
                     _P.TreatmentSite = value;
                 }
+            }
+        }
+        public ApprovalLevels ApprovalLevel
+        {
+            get
+            {
+                if (_P == null)
+                    return ApprovalLevels.Unset;
+                else
+                    return _P.ApprovalLevel;
+            }
+            set
+            {
+                if (_P == null)
+                {
+                    _P.ApprovalLevel = value;
+                }
+            }
+        }
+        public string LastModifiedBy
+        {
+            get
+            {
+                if (_P == null)
+                    return "";
+                else
+                    return _P.LastModifiedBy;
             }
         }
 
@@ -259,6 +289,7 @@ namespace SquintScript.ViewModels
             ParentView.isLoading = true;
             AssessmentPresenter = new AssessmentsView(this);
             await Task.Run(() => Ctr.LoadProtocolFromDb(PS.ProtocolName));
+            ChecklistViewModel = new Checklist_ViewModel(this);
             UpdateProtocolView();
             isProtocolLoaded = true;
             ParentView.isLoading = false;

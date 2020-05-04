@@ -280,15 +280,37 @@ namespace SquintScript.Controls
             Fields = TxFields;
             Field = null;
             BeamTests.Tests.Clear();
-            foreach (string alias in RefBeam.EclipseAliases)
-                foreach (Ctr.TxFieldItem F in Fields)
-                    if (F.Id == alias)
-                    {
-                        Field = F;
-                        NoFieldAssigned = false;
-                    }
+            if (Fields != null)
+                foreach (string alias in RefBeam.EclipseAliases)
+                    foreach (Ctr.TxFieldItem F in Fields)
+                        if (F.Id == alias)
+                        {
+                            Field = F;
+                            NoFieldAssigned = false;
+                        }
             FieldDescription = string.Format(@"Protocol field ""{0}"" assigned to plan field:", RefBeam.ProtocolBeamName);
 
+            // Populate Tests
+            BeamTests.Tests.Add(new CheckRangeItem<double>(CheckTypes.MURange, double.NaN, RefBeam.MinMUWarning, RefBeam.MaxMUWarning, "MU outside normal range"));
+            var ValidEnergies = new List<TrackedValue<Energies>>();
+            foreach (var E in RefBeam.ValidEnergies)
+            {
+                ValidEnergies.Add(new TrackedValue<Energies>(E));
+            }
+            BeamTests.Tests.Add(new CheckContainsItem<Energies>(CheckTypes.ValidEnergies, Energies.Unset, ValidEnergies, "Not a valid energy"));
+            BeamTests.Tests.Add(new TestListBeamStartStopItem(CheckTypes.BeamGeometry, null, RefBeam.ValidGeometries, "No valid geometry found"));
+            BeamTests.Tests.Add(new CheckValueItem<double>(CheckTypes.CouchRotation, -1, RefBeam.CouchRotation, new TrackedValue<double>(1E-2), "Non-standard couch rotation"));
+            BeamTests.Tests.Add(new CheckValueItem<bool?>(CheckTypes.JawTracking, null, new TrackedValue<bool?>(true), null, "No tracking detected"));
+            BeamTests.Tests.Add(new CheckValueItem<double>(CheckTypes.MinMLCOffsetFromAxial, -1, RefBeam.MinColRotation, new TrackedValue<double>(1E-2), "Collimator less than minimum offset") { ParameterOption = ParameterOptions.Optional, Test = TestType.GreaterThan });
+
+            BeamTests.Tests.Add(new CheckValueItem<double>(CheckTypes.MinimumXfieldSize, -1, RefBeam.MinX, null, "X field too small") { Test = TestType.GreaterThan });
+            BeamTests.Tests.Add(new CheckValueItem<double>(CheckTypes.MaximumXfieldSize, -1, RefBeam.MaxX, null, "X field too large") { Test = TestType.LessThan });
+            BeamTests.Tests.Add(new CheckValueItem<double>(CheckTypes.MinimumYfieldSize, -1, RefBeam.MinY, null, "Y field too small") { Test = TestType.GreaterThan });
+            BeamTests.Tests.Add(new CheckValueItem<double>(CheckTypes.MaximumYfieldSize, -1, RefBeam.MaxY, null, "Y field too large") { Test = TestType.LessThan });
+            BeamTests.Tests.Add(new CheckValueItem<string>(CheckTypes.ToleranceTable, "", RefBeam.ToleranceTable, null, "Incorrect Tol Table"));
+
+            if (Field != null)
+                RefreshTests();
         }
         public void BeamChangeAction(string newFieldId = null)
         {
@@ -300,87 +322,99 @@ namespace SquintScript.Controls
         }
         private async void RefreshTests()
         {
-            BeamTests.Tests.Clear(); // remove default model test beams
             if (Field == null)
                 return;
             // Add default checks:
-
-            BeamTests.Tests.Add(new CheckRangeItem<double>(string.Format(@"MU range"), MU, RefBeam.MinMUWarning, RefBeam.MaxMUWarning, "MU outside normal range"));
-
-            // Energies           
-            var ValidEnergies = new List<TrackedValue<Energies>>();
-            foreach (var E in RefBeam.ValidEnergies)
+            foreach (var Test in BeamTests.Tests)
             {
-                ValidEnergies.Add(new TrackedValue<Energies>(E));
+                switch (Test.CheckType)
+                {
+                    case CheckTypes.MURange:
+                        Test.SetCheckValue(MU);
+                        break;
+                    case CheckTypes.ValidEnergies:
+                        Test.SetCheckValue(Field.Energy);
+                        break;
+                    case CheckTypes.BeamGeometry:
+                        Trajectories BeamTrajectory = Trajectories.Static;
+                        switch (Field.GantryDirection)
+                        {
+                            case VMS.TPS.Common.Model.Types.GantryDirection.Clockwise:
+                                BeamTrajectory = Trajectories.CW;
+                                break;
+                            case VMS.TPS.Common.Model.Types.GantryDirection.CounterClockwise:
+                                BeamTrajectory = Trajectories.CCW;
+                                break;
+                            default:
+                                break;
+                        }
+                        var CheckBeam = new Ctr.BeamGeometry() { StartAngle = Field.GantryStart, EndAngle = Field.GantryEnd, Trajectory = BeamTrajectory };
+                        Test.SetCheckValue(CheckBeam);
+                        break;
+                    case CheckTypes.CouchRotation:
+                        Test.SetCheckValue(CouchRotation);
+                        break;
+                    case CheckTypes.JawTracking:
+                        Test.SetCheckValue(Field.isJawTracking);
+                        break;
+                    case CheckTypes.MinMLCOffsetFromAxial:
+                        double Offset = double.NaN;
+                        if (ColRotation < 90)
+                            Offset = ColRotation;
+                        else if (ColRotation < 180)
+                            Offset = (180 - ColRotation);
+                        else if (ColRotation < 270)
+                            Offset = (ColRotation - 180);
+                        else
+                            Offset = 360 - ColRotation;
+                        Test.SetCheckValue(Offset);
+                        break;
+                    case CheckTypes.MinimumXfieldSize:
+                        Test.SetCheckValue(Xmin);
+                        break;
+                    case CheckTypes.MinimumYfieldSize:
+                        Test.SetCheckValue(Ymin);
+                        break;
+                    case CheckTypes.MaximumXfieldSize:
+                        Test.SetCheckValue(Xmax);
+                        break;
+                    case CheckTypes.MaximumYfieldSize:
+                        Test.SetCheckValue(Ymax);
+                        break;
+                }
             }
-            BeamTests.Tests.Add(new CheckContainsItem<Energies>(@"Valid energies", Field.Energy, ValidEnergies, "Not a valid energy"));
 
-            // Beam Geometries
-            Trajectories BeamTrajectory = Trajectories.Static;
-            switch (Field.GantryDirection)
-            {
-                case VMS.TPS.Common.Model.Types.GantryDirection.Clockwise:
-                    BeamTrajectory = Trajectories.CW;
-                    break;
-                case VMS.TPS.Common.Model.Types.GantryDirection.CounterClockwise:
-                    BeamTrajectory = Trajectories.CCW;
-                    break;
-                default:
-                    break;
-            }
-            var CheckBeam = new Ctr.BeamGeometry() { StartAngle = Field.GantryStart, EndAngle = Field.GantryEnd, Trajectory=BeamTrajectory };
-            BeamTests.Tests.Add(new TestListBeamStartStopItem(string.Format(@"Beam geometry"), CheckBeam, RefBeam.ValidGeometries, "No valid geometry found"));
-            BeamTests.Tests.Add(new CheckValueItem<double>(string.Format(@"Couch rotation"), CouchRotation, RefBeam.CouchRotation, new TrackedValue<double>(1E-2), "Non-standard couch rotation"));
-            if (RefBeam.JawTracking_Indication.Value == ParameterOptions.Required)
-                BeamTests.Tests.Add(new CheckValueItem<bool>("Jaw tracking", Field.isJawTracking, new TrackedValue<bool>(true), null, "No tracking detected"));
-            else if (RefBeam.JawTracking_Indication.Value == ParameterOptions.None)
-                BeamTests.Tests.Add(new CheckValueItem<bool>("Jaw tracking", Field.isJawTracking, new TrackedValue<bool>(false), null, "Tracking detected"));
-
-
-            // Col rotation
-            double Offset = double.NaN;
-            if (ColRotation < 90)
-                Offset = ColRotation;
-            else if (ColRotation < 180)
-                Offset = (180 - ColRotation);
-            else if (ColRotation < 270)
-                Offset = (ColRotation - 180);
-            else
-                Offset = 360 - ColRotation;
-            BeamTests.Tests.Add(new CheckValueItem<double>(string.Format(@"Minimum MLC offset from axial plane"), Offset, RefBeam.MinColRotation, new TrackedValue<double>(1E-2), "Collimator less than minimum offset")
-            { ParameterOption = ParameterOptions.Optional, Test = TestType.GreaterThan });
-            BeamTests.Tests.Add(new CheckValueItem<double>(string.Format(@"Minimum X field size"), Xmin, RefBeam.MinX, null, "X field too small") { Test = TestType.GreaterThan });
-            BeamTests.Tests.Add(new CheckValueItem<double>(string.Format(@"Maximum X field size"), Xmax, RefBeam.MaxX, null, "X field too large") { Test = TestType.LessThan });
-            BeamTests.Tests.Add(new CheckValueItem<double>(string.Format(@"Minimum Y field size"), Ymin, RefBeam.MinY, null, "Y field too small") { Test = TestType.GreaterThan });
-            BeamTests.Tests.Add(new CheckValueItem<double>(string.Format(@"Maximum Y field size"), Ymax, RefBeam.MaxY, null, "Y field too large") { Test = TestType.LessThan });
-            BeamTests.Tests.Add(new CheckValueItem<string>("Tolerance Table", ToleranceTable, RefBeam.ToleranceTable, null, "Incorrect Tol Table"));
-
-            var CompletedBolusCheck = await AddBolusCheck();
+            await AddBolusCheck();
 
         }
         public async Task<bool> AddBolusCheck()
         {
 
             CheckValueItem<double> BolusTest = null;
-            var ReqBoluses = Ctr.GetActiveProtocol().Checklist.Boluses;
+            foreach (var bolustest in BeamTests.Tests.Where(x => x.CheckType == CheckTypes.BolusHU).ToList())
+                BeamTests.Tests.Remove(bolustest);
+            foreach (var bolustest in BeamTests.Tests.Where(x => x.CheckType == CheckTypes.BolusThickness).ToList())
+                BeamTests.Tests.Remove(bolustest);
             foreach (Ctr.BolusDefinition B in RefBeam.Boluses)
             {
                 int numBoluses = 0;
                 foreach (Ctr.TxFieldItem.BolusInfo BI in Field.BolusInfos)
                 {
                     numBoluses++;
-                    BolusTest = new CheckValueItem<double>(string.Format(@"Bolus HU (""{0}"")", BI.Id), BI.HU, B.HU, B.ToleranceHU, @"HU deviation", "Bolus required", "No bolus in protocol");
+                    BolusTest = new CheckValueItem<double>(CheckTypes.BolusHU, BI.HU, B.HU, B.ToleranceHU, @"HU deviation", "Bolus required", "No bolus in protocol");
+                    BolusTest.OptionalNameSuffix = string.Format(@"(""{0}"")", BI.Id);
                     BolusTest.ParameterOption = B.Indication.Value;
                     BeamTests.Tests.Add(BolusTest);
                     //ThickCheck
                     var Thick = await Ctr.GetBolusThickness(Field.CourseId, Field.PlanId, BI.Id);
-                    var ThickCheck = new CheckValueItem<double>(string.Format(@"Bolus Thickness (""{0}"") [cm]", BI.Id), Thick, B.Thickness, B.ToleranceThickness, null, null, null);
+                    var ThickCheck = new CheckValueItem<double>(CheckTypes.BolusThickness, Thick, B.Thickness, B.ToleranceThickness, null, null, null);
+                    ThickCheck.OptionalNameSuffix = string.Format(@"(""{0}"") [cm]", BI.Id);
                     ThickCheck.ParameterOption = B.Indication.Value;
                     BeamTests.Tests.Add(ThickCheck);
                 }
                 if (numBoluses == 0 && B.Indication.Value == ParameterOptions.Required)
                 {
-                    var ThickCheck = new CheckRangeItem<double?>(@"Bolus Check [cm]", null, null, null, "Bolus Required");
+                    var ThickCheck = new CheckRangeItem<double?>(CheckTypes.BolusThickness, null, null, null, "Bolus Required");
                     BeamTests.Tests.Add(ThickCheck);
                 }
             }

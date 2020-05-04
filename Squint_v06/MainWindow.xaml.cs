@@ -81,70 +81,7 @@ namespace SquintScript.Views
             scv.ScrollToVerticalOffset(scv.VerticalOffset - e.Delta);
             e.Handled = true;
         }
-        //Import / Export of protocols
-        private async void ImportProtocolDirectory(object sender, RoutedEventArgs e)
-        {
-            System.Windows.Forms.FolderBrowserDialog f = new System.Windows.Forms.FolderBrowserDialog();
-            f.Description = "Please select import folder...";
-            f.SelectedPath = @"\\srvnetapp02\bcca\docs\physics\cn\software\squint\xml protocol library\v0.5 Library\";
-            Cursor = Cursors.Wait;
-            if (f.ShowDialog() == System.Windows.Forms.DialogResult.OK)
-            {
-                string[] filenames = System.IO.Directory.GetFiles(f.SelectedPath);
-                List<Task> importTasks = new List<Task>();
-                int count = 0;
-                double total = filenames.Count();
-                foreach (string file in filenames)
-                {
-                    string ext = System.IO.Path.GetExtension(file);
-                    if (ext == ".xml")
-                        try
-                        {
-                            count++;
-                            importTasks.Add(Task.Run(() =>
-                            {
-                                Ctr.ImportProtocolFromXML(file, false);
-                            }));
-                        }
-                        catch
-                        {
-                            MessageBox.Show(string.Format("Error importing {0}", file));
-                        }
-                }
-                await Task.WhenAll(importTasks);
-            }
-            Cursor = Cursors.Arrow;
-            MessageBox.Show("Complete!");
-        }
-
-        private async void ImportProtocol(object sender, RoutedEventArgs e)
-        {
-            if (Ctr.PatientLoaded || Ctr.NumAssessments > 0)
-            {
-                System.Windows.Forms.DialogResult DR = System.Windows.Forms.MessageBox.Show("This will close the current protocol and any assessments. Any unsaved changes will be lost. Continue?", "Import from XML", System.Windows.Forms.MessageBoxButtons.YesNo);
-                if (DR == System.Windows.Forms.DialogResult.No)
-                    return;
-            }
-            Ctr.ClosePatient();
-            Ctr.CloseProtocol();
-            Cursor = Cursors.Wait;
-            System.Windows.Forms.OpenFileDialog d = new System.Windows.Forms.OpenFileDialog();
-            d.Title = "Open Ctr.GetProtocolView() File";
-            d.Filter = "XML files|*.xml";
-            d.InitialDirectory = @"\\srvnetapp02\bcca\docs\Physics\CN\Software\Squint\XML Protocol Library\v0.5 Library";
-            if (d.ShowDialog() == System.Windows.Forms.DialogResult.OK)
-            {
-                MessageBox.Show(d.FileName.ToString());
-            }
-            bool ImportSuccessful = await Task.Run(() => Ctr.ImportProtocolFromXML(d.FileName, true));
-            if (ImportSuccessful)
-                Cursor = Cursors.Arrow;
-            else
-            {
-                Cursor = Cursors.Arrow;
-                MessageBox.Show("Error in importing protocol, please review XML file");
-            }
-        }
+        
 
         private void DragImage_MouseDown(object sender, MouseButtonEventArgs e)
         {

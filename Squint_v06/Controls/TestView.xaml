@@ -12,6 +12,7 @@
         <local:TestList_ViewModel/>
     </UserControl.DataContext>
     <UserControl.Resources>
+        <converters:ReferenceEditConverter x:Key="ReferenceEditConverter"/>
         <converters:CollimatorAngleCheckConverter x:Key="CollimatorAngleCheckConverter"/>
         <converters:TypeToBooleanConverter x:Key="TypeToBooleanConverter"/>
         <converters:TypeToStringConverter x:Key="TypeToStringConverter"/>
@@ -95,14 +96,14 @@
         </Grid.ColumnDefinitions>
         <ScrollViewer Grid.Column="0" ScrollViewer.HorizontalScrollBarVisibility="Auto" Template="{DynamicResource ScrollViewerTestViewControlTemplate}" Name="sv">
             <Grid>
-                <Grid Background="White" VerticalAlignment="Top" HorizontalAlignment="Stretch"  x:Name="TestGrid" Visibility="{Binding DataContext.amEditing, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:ChecklistControl}},  UpdateSourceTrigger=PropertyChanged, Converter={StaticResource VisibilityInverseConverter}}">
+                <Grid Background="White" VerticalAlignment="Top" HorizontalAlignment="Stretch"  x:Name="TestGrid" Visibility="{Binding DataContext.ParentView.ParentView.AdminOptionsToggle, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:ChecklistControl}},  UpdateSourceTrigger=PropertyChanged, Converter={StaticResource VisibilityInverseConverter}}">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="*"/>
                     </Grid.RowDefinitions>
                     <Grid Grid.Row="0" Margin="10,5,3,0" HorizontalAlignment="Left" Background="Transparent" >
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="250"/>
+                            <ColumnDefinition Width="275"/>
                             <ColumnDefinition Width="150"/>
                             <ColumnDefinition Width="150"/>
                             <ColumnDefinition Width="150"/>
@@ -143,13 +144,13 @@
                             <DataTemplate>
                                 <Grid HorizontalAlignment="Stretch">
                                     <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="250"/>
+                                        <ColumnDefinition Width="275"/>
                                         <ColumnDefinition Width="150"/>
                                         <ColumnDefinition Width="150"/>
                                         <ColumnDefinition Width="*"/>
                                     </Grid.ColumnDefinitions>
-                                    <TextBlock Grid.Column="0" Text="{Binding TestName, Mode=OneTime, UpdateSourceTrigger=PropertyChanged}" FontWeight="Bold" VerticalAlignment="Center"/>
-                                    <TextBlock Grid.Column="1" Text="{Binding CheckValueString, Mode=OneTime, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Center"/>
+                                    <TextBlock Grid.Column="0" Text="{Binding CheckTypeString, Mode=OneTime, UpdateSourceTrigger=PropertyChanged}" FontWeight="Bold" VerticalAlignment="Center"/>
+                                    <TextBlock Grid.Column="1" Text="{Binding CheckValueString, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Center"/>
                                     <Grid Grid.Column="2">
                                         <TextBlock Text="{Binding ReferenceValueString, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Center"/>
                                     </Grid>
@@ -163,14 +164,14 @@
                         </ListView.ItemTemplate>
                     </ListView>
                 </Grid>
-                <Grid Background="White" VerticalAlignment="Top" HorizontalAlignment="Stretch"  x:Name="EditTestGrid" Visibility="{Binding DataContext.amEditing, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:ChecklistControl}}, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource VisibilityConverter}}">
+                <Grid Background="White" VerticalAlignment="Top" HorizontalAlignment="Stretch"  x:Name="EditTestGrid" Visibility="{Binding DataContext.ParentView.ParentView.AdminOptionsToggle, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:ChecklistControl}}, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource VisibilityConverter}}">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="*"/>
                     </Grid.RowDefinitions>
                     <Grid Grid.Row="0" Margin="10,5,3,0" HorizontalAlignment="Left" Background="Transparent" >
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="250"/>
+                            <ColumnDefinition Width="275"/>
                             <ColumnDefinition Width="150"/>
                             <ColumnDefinition Width="150"/>
                         </Grid.ColumnDefinitions>
@@ -210,12 +211,13 @@
                             <DataTemplate>
                                 <Grid HorizontalAlignment="Stretch">
                                     <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="250"/>
+                                        <ColumnDefinition Width="275"/>
                                         <ColumnDefinition Width="150"/>
                                         <ColumnDefinition Width="*"/>
                                     </Grid.ColumnDefinitions>
-                                    <TextBlock Grid.Column="0" Text="{Binding TestName, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" FontWeight="Bold" VerticalAlignment="Center"/>
-                                    <TextBlock Grid.Column="1" Text="{Binding ReferenceValueString, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Center"/>
+                                    <TextBlock Grid.Column="0" Text="{Binding CheckTypeString, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" FontWeight="Bold" VerticalAlignment="Center"/>
+                                    <TextBlock Grid.Column="1" Text="{Binding ReferenceValueString, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Center"
+                                               Foreground="{Binding Reference.IsChanged,Converter={StaticResource ReferenceEditConverter}, UpdateSourceTrigger=PropertyChanged}"/>
                                     <Grid Grid.Column="2">
                                         <Grid x:Name="SingleSelection">
                                             <Grid.Visibility>
@@ -224,7 +226,7 @@
                                                     <Binding Path="Name" RelativeSource="{RelativeSource Self}"/>
                                                 </MultiBinding>
                                             </Grid.Visibility>
-                                            <ComboBox ItemsSource="{Binding ReferenceValue.ReferenceCollection, Mode=OneWayToSource, UpdateSourceTrigger=PropertyChanged}" 
+                                            <ComboBox ItemsSource="{Binding ReferenceCollection, UpdateSourceTrigger=PropertyChanged}" SelectedItem="{Binding SetReference, Mode=OneWayToSource}"
                                                    VerticalAlignment="Center" Style="{DynamicResource ChecklistComboBoxStyle}"/>
                                         </Grid>
                                         <Grid x:Name="SingleValue">
@@ -238,7 +240,7 @@
                                                     <Binding Path="Name" RelativeSource="{RelativeSource Self}"/>
                                                 </MultiBinding>
                                             </Grid.Visibility>
-                                            <TextBox Grid.Column="0" Text="{Binding SetReference, Mode=OneWayToSource}" 
+                                            <TextBox Grid.Column="0" Text="{Binding SetReference, Mode=TwoWay}" 
                                                      Style="{StaticResource ChecklistTextBoxStyle}" local:TextBoxExtensions.UpdateSourceOnKey="Return"/>
                                         </Grid>
                                         <Grid x:Name="SingleValueWithTolerance">
@@ -252,11 +254,11 @@
                                                     <Binding Path="Name" RelativeSource="{RelativeSource Self}"/>
                                                 </MultiBinding>
                                             </Grid.Visibility>
-                                            <TextBox Grid.Column="0" Text="{Binding SetReference, Mode=OneWayToSource}" 
+                                            <TextBox Grid.Column="0" Text="{Binding SetReference, Mode=TwoWay}" 
                                                      Style="{StaticResource ChecklistTextBoxStyle}" local:TextBoxExtensions.UpdateSourceOnKey="Return"/>
                                             <StackPanel Grid.Column="1" Orientation="Horizontal">
-                                                <TextBlock Text="&#x00B1;" VerticalAlignment="Center" HorizontalAlignment="Center"/>
-                                                <TextBox Text="{Binding SetTolerance, Mode=OneWayToSource}"  local:TextBoxExtensions.UpdateSourceOnKey="Return"
+                                                <TextBlock Text="&#x00B1;" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="2,0,5,0"/>
+                                                <TextBox Text="{Binding SetTolerance, Mode=TwoWay}"  local:TextBoxExtensions.UpdateSourceOnKey="Return" 
                                                          Style="{StaticResource ChecklistTextBoxStyle}" Width="50"/>
                                             </StackPanel>
                                         </Grid>

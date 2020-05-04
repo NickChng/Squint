@@ -379,18 +379,18 @@ namespace SquintScript
             public Energies Energy { get; set; }
             public string Id { get; set; } = "Default Field";
             public double MU { get; set; } = 0;
-            public double GantryEnd { get; set; }
+            public double GantryEnd { get; set; } = 0;
             public double GantryStart { get; set; } = 0;
             public double CollimatorAngle { get; set; } = 0;
-            public double CouchRotation { get; set; }
+            public double CouchRotation { get; set; } = 0;
 
             public VVector Isocentre { get; set; }
-            public double Xmax { get; set; }
-            public double Ymax { get; set; }
-            public double Ymin { get; set; }
-            public double Xmin { get; set; }
-            public double X1max { get; set; }
-            public double Y1max { get; set; }
+            public double Xmax { get; set; } = 0;
+            public double Ymax { get; set; } = 0;
+            public double Ymin { get; set; } = 0;
+            public double Xmin { get; set; } = 0;
+            public double X1max { get; set; } = 0;
+            public double Y1max { get; set; } = 0;
             public double X2max { get; set; }
             public double Y2max { get; set; }
             public double X1min { get; set; }
@@ -610,19 +610,20 @@ namespace SquintScript
         }
         public class ProtocolPreview
         {
+            public ProtocolPreview() { }
             public ProtocolPreview(int _ID, string ProtocolName_in)
             {
                 ID = _ID;
                 ProtocolName = ProtocolName_in;
             }
 
-            public int ID { get; private set; }
-            public string ProtocolName { get; private set; }
-            public ProtocolTypes ProtocolType { get; set; }
-            public TreatmentCentres TreatmentCentre { get; set; }
-            public TreatmentSites TreatmentSite { get; set; }
-            public ApprovalLevels Approval { get; set; }
-            public string LastModifiedBy { get; set; }
+            public int ID { get; private set; } = 0;
+            public string ProtocolName { get; private set; } = "None selected";
+            public ProtocolTypes ProtocolType { get; set; } = ProtocolTypes.Unset;
+            public TreatmentCentres TreatmentCentre { get; set; } = TreatmentCentres.Unset;
+            public TreatmentSites TreatmentSite { get; set; } = TreatmentSites.Unset;
+            public ApprovalLevels Approval { get; set; } = ApprovalLevels.Unset;
+            public string LastModifiedBy { get; set; } = "";
         }
 
             //}
@@ -800,13 +801,13 @@ namespace SquintScript
             else
                 return double.NaN;
         }
-        public async static Task<double> GetDoseGridResolution(string CourseId, string PlanId)
+        public async static Task<double?> GetDoseGridResolution(string CourseId, string PlanId)
         {
             AsyncPlan p = await DataCache.GetAsyncPlan(PlanId, CourseId, ComponentTypes.Plan);
             if (p.PlanType == ComponentTypes.Plan)
                 return await p.GetDoseGridResolution();
             else
-                return double.NaN;
+                return null;
         }
         public async static Task<string> GetFieldNormalizationMode(string CourseId, string PlanId)
         {
@@ -1057,12 +1058,10 @@ namespace SquintScript
             else
                 return null;
         }
-        public static Component GetComponentView(int ComponentID)
+        public static Component GetComponent(int ComponentID)
         {
-            if (ComponentViews.ContainsKey(ComponentID))
-                return ComponentViews[ComponentID];
-            else
-                return null;
+            
+            return DataCache.GetComponent(ComponentID);
         }
         public static Constraint GetConstraint(int ConId)
         {

@@ -19,6 +19,8 @@ using VMSTypes = VMS.TPS.Common.Model.Types;
 using ESAPI = VMS.TPS.Common.Model.API.Application;
 using System.Text.RegularExpressions;
 using System.Data.Entity;
+using SquintScript.ViewModels;
+using SquintScript.Extensions;
 
 namespace SquintScript
 {
@@ -34,7 +36,10 @@ namespace SquintScript
                 case CheckTypes.SliceSpacing:
                     CurrentProtocol.Checklist.SliceSpacing.Value = (double)ReferenceValue;
                     break;
-                    
+                default:
+                    MessageBox.Show(string.Format("Error: Attempt to save CheckType {0}", CheckType.Display()));
+                    break;
+
             }
         }
         public static void UpdateChecklistReferenceRange(CheckTypes CheckType, object Min, object Max)
@@ -51,9 +56,15 @@ namespace SquintScript
 
             }
         }
-        public static void Save_UpdateProtocolChecklist()
+        //public static void Save_UpdateProtocolChecklist()
+        //{
+        //    DataCache.Save_UpdateProtocolCheckList();
+        //}
+
+        public static async Task<double> GetVolumeAfterExpansion(PlanSelector ps, string StructureId, double Margin)
         {
-            DataCache.Save_UpdateProtocolCheckList();
+            AsyncPlan p = await DataCache.GetAsyncPlan(ps.PlanUID, ps.CourseId);
+            return await p.CheckMargin(StructureId, Margin);
         }
     }
 }

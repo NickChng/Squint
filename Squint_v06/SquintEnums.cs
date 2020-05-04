@@ -14,8 +14,42 @@ namespace SquintScript
     public enum CheckTypes
     {
         [Description("Unset")] Unset,
+        [Description("Series Id")] SeriesId,
+        [Description("Study Id")] StudyId,
+        [Description("Series Comment")] SeriesComment,
+        [Description("Image Comment")] ImageComment,
+        [Description("Number of slices")] NumSlices,
         [Description("Slice spacing")] SliceSpacing,
-        [Description("Plan Normalization")] PlanNormalization
+        [Description("Plan normalization")] PlanNormalization,
+        [Description("Algorithm")] Algorithm,
+        [Description("Dose grid resolution")] DoseGridResolution,
+        [Description("Heterogeneity on")] HeterogeneityOn,
+        [Description("Field norm Mmde")] FieldNormMode,
+        [Description("Couch surface HU")] CouchSurfaceHU,
+        [Description("Couch interior HU")] CouchInteriorHU,
+        [Description("Artifact HU")] ArtifactHU,
+        [Description("Prescription dose")] PrescriptionDose,
+        [Description("Number of fractions")] NumFractions,
+        [Description("Course intent")] CourseIntent,
+        [Description("Plan normalization value range")] PNVRange,
+        [Description("Prescribed percentage")] PrescribedPercentage,
+        [Description("Min subvolume")] MinSubvolume,
+        [Description("Number of isocentres")] NumIsocentres,
+        [Description("Number of fields")] NumFields,
+        [Description("Min. collimator offset")] MinColOffset,
+        [Description("MU range")] MURange,
+        [Description("Valid energies")] ValidEnergies,
+        [Description("Beam geometry")] BeamGeometry,
+        [Description("Couch rotation")] CouchRotation,
+        [Description("Jaw tracking")] JawTracking,
+        [Description("Minimum MLC offset from axial plane")] MinMLCOffsetFromAxial,
+        [Description("Minimum X field size")] MinimumXfieldSize,
+        [Description("Maximum X field size")] MaximumXfieldSize,
+        [Description("Minimum Y field size")] MinimumYfieldSize,
+        [Description("Maximum Y field size")] MaximumYfieldSize,
+        [Description("Bolus HU")] BolusThickness,
+        [Description("Bolus thickness [cm]")] BolusHU,
+        [Description("Tolerance Table")] ToleranceTable
     }
     public enum Energies
     {
@@ -345,7 +379,7 @@ namespace SquintScript
 
     public enum TreatmentCentres
     {
-        [Description("Filter by centre...")] Unset,
+        [Description("-")] Unset,
         [Description("Show all")] All,
         [Description("Provincial")] Provincial,
         [Description("CN")] CN,
@@ -357,7 +391,7 @@ namespace SquintScript
     }
     public enum ApprovalLevels
     {
-        [Description("Filter by approval...")] Unset,
+        [Description("-")] Unset,
         [Description("Show all")] All,
         [Description("Unapproved")] Unapproved,
         [Description("Reviewed")] Reviewed,
@@ -366,7 +400,7 @@ namespace SquintScript
     }
     public enum ProtocolTypes
     {
-        [Description("Filter by protocol type...")] Unset,
+        [Description("-")] Unset,
         [Description("Show all")] All,
         [Description("Clinical")] Clinical,
         [Description("Trial")] Trial,
@@ -375,7 +409,7 @@ namespace SquintScript
     }
     public enum TreatmentSites
     {
-        [Description("Filter by disease site...")] Unset,
+        [Description("-")] Unset,
         [Description("Show all")] All,
         [Description("GU")] GU,
         [Description("GI")] GI,
@@ -389,7 +423,7 @@ namespace SquintScript
     }
     public enum TreatmentTechniques
     {
-        [Description("Unset")] Unset,
+        [Description("-")] Unset,
         [Description("Conformal")] Conformal,
         [Description("IMRT")] IMRT,
         [Description("VMAT")] VMAT,

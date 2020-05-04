@@ -652,7 +652,6 @@ namespace SquintScript
         public virtual DbComponent DbComponent { get; set; }
         public string ProtocolBeamName { get; set; }
         public int Technique { get; set; }
-        public int Energy { get; set; }
         public string ToleranceTable { get; set; }
         public double MinMUWarning { get; set; }
         public double MaxMUWarning { get; set; }
@@ -663,11 +662,11 @@ namespace SquintScript
         public double MaxX { get; set; }
         public double MinY { get; set; }
         public double MaxY { get; set; }
-        public int BolusClinicalIndication { get; set; }
-        public double BolusClinicalHU { get; set; }
-        public double BolusClinicalToleranceHU { get; set; }
-        public double BolusClinicalMinThickness { get; set; }
-        public double BolusClinicalMaxThickness { get; set; }
+        //public int BolusClinicalIndication { get; set; }
+        //public double BolusClinicalHU { get; set; }
+        //public double BolusClinicalToleranceHU { get; set; }
+        //public double BolusClinicalMinThickness { get; set; }
+        //public double BolusClinicalMaxThickness { get; set; }
         public int JawTracking_Indication { get; set; }
         public virtual ICollection<DbEnergy> DbEnergies { get; set; }
         public virtual ICollection<DbBolus> DbBoluses { get; set; }
@@ -744,17 +743,17 @@ namespace SquintScript
         //Algorithm
         public int Algorithm { get; set; }
         public int FieldNormalizationMode { get; set; }
-        public double AlgorithmResolution { get; set; }
-        public bool HeterogeneityOn { get; set; }
-        public double SliceSpacing { get; set; }
+        public double? AlgorithmResolution { get; set; }
+        public bool? HeterogeneityOn { get; set; }
+        public double? SliceSpacing { get; set; }
         //Prescription
-        public double PrescribedPercentage { get; set; }
-        public double PNVMin { get; set; }
-        public double PNVMax { get; set; }
+        public double? PrescribedPercentage { get; set; }
+        public double? PNVMin { get; set; }
+        public double? PNVMax { get; set; }
         //Supports
         public int SupportIndication { get; set; }
-        public double CouchSurface { get; set; }
-        public double CouchInterior { get; set; }
+        public double? CouchSurface { get; set; }
+        public double? CouchInterior { get; set; }
         //Artifacts
         public virtual ICollection<DbArtifact> Artifacts { get; set; }
 

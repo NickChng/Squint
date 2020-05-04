@@ -20,33 +20,38 @@
                     <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
                 <TextBlock Grid.Column="0" Text="Plan Checklist" FontSize="18" FontWeight="Bold" Foreground="White" Margin="5,5,5,5" VerticalAlignment="Center" ></TextBlock>
-                <Button Grid.Column="1" ToolTip="Edit reference values"  Style="{DynamicResource ButtonStyle_Small}" Padding="5,5,5,5" HorizontalAlignment="Right" VerticalAlignment="Center" 
+                <ComboBox Grid.Column="1" Style="{StaticResource ConstraintComboBoxStyle}" MinWidth="120"
+                          ItemsSource="{Binding Components, Mode=OneWay}" SelectedItem="{Binding SelectedComponent, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
+                          Visibility="{Binding ParentView.ParentView.AdminOptionsToggle, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource VisibilityConverter}}"
+                          DisplayMemberPath="ComponentName"/>
+                <!--<Button Grid.Column="2" ToolTip="Edit reference values"  Style="{DynamicResource ButtonStyle_Small}" Padding="5,5,5,5" HorizontalAlignment="Right" VerticalAlignment="Center" 
                             Background="{Binding amEditing, Converter={StaticResource EditModeIconConverter}}" Margin="0,0,5,0" 
-                        Visibility="{Binding amEditing, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource VisibilityInverseConverter}}"
+                         Visibility="{Binding ParentView.ParentView.AdminOptionsToggle, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource VisibilityConverter}}"
                         Command="{Binding StartEditingCommand}">
                     <ContentControl>
                         <Image Source="/Resources/edit_trans.png"></Image>
                     </ContentControl>
-                </Button>
-                <Button Grid.Column="2" ToolTip="Accept changes"  Style="{DynamicResource ButtonStyle_Small}" HorizontalAlignment="Right" VerticalAlignment="Center" 
+                </Button>-->
+                <Button Grid.Column="3" ToolTip="Accept changes"  Style="{DynamicResource ButtonStyle_Small}" HorizontalAlignment="Right" VerticalAlignment="Center" 
                             Background="{Binding amEditing, Converter={StaticResource EditModeIconConverter}}" Margin="0,0,5,0"
-                        Visibility="{Binding amEditing, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource VisibilityConverter}}"
+                        Visibility="{Binding ParentView.ParentView.AdminOptionsToggle, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource VisibilityConverter}}"
                         Command="{Binding AcceptEditsCommand}">
                     <ContentControl>
                         <Image Source="/Resources/check_trans_dark.png"></Image>
                     </ContentControl>
                 </Button>
-                <Button Grid.Column="3" ToolTip="Reject changes"  Padding="5,5,5,5" Style="{DynamicResource ButtonStyle_Small}" HorizontalAlignment="Right" VerticalAlignment="Center"
+                <Button Grid.Column="4" ToolTip="Reject changes"  Padding="5,5,5,5" Style="{DynamicResource ButtonStyle_Small}" HorizontalAlignment="Right" VerticalAlignment="Center"
                             Background="{Binding amEditing, Converter={StaticResource EditModeIconConverter}}" Margin="0,0,5,0"
-                        Visibility="{Binding amEditing, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource VisibilityConverter}}"
+                        Visibility="{Binding ParentView.ParentView.AdminOptionsToggle, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource VisibilityConverter}}"
                         Command="{Binding RejectEditsCommand}">
                     <ContentControl>
                         <Image Source="/Resources/x_trans.png"></Image>
                     </ContentControl>
                 </Button>
-                <Button Grid.Column="4" ToolTip="Close checklist" Style="{DynamicResource ButtonStyle_Small}" HorizontalAlignment="Right" VerticalAlignment="Center" Background="LightSteelBlue" Margin="0,0,5,0"
+                <Button Grid.Column="5" ToolTip="Close checklist" Style="{DynamicResource ButtonStyle_Small}" HorizontalAlignment="Right" VerticalAlignment="Center" Background="LightSteelBlue" Margin="0,0,5,0"
                         Command="{Binding DataContext.CloseCheckListCommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Window}}}">
                     <ContentControl>
                         <Image Source="/Resources/section_collapse.png"></Image>
@@ -97,10 +102,13 @@
                     <local:TestView DataContext="{Binding Prescription_ViewModel}" TestItems ="{Binding Tests}"  SetReferenceHeader="Reference Value" />
                 </StackPanel>
                 <Border Grid.Row="6" CornerRadius="5,5,5,5" Background="CornflowerBlue" Margin="0,15,0,10">
-                    <TextBlock Text="Target Structures" Foreground="White" FontSize="14" Margin="10,5,5,5"/>
+                    <TextBlock Text="Contour checks" Foreground="White" FontSize="14" Margin="10,5,5,5"/>
                 </Border>
                 <StackPanel Grid.Row="7" Orientation="Vertical">
-                    <TextBlock Grid.Column="0" FontWeight="Bold" Text="Target Structure Checks" FontSize="13" Margin="5,5,0,5"/>
+                    <TextBlock Grid.Column="0" FontWeight="Bold" Text="Small subvolume checks" FontSize="13" Margin="5,5,0,5"/>
+                    <Border  Background="Black" CornerRadius="1,1,1,1" Height="2" Margin="5,3,10,5" HorizontalAlignment="Stretch"/>
+                    <local:TestView DataContext="{Binding Targets_ViewModel}" TestItems ="{Binding Tests}" SetReferenceHeader="Reference Value" />
+                    <TextBlock Grid.Column="0" FontWeight="Bold" Text="Margin checks" FontSize="13" Margin="5,5,0,5"/>
                     <Border  Background="Black" CornerRadius="1,1,1,1" Height="2" Margin="5,3,10,5" HorizontalAlignment="Stretch"/>
                     <local:TestView DataContext="{Binding Targets_ViewModel}" TestItems ="{Binding Tests}" SetReferenceHeader="Reference Value" />
                 </StackPanel>

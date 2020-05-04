@@ -25,14 +25,187 @@ namespace SquintScript.ViewModels
         public Controls.TestList_ViewModel Calculation_ViewModel { get; set; } = new Controls.TestList_ViewModel();
         public Controls.TestList_ViewModel Prescription_ViewModel { get; set; } = new Controls.TestList_ViewModel();
 
+        public ProtocolView ParentView { get; private set; }
         public bool amEditing { get; set; } = false;
+        public bool adminMode { get { return ParentView.ParentView.AdminOptionsToggle; } }
+        public ObservableCollection<ComponentSelector> Components { get; set; } = new ObservableCollection<ComponentSelector>();
 
-
-        public Checklist_ViewModel()
+        private ComponentSelector _SelectedComponent;
+        public ComponentSelector SelectedComponent
         {
-
+            get { return _SelectedComponent; }
+            set { _SelectedComponent = value; PopulateViewFromSelectedComponent(); }
         }
-        public async Task PopulateViews(PlanSelector p)
+
+        public Checklist_ViewModel(ProtocolView parentView)
+        {
+            ParentView = parentView;
+            ViewActiveProtocol();
+        }
+        private void ViewActiveProtocol()
+        {
+            foreach (var C in Ctr.GetComponentList())
+                Components.Add(new ComponentSelector(C));
+        }
+        private void PopulateViewFromSelectedComponent()
+        {
+            // No pre-population of the Objectives of imaging checks yet, as these aren't editable
+
+            // Populate Simulation ViewModel
+            if (_SelectedComponent == null)
+                return;
+            var P = Ctr.GetActiveProtocol();
+            Ctr.Component Comp = Ctr.GetComponent(_SelectedComponent.Id);
+            var SliceSpacingReference = P.Checklist.SliceSpacing;
+            CheckValueItem<double?> SliceSpacing = new CheckValueItem<double?>(CheckTypes.SliceSpacing, null, SliceSpacingReference, new TrackedValue<double?>(1E-5), "Slice spacing does not match protocol");
+            SliceSpacing.CheckType = CheckTypes.SliceSpacing;
+            CheckValueItem<string> Series = new CheckValueItem<string>(CheckTypes.SeriesId, null, null) { ParameterOption = ParameterOptions.Optional };
+            CheckValueItem<string> Study = new CheckValueItem<string>(CheckTypes.StudyId, null, null) { ParameterOption = ParameterOptions.Optional };
+            CheckValueItem<string> SeriesComment = new CheckValueItem<string>(CheckTypes.SeriesComment, null, null) { ParameterOption = ParameterOptions.Optional };
+            CheckValueItem<string> ImageComment = new CheckValueItem<string>(CheckTypes.ImageComment, null, null) { ParameterOption = ParameterOptions.Optional };
+            CheckValueItem<int?> NumSlices = new CheckValueItem<int?>(CheckTypes.NumSlices, null, null) { ParameterOption = ParameterOptions.Optional };
+            Simulation_ViewModel.Tests = new ObservableCollection<ITestListItem>() { Study, Series, NumSlices, SliceSpacing, SeriesComment, ImageComment };
+
+            // Populate Calculation ViewModel
+            Calculation_ViewModel.Tests.Clear(); // = new ObservableCollection<Controls.TestListItem<string>>();
+            var ProtocolAlgorithm = P.Checklist.Algorithm;
+            CheckValueItem<AlgorithmTypes> Algorithm = new CheckValueItem<AlgorithmTypes>(CheckTypes.Algorithm, AlgorithmTypes.Unset, ProtocolAlgorithm, null, "Algorithm mismatch");
+            Calculation_ViewModel.Tests.Add(Algorithm);
+
+            var DGR_protocol = P.Checklist.AlgorithmResolution;
+            var DGRwarningMessage = "Resolution deviation";
+            CheckValueItem<double?> DoseGridResolution = new CheckValueItem<double?>(CheckTypes.DoseGridResolution, null, DGR_protocol, new TrackedValue<double?>(1E-2), DGRwarningMessage);
+            Calculation_ViewModel.Tests.Add(DoseGridResolution);
+
+            // Heterogeneity
+            var ProtocolHeteroOn = P.Checklist.HeterogeneityOn;
+            var HeteroWarningString = "Heterogeneity setting incorrect";
+            CheckValueItem<bool?> HeterogeneityOn = new CheckValueItem<bool?>(CheckTypes.HeterogeneityOn, null, ProtocolHeteroOn, null, HeteroWarningString, "Not set", "Not set");
+            Calculation_ViewModel.Tests.Add(HeterogeneityOn);
+
+            // Field Normalization
+            var ProtocolFieldNorm = P.Checklist.FieldNormalizationMode;
+            CheckValueItem<FieldNormalizationTypes> FieldNormTest = new CheckValueItem<FieldNormalizationTypes>(CheckTypes.FieldNormMode, FieldNormalizationTypes.Unset, ProtocolFieldNorm, null, "Non-standard normalization");
+            Calculation_ViewModel.Tests.Add(FieldNormTest);
+
+            // Support structures
+
+            var RefCouchSurface = P.Checklist.CouchSurface;
+            var RefCouchInterior = P.Checklist.CouchInterior;
+            var CouchWarningMessage = "HU Deviation";
+            string CouchNotFoundWarning = "Not Found";
+            string CouchHUNotSpecifiedWarning = "Not Specified";
+            ParameterOptions CouchInteriorOption = ParameterOptions.Optional;
+            ParameterOptions CouchSurfaceOption = ParameterOptions.Optional;
+            if (P.Checklist.CouchSurface.Value == null)
+                CouchSurfaceOption = ParameterOptions.Optional;
+            if (P.Checklist.CouchInterior.Value == null)
+                CouchInteriorOption = ParameterOptions.Optional;
+            CheckValueItem<double?> CouchSurfaceTest = new CheckValueItem<double?>(CheckTypes.CouchSurfaceHU, null, RefCouchSurface, new TrackedValue<double?>(0.1), CouchWarningMessage, CouchNotFoundWarning, CouchHUNotSpecifiedWarning);
+            CouchSurfaceTest.ParameterOption = CouchSurfaceOption;
+            CheckValueItem<double?> CouchInteriorTest = new CheckValueItem<double?>(CheckTypes.CouchInteriorHU, null, RefCouchInterior, new TrackedValue<double?>(0.1), CouchWarningMessage, CouchNotFoundWarning, CouchHUNotSpecifiedWarning);
+            CouchInteriorTest.ParameterOption = CouchInteriorOption;
+            Calculation_ViewModel.Tests.Add(CouchSurfaceTest);
+            Calculation_ViewModel.Tests.Add(CouchInteriorTest);
+
+            // Artifacts in calculaion
+            foreach (var A in P.Checklist.Artifacts)
+            {
+                var ArtifactWarningString = "Assigned HU deviates from protocol";
+                string NoCheckHUString = @"No artifact structure";
+                string NoRefHUString = @"Not specified";
+                var ArtifactCheck = new CheckValueItem<double?>(CheckTypes.ArtifactHU, null, A.RefHU, A.ToleranceHU, ArtifactWarningString, NoCheckHUString, NoRefHUString);
+                ArtifactCheck.OptionalNameSuffix = string.Format(@"(""{0}"")", A.E.AssignedStructureId);
+                ArtifactCheck.ParameterOption = ParameterOptions.Optional;
+                Calculation_ViewModel.Tests.Add(ArtifactCheck);
+            }
+
+            // Course Intent
+            var RefCourseIntent = Ctr.GetActiveProtocol()._TreatmentIntent;
+            var CourseIntentWarningString = "";
+            CheckValueItem<TreatmentIntents> CourseIntentTest = new CheckValueItem<TreatmentIntents>(CheckTypes.CourseIntent, TreatmentIntents.Unset, RefCourseIntent, null, CourseIntentWarningString);
+
+            // Plan normalization
+            var PNVWarning = "Out of range";
+            CheckRangeItem<double?> PNVCheck = new CheckRangeItem<double?>(CheckTypes.PlanNormalization, null, P.Checklist.PNVMin, P.Checklist.PNVMax, PNVWarning);
+
+            // Prescription percentage
+            CheckValueItem<double?> PlanRxPc = new CheckValueItem<double?>(CheckTypes.PrescribedPercentage, null, new TrackedValue<double?>(100), new TrackedValue<double?>(1E-5), "Not set to 100");
+
+            // Check Rx and fractions
+
+            var RxDoseWarningString = "Plan dose different from protocol";
+            var TrackedRefDose = new TrackedValue<double?>(Comp.ReferenceDose);
+            var TrackedDoseTolerance = new TrackedValue<double?>(1E-5);
+            CheckValueItem<double?> RxCheck = new CheckValueItem<double?>(CheckTypes.PrescriptionDose, null, TrackedRefDose, TrackedDoseTolerance, RxDoseWarningString);
+
+            var RefFractions = Comp.NumFractions;
+            var TrackedRefFractions = new TrackedValue<int?>(Comp.NumFractions);
+            var CheckFractionWarningString = "Plan fractions different from protocol";
+            CheckValueItem<int?> FxCheck = new CheckValueItem<int?>(CheckTypes.NumFractions, null, TrackedRefFractions, null, CheckFractionWarningString);
+            Prescription_ViewModel.Tests = new ObservableCollection<ITestListItem>() { RxCheck, FxCheck, CourseIntentTest, PNVCheck, PlanRxPc };
+
+            // Beam checks
+            Beam_ViewModel.Beams.Clear();
+            Beam_ViewModel.GroupTests.Tests.Clear();
+            foreach (var Beam in Comp.GetBeams())
+            {
+                var BLI = new Controls.BeamListItem(Beam, null);
+                Beam_ViewModel.Beams.Add(BLI);
+                BLI.FieldChanged += new EventHandler((s, e) => BLI_PropertyChanged(s, e, Comp)); // this updates the MinColOffsetCheck if the field assignments on any reference beam are changed
+            }
+
+            // Iso Check
+            //var IsoCentreWarning = Fields.Select(x => x.Isocentre).Distinct().Count() != Comp.NumIso;
+            CheckValueItem<int> NumIsoCheck = new CheckValueItem<int>(CheckTypes.NumIsocentres, -1, Comp.NumIso, null, "Num isocentres differs");
+            Beam_ViewModel.GroupTests.Tests.Add(NumIsoCheck);
+
+            // Num Fields Check
+            string BeamRangeWarning = "Number of beams outside range";
+            CheckRangeItem<int> FieldCountCheck = new CheckRangeItem<int>(CheckTypes.NumFields, -1, Comp.MinBeams, Comp.MaxBeams, BeamRangeWarning);
+            Beam_ViewModel.GroupTests.Tests.Add(FieldCountCheck);
+
+            // Min Col Offset
+            var MinColOffsetCheck = new CheckValueItem<double?>(CheckTypes.MinColOffset, null, null, null, "Protocol fields not assigned");
+            MinColOffsetCheck.Test = TestType.GreaterThan;
+            Beam_ViewModel.GroupTests.Tests.Add(MinColOffsetCheck);
+
+
+
+
+            //// Target Structure Checks
+            //Targets_ViewModel.Tests.Clear();
+            //foreach (Ctr.ProtocolStructure E in Ctr.GetStructureList())
+            //{
+            //    if (E.CheckList != null)
+            //    {
+            //        var C = E.CheckList;
+            //        if (C.isPointContourChecked.Value)
+            //        {
+            //            var VolParts = await E.PartVolumes(p.StructureSetUID);
+            //            double MinVol = double.NaN;
+            //            if (VolParts != null)
+            //                MinVol = VolParts.Min();
+            //            string WarningString = "Subvolume less than threshold";
+            //            if (!double.IsNaN(MinVol))
+            //            {
+            //                var NumDetectedParts = await E.NumParts(p.StructureSetUID);
+            //                var VMS_NumParts = await E.VMS_NumParts(p.StructureSetUID);
+            //                if (VMS_NumParts > NumDetectedParts)
+            //                {
+            //                    MinVol = 0.01;
+            //                }
+            //            }
+            //            var TL = new CheckValueItem<double>(CheckTypes.MinSubvolume, MinVol, C.PointContourVolumeThreshold, null, WarningString, "Not found", "Not specified");
+            //            TL.OptionalNameSuffix = string.Format(@" of {1} (""{0}"") [cc]", E.AssignedStructureId, E.ProtocolStructureName);
+            //            TL.Test = TestType.GreaterThan;
+            //            Targets_ViewModel.Tests.Add(TL);
+            //        }
+
+            //    }
+            //}
+        }
+        public async Task DisplayChecksForPlan(PlanSelector p)
         {
             Objectives_ViewModel = new Controls.Control_ViewModel();
             var Objectives = await Ctr.GetOptimizationObjectiveList(p.CourseId, p.PlanId);
@@ -74,42 +247,48 @@ namespace SquintScript.ViewModels
             // Populate Simulation ViewModel
             var P = Ctr.GetActiveProtocol();
             var SliceSpacingReference = P.Checklist.SliceSpacing;
-            var SliceSpacingValue = (double?)await Ctr.GetSliceSpacing(p.CourseId, p.PlanId);
-            CheckValueItem<double?> SliceSpacing = new CheckValueItem<double?>("Slice spacing", SliceSpacingValue, SliceSpacingReference, new TrackedValue<double?>(1E-5), "Slice spacing does not match protocol");
+            var SliceSpacingValue = await Ctr.GetSliceSpacing(p.CourseId, p.PlanId);
+            CheckValueItem<double?> SliceSpacing = new CheckValueItem<double?>(CheckTypes.SliceSpacing, SliceSpacingValue, SliceSpacingReference, new TrackedValue<double?>(1E-5), "Slice spacing does not match protocol");
             SliceSpacing.CheckType = CheckTypes.SliceSpacing;
-            CheckValueItem<string> Series = new CheckValueItem<string>("Series Id", await Ctr.GetSeriesId(p.CourseId, p.PlanId), null);
-            CheckValueItem<string> Study = new CheckValueItem<string>("Study Id", await Ctr.GetStudyId(p.CourseId, p.PlanId), null);
-            CheckValueItem<string> SeriesComment = new CheckValueItem<string>("Series comment / scan protocol", await Ctr.GetSeriesComments(p.CourseId, p.PlanId), null);
-            CheckValueItem<string> ImageComment = new CheckValueItem<string>("Image comment", await Ctr.GetImageComments(p.CourseId, p.PlanId), null);
-            CheckValueItem<int?> NumSlices = new CheckValueItem<int?>("Number of slices", await Ctr.GetNumSlices(p.CourseId, p.PlanId), null);
-            Simulation_ViewModel.Tests = new ObservableCollection<ITestListItem>() { Study, Series, NumSlices, SliceSpacing, SeriesComment, ImageComment };
+            CheckValueItem<string> Series = new CheckValueItem<string>(CheckTypes.SeriesId, await Ctr.GetSeriesId(p.CourseId, p.PlanId), null) { ParameterOption = ParameterOptions.Optional };
+            CheckValueItem<string> Study = new CheckValueItem<string>(CheckTypes.StudyId, await Ctr.GetStudyId(p.CourseId, p.PlanId), null) { ParameterOption = ParameterOptions.Optional };
+            CheckValueItem<string> SeriesComment = new CheckValueItem<string>(CheckTypes.SeriesComment, await Ctr.GetSeriesComments(p.CourseId, p.PlanId), null) { ParameterOption = ParameterOptions.Optional };
+            CheckValueItem<string> ImageComment = new CheckValueItem<string>(CheckTypes.ImageComment, await Ctr.GetImageComments(p.CourseId, p.PlanId), null) { ParameterOption = ParameterOptions.Optional };
+            var NumSlices = await Ctr.GetNumSlices(p.CourseId, p.PlanId);
+            int Slices;
+            if (NumSlices != null)
+                Slices = (int)NumSlices;
+            else
+                Slices = int.MinValue;
+            CheckValueItem<int> NumSlicesChk = new CheckValueItem<int>(CheckTypes.NumSlices, Slices, null) { ParameterOption = ParameterOptions.Optional };
+            Simulation_ViewModel.Tests = new ObservableCollection<ITestListItem>() { Study, Series, NumSlicesChk, SliceSpacing, SeriesComment, ImageComment };
 
             // Populate Calculation ViewModel
             Calculation_ViewModel.Tests.Clear(); // = new ObservableCollection<Controls.TestListItem<string>>();
             var ProtocolAlgorithm = P.Checklist.Algorithm;
             AlgorithmTypes ComponentAlgorithm;
             Enum.TryParse(await Ctr.GetAlgorithmModel(p.CourseId, p.PlanId), out ComponentAlgorithm);
-            CheckValueItem<AlgorithmTypes> Algorithm = new CheckValueItem<AlgorithmTypes>("Algorithm", ComponentAlgorithm, ProtocolAlgorithm, null, "Algorithm mismatch");
+            CheckValueItem<AlgorithmTypes> Algorithm = new CheckValueItem<AlgorithmTypes>(CheckTypes.Algorithm, ComponentAlgorithm, ProtocolAlgorithm, null, "Algorithm mismatch");
             Calculation_ViewModel.Tests.Add(Algorithm);
 
             var DGR_protocol = P.Checklist.AlgorithmResolution;
             var DGRwarningMessage = "Resolution deviation";
             var DGR_plan = await Ctr.GetDoseGridResolution(p.CourseId, p.PlanId);
-            CheckValueItem<double?> DoseGridResolution = new CheckValueItem<double?>("Dose grid resolution", DGR_plan, DGR_protocol, new TrackedValue<double?>(1E-2), DGRwarningMessage);
+            CheckValueItem<double?> DoseGridResolution = new CheckValueItem<double?>(CheckTypes.DoseGridResolution, DGR_plan, DGR_protocol, new TrackedValue<double?>(1E-2), DGRwarningMessage);
             Calculation_ViewModel.Tests.Add(DoseGridResolution);
 
             // Heterogeneity
             var HeteroOn = await Ctr.GetHeterogeneityOn(p.CourseId, p.PlanId);
             var ProtocolHeteroOn = P.Checklist.HeterogeneityOn;
             var HeteroWarningString = "Heterogeneity setting incorrect";
-            CheckValueItem<bool?> HeterogeneityOn = new CheckValueItem<bool?>("Heterogeneity On", HeteroOn, ProtocolHeteroOn, null, HeteroWarningString, "Not set", "Not set");
+            CheckValueItem<bool?> HeterogeneityOn = new CheckValueItem<bool?>(CheckTypes.HeterogeneityOn, HeteroOn, ProtocolHeteroOn, null, HeteroWarningString, "Not set", "Not set");
             Calculation_ViewModel.Tests.Add(HeterogeneityOn);
 
             // Field Normalization
             FieldNormalizationTypes FieldNorm;
             Enum.TryParse(await Ctr.GetFieldNormalizationMode(p.CourseId, p.PlanId), out FieldNorm);
             var ProtocolFieldNorm = P.Checklist.FieldNormalizationMode;
-            CheckValueItem<FieldNormalizationTypes> FieldNormTest = new CheckValueItem<FieldNormalizationTypes>("Field Norm Mode", FieldNorm, ProtocolFieldNorm, null, "Non-standard normalization");
+            CheckValueItem<FieldNormalizationTypes> FieldNormTest = new CheckValueItem<FieldNormalizationTypes>(CheckTypes.FieldNormMode, FieldNorm, ProtocolFieldNorm, null, "Non-standard normalization");
             Calculation_ViewModel.Tests.Add(FieldNormTest);
 
             // Support structures
@@ -126,9 +305,9 @@ namespace SquintScript.ViewModels
                 CouchSurfaceOption = ParameterOptions.Required;
             if (P.Checklist.CouchInterior.Value != null)
                 CouchInteriorOption = ParameterOptions.Required;
-            CheckValueItem<double?> CouchSurfaceTest = new CheckValueItem<double?>("Couch Surface HU", CheckCouchSurface, RefCouchSurface, new TrackedValue<double?>(0.1), CouchWarningMessage, CouchNotFoundWarning, CouchHUNotSpecifiedWarning);
+            CheckValueItem<double?> CouchSurfaceTest = new CheckValueItem<double?>(CheckTypes.CouchSurfaceHU, CheckCouchSurface, RefCouchSurface, new TrackedValue<double?>(0.1), CouchWarningMessage, CouchNotFoundWarning, CouchHUNotSpecifiedWarning);
             CouchSurfaceTest.ParameterOption = CouchSurfaceOption;
-            CheckValueItem<double?> CouchInteriorTest = new CheckValueItem<double?>("Couch Interior HU", CheckCouchInterior, RefCouchInterior, new TrackedValue<double?>(0.1), CouchWarningMessage, CouchNotFoundWarning, CouchHUNotSpecifiedWarning);
+            CheckValueItem<double?> CouchInteriorTest = new CheckValueItem<double?>(CheckTypes.CouchInteriorHU, CheckCouchInterior, RefCouchInterior, new TrackedValue<double?>(0.1), CouchWarningMessage, CouchNotFoundWarning, CouchHUNotSpecifiedWarning);
             CouchInteriorTest.ParameterOption = CouchInteriorOption;
             Calculation_ViewModel.Tests.Add(CouchSurfaceTest);
             Calculation_ViewModel.Tests.Add(CouchInteriorTest);
@@ -145,7 +324,8 @@ namespace SquintScript.ViewModels
                 {
                     CheckHU = A.E.AssignedHU(p.StructureSetUID);
                 }
-                var ArtifactCheck = new CheckValueItem<double?>(string.Format(@"Artifact HU (""{0}"")", A.E.AssignedStructureId), CheckHU, A.RefHU, A.ToleranceHU, ArtifactWarningString, NoCheckHUString, NoRefHUString);
+                var ArtifactCheck = new CheckValueItem<double?>(CheckTypes.ArtifactHU, CheckHU, A.RefHU, A.ToleranceHU, ArtifactWarningString, NoCheckHUString, NoRefHUString);
+                ArtifactCheck.OptionalNameSuffix = string.Format(@"(""{0}"")", A.E.AssignedStructureId);
                 ArtifactCheck.ParameterOption = ParameterOptions.Optional;
                 Calculation_ViewModel.Tests.Add(ArtifactCheck);
             }
@@ -155,29 +335,29 @@ namespace SquintScript.ViewModels
             TreatmentIntents CourseTxIntent;
             Enum.TryParse<TreatmentIntents>(await Ctr.GetCourseIntent(p.CourseId, p.PlanId), out CourseTxIntent);
             var CourseIntentWarningString = "";
-            CheckValueItem<TreatmentIntents> CourseIntentTest = new CheckValueItem<TreatmentIntents>("Course Intent", CourseTxIntent, RefCourseIntent, null, CourseIntentWarningString);
+            CheckValueItem<TreatmentIntents> CourseIntentTest = new CheckValueItem<TreatmentIntents>(CheckTypes.CourseIntent, CourseTxIntent, RefCourseIntent, null, CourseIntentWarningString);
 
             // Plan normalization
             var PNVWarning = "Out of range";
             var PlanPNV = await Ctr.GetPNV(p.CourseId, p.PlanId);
-            CheckRangeItem<double?> PNVCheck = new CheckRangeItem<double?>("Plan Normalization Value Range", PlanPNV, P.Checklist.PNVMin, P.Checklist.PNVMax, PNVWarning);
+            CheckRangeItem<double?> PNVCheck = new CheckRangeItem<double?>(CheckTypes.PlanNormalization, PlanPNV, P.Checklist.PNVMin, P.Checklist.PNVMax, PNVWarning);
 
             // Prescription percentage
             var PlanRxPercentage = await Ctr.GetPrescribedPercentage(p.CourseId, p.PlanId);
-            CheckValueItem<double> PlanRxPc = new CheckValueItem<double>("Prescribed percentage", PlanRxPercentage, new TrackedValue<double>(100), new TrackedValue<double>(1E-5), "Not set to 100");
+            CheckValueItem<double> PlanRxPc = new CheckValueItem<double>(CheckTypes.PrescribedPercentage, PlanRxPercentage, new TrackedValue<double>(100), new TrackedValue<double>(1E-5), "Not set to 100");
 
             // Check Rx and fractions
             var CheckRxDose = await Ctr.GetRxDose(p.CourseId, p.PlanId);
             var RxDoseWarningString = "Plan dose different from protocol";
             var TrackedRefDose = new TrackedValue<double?>(Comp.ReferenceDose);
             var TrackedDoseTolerance = new TrackedValue<double?>(1E-5);
-            CheckValueItem<double?> RxCheck = new CheckValueItem<double?>("Prescription dose", CheckRxDose, TrackedRefDose, TrackedDoseTolerance, RxDoseWarningString);
+            CheckValueItem<double?> RxCheck = new CheckValueItem<double?>(CheckTypes.PrescriptionDose, CheckRxDose, TrackedRefDose, TrackedDoseTolerance, RxDoseWarningString);
 
             var CheckFractions = await Ctr.GetNumFractions(p.CourseId, p.PlanId);
             var RefFractions = Comp.NumFractions;
             var TrackedRefFractions = new TrackedValue<int?>(Comp.NumFractions);
             var CheckFractionWarningString = "Plan fractions different from protocol";
-            CheckValueItem<int?> FxCheck = new CheckValueItem<int?>("Number of fractions", CheckFractions, TrackedRefFractions, null, CheckFractionWarningString);
+            CheckValueItem<int?> FxCheck = new CheckValueItem<int?>(CheckTypes.NumFractions, CheckFractions, TrackedRefFractions, null, CheckFractionWarningString);
             Prescription_ViewModel.Tests = new ObservableCollection<ITestListItem>() { RxCheck, FxCheck, CourseIntentTest, PNVCheck, PlanRxPc };
 
             // Beam checks
@@ -194,12 +374,12 @@ namespace SquintScript.ViewModels
             // Iso Check
             //var IsoCentreWarning = Fields.Select(x => x.Isocentre).Distinct().Count() != Comp.NumIso;
             var NumIsoDetected = Fields.Select(x => x.Isocentre).Distinct().Count();
-            CheckValueItem<int> NumIsoCheck = new CheckValueItem<int>("Number of isocentres", NumIsoDetected, Comp.NumIso, null, "Num isocentres differs");
+            CheckValueItem<int> NumIsoCheck = new CheckValueItem<int>(CheckTypes.NumIsocentres, NumIsoDetected, Comp.NumIso, null, "Num isocentres differs");
             Beam_ViewModel.GroupTests.Tests.Add(NumIsoCheck);
 
             // Num Fields Check
             string BeamRangeWarning = "Number of beams outside range";
-            CheckRangeItem<int> FieldCountCheck = new CheckRangeItem<int>("Number of fields", Fields.Count(), Comp.MinBeams, Comp.MaxBeams, BeamRangeWarning);
+            CheckRangeItem<int> FieldCountCheck = new CheckRangeItem<int>(CheckTypes.NumFields, Fields.Count(), Comp.MinBeams, Comp.MaxBeams, BeamRangeWarning);
             Beam_ViewModel.GroupTests.Tests.Add(FieldCountCheck);
 
             // Min Col Offset
@@ -207,7 +387,7 @@ namespace SquintScript.ViewModels
             {
                 if (Beam_ViewModel.Beams.Any(x => x.Field == null))
                 {
-                    var MinColOffsetCheck = new CheckValueItem<double?>("Min collimator offset", null, null, null, "Protocol fields not assigned");
+                    var MinColOffsetCheck = new CheckValueItem<double?>(CheckTypes.MinColOffset, null, null, null, "Protocol fields not assigned");
                     MinColOffsetCheck.Test = TestType.GreaterThan;
                     Beam_ViewModel.GroupTests.Tests.Add(MinColOffsetCheck);
                 }
@@ -215,11 +395,11 @@ namespace SquintScript.ViewModels
                 {
                     var ColOffset = Beam_ViewModel.Beams.Select(x => x.Field).Select(x => x.CollimatorAngle);
                     var MinColOffset = findMinDiff(ColOffset.ToArray());
-                    var MinColOffsetCheck = new CheckValueItem<double>("Min collimator offset", MinColOffset, Comp.MinColOffset, new TrackedValue<double>(1E-2), "Insufficient collimator offset");
+                    var MinColOffsetCheck = new CheckValueItem<double>(CheckTypes.MinColOffset, MinColOffset, Comp.MinColOffset, new TrackedValue<double>(1E-2), "Insufficient collimator offset");
                     MinColOffsetCheck.Test = TestType.GreaterThan;
                     Beam_ViewModel.GroupTests.Tests.Add(MinColOffsetCheck);
                 }
-                
+
             }
 
 
@@ -246,8 +426,8 @@ namespace SquintScript.ViewModels
                                 MinVol = 0.01;
                             }
                         }
-                        var TL = new CheckValueItem<double>(string.Format(@"Min. Subvolume (""{0}"") [cc]", E.ProtocolStructureName, E.AssignedStructureId),
-                            MinVol, C.PointContourVolumeThreshold, null, WarningString, "Not found", "Not specified");
+                        var TL = new CheckValueItem<double>(CheckTypes.MinSubvolume, MinVol, C.PointContourVolumeThreshold, null, WarningString, "Not found", "Not specified");
+                        TL.OptionalNameSuffix = string.Format(@" of {1} (""{0}"") [cc]", E.AssignedStructureId, E.ProtocolStructureName);
                         TL.Test = TestType.GreaterThan;
                         Targets_ViewModel.Tests.Add(TL);
                     }
@@ -266,9 +446,9 @@ namespace SquintScript.ViewModels
             }
             var ColOffset = Beam_ViewModel.Beams.Select(x => x.Field).Select(x => x.CollimatorAngle).ToList();
             var MinColOffset = findMinDiff(ColOffset.ToArray());
-            var OldTest = Beam_ViewModel.GroupTests.Tests.Where(x => x.TestName == "Min collimator offset").FirstOrDefault();
+            var OldTest = Beam_ViewModel.GroupTests.Tests.Where(x => x.CheckType == CheckTypes.MinColOffset).FirstOrDefault();
             Beam_ViewModel.GroupTests.Tests.Remove(OldTest);
-            var MinColOffsetCheck = new CheckValueItem<double>("Min collimator offset", MinColOffset, Comp.MinColOffset, new TrackedValue<double>(1E-2), "Insufficient collimator offset");
+            var MinColOffsetCheck = new CheckValueItem<double>(CheckTypes.MinColOffset, MinColOffset, Comp.MinColOffset, new TrackedValue<double>(1E-2), "Insufficient collimator offset");
             MinColOffsetCheck.Test = TestType.GreaterThan;
             Beam_ViewModel.GroupTests.Tests.Add(MinColOffsetCheck);
         }
@@ -333,7 +513,6 @@ namespace SquintScript.ViewModels
             {
                 Test.CommitChanges();
             }
-            Ctr.Save_UpdateProtocolChecklist();
         }
 
         private void RejectEdits(object param = null)

@@ -238,7 +238,10 @@ namespace SquintScript
             }
             public static Component GetComponent(int ID)
             {
-                return _Components[ID];
+                if (_Components.ContainsKey(ID))
+                    return _Components[ID];
+                else
+                    return null;
             }
             public static IEnumerable<Component> GetAllComponents()
             {
@@ -773,10 +776,10 @@ namespace SquintScript
                             //var P = _AsyncPlans.Values.FirstOrDefault(x => x.StructureSetUID == DbProtocolStructure.AssignedEclipseStructureSetUID);
                             //if (P != null)
                             //{
-                                //if (P.Structures.ContainsKey(DbProtocolStructure.AssignedEclipseId))
-                                //{
-                              //      E.AssignedStructureId = DbProtocolStructure.AssignedEclipseId;
-                                //}
+                            //if (P.Structures.ContainsKey(DbProtocolStructure.AssignedEclipseId))
+                            //{
+                            //      E.AssignedStructureId = DbProtocolStructure.AssignedEclipseId;
+                            //}
                             //}
                             AtLeastOneStructure = true;
                         }
@@ -824,9 +827,9 @@ namespace SquintScript
                             //    CurrentProtocol.Checklist = new ProtocolChecklist(DbChecklist);
                             //else
                             //{
-                                var DbChecklist = DbSP.ProtocolChecklists.FirstOrDefault();
-                                CurrentProtocol.Checklist = new ProtocolChecklist(DbChecklist);
-                            
+                            var DbChecklist = DbSP.ProtocolChecklists.FirstOrDefault();
+                            CurrentProtocol.Checklist = new ProtocolChecklist(DbChecklist);
+
                         }
                         foreach (DbAssessment DbA in DbS.SessionAssessments)
                         {
@@ -1133,6 +1136,8 @@ namespace SquintScript
                     DbP.LastModifiedBy = SquintUser;
                     DbP.LastModified = DateTime.Now.ToBinary();
                     DbP.ProtocolName = CurrentProtocol.ProtocolName;
+                    //Update Checklist
+                    Save_UpdateProtocolCheckList(Context, DbP);
                     //Update Components
                     foreach (Component SC in _Components.Values)
                     {
@@ -1143,6 +1148,8 @@ namespace SquintScript
                             DbC.ComponentName = SC.ComponentName;
                             DbC.NumFractions = SC.NumFractions;
                             DbC.ReferenceDose = SC.ReferenceDose;
+                            //update checklist
+                            Save_UpdateBeamDefinition(DbC);
                         }
                         else
                         {
@@ -1153,7 +1160,11 @@ namespace SquintScript
                             DbC.ComponentName = SC.ComponentName;
                             DbC.NumFractions = SC.NumFractions;
                             DbC.ReferenceDose = SC.ReferenceDose;
+                            //update checklist
+                            Save_UpdateBeamDefinition(DbC);
                         }
+
+                        
                     }
 
                     foreach (Constraint Con in _Constraints.Values)
@@ -1220,6 +1231,7 @@ namespace SquintScript
                         string debugme = "hi";
                     }
                 }
+
             }
             public static void Save_DuplicateProtocol()
             {
@@ -1242,6 +1254,7 @@ namespace SquintScript
                     DbP.LastModifiedBy = SquintUser;
                     DbP.LastModified = DateTime.Now.ToBinary();
                     DbP.ProtocolParentID = CurrentProtocol.ID;
+                    Save_UpdateProtocolCheckList(Context, DbP);
                     //Update Components
                     Dictionary<int, int> ComponentLookup = new Dictionary<int, int>();
                     Dictionary<int, int> StructureLookup = new Dictionary<int, int>();
@@ -1268,6 +1281,8 @@ namespace SquintScript
                         DbC.ComponentName = SC.ComponentName;
                         DbC.NumFractions = SC.NumFractions;
                         DbC.ReferenceDose = SC.ReferenceDose;
+                        //Update checlist
+                        Save_UpdateBeamDefinition(DbC);
                     }
                     foreach (Constraint Con in _Constraints.Values)
                     {
@@ -1318,16 +1333,66 @@ namespace SquintScript
             }
 
             // Checklist functions
-            public async static void Save_UpdateProtocolCheckList()
+            private static void Save_UpdateProtocolCheckList(SquintdBModel Context, DbProtocol DbP)
             {
-                using (SquintdBModel Context = new SquintdBModel())
+                DbProtocolChecklist DbPC = Context.DbProtocolChecklists.FirstOrDefault(x => x.ProtocolID == DbP.ID);
+                if (DbPC == null)
                 {
-                    DbProtocolChecklist DbPC = Context.DbProtocolChecklists.FirstOrDefault(x => x.ProtocolID == CurrentProtocol.ID);
-                    if (DbPC != null)
+                    DbPC = Context.DbProtocolChecklists.Create();
+                    DbPC.ID = IDGenerator();
+                    DbPC.DbProtocol = DbP;
+                }
+                if (DbPC != null)
+                {
+                    DbPC.SliceSpacing = CurrentProtocol.Checklist.SliceSpacing.Value;
+                    DbPC.Algorithm = (int)CurrentProtocol.Checklist.Algorithm.Value;
+                    DbPC.AlgorithmResolution = CurrentProtocol.Checklist.AlgorithmResolution.Value;
+                    //DbPC.Artifacts
+                    DbPC.CouchInterior = CurrentProtocol.Checklist.CouchInterior.Value;
+                    DbPC.CouchSurface = CurrentProtocol.Checklist.CouchSurface.Value;
+                    DbPC.FieldNormalizationMode = (int)CurrentProtocol.Checklist.FieldNormalizationMode.Value;
+                    DbPC.HeterogeneityOn = CurrentProtocol.Checklist.HeterogeneityOn.Value;
+                    DbPC.PNVMax = CurrentProtocol.Checklist.PNVMax.Value;
+                    DbPC.PNVMin = CurrentProtocol.Checklist.PNVMin.Value;
+                    DbPC.SupportIndication = (int)CurrentProtocol.Checklist.SupportIndication.Value;
+                    //DbPC.TreatmentTechniqueType 
+                }
+            }
+            private static void Save_UpdateBeamDefinition(DbComponent DbC)
+            {
+                foreach (DbBeam DbB in DbC.DbBeams)
+                {
+                    if (_Beams.ContainsKey(DbB.ID))
                     {
-                        DbPC.SliceSpacing = (double)CurrentProtocol.Checklist.SliceSpacing.Value;
+                        var B = _Beams[DbB.ID];
+                        DbBolus DbBol = DbB.DbBoluses.FirstOrDefault();
+                        if (DbBol != null && B.Boluses.FirstOrDefault() != null)
+                        {
+                            DbBol.HU = B.Boluses.FirstOrDefault().HU.Value;
+                            DbBol.Thickness = (double)B.Boluses.FirstOrDefault().Thickness.Value;
+                            DbBol.ToleranceHU = (double)B.Boluses.FirstOrDefault().ToleranceHU.Value;
+                            DbBol.ToleranceThickness = (double)B.Boluses.FirstOrDefault().ToleranceThickness.Value;
+                            DbBol.Indication = (int)B.Boluses.FirstOrDefault().Indication.Value;
+                        }
+                        DbB.CouchRotation = B.CouchRotation.Value;
+                        DbB.DbEnergies.Clear();
+                        using (SquintdBModel context2 = new SquintdBModel())
+                            foreach (var energy in B.ValidEnergies)
+                                DbB.DbEnergies.Add(context2.DbEnergies.Find((int)energy));
+                        DbB.JawTracking_Indication = (int)B.JawTracking_Indication.Value;
+                        DbB.MaxColRotation = B.MaxColRotation.Value;
+                        DbB.MaxMUWarning = B.MaxMUWarning.Value;
+                        DbB.MinMUWarning = B.MinMUWarning.Value;
+                        DbB.MaxX = B.MaxX.Value;
+                        DbB.MinX = B.MinX.Value;
+                        DbB.MaxY = B.MaxY.Value;
+                        DbB.MinY = B.MinY.Value;
+                        DbB.ProtocolBeamName = B.ProtocolBeamName;
+                        DbB.Technique = (int)B.Technique;
+                        DbB.ToleranceTable = B.ToleranceTable.Value;
                     }
-                    await Context.SaveChangesAsync();
+                    else
+                        MessageBox.Show("Error in Save_UpdateBeamDefinition, component not found");
                 }
             }
         }
