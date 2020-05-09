@@ -31,7 +31,7 @@ namespace SquintScript.Extensions
             }
             return null;
         }
-        public static bool CloseEnough(this double thisvalue, double thatvalue, double eps)
+        public static bool CloseEnough(this double thisvalue, double thatvalue, double eps = 1E-5)
         {
             if (Math.Abs(thisvalue - thatvalue) < eps)
                 return true;

@@ -40,8 +40,20 @@ namespace SquintScript.ViewModels
         public Checklist_ViewModel(ProtocolView parentView)
         {
             ParentView = parentView;
+            Ctr.ProtocolUpdated += Ctr_ProtocolUpdated;
             ViewActiveProtocol();
         }
+
+        public void Unsubscribe()
+        {
+            Ctr.ProtocolUpdated -= Ctr_ProtocolUpdated;
+        }
+
+        private void Ctr_ProtocolUpdated(object sender, EventArgs e)
+        {
+            PopulateViewFromSelectedComponent();
+        }
+
         private void ViewActiveProtocol()
         {
             foreach (var C in Ctr.GetComponentList())
@@ -285,10 +297,8 @@ namespace SquintScript.ViewModels
             Calculation_ViewModel.Tests.Add(HeterogeneityOn);
 
             // Field Normalization
-            FieldNormalizationTypes FieldNorm;
-            Enum.TryParse(await Ctr.GetFieldNormalizationMode(p.CourseId, p.PlanId), out FieldNorm);
             var ProtocolFieldNorm = P.Checklist.FieldNormalizationMode;
-            CheckValueItem<FieldNormalizationTypes> FieldNormTest = new CheckValueItem<FieldNormalizationTypes>(CheckTypes.FieldNormMode, FieldNorm, ProtocolFieldNorm, null, "Non-standard normalization");
+            CheckValueItem<FieldNormalizationTypes> FieldNormTest = new CheckValueItem<FieldNormalizationTypes>(CheckTypes.FieldNormMode, await Ctr.GetFieldNormalizationMode(p.CourseId, p.PlanId), ProtocolFieldNorm, null, "Non-standard normalization");
             Calculation_ViewModel.Tests.Add(FieldNormTest);
 
             // Support structures

@@ -980,7 +980,9 @@
                 </Grid.ColumnDefinitions>
                 <Label Grid.Column="0" Content="{Binding ComboBoxHeader, UpdateSourceTrigger=PropertyChanged, FallbackValue='Placeholder'}" DataContext="{TemplateBinding DataContext}" Height="Auto"
                    Padding="0,0,0,0" Margin="5,5,5,5" Target="comboBox" />
-                <ComboBox Grid.Column="1" x:Name="comboBox" FontSize="12" Style="{DynamicResource ConstraintComboBoxStyle}" Margin="0,0,5,5" ItemsSource="{Binding ComboSourceList,UpdateSourceTrigger=PropertyChanged, Mode=OneWay}" DataContext="{TemplateBinding DataContext}" Padding="5,5,5,5"/>
+                <ComboBox Grid.Column="1" x:Name="comboBox" FontSize="12" Style="{DynamicResource ConstraintComboBoxStyle}" Margin="0,0,5,5" 
+                          SelectedItem="{Binding }"
+                          ItemsSource="{Binding ComboSourceList,UpdateSourceTrigger=PropertyChanged, Mode=OneWay}" DataContext="{TemplateBinding DataContext}" Padding="5,5,5,5"/>
             </Grid>
         </ControlTemplate>
         <Style x:Key="ButtonStyle" TargetType="Button">

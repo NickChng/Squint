@@ -321,11 +321,11 @@ namespace SquintScript
             [XmlAttribute]
             public double DoseVal;
             [XmlAttribute]
-            public string MajorViolation;
+            public double MajorViolation = -1;
             [XmlAttribute]
-            public string MinorViolation;
+            public double MinorViolation = -1;
             [XmlAttribute]
-            public string Stop;
+            public double Stop = -1;
             [XmlAttribute]
             public double ConstraintVal;
             public string GetConstraintString()
@@ -375,7 +375,7 @@ namespace SquintScript
             [XmlElement("ConformityIndexConstraint")]
             public List<ConformityIndexConstraintDefinition> ConformityIndexConstraintList { get; set; }
         }
-        public class DVHConstraintDefinition : ConstraintDefinition
+        public class DVHConstraintDefinition : ConstraintDefinition 
         {
             //[XmlAttribute]
             //public string EclipseID;
@@ -388,11 +388,11 @@ namespace SquintScript
             [XmlAttribute]
             public string ConstraintType;
             [XmlAttribute]
-            public string MajorViolation;
+            public double MajorViolation = -1;
             [XmlAttribute]
-            public string MinorViolation;
+            public double MinorViolation = -1;
             [XmlAttribute]
-            public string Stop;
+            public double Stop = -1;
             [XmlAttribute]
             public double ConstraintVal;
             [XmlAttribute]

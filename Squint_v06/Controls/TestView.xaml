@@ -217,7 +217,7 @@
                                     </Grid.ColumnDefinitions>
                                     <TextBlock Grid.Column="0" Text="{Binding CheckTypeString, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" FontWeight="Bold" VerticalAlignment="Center"/>
                                     <TextBlock Grid.Column="1" Text="{Binding ReferenceValueString, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Center"
-                                               Foreground="{Binding Reference.IsChanged,Converter={StaticResource ReferenceEditConverter}, UpdateSourceTrigger=PropertyChanged}"/>
+                                               Foreground="{Binding Reference.IsChanged, Converter={StaticResource ReferenceEditConverter}, UpdateSourceTrigger=PropertyChanged}"/>
                                     <Grid Grid.Column="2">
                                         <Grid x:Name="SingleSelection">
                                             <Grid.Visibility>

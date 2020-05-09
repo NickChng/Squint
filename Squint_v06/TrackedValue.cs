@@ -20,6 +20,21 @@ namespace SquintScript
     {
         protected T _ReferenceValue;
         protected T _CurrentValue;
+        
+        //private event EventHandler _UpdateEvent = null;
+        
+        //public void AcceptChangesOnEvent(EventHandler e)
+        //{
+        //    if (_UpdateEvent != null)
+        //        _UpdateEvent -= UpdateOnEvent;
+        //    if (e != null)
+        //        e += UpdateOnEvent;
+        //    _UpdateEvent = e;
+        //}
+        //private void UpdateOnEvent(object sender, EventArgs e)
+        //{
+        //    AcceptChanges();
+        //}
         public bool IsChanged { get; private set; }
         public string Display()
         {
@@ -33,14 +48,14 @@ namespace SquintScript
         {
             get
             {
-                if (_ReferenceValue == null)
+                if (_CurrentValue == null)
                     return false;
                 else
                 {
-                    if (_ReferenceValue is double)
-                        return !double.IsNaN(Convert.ToDouble(_ReferenceValue));
-                    if (_ReferenceValue is int)
-                        return Convert.ToInt32(_ReferenceValue) == int.MinValue;
+                    if (_CurrentValue is double)
+                        return !double.IsNaN(Convert.ToDouble(_CurrentValue));
+                    if (_CurrentValue is int)
+                        return Convert.ToInt32(_CurrentValue) == int.MinValue;
                 }
                 return true;
             }
@@ -86,7 +101,8 @@ namespace SquintScript
             set
             {
                 _CurrentValue = value;
-                IsChanged = true;
+                IsChanged = !_CurrentValue.Equals(_ReferenceValue);
+
             }
         }
         public T ReferenceValue { get { return _ReferenceValue; } }
@@ -115,6 +131,5 @@ namespace SquintScript
         {
             stop = new TrackedValue<T>(value);
         }
-
     }
 }

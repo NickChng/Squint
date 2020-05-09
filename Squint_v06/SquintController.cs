@@ -21,13 +21,14 @@ using System.Text.RegularExpressions;
 using System.Data.Entity;
 using SquintScript.ViewModels;
 using SquintScript.Extensions;
+using System.Windows.Threading;
 
 namespace SquintScript
 {
     public static class VersionContextConnection
     {
         private static string providerName = "Npgsql";
-        private static string databaseName = "Squint_v06_CN_Test";
+        private static string databaseName = "Squint_v061_CN_Prod";
         private static string userName = "postgres";
         private static string password = "bccacn";
         private static string host = "sprtqacn001";
@@ -60,204 +61,9 @@ namespace SquintScript
         public static int CurrentAuthorId = 0;
     }
 
-    //public static partial class Ctr
-    //{
-    //    private static void RaiseEventOnUIThread(Delegate theEvent, object[] args)  // class which helps pass events back to UI thread
-    //    {
-    //        foreach (Delegate d in theEvent.GetInvocationList())
-    //        {
-    //            ISynchronizeInvoke syncer = d.Target as ISynchronizeInvoke;
-    //            if (syncer == null)
-    //            {
-    //                d.DynamicInvoke(args);
-    //            }
-    //            else
-    //            {
-    //                syncer.Invoke(d, args);  // cleanup omitted.  Changed from BeginInvoke as that crashes while UI held in ShowDialog for ProtocolBuilder
-    //            }
-    //        }
-    //    }
-    //}
-
     public static partial class Ctr
     {
-        //UI classes
-        //[AddINotifyPropertyChangedInterface]
-        //public class ProtocolView : ObservableObject
-        //{
-        //    public ProtocolView()
-        //    {
-        //    }
-        //    public ProtocolView(Protocol P)
-        //    {
-        //        _P = P;
-        //        P.PropertyChanged += P_PropertyChanged;
-        //    }
-        //    private void P_PropertyChanged(object sender, PropertyChangedEventArgs e)
-        //    {
-        //        RaisePropertyChangedEvent(e.PropertyName); // Protocol Node listens for this and redraws
-        //    }
-        //    private Protocol _P;
-        //    public string ProtocolName
-        //    {
-        //        get
-        //        {
-        //            if (_P != null)
-        //                return _P.ProtocolName;
-        //            else
-        //                return "";
-        //        }
-        //        set
-        //        {
-        //            _P.ProtocolName = value;
-        //        }
-        //    }
-        //    public int ProtocolID
-        //    {
-        //        get
-        //        {
-        //            if (_P != null)
-        //                return _P.ID;
-        //            else
-        //                return 0;
-        //        }
-        //    }
-        //    public string LastModifiedBy
-        //    {
-        //        get
-        //        {
-        //            if (_P != null)
-        //                return _P.LastModifiedBy;
-        //            else
-        //                return "";
-        //        }
-        //    }
-        //    public ApprovalLevels ApprovalLevel
-        //    {
-        //        get
-        //        {
-        //            if (_P != null)
-        //                return _P.ApprovalLevel;
-        //            else
-        //                return ApprovalLevels.Unset;
-        //        }
-        //        set { _P.ApprovalLevel = value; }
-        //    }
-        //    public ProtocolTypes ProtocolType
-        //    {
-        //        get
-        //        {
-        //            if (_P != null)
-        //                return _P.ProtocolType;
-        //            else
-        //                return ProtocolTypes.Unset;
-        //        }
-        //        set { _P.ProtocolType = value; }
-        //    }
-        //    public TreatmentCentres TreatmentCentre
-        //    {
-        //        get
-        //        {
-        //            if (_P != null)
-        //                return _P.TreatmentCentre;
-        //            else
-        //                return TreatmentCentres.Unset;
-        //        }
-        //        set { _P.TreatmentCentre = value; }
-        //    }
-        //    public TreatmentSites TreatmentSite
-        //    {
-        //        get
-        //        {
-        //            if (_P != null)
-        //                return _P.TreatmentSite;
-        //            else
-        //                return TreatmentSites.Unset;
-        //        }
-        //        set { _P.TreatmentSite = value; }
-        //    }
-        //    public TreatmentIntents TreatmentIntent { get { return _P.TreatmentIntent; } }
-        //    public bool HeterogeneityOn { get { return _P.HeterogeneityOn; } }
-        //    public AlgorithmTypes Algorithm { get { return _P.Algorithm; } }
-        //    public FieldNormalizationTypes FieldNormalizationMode { get { return _P.FieldNormalizationMode; } }
-        //    public double AlgorithmResolution { get { return _P.AlgorithmResolution; } }
-        //    public double SliceSpacing { get { return _P.SliceSpacing; } }
-        //    public double PNVMin { get { return _P.PNVMin; } }
-        //    public double PNVMax { get { return _P.PNVMax; } }
-        //}
-        //[AddINotifyPropertyChangedInterface]
-        //public class EclipseStructure : ObservableObject
-        //{
-        //    public string Id
-        //    {
-        //        get
-        //        {
-        //            if (_A == null)
-        //                return "";
-        //            return _A.Id;
-        //        }
-        //    }
-        //    private AsyncStructure _A;
-        //    public EclipseStructure(AsyncStructure A)
-        //    {
-        //        _A = A;
-        //        RaisePropertyChangedEvent();
-        //    }
-        //    public string StructureSetUID
-        //    {
-        //        get
-        //        {
-        //            if (_A == null)
-        //                return "";
-        //            return _A.StructureSetUID;
-        //        }
-        //    }
-        //    public string LabelName
-        //    {
-        //        get
-        //        {
-        //            if (_A == null)
-        //                return "";
-        //            else
-        //            {
-        //                if (_A.Code == null)
-        //                    return "Unset";
-        //                else
-        //                    return DataCache.GetLabelByCode(_A.Code);
-        //            }
-        //        }
-        //    }
-        //    public async Task<int> VMS_NumParts()
-        //    {
-        //        if (_A == null)
-        //            return -1;
-        //        return await _A.GetVMS_NumParts();
-        //    }
-        //    public async Task<List<double>> PartVolumes()
-        //    {
-        //        if (_A == null)
-        //            return null;
-        //        return await _A.GetPartVolumes();
-
-        //    }
-        //    public async Task<int> NumParts()
-        //    {
-        //        if (_A == null)
-        //            return -1;
-        //        return await _A.GetNumSeperateParts();
-        //    }
-        //    public double HU()
-        //    {
-        //        if (_A == null)
-        //            return -1;
-        //        return _A.HU;
-        //    }
-        //    public void Update(AsyncStructure A)
-        //    {
-        //        _A = A;
-        //        RaisePropertyChangedEvent();
-        //    }
-        //}
+        private static Dispatcher _uiDispatcher;
 
         [AddINotifyPropertyChangedInterface]
         public class StructureSetHeader
@@ -549,27 +355,27 @@ namespace SquintScript
         //        }
         //    }
         //}
-        public class ConstraintThresholdView
-        {
-            private ConstraintThreshold CT;
-            public ConstraintThresholdView(ConstraintThreshold _CT)
-            {
-                CT = _CT;
-            }
-            public int ID
-            {
-                get { return CT.ID; }
-            }
-            public double ThresholdValue
-            {
-                get { return CT.ThresholdValue; }
-                set { CT.ThresholdValue = value; }
-            }
-            public ConstraintThresholdNames ThresholdName
-            {
-                get { return CT.ThresholdName; }
-            }
-        }
+        //public class ConstraintThresholdView
+        //{
+        //    private ConstraintThreshold CT;
+        //    public ConstraintThresholdView(ConstraintThreshold _CT)
+        //    {
+        //        CT = _CT;
+        //    }
+        //    public int ID
+        //    {
+        //        get { return CT.ID; }
+        //    }
+        //    public double ThresholdValue
+        //    {
+        //        get { return CT.ThresholdValue; }
+        //        set { CT.ThresholdValue = value; }
+        //    }
+        //    public ConstraintThresholdNames ThresholdName
+        //    {
+        //        get { return CT.ThresholdName; }
+        //    }
+        //}
         [AddINotifyPropertyChangedInterface]
         public class SessionView
         {
@@ -626,32 +432,32 @@ namespace SquintScript
             public string LastModifiedBy { get; set; } = "";
         }
 
-            //}
-            //public class StructureLabelView
-            //{
-            //    private StructureLabel SL;
-            //    public StructureLabelView(StructureLabel SLin)
-            //    {
-            //        SL = SLin;
-            //    }
-            //    public int ID
-            //    {
-            //        get { return SL.ID; }
-            //    }
-            //    public string Designator
-            //    {
-            //        get { return SL.Designator; }
-            //    }
-            //    public string LabelName
-            //    {
-            //        get { return SL.LabelName; }
-            //    }
-            //    public double AlphaBetaRatio
-            //    {
-            //        get { return SL.AlphaBetaRatio; }
-            //    }
-            //}
-            public class ConstraintResultView
+        //}
+        //public class StructureLabelView
+        //{
+        //    private StructureLabel SL;
+        //    public StructureLabelView(StructureLabel SLin)
+        //    {
+        //        SL = SLin;
+        //    }
+        //    public int ID
+        //    {
+        //        get { return SL.ID; }
+        //    }
+        //    public string Designator
+        //    {
+        //        get { return SL.Designator; }
+        //    }
+        //    public string LabelName
+        //    {
+        //        get { return SL.LabelName; }
+        //    }
+        //    public double AlphaBetaRatio
+        //    {
+        //        get { return SL.AlphaBetaRatio; }
+        //    }
+        //}
+        public class ConstraintResultView
         {
             public ConstraintResultView(ConstraintResult CR)
             {
@@ -706,6 +512,7 @@ namespace SquintScript
         public static event EventHandler AvailableStructureSetsChanged;
         public static event EventHandler SynchronizationComplete;
         public static event EventHandler ProtocolListUpdated;
+        public static event EventHandler ProtocolUpdated;
         public static event EventHandler ProtocolConstraintOrderChanged;
         public static event EventHandler ProtocolOpened;
         public static event EventHandler ProtocolClosed;
@@ -719,11 +526,12 @@ namespace SquintScript
         public static event EventHandler<int> AssessmentRemoved;
         public static event EventHandler<int> ComponentAdded;
         // Initialization
-        public static bool Initialize(string username = null, string password = null)
+        public static bool Initialize(Dispatcher uiDispatcher)
         {
             try
             {
-                A = new AsyncESAPI(username, password);
+                _uiDispatcher = uiDispatcher;
+                A = new AsyncESAPI();
                 SquintUser = A.CurrentUserId(); // Get user
                 DataCache.RegisterUser(SquintUser);
                 DataCache.CreateSession();
@@ -809,13 +617,28 @@ namespace SquintScript
             else
                 return null;
         }
-        public async static Task<string> GetFieldNormalizationMode(string CourseId, string PlanId)
+        public async static Task<FieldNormalizationTypes> GetFieldNormalizationMode(string CourseId, string PlanId)
         {
             AsyncPlan p = await DataCache.GetAsyncPlan(PlanId, CourseId, ComponentTypes.Plan);
             if (p.PlanType == ComponentTypes.Plan)
-                return await p.GetFieldNormalizationMode();
+            {
+                string output = await p.GetFieldNormalizationMode();
+                switch (output)
+                {
+                    case "100% to isocenter":
+                        return FieldNormalizationTypes.ISO;
+                    case "No field normalization":
+                        return FieldNormalizationTypes.None;
+                    case "100% to central axis Dmax":
+                        return FieldNormalizationTypes.CAX;
+                    case "100% to field Dmax":
+                        return FieldNormalizationTypes.field;
+                    default:
+                        return FieldNormalizationTypes.Unset;
+                }
+            }
             else
-                return "";
+                return FieldNormalizationTypes.Unset;
         }
         public async static Task<double> GetPNV(string CourseId, string PlanId)
         {
@@ -1060,7 +883,7 @@ namespace SquintScript
         }
         public static Component GetComponent(int ComponentID)
         {
-            
+
             return DataCache.GetComponent(ComponentID);
         }
         public static Constraint GetConstraint(int ConId)
@@ -1097,15 +920,15 @@ namespace SquintScript
         //{
         //    return ConstituentViews.Values.Where(x => x.ComponentID == ComponentId).ToList();
         //}
-        public static List<ConstraintThresholdView> GetConstraintThresholdViewList(int ConID)
-        {
-            List<ConstraintThresholdView> returnList = new List<ConstraintThresholdView>();
-            foreach (ConstraintThreshold CT in DataCache.GetConstraintThresholdByConstraintId(ConID))
-            {
-                returnList.Add(new ConstraintThresholdView(CT));
-            }
-            return returnList;
-        }
+        //public static List<ConstraintThresholdView> GetConstraintThresholdViewList(int ConID)
+        //{
+        //    List<ConstraintThresholdView> returnList = new List<ConstraintThresholdView>();
+        //    foreach (ConstraintThreshold CT in DataCache.GetConstraintThresholdByConstraintId(ConID))
+        //    {
+        //        returnList.Add(new ConstraintThresholdView(CT));
+        //    }
+        //    return returnList;
+        //}
         //public static List<ECPlan> GetPlanViewList()
         //{
         //    List<ECPlan> returnList = new List<ECPlan>();
@@ -1286,26 +1109,26 @@ namespace SquintScript
             }
             ConstraintAdded?.Invoke(null, DupCon.ID);
         }
-        public static Component AddComponent(ComponentTypes Type_input, int ReferenceDose_input = 0, int NumFractions_input = 0, string ComponentName = "")
-        {
-            if (!ProtocolLoaded)
-                return null;
-            if (ComponentName == "")
-            {
-                if (Type_input == ComponentTypes.Plan)
-                {
-                    ComponentName = string.Format("Plan{0}", _NewPlanCounter++);
-                }
-                if (Type_input == ComponentTypes.Sum)
-                {
-                    ComponentName = string.Format("PlanSum{0}", _NewPlanCounter++);
-                }
-            }
-            Component Comp = new Component(DataCache.CurrentProtocol.ID, ComponentName, NumFractions_input, ReferenceDose_input, Type_input);
-            ComponentAdded?.Invoke(null, Comp.ID);
-            Component CompView = new Component(Comp);
-            return CompView;
-        }
+        //public static Component AddComponent(ComponentTypes Type_input, int ReferenceDose_input = 0, int NumFractions_input = 0, string ComponentName = "")
+        //{
+        //    if (!ProtocolLoaded)
+        //        return null;
+        //    if (ComponentName == "")
+        //    {
+        //        if (Type_input == ComponentTypes.Plan)
+        //        {
+        //            ComponentName = string.Format("Plan{0}", _NewPlanCounter++);
+        //        }
+        //        if (Type_input == ComponentTypes.Sum)
+        //        {
+        //            ComponentName = string.Format("PlanSum{0}", _NewPlanCounter++);
+        //        }
+        //    }
+        //    Component Comp = new Component(DataCache.CurrentProtocol.ID, ComponentName, NumFractions_input, ReferenceDose_input, Type_input);
+        //    ComponentAdded?.Invoke(null, Comp.ID);
+        //    Component CompView = new Component(Comp);
+        //    return CompView;
+        //}
         public static ProtocolStructure AddNewStructure()
         {
             if (DataCache.CurrentProtocol == null)
@@ -1601,6 +1424,7 @@ namespace SquintScript
                     if (ExistingProtocolNames.Contains(_XMLProtocol.ProtocolMetaData.ProtocolName))
                     {
                         int renamecounter = 1;
+                        MessageBox.Show(string.Format("A protocol with name {0} exists, creating a copy...", _XMLProtocol.ProtocolMetaData.ProtocolName));
                         while (ExistingProtocolNames.Contains(_XMLProtocol.ProtocolMetaData.ProtocolName))
                             _XMLProtocol.ProtocolMetaData.ProtocolName = _XMLProtocol.ProtocolMetaData.ProtocolName + (renamecounter++).ToString();
                     }
@@ -1611,7 +1435,7 @@ namespace SquintScript
                     MessageBox.Show("User not recognized", "Error");
                     return false;
                 }
-                DbLibraryProtocol P = LocalContext.DbLibraryProtocols.Create();
+                DbProtocol P = LocalContext.DbLibraryProtocols.Create();
                 P.ProtocolName = _XMLProtocol.ProtocolMetaData.ProtocolName;
                 P.DbUser_ProtocolAuthor = User;
                 P.LastModifiedBy = User.ARIA_ID;
@@ -2052,70 +1876,16 @@ namespace SquintScript
                     dBconDVH.ReferenceScale = (int)ReferenceScale;
                     dBconDVH.Fractions = CompName2DB[con.ComponentName].NumFractions;
                     LocalContext.DbConstraints.Add(dBconDVH);
-                    //LocalContext.SaveChanges();
-                    List<DbConThresholdDef> test = LocalContext.DbConThresholdDefs.ToList();
-                    if (con.MajorViolation != null)
-                    {
-                        DbConThreshold DbConThreshold = new DbConThreshold()
-                        {
-                            DbConstraint = dBconDVH,
-                            ThresholdValue = Double.Parse(con.MajorViolation),
-                            DbConThresholdDef = LocalContext.DbConThresholdDefs.Where(x => x.Threshold == (int)ConstraintThresholdNames.MajorViolation).Single()
-                        };
-                        LocalContext.DbConThresholds.Add(DbConThreshold);
-                        //LocalContext.SaveChanges();
-                    }
-                    if (con.MinorViolation != null)
-                    {
-                        DbConThreshold DbConThreshold = new DbConThreshold()
-                        {
-                            DbConstraint = dBconDVH,
-                            ThresholdValue = Double.Parse(con.MinorViolation),
-                            DbConThresholdDef = LocalContext.DbConThresholdDefs.Where(x => x.Threshold == (int)ConstraintThresholdNames.MinorViolation).Single()
-                        };
-                        LocalContext.DbConThresholds.Add(DbConThreshold);
-                        //LocalContext.SaveChanges();
-                    }
+                    // Thresholds
+                    if (con.MajorViolation.CloseEnough(-1))
+                        dBconDVH.MajorViolation = dBconDVH.ReferenceValue;
                     else
-                    {
-                        if (con.MajorViolation == null) // both major and minor DataCache.Constraints are null
-                        {
-                            DbConThreshold DbConThreshold = new DbConThreshold()
-                            {
-                                DbConstraint = dBconDVH,
-                                ThresholdValue = con.ConstraintVal,
-                                DbConThresholdDef = LocalContext.DbConThresholdDefs.Where(x => x.Threshold == (int)ConstraintThresholdNames.MinorViolation).Single()
-                            };
-                            LocalContext.DbConThresholds.Add(DbConThreshold);
-                            // LocalContext.SaveChanges();
-                        }
-                        else
-                        {
-                            if (Math.Abs(Double.Parse(con.MajorViolation) - con.ConstraintVal) > 0.01)
-                            {
-                                DbConThreshold DbConThreshold = new DbConThreshold()
-                                {
-                                    DbConstraint = dBconDVH,
-                                    ThresholdValue = con.ConstraintVal,
-                                    DbConThresholdDef = LocalContext.DbConThresholdDefs.Where(x => x.Threshold == (int)ConstraintThresholdNames.MinorViolation).Single()
-                                };
-                                LocalContext.DbConThresholds.Add(DbConThreshold);
-                                // LocalContext.SaveChanges();
-                            }
-                        }
-                    }
-                    if (con.Stop != null)
-                    {
-                        DbConThreshold DbConThreshold = new DbConThreshold()
-                        {
-                            DbConstraint = dBconDVH,
-                            ThresholdValue = Double.Parse(con.Stop),
-                            DbConThresholdDef = LocalContext.DbConThresholdDefs.Where(x => x.Threshold == (int)ConstraintThresholdNames.Stop).Single()
-                        };
-                        LocalContext.DbConThresholds.Add(DbConThreshold);
-                        // LocalContext.SaveChanges();
-                    }
-                    // Create initial log
+                        dBconDVH.MajorViolation = con.MajorViolation;
+                    if (!con.MinorViolation.CloseEnough(-1))
+                        dBconDVH.MinorViolation = con.MinorViolation;
+                    if (!con.Stop.CloseEnough(-1))
+                        dBconDVH.Stop = con.Stop;
+                  
                     DbConstraintChangelog DbCC = LocalContext.DbConstraintChangelogs.Create();
                     LocalContext.DbConstraintChangelogs.Add(DbCC);
                     DbCC.ChangeDescription = con.Description;
@@ -2181,36 +1951,15 @@ namespace SquintScript
                     DbConCI.Fractions = CompName2DB[con.ComponentName].NumFractions;
                     LocalContext.DbConstraints.Add(DbConCI);
                     //LocalContext.SaveChanges();
-                    if (con.MajorViolation != null)
-                    {
-                        DbConThreshold DbConThreshold = new DbConThreshold()
-                        {
-                            DbConstraint = DbConCI,
-                            ThresholdValue = Double.Parse(con.MajorViolation),
-                            DbConThresholdDef = LocalContext.DbConThresholdDefs.Where(x => x.Threshold == (int)ConstraintThresholdNames.MajorViolation).Single()
-                        };
-                        LocalContext.DbConThresholds.Add(DbConThreshold);
-                    }
+                    // Thresholds
+                    if (con.MajorViolation == null)
+                        DbConCI.MajorViolation = DbConCI.ReferenceValue;
+                    else
+                        DbConCI.MajorViolation = (double)con.MajorViolation;
                     if (con.MinorViolation != null)
-                    {
-                        DbConThreshold DbConThreshold = new DbConThreshold()
-                        {
-                            DbConstraint = DbConCI,
-                            ThresholdValue = Double.Parse(con.MinorViolation),
-                            DbConThresholdDef = LocalContext.DbConThresholdDefs.Where(x => x.Threshold == (int)ConstraintThresholdNames.MinorViolation).Single()
-                        };
-                        LocalContext.DbConThresholds.Add(DbConThreshold);
-                    }
+                        DbConCI.MinorViolation = (double)con.MinorViolation;
                     if (con.Stop != null)
-                    {
-                        DbConThreshold DbConThreshold = new DbConThreshold()
-                        {
-                            DbConstraint = DbConCI,
-                            ThresholdValue = Double.Parse(con.Stop),
-                            DbConThresholdDef = LocalContext.DbConThresholdDefs.Where(x => x.Threshold == (int)ConstraintThresholdNames.Stop).Single()
-                        };
-                        LocalContext.DbConThresholds.Add(DbConThreshold);
-                    }
+                        DbConCI.Stop = (double)con.Stop;
                     // Create initial log
                     DbConstraintChangelog DbCC = LocalContext.DbConstraintChangelogs.Create();
                     LocalContext.DbConstraintChangelogs.Add(DbCC);
@@ -2251,9 +2000,10 @@ namespace SquintScript
         }
 
 
-        public static void Save_UpdateProtocol()
+        public static async Task Save_UpdateProtocol()
         {
-            DataCache.Save_UpdateProtocol();
+            await DataCache.Save_UpdateProtocol();
+            _uiDispatcher.Invoke(ProtocolUpdated, new[] { null, EventArgs.Empty });
             ProtocolListUpdated?.Invoke(null, EventArgs.Empty);
         }
         public static void Save_DuplicateProtocol()
@@ -2298,10 +2048,10 @@ namespace SquintScript
                 if (await DataCache.Load_Session(ID))  // true if successful load
                 {
                     CurrentProtocol = DataCache.CurrentProtocol;
-                    foreach (Component Comp in DataCache.GetAllComponents())
-                    {
-                        new Component(Comp);
-                    }
+                    //foreach (Component Comp in DataCache.GetAllComponents())
+                    //{
+                    //    new Component(Comp);
+                    //}
                     foreach (Constraint Con in DataCache.GetAllConstraints())
                     {
                         foreach (Assessment A in DataCache.GetAllAssessments())
@@ -2645,7 +2395,6 @@ namespace SquintScript
         }
 
         //DataCache.Patient Management
-        public static EventHandler PatientClosed;
         public static event EventHandler PatientOpened;
         public static void ClosePatient()
         {
@@ -2654,7 +2403,6 @@ namespace SquintScript
             DataCache.ClearEclipseData();
             CurrentStructureSet = null;
             _AssessmentNameIterator = 1;
-            PatientClosed?.Invoke(null, EventArgs.Empty); // this fires the event PatientClosed, which is subscribed to by the UI to clear any DataCache.Patient specific fields
         }
         public static void LoadPatientFromDatabase(string PID)
         {
@@ -2667,7 +2415,7 @@ namespace SquintScript
             else
             {
                 PatientLoaded = true;
-                PatientOpened?.Invoke(null, EventArgs.Empty);
+                _uiDispatcher.Invoke(PatientOpened, new[]{ null, EventArgs.Empty});
             }
         }
         public class PlanDescriptor

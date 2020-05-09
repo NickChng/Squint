@@ -45,7 +45,7 @@ namespace SquintScript.ViewModels
         }
         // ViewModels
         public Presenter ParentView { get; set; }
-        public ViewModels.Checklist_ViewModel ChecklistViewModel { get; set; } 
+        public ViewModels.Checklist_ViewModel ChecklistViewModel { get; set; }
 
         public void Unsubscribe()
         {
@@ -54,10 +54,8 @@ namespace SquintScript.ViewModels
             Ctr.ProtocolConstraintOrderChanged -= UpdateConstraintOrder;
             Ctr.ConstraintAdded -= OnConstraintAdded;
             Ctr.ConstraintRemoved -= OnConstraintRemoved;
-            foreach (ProtocolSelector PS in Protocols)
-            {
-                PS.Unsubscribe();
-            }
+            ChecklistViewModel.Unsubscribe();
+
         }
         private Ctr.Protocol _P
         {
@@ -78,7 +76,7 @@ namespace SquintScript.ViewModels
             }
             set
             {
-                if (_P == null && value != null)
+                if (_P != null && value != null)
                 {
                     _P.ProtocolName = value;
                 }
@@ -95,7 +93,7 @@ namespace SquintScript.ViewModels
             }
             set
             {
-                if (_P == null)
+                if (_P != null)
                 {
                     _P.ProtocolType = value;
                 }
@@ -112,7 +110,7 @@ namespace SquintScript.ViewModels
             }
             set
             {
-                if (_P == null)
+                if (_P != null)
                 {
                     _P.TreatmentCentre = value;
                 }
@@ -129,7 +127,7 @@ namespace SquintScript.ViewModels
             }
             set
             {
-                if (_P == null)
+                if (_P != null)
                 {
                     _P.TreatmentSite = value;
                 }
@@ -146,12 +144,18 @@ namespace SquintScript.ViewModels
             }
             set
             {
-                if (_P == null)
+                if (_P != null)
                 {
                     _P.ApprovalLevel = value;
                 }
             }
         }
+
+
+        public ObservableCollection<TreatmentCentres> CentreList { get; set; } = new ObservableCollection<TreatmentCentres>(Enum.GetValues(typeof(TreatmentCentres)).Cast<TreatmentCentres>());
+        public ObservableCollection<TreatmentSites> SiteList { get; set; } = new ObservableCollection<TreatmentSites>(Enum.GetValues(typeof(TreatmentSites)).Cast<TreatmentSites>());
+        public ObservableCollection<ApprovalLevels> ApprovalList { get; set; } = new ObservableCollection<ApprovalLevels>(Enum.GetValues(typeof(ApprovalLevels)).Cast<ApprovalLevels>());
+        public ObservableCollection<ProtocolTypes> ProtocolTypeList { get; set; } = new ObservableCollection<ProtocolTypes>(Enum.GetValues(typeof(ProtocolTypes)).Cast<ProtocolTypes>());
         public string LastModifiedBy
         {
             get
@@ -266,13 +270,20 @@ namespace SquintScript.ViewModels
         //}
         public void AddConstraint()
         {
-            var Con = Ctr.AddConstraint(ConstraintTypeCodes.Unset, Components.FirstOrDefault().Id, Structures.FirstOrDefault().Id);
-            Constraints.Add(new ConstraintSelector(Con, Structures.FirstOrDefault()));
+            if (Ctr.ProtocolLoaded)
+            {
+                var Con = Ctr.AddConstraint(ConstraintTypeCodes.Unset, Components.FirstOrDefault().Id, Structures.FirstOrDefault().Id);
+                Constraints.Add(new ConstraintSelector(Con, Structures.FirstOrDefault()));
+            }
+
         }
         public void AddStructure()
         {
-            var E = Ctr.AddNewStructure();
-            Structures.Add(new StructureSelector(E));
+            if (Ctr.ProtocolLoaded)
+            {
+                var E = Ctr.AddNewStructure();
+                Structures.Add(new StructureSelector(E));
+            }
         }
         public ICommand LoadSelectedProtocolCommand
         {
@@ -289,6 +300,7 @@ namespace SquintScript.ViewModels
             ParentView.isLoading = true;
             AssessmentPresenter = new AssessmentsView(this);
             await Task.Run(() => Ctr.LoadProtocolFromDb(PS.ProtocolName));
+            ChecklistViewModel.Unsubscribe();
             ChecklistViewModel = new Checklist_ViewModel(this);
             UpdateProtocolView();
             isProtocolLoaded = true;
@@ -300,6 +312,7 @@ namespace SquintScript.ViewModels
             RaisePropertyChangedEvent(nameof(TreatmentCentre));
             RaisePropertyChangedEvent(nameof(TreatmentSite));
             RaisePropertyChangedEvent(nameof(ProtocolType));
+            RaisePropertyChangedEvent(nameof(ApprovalLevel));
             Structures.Clear();
             Constraints.Clear();
             Components.Clear();

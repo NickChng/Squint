@@ -20,6 +20,7 @@ using System.IO;
 using System.Windows.Controls.Primitives;
 using ESAPI = VMS.TPS.Common.Model.API.Application;
 using SquintScript.ViewModels;
+using System.Windows.Threading;
 
 namespace SquintScript.Views
 {
@@ -35,18 +36,7 @@ namespace SquintScript.Views
         {
             try
             {
-                string[] Creds = new string[2];
-                if (File.Exists(@"C:\LocalSwap\EclipseAPI\LocalCred.Txt"))
-                {
-                    using (StreamReader CredFile = new StreamReader(@"C:\LocalSwap\EclipseAPI\LocalCred.Txt"))
-                    {
-                        Creds[0] = CredFile.ReadLine();
-                        Creds[1] = CredFile.ReadLine();
-                    }
-                    Ctr.Initialize(Creds[0], Creds[1]);
-                }
-                else
-                    Ctr.Initialize(null, null);
+                Ctr.Initialize(Dispatcher.CurrentDispatcher);
                 InitializeComponent();
             }
             catch (Exception ex)

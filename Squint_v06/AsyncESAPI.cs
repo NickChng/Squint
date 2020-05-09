@@ -614,7 +614,7 @@ namespace SquintScript
                 return "";
             return await A.ExecuteAsync(new Func<EApp, string>((app) =>
             {
-                if (p.Dose != null)
+                if (p.PhotonCalculationOptions != null)
                 {
                     return p.PhotonCalculationOptions.Where(x => x.Key == "FieldNormalizationType").FirstOrDefault().Value;
                 }

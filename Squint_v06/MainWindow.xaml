@@ -504,17 +504,14 @@
                                         <ColumnDefinition Width="*"/>
                                     </Grid.ColumnDefinitions>
                                     <TextBlock Grid.Row="0" Text="Current Protocol" FontSize="13" VerticalAlignment="Center" Margin="10,10,0,10" FontWeight="Bold"/>
-                                    <TextBlock Grid.Column="1" Text="{Binding Protocol.ProtocolName, UpdateSourceTrigger=PropertyChanged}" TextAlignment="Left" HorizontalAlignment="Right" VerticalAlignment="Center" Foreground="SteelBlue" FontSize ="13" Margin="10,5,20,5" Padding="10,0,0,0" FontWeight="Bold">
-                                        <TextBlock.Style>
-                                            <Style TargetType="TextBlock">
-                                                <Style.Triggers>
-                                                    <!--<DataTrigger Binding="{Binding isPIDVisible}" Value="False">
-                                                <Setter Property="Height" Value="0"></Setter>
-                                            </DataTrigger>-->
-                                                </Style.Triggers>
-                                            </Style>
-                                        </TextBlock.Style>
-                                    </TextBlock>
+                                    <TextBlock Grid.Column="1" Text="{Binding Protocol.ProtocolName, UpdateSourceTrigger=PropertyChanged}" TextAlignment="Left" HorizontalAlignment="Right"
+                                               Visibility="{Binding AdminOptionsToggle, Converter={StaticResource VisibilityInverseConverter},Mode=OneWay, UpdateSourceTrigger=PropertyChanged}"
+                                               VerticalAlignment="Center" Foreground="SteelBlue" FontSize ="13" Margin="10,5,20,5" Padding="10,0,0,0" FontWeight="Bold"/>
+                                    <TextBox Grid.Column="1" Text="{Binding Protocol.ProtocolName}" TextAlignment="Center" HorizontalAlignment="Right"
+                                               Visibility="{Binding AdminOptionsToggle, Converter={StaticResource VisibilityConverter}}"
+                                             SC:TextBoxExtensions.UpdateSourceOnKey="Return" 
+                                               VerticalAlignment="Center" Foreground="SteelBlue" FontSize ="13" Margin="10,5,20,5" Padding="10,0,10,0" FontWeight="Bold"/>
+
                                 </Grid>
                             </Border>
 
@@ -544,14 +541,22 @@
                             </Grid.MaxHeight>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
-                            <ContentControl Grid.Column="0" Margin ="0,0,0,0" DataContext="{Binding CentreComboBox}" Template="{DynamicResource ComboWithHeader}"/>
-                            <ContentControl Grid.Column="1" DataContext="{Binding SiteComboBox}" Template="{DynamicResource ComboWithHeader}"/>
-                            <ContentControl Grid.Column="2" DataContext="{Binding TypeComboBox}" Template="{DynamicResource ComboWithHeader}"/>
-                            <ContentControl Grid.Column="3" DataContext="{Binding ApprovalComboBox}" Template="{DynamicResource ComboWithHeader}"/>
+                            <TextBlock Grid.Column="0" Text="Centre" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            <ComboBox Grid.Column="1" Margin ="5,0,5,0" ItemsSource="{Binding Protocol.CentreList, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" SelectedItem="{Binding Protocol.TreatmentCentre, Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ConstraintComboBoxStyle}"/>
+                            <TextBlock Grid.Column="2" Text="Site" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            <ComboBox Grid.Column="3" Margin ="5,0,5,0" ItemsSource="{Binding Protocol.SiteList, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" SelectedItem="{Binding Protocol.TreatmentSite, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ConstraintComboBoxStyle}"/>
+                            <TextBlock Grid.Column="4" Text="Type" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            <ComboBox Grid.Column="5" Margin ="5,0,5,0" ItemsSource="{Binding Protocol.ProtocolTypeList, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" SelectedItem="{Binding Protocol.ProtocolType, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ConstraintComboBoxStyle}"/>
+                            <TextBlock Grid.Column="6" Text="Approval" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            <ComboBox Grid.Column="7" Margin ="5,0,5,0" ItemsSource="{Binding Protocol.ApprovalList, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" SelectedItem="{Binding Protocol.ApprovalLevel, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ConstraintComboBoxStyle}"/> 
                         </Grid>
                         <Grid Grid.Row="2">
                             <Grid.RowDefinitions>

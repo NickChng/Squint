@@ -24,7 +24,7 @@ namespace SquintScript
         [Description("Algorithm")] Algorithm,
         [Description("Dose grid resolution")] DoseGridResolution,
         [Description("Heterogeneity on")] HeterogeneityOn,
-        [Description("Field norm Mmde")] FieldNormMode,
+        [Description("Field norm mode")] FieldNormMode,
         [Description("Couch surface HU")] CouchSurfaceHU,
         [Description("Couch interior HU")] CouchInteriorHU,
         [Description("Artifact HU")] ArtifactHU,
@@ -112,6 +112,8 @@ namespace SquintScript
     {
         [Description("Unset")] Unset,
         [Description("100% to isocenter")] ISO,
+        [Description("100% to central axis Dmax")] CAX,
+        [Description("100% to field Dmax")] field,
         [Description("No field normalization")] None,
     }
 

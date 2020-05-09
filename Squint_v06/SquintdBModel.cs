@@ -181,73 +181,73 @@ namespace SquintScript
                             break;
                     }
                 }
-                foreach (ConstraintThresholdNames item in Enum.GetValues(typeof(ConstraintThresholdNames)))
-                {
-                    DbConThresholdDef DbCTdef;
-                    switch (item)
-                    {
-                        case ConstraintThresholdNames.MajorViolation:
-                            {
-                                DbCTdef = new DbConThresholdDef()
-                                {
-                                    ID = (int)ConstraintThresholdNames.MajorViolation,
-                                    Threshold = (int)ConstraintThresholdNames.MajorViolation,
-                                    ThresholdType = (int)ConstraintThresholdTypes.Violation,
-                                    ThresholdName = ConstraintThresholdNames.MajorViolation.Display()
-                                };
-                                context.DbConThresholdDefs.Add(DbCTdef);
-                                break;
-                            }
-                        case ConstraintThresholdNames.MinorViolation:
-                            {
-                                DbCTdef = new DbConThresholdDef()
-                                {
-                                    ID = (int)ConstraintThresholdNames.MinorViolation,
-                                    Threshold = (int)ConstraintThresholdNames.MinorViolation,
-                                    ThresholdType = (int)ConstraintThresholdTypes.Violation,
-                                    ThresholdName = ConstraintThresholdNames.MinorViolation.Display()
-                                };
-                                context.DbConThresholdDefs.Add(DbCTdef);
-                                break;
-                            }
-                        case ConstraintThresholdNames.Unset:
-                            {
-                                DbCTdef = new DbConThresholdDef()
-                                {
-                                    ID = (int)ConstraintThresholdNames.Unset,
-                                    Threshold = (int)ConstraintThresholdNames.Unset,
-                                    ThresholdType = (int)ConstraintThresholdTypes.Unset,
-                                    ThresholdName = ConstraintThresholdNames.Unset.Display()
-                                };
-                                context.DbConThresholdDefs.Add(DbCTdef);
-                                break;
-                            }
-                        case ConstraintThresholdNames.None:
-                            {
-                                DbCTdef = new DbConThresholdDef()
-                                {
-                                    ID = (int)ConstraintThresholdNames.None,
-                                    Threshold = (int)ConstraintThresholdNames.None,
-                                    ThresholdType = (int)ConstraintThresholdTypes.Unset,
-                                    ThresholdName = ConstraintThresholdNames.None.Display()
-                                };
-                                context.DbConThresholdDefs.Add(DbCTdef);
-                                break;
-                            }
-                        case ConstraintThresholdNames.Stop:
-                            {
-                                DbCTdef = new DbConThresholdDef()
-                                {
-                                    ID = (int)ConstraintThresholdNames.Stop,
-                                    Threshold = (int)ConstraintThresholdNames.Stop,
-                                    ThresholdType = (int)ConstraintThresholdTypes.Goal,
-                                    ThresholdName = ConstraintThresholdNames.Stop.Display()
-                                };
-                                context.DbConThresholdDefs.Add(DbCTdef);
-                                break;
-                            }
-                    }
-                }
+                //foreach (ConstraintThresholdNames item in Enum.GetValues(typeof(ConstraintThresholdNames)))
+                //{
+                //    DbConThresholdDef DbCTdef;
+                //    switch (item)
+                //    {
+                //        case ConstraintThresholdNames.MajorViolation:
+                //            {
+                //                DbCTdef = new DbConThresholdDef()
+                //                {
+                //                    ID = (int)ConstraintThresholdNames.MajorViolation,
+                //                    Threshold = (int)ConstraintThresholdNames.MajorViolation,
+                //                    ThresholdType = (int)ConstraintThresholdTypes.Violation,
+                //                    ThresholdName = ConstraintThresholdNames.MajorViolation.Display()
+                //                };
+                //                context.DbConThresholdDefs.Add(DbCTdef);
+                //                break;
+                //            }
+                //        case ConstraintThresholdNames.MinorViolation:
+                //            {
+                //                DbCTdef = new DbConThresholdDef()
+                //                {
+                //                    ID = (int)ConstraintThresholdNames.MinorViolation,
+                //                    Threshold = (int)ConstraintThresholdNames.MinorViolation,
+                //                    ThresholdType = (int)ConstraintThresholdTypes.Violation,
+                //                    ThresholdName = ConstraintThresholdNames.MinorViolation.Display()
+                //                };
+                //                context.DbConThresholdDefs.Add(DbCTdef);
+                //                break;
+                //            }
+                //        case ConstraintThresholdNames.Unset:
+                //            {
+                //                DbCTdef = new DbConThresholdDef()
+                //                {
+                //                    ID = (int)ConstraintThresholdNames.Unset,
+                //                    Threshold = (int)ConstraintThresholdNames.Unset,
+                //                    ThresholdType = (int)ConstraintThresholdTypes.Unset,
+                //                    ThresholdName = ConstraintThresholdNames.Unset.Display()
+                //                };
+                //                context.DbConThresholdDefs.Add(DbCTdef);
+                //                break;
+                //            }
+                //        case ConstraintThresholdNames.None:
+                //            {
+                //                DbCTdef = new DbConThresholdDef()
+                //                {
+                //                    ID = (int)ConstraintThresholdNames.None,
+                //                    Threshold = (int)ConstraintThresholdNames.None,
+                //                    ThresholdType = (int)ConstraintThresholdTypes.Unset,
+                //                    ThresholdName = ConstraintThresholdNames.None.Display()
+                //                };
+                //                context.DbConThresholdDefs.Add(DbCTdef);
+                //                break;
+                //            }
+                //        case ConstraintThresholdNames.Stop:
+                //            {
+                //                DbCTdef = new DbConThresholdDef()
+                //                {
+                //                    ID = (int)ConstraintThresholdNames.Stop,
+                //                    Threshold = (int)ConstraintThresholdNames.Stop,
+                //                    ThresholdType = (int)ConstraintThresholdTypes.Goal,
+                //                    ThresholdName = ConstraintThresholdNames.Stop.Display()
+                //                };
+                //                context.DbConThresholdDefs.Add(DbCTdef);
+                //                break;
+                //            }
+                //    }
+                //}
                 context.SaveChanges();
                 foreach (ProtocolTypes item in Enum.GetValues(typeof(ProtocolTypes)))
                 {
@@ -349,7 +349,7 @@ namespace SquintScript
                 {
                     MessageBox.Show(ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
                 }
-                DbLibraryProtocol RootProtocol = new DbLibraryProtocol
+                DbProtocol RootProtocol = new DbProtocol
                 {
                     ID = 1,
                     AuthorID = 1,
@@ -439,7 +439,7 @@ namespace SquintScript
         public DbSet<DbTreatmentSite> DbTreatmentSites { get; set; }
         public DbSet<DbProtocolType> DbProtocolTypes { get; set; }
         public DbSet<DbTreatmentCentre> DbTreatmentCentres { get; set; }
-        public DbSet<DbLibraryProtocol> DbLibraryProtocols { get; set; }
+        public DbSet<DbProtocol> DbLibraryProtocols { get; set; }
         public DbSet<DbSessionProtocol> DbSessionProtocols { get; set; }
         //Session
         public DbSet<DbSession> DbSessions { get; set; }
@@ -447,7 +447,7 @@ namespace SquintScript
         public DbSet<DbSessionConstraint> DbSessionConstraints { get; set; }
         public DbSet<DbSessionComponent> DbSessionComponents { get; set; }
         public DbSet<DbSessionProtocolStructure> DbSessionProtocolStructures { get; set; }
-        public DbSet<DbSessionConThreshold> DbSessionConThresholds { get; set; }
+        
         //Component
         public DbSet<DbComponent> DbComponents { get; set; }
         //Beams
@@ -460,8 +460,6 @@ namespace SquintScript
         public DbSet<DbConstraintChangelog> DbConstraintChangelogs { get; set; }
         public DbSet<DbConstraintResult> DbConstraintResults { get; set; }
         public DbSet<DbConstraintResultCode> DbConstraintResultCodes { get; set; }
-        public DbSet<DbConThreshold> DbConThresholds { get; set; }
-        public DbSet<DbConThresholdDef> DbConThresholdDefs { get; set; }
         public DbSet<DbUser> DbUsers { get; set; }
         public DbSet<DbPermission> DbPermissions { get; set; }
         public DbSet<DbPermissionGroup> DbPermissionGroups { get; set; }
@@ -813,11 +811,6 @@ namespace SquintScript
         public int TreatmentIntent { get; set; }
     }
 
-    public class DbLibraryProtocol : DbProtocol
-    {
-
-    }
-
     public class DbSessionProtocol : DbProtocol
     {
         public int ParentProtocolId { get; set; }
@@ -946,7 +939,6 @@ namespace SquintScript
         [ForeignKey("DbProtocolStructure_Secondary")]
         public int SecondaryStructureID { get; set; } // the primary structure to which this constraint applies
         public virtual DbProtocolStructure DbProtocolStructure_Secondary { get; set; }
-        public virtual ICollection<DbConThreshold> DbConThresholds { get; set; }
         public virtual ICollection<DbSessionConstraint> DbSessionConstraints { get; set; }
         public virtual ICollection<DbConstraintChangelog> DbConstraintChangelogs { get; set; }
         //Exception flag
@@ -958,6 +950,10 @@ namespace SquintScript
         public double ReferenceValue { get; set; }
         public int ReferenceType { get; set; } // enum code for upper/lower constraint
         public int ReferenceScale { get; set; }
+
+        public double? MajorViolation { get; set; }
+        public double? MinorViolation { get; set; }
+        public double? Stop { get; set; }
     }
 
     public class DbConstraintChangelog
@@ -993,45 +989,45 @@ namespace SquintScript
         public double OriginalConstraintValue { get; set; }
     }
 
-    public class DbConThreshold
-    {
-        [Key]
-        public int ID { get; set; }
-        //FKs
-        [ForeignKey("DbConstraint")]
-        public int ConstraintID { get; set; }
-        public virtual DbConstraint DbConstraint { get; set; }
-        [ForeignKey("DbConThresholdDef")]
-        public int ConThreshDefID { get; set; }
-        public virtual DbConThresholdDef DbConThresholdDef { get; set; }
-        //public virtual ICollection<DbConstraintResult> ConstraintResults { get; set; }
-        //Properties
-        public double ThresholdValue { get; set; }
-        public string Description { get; set; }
+    //public class DbConThreshold
+    //{
+    //    [Key]
+    //    public int ID { get; set; }
+    //    //FKs
+    //    [ForeignKey("DbConstraint")]
+    //    public int ConstraintID { get; set; }
+    //    public virtual DbConstraint DbConstraint { get; set; }
+    //    [ForeignKey("DbConThresholdDef")]
+    //    public int ConThreshDefID { get; set; }
+    //    public virtual DbConThresholdDef DbConThresholdDef { get; set; }
+    //    //public virtual ICollection<DbConstraintResult> ConstraintResults { get; set; }
+    //    //Properties
+    //    public double ThresholdValue { get; set; }
+    //    public string Description { get; set; }
 
-    }
+    //}
 
-    public class DbSessionConThreshold : DbConThreshold
-    {
-        [ForeignKey("DbSession")]
-        public int SessionID { get; set; }
-        public virtual DbSession DbSession { get; set; }
-        public int ParentConstraintThresholdID { get; set; }
-    }
+    //public class DbSessionConThreshold : DbConThreshold
+    //{
+    //    [ForeignKey("DbSession")]
+    //    public int SessionID { get; set; }
+    //    public virtual DbSession DbSession { get; set; }
+    //    public int ParentConstraintThresholdID { get; set; }
+    //}
 
-    public class DbConThresholdDef
-    {
-        [Key]
-        public int ID { get; set; }
-        //FKs
-        public virtual ICollection<DbConThreshold> DbConThresholds { get; set; }
-        //Properties
-        public int Threshold { get; set; } // this is the int cast of the enum
-        public string ThresholdName { get; set; }
-        public int ThresholdType { get; set; }
-        public string Color { get; set; }
+    //public class DbConThresholdDef
+    //{
+    //    [Key]
+    //    public int ID { get; set; }
+    //    //FKs
+    //    public virtual ICollection<DbConThreshold> DbConThresholds { get; set; }
+    //    //Properties
+    //    public int Threshold { get; set; } // this is the int cast of the enum
+    //    public string ThresholdName { get; set; }
+    //    public int ThresholdType { get; set; }
+    //    public string Color { get; set; }
 
-    }
+    //}
 
     public class DbBeamAlias
     {

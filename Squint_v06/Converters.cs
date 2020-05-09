@@ -538,7 +538,7 @@ namespace SquintScript.Converters
             if (values.Count() > 1)
             {
                 if (values[1] is int)
-                    return ((double)values[0] * System.Convert.ToDouble(values[1]) * Double.Parse(parameter as string));
+                    return Math.Max((double)values[0] * System.Convert.ToDouble(values[1]) * Double.Parse(parameter as string), 0.1);
                 else
                     return 0;
             }

@@ -14,7 +14,8 @@ using System.Data.Entity;
 using PropertyChanged;
 using System.Data;
 using SquintScript.Extensions;
-
+using SquintScript.Converters;
+using System.IO.Ports;
 
 namespace SquintScript
 {
@@ -344,6 +345,19 @@ namespace SquintScript
                     _ReferenceValue = new TrackedValueWithReferences<double>(DbOS.OriginalReferenceValue);
                     if (DbOS.ReferenceValue != DbOS.OriginalReferenceValue)
                         _ReferenceValue.Value = DbO.ReferenceValue;
+                    // Look up thresholds
+                    if (DbOS.MajorViolation == null)
+                        _MajorViolation = new TrackedValue<double>(double.NaN);
+                    else
+                        _MajorViolation = new TrackedValue<double>((double)DbOS.MajorViolation);
+                    if (DbOS.MinorViolation == null)
+                        _MinorViolation = new TrackedValue<double>(double.NaN);
+                    else
+                        _MinorViolation = new TrackedValue<double>((double)DbOS.MinorViolation);
+                    if (DbOS.Stop == null)
+                        _Stop = new TrackedValue<double>(double.NaN);
+                    else
+                        _Stop = new TrackedValue<double>((double)DbOS.Stop);
                     _ReferenceType = new TrackedValue<ReferenceTypes>((ReferenceTypes)DbOS.OriginalReferenceType);
                     if (DbOS.ReferenceType != DbOS.OriginalReferenceType)
                         ReferenceType = (ReferenceTypes)DbOS.ReferenceType;
@@ -372,6 +386,19 @@ namespace SquintScript
                     _NumFractions = new TrackedValue<int>(DbO.Fractions);
                     _ConstraintScale = new TrackedValue<UnitScale>((UnitScale)DbO.ConstraintScale);
                     DisplayOrder = new TrackedValue<int>(DbO.DisplayOrder);
+                    // Look up thresholds
+                    if (DbO.MajorViolation == null)
+                        _MajorViolation = new TrackedValue<double>(double.NaN);
+                    else
+                        _MajorViolation = new TrackedValue<double>((double)DbO.MajorViolation);
+                    if (DbO.MinorViolation == null)
+                        _MinorViolation = new TrackedValue<double>(double.NaN);
+                    else
+                        _MinorViolation = new TrackedValue<double>((double)DbO.MinorViolation);
+                    if (DbO.Stop == null)
+                        _Stop = new TrackedValue<double>(double.NaN);
+                    else
+                        _Stop = new TrackedValue<double>((double)DbO.Stop);
                 }
 
                 var ProtocolStructure = DataCache.GetProtocolStructure(DbO.PrimaryStructureID);
@@ -431,6 +458,10 @@ namespace SquintScript
                     SC.ReferenceDoseChanged += OnComponentDoseChanging;
                     SC.ReferenceFractionsChanged += OnComponentFractionsChanging;
                 }
+                // Initialize thresholds
+                _MajorViolation = new TrackedValue<double>(ReferenceValue);
+                _MinorViolation = new TrackedValue<double>(double.NaN);
+                _Stop = new TrackedValue<double>(double.NaN);
             }
             public Constraint(Constraint Con)
             {
@@ -760,7 +791,7 @@ namespace SquintScript
             public int PrimaryStructureID { get { return _PrimaryStructureID.Value; } set { _PrimaryStructureID.Value = value; } }
             private TrackedValue<int> _SecondaryStructureID { get; set; }
             public int SecondaryStructureID { get { return _SecondaryStructureID.Value; } set { _SecondaryStructureID.Value = value; } }
-            private TrackedValueWithReferences<double> _ReferenceValue { get; set; }
+            private TrackedValue<double> _ReferenceValue { get; set; }
             public double ReferenceValue
             {
                 get { return _ReferenceValue.Value; }
@@ -1213,28 +1244,18 @@ namespace SquintScript
                         if (ReferenceScale == UnitScale.Relative)
                         {
                             ReferenceValue = Math.Round(DoseFunctions.BED(_NumFractions.ReferenceValue, SC.NumFractions, _ReferenceValue.ReferenceValue / 100 * SC.ReferenceDose, abRatio)) * 100 / SC.ReferenceDose;
+                            if (_MajorViolation != null)
+                                _MajorViolation.Value = Math.Round(DoseFunctions.BED(_NumFractions.ReferenceValue, SC.NumFractions, _MajorViolation.ReferenceValue / 100 * SC.ReferenceDose, abRatio)) * 100 / SC.ReferenceDose;
+                            if (_MinorViolation != null)
+                                _MinorViolation.Value = Math.Round(DoseFunctions.BED(_NumFractions.ReferenceValue, SC.NumFractions, _MinorViolation.ReferenceValue / 100 * SC.ReferenceDose, abRatio)) * 100 / SC.ReferenceDose;
+                            if (_Stop != null)
+                                _Stop.Value = Math.Round(DoseFunctions.BED(_NumFractions.ReferenceValue, SC.NumFractions, _Stop.ReferenceValue / 100 * SC.ReferenceDose, abRatio)) * 100 / SC.ReferenceDose;
                             NumFractions = SC.NumFractions;
                         }
                         else
                         {
                             ReferenceValue = Math.Round(DoseFunctions.BED(_NumFractions.ReferenceValue, SC.NumFractions, _ReferenceValue.ReferenceValue, abRatio) / 100) * 100;
                             NumFractions = SC.NumFractions;
-                        }
-                        // NotifyPropertyChanged("ReferenceValue");
-                        foreach (ConstraintThreshold CT in DataCache.GetConstraintThresholdByConstraintId(ID).ToList())
-                        {
-                            switch (CT.ThresholdName)
-                            {
-                                case ConstraintThresholdNames.MinorViolation:
-                                    DataCache.DeleteConstraintThreshold(CT);
-                                    break;
-                                case ConstraintThresholdNames.MajorViolation:
-                                    CT.ThresholdValue = ReferenceValue;
-                                    break;
-                                case ConstraintThresholdNames.Stop:
-                                    DataCache.DeleteConstraintThreshold(CT);
-                                    break;
-                            }
                         }
                     }
                 }
@@ -1538,26 +1559,31 @@ namespace SquintScript
                 Constraint Con = DataCache.GetConstraint(CR.ConstraintID);
                 if (CR.StatusCodes.Where(x => x != ConstraintResultStatusCodes.LabelMismatch).Count() > 0)
                     return ConstraintThresholdNames.Unset;
-                ConstraintThresholdNames ThreshLevel = ConstraintThresholdNames.None;
                 if (Con.ReferenceType == ReferenceTypes.Upper)
                 {
-                    foreach (ConstraintThreshold CT in DataCache.GetConstraintThresholdByConstraintId(Con.ID).Where(x => x.ThresholdType == ConstraintThresholdTypes.Violation).Where(x => !double.IsNaN(x.ThresholdValue)).OrderBy(x => x.ThresholdValue))
-                        if (CR.ResultValue > CT.ThresholdValue)
-                            ThreshLevel = CT.ThresholdName;
-                    foreach (ConstraintThreshold CT in DataCache.GetConstraintThresholdByConstraintId(Con.ID).Where(x => x.ThresholdType == ConstraintThresholdTypes.Goal).Where(x => !double.IsNaN(x.ThresholdValue)).OrderByDescending(x => x.ThresholdValue))
-                        if (CR.ResultValue < CT.ThresholdValue)
-                            ThreshLevel = CT.ThresholdName;
+                    if (_Stop.isDefined)
+                        if (CR.ResultValue <= _Stop.Value)
+                            return ConstraintThresholdNames.Stop;
+                    if (_MajorViolation.isDefined)
+                        if (CR.ResultValue > _MajorViolation.Value)
+                            return ConstraintThresholdNames.MajorViolation;
+                    if (_MinorViolation.isDefined)
+                        if (CR.ResultValue > _MinorViolation.Value)
+                            return ConstraintThresholdNames.MinorViolation;
                 }
                 else
                 {
-                    foreach (ConstraintThreshold CT in DataCache.GetConstraintThresholdByConstraintId(Con.ID).Where(x => x.ThresholdType == ConstraintThresholdTypes.Violation).Where(x => !double.IsNaN(x.ThresholdValue)).OrderByDescending(x => x.ThresholdValue))
-                        if (CR.ResultValue < CT.ThresholdValue)
-                            ThreshLevel = CT.ThresholdName;
-                    foreach (ConstraintThreshold CT in DataCache.GetConstraintThresholdByConstraintId(Con.ID).Where(x => x.ThresholdType == ConstraintThresholdTypes.Goal).Where(x => !double.IsNaN(x.ThresholdValue)).OrderBy(x => x.ThresholdValue))
-                        if (CR.ResultValue > CT.ThresholdValue)
-                            ThreshLevel = CT.ThresholdName;
+                    if (_Stop.isDefined)
+                        if (CR.ResultValue >= _Stop.Value)
+                            return ConstraintThresholdNames.Stop;
+                    if (_MajorViolation.isDefined)
+                        if (CR.ResultValue < _MajorViolation.Value)
+                            return ConstraintThresholdNames.MajorViolation;
+                    if (_MinorViolation.isDefined)
+                        if (CR.ResultValue < _MinorViolation.Value)
+                            return ConstraintThresholdNames.MinorViolation;
                 }
-                return ThreshLevel;
+                return ConstraintThresholdNames.None;
             }
             public ConstraintResultView GetResult(int AssessmentID)
             {
@@ -1600,232 +1626,254 @@ namespace SquintScript
                     CR.ThresholdStatus = ThresholdStatus(CR);
                 }
             }
-            public double StopValue
+            public void AcceptChanges()
             {
-                get
-                {
-                    return GetThreshold(ConstraintThresholdNames.Stop);
-                }
+                _ConstraintScale.AcceptChanges();
+                _ConstraintType.AcceptChanges();
+                _ConstraintValue.AcceptChanges();
+                _ReferenceScale.AcceptChanges();
+                _ReferenceType.AcceptChanges();
+                _ReferenceValue.AcceptChanges();
+            }
+            private TrackedValue<double> _Stop;
+            public double Stop
+            {
+                get { return _Stop.Value; }
                 set
                 {
-                    SetThreshold(ConstraintThresholdNames.Stop, value);
-                    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("Threshold"));
+                    if (value != _Stop.Value)
+                        if (ReferenceType == ReferenceTypes.Lower)
+                        {
+                            if ((value > MinorViolation || !_MinorViolation.isDefined) && (value > MajorViolation || !_MajorViolation.isDefined))
+                                _Stop.Value = value;
+                        }
+                        else if ((value < MinorViolation || !_MinorViolation.isDefined) && (value < MajorViolation || !_MajorViolation.isDefined))
+                            _Stop.Value = value;
                 }
             }
+            private TrackedValue<double> _MinorViolation;
             public double MinorViolation
             {
-                get
-                {
-                    return GetThreshold(ConstraintThresholdNames.MinorViolation);
-                }
+                get { return _MinorViolation.Value; }
                 set
                 {
-                    SetThreshold(ConstraintThresholdNames.MinorViolation, value);
-                    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("Threshold"));
+                    if (value != _MinorViolation.Value)
+                        if (ReferenceType == ReferenceTypes.Lower)
+                        {
+                            if ((value < Stop || !_Stop.isDefined) && (value > MajorViolation || !_MajorViolation.isDefined))
+                                _MinorViolation.Value = value;
+                        }
+                        else if ((value > Stop || !_Stop.isDefined) && (value < MajorViolation || !_MajorViolation.isDefined))
+                            _MinorViolation.Value = value;
                 }
             }
+            private TrackedValue<double> _MajorViolation;
             public double MajorViolation
             {
-                get
-                {
-                    return GetThreshold(ConstraintThresholdNames.MajorViolation);
-                }
+                get { return _MajorViolation.Value; }
                 set
                 {
-                    SetThreshold(ConstraintThresholdNames.MajorViolation, value);
-                    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("Threshold"));
+                    if (value != _MajorViolation.Value)
+                        if (ReferenceType == ReferenceTypes.Lower)
+                        {
+                            if ((value < Stop || !_Stop.isDefined) && (value < MinorViolation || !_MinorViolation.isDefined))
+                                _MajorViolation.Value = value;
+                        }
+                        else if ((value > Stop || !_Stop.isDefined) && (value > MinorViolation || !_MinorViolation.isDefined))
+                            _MajorViolation.Value = value;
                 }
             }
-            public double GetThreshold(ConstraintThresholdNames Name)
-            {
-                var CT = DataCache.GetConstraintThresholdByConstraintId(ID).FirstOrDefault(x => x.ThresholdName == Name);
-                if (CT != null)
-                    return CT.ThresholdValue;
-                else
-                    return double.NaN;
-            }
-            public bool SetThreshold(ConstraintThresholdNames Name, double value)
-            {
-                var CTs = DataCache.GetConstraintThresholdByConstraintId(ID);
-                switch (Name)
-                {
-                    case ConstraintThresholdNames.MajorViolation:
-                        if (double.IsNaN(value))
-                            return false;
-                        if (ReferenceType == ReferenceTypes.Lower)
-                        {
-                            if (value > ReferenceValue)
-                                return false;
-                            var CT_minor = CTs.FirstOrDefault(x => x.ThresholdName == ConstraintThresholdNames.MinorViolation);
-                            if (CT_minor != null)
-                                if (CT_minor.ThresholdValue < value)
-                                    CT_minor.ThresholdValue = double.NaN;
-                            var CT_major = DataCache.GetConstraintThresholdByConstraintId(ID).FirstOrDefault(x => x.ThresholdName == ConstraintThresholdNames.MajorViolation);
-                            if (CT_major != null)
-                            {
-                                CT_major.ThresholdValue = value;
-                                RefreshResultThresholdStatus();
-                                return true;
-                            }
-                            else
-                            {
-                                if (value != double.NaN)
-                                {
-                                    DataCache.AddConstraintThreshold(ConstraintThresholdNames.MajorViolation, ConstraintThresholdTypes.Violation, this, value);
-                                    RefreshResultThresholdStatus();
-                                    return true;
-                                }
-                                else
-                                    return false;
-                            }
-                        }
-                        else
-                        {
-                            if (value < ReferenceValue)
-                                return false;
-                            var CT_minor = CTs.FirstOrDefault(x => x.ThresholdName == ConstraintThresholdNames.MinorViolation);
-                            if (CT_minor != null)
-                                if (CT_minor.ThresholdValue > value)
-                                    CT_minor.ThresholdValue = double.NaN;
-                            var CT_major = DataCache.GetConstraintThresholdByConstraintId(ID).FirstOrDefault(x => x.ThresholdName == ConstraintThresholdNames.MajorViolation);
-                            if (CT_major != null)
-                            {
-                                CT_major.ThresholdValue = value;
-                                RefreshResultThresholdStatus();
-                                return true;
-                            }
-                            else
-                            {
-                                if (value != double.NaN)
-                                {
-                                    DataCache.AddConstraintThreshold(ConstraintThresholdNames.MajorViolation, ConstraintThresholdTypes.Violation, this, value);
-                                    RefreshResultThresholdStatus();
-                                    return true;
-                                }
-                                else
-                                    return false;
-                            }
-                        }
-                    case ConstraintThresholdNames.MinorViolation:
-                        if (double.IsNaN(value)) //
-                        {
-                            var CT_minor = CTs.FirstOrDefault(x => x.ThresholdName == ConstraintThresholdNames.MinorViolation);
-                            if (CT_minor != null)
-                                CT_minor.ThresholdValue = value;
-                            return true;
-                        }
-                        if (ReferenceType == ReferenceTypes.Lower)
-                        {
-                            if (value > ReferenceValue)
-                                return false;
-                            var CT_major = CTs.FirstOrDefault(x => x.ThresholdName == ConstraintThresholdNames.MajorViolation);
-                            if (CT_major != null)
-                                if (CT_major.ThresholdValue > value)
-                                    CT_major.ThresholdValue = double.NaN;
-                            var CT_minor = DataCache.GetConstraintThresholdByConstraintId(ID).FirstOrDefault(x => x.ThresholdName == ConstraintThresholdNames.MinorViolation);
-                            if (CT_minor != null)
-                            {
-                                CT_minor.ThresholdValue = value;
-                                RefreshResultThresholdStatus();
-                                return true;
-                            }
-                            else
-                            {
-                                if (value != double.NaN)
-                                {
-                                    DataCache.AddConstraintThreshold(ConstraintThresholdNames.MinorViolation, ConstraintThresholdTypes.Violation, this, value);
-                                    RefreshResultThresholdStatus();
-                                    return true;
-                                }
-                                else
-                                    return false;
-                            }
-                        }
-                        else
-                        {
-                            if (value < ReferenceValue)
-                                return false;
-                            var CT_major = CTs.FirstOrDefault(x => x.ThresholdName == ConstraintThresholdNames.MajorViolation);
-                            if (CT_major != null)
-                                if (CT_major.ThresholdValue < value)
-                                    CT_major.ThresholdValue = double.NaN;
-                            var CT_minor = DataCache.GetConstraintThresholdByConstraintId(ID).FirstOrDefault(x => x.ThresholdName == ConstraintThresholdNames.MinorViolation);
-                            if (CT_minor != null)
-                            {
-                                CT_minor.ThresholdValue = value;
-                                RefreshResultThresholdStatus();
-                                return true;
-                            }
-                            else
-                            {
-                                if (value != double.NaN)
-                                {
-                                    DataCache.AddConstraintThreshold(ConstraintThresholdNames.MinorViolation, ConstraintThresholdTypes.Violation, this, value);
-                                    RefreshResultThresholdStatus();
-                                    return true;
-                                }
-                                else
-                                    return false;
-                            }
-                        }
-                    case ConstraintThresholdNames.Stop:
-                        if (double.IsNaN(value)) //
-                        {
-                            var CT_stop = CTs.FirstOrDefault(x => x.ThresholdName == ConstraintThresholdNames.Stop);
-                            if (CT_stop != null)
-                                CT_stop.ThresholdValue = value;
-                            return true;
-                        }
-                        if (ReferenceType == ReferenceTypes.Lower)
-                        {
-                            if (value < ReferenceValue)
-                                return false;
-                            var CT_stop = DataCache.GetConstraintThresholdByConstraintId(ID).FirstOrDefault(x => x.ThresholdName == ConstraintThresholdNames.Stop);
-                            if (CT_stop != null)
-                            {
-                                CT_stop.ThresholdValue = value;
-                                RefreshResultThresholdStatus();
-                                return true;
-                            }
-                            else
-                            {
-                                if (value != double.NaN)
-                                {
-                                    DataCache.AddConstraintThreshold(ConstraintThresholdNames.Stop, ConstraintThresholdTypes.Goal, this, value);
-                                    RefreshResultThresholdStatus();
-                                    return true;
-                                }
-                                else
-                                    return false;
-                            }
-                        }
-                        else
-                        {
-                            if (value > ReferenceValue)
-                                return false;
-                            var CT_stop = DataCache.GetConstraintThresholdByConstraintId(ID).FirstOrDefault(x => x.ThresholdName == ConstraintThresholdNames.Stop);
-                            if (CT_stop != null)
-                            {
-                                CT_stop.ThresholdValue = value;
-                                RefreshResultThresholdStatus();
-                                return true;
-                            }
-                            else
-                            {
-                                if (value != double.NaN)
-                                {
-                                    DataCache.AddConstraintThreshold(ConstraintThresholdNames.Stop, ConstraintThresholdTypes.Goal, this, value);
-                                    RefreshResultThresholdStatus();
-                                    return true;
-                                }
-                                else
-                                    return false;
-                            }
-                        }
-                    default:
-                        return false;
-                }
-            }
+
+            //public double GetThreshold(ConstraintThresholdNames Name)
+            //{
+            //    var CT = DataCache.GetConstraintThresholdByConstraintId(ID).FirstOrDefault(x => x.ThresholdName == Name);
+            //    if (CT != null)
+            //        return CT.ThresholdValue;
+            //    else
+            //        return double.NaN;
+            //}
+            //public bool SetThreshold(ConstraintThresholdNames Name, double value)
+            //{
+            //    var CTs = DataCache.GetConstraintThresholdByConstraintId(ID);
+            //    switch (Name)
+            //    {
+            //        case ConstraintThresholdNames.MajorViolation:
+            //            if (double.IsNaN(value))
+            //                return false;
+            //            if (ReferenceType == ReferenceTypes.Lower)
+            //            {
+            //                if (value > ReferenceValue)
+            //                    return false;
+            //                var CT_minor = CTs.FirstOrDefault(x => x.ThresholdName == ConstraintThresholdNames.MinorViolation);
+            //                if (CT_minor != null)
+            //                    if (CT_minor.ThresholdValue < value)
+            //                        CT_minor.ThresholdValue = double.NaN;
+            //                var CT_major = DataCache.GetConstraintThresholdByConstraintId(ID).FirstOrDefault(x => x.ThresholdName == ConstraintThresholdNames.MajorViolation);
+            //                if (CT_major != null)
+            //                {
+            //                    CT_major.ThresholdValue = value;
+            //                    RefreshResultThresholdStatus();
+            //                    return true;
+            //                }
+            //                else
+            //                {
+            //                    if (value != double.NaN)
+            //                    {
+            //                        DataCache.AddConstraintThreshold(ConstraintThresholdNames.MajorViolation, ConstraintThresholdTypes.Violation, this, value);
+            //                        RefreshResultThresholdStatus();
+            //                        return true;
+            //                    }
+            //                    else
+            //                        return false;
+            //                }
+            //            }
+            //            else
+            //            {
+            //                if (value < ReferenceValue)
+            //                    return false;
+            //                var CT_minor = CTs.FirstOrDefault(x => x.ThresholdName == ConstraintThresholdNames.MinorViolation);
+            //                if (CT_minor != null)
+            //                    if (CT_minor.ThresholdValue > value)
+            //                        CT_minor.ThresholdValue = double.NaN;
+            //                var CT_major = DataCache.GetConstraintThresholdByConstraintId(ID).FirstOrDefault(x => x.ThresholdName == ConstraintThresholdNames.MajorViolation);
+            //                if (CT_major != null)
+            //                {
+            //                    CT_major.ThresholdValue = value;
+            //                    RefreshResultThresholdStatus();
+            //                    return true;
+            //                }
+            //                else
+            //                {
+            //                    if (value != double.NaN)
+            //                    {
+            //                        DataCache.AddConstraintThreshold(ConstraintThresholdNames.MajorViolation, ConstraintThresholdTypes.Violation, this, value);
+            //                        RefreshResultThresholdStatus();
+            //                        return true;
+            //                    }
+            //                    else
+            //                        return false;
+            //                }
+            //            }
+            //        case ConstraintThresholdNames.MinorViolation:
+            //            if (double.IsNaN(value)) //
+            //            {
+            //                var CT_minor = CTs.FirstOrDefault(x => x.ThresholdName == ConstraintThresholdNames.MinorViolation);
+            //                if (CT_minor != null)
+            //                    CT_minor.ThresholdValue = value;
+            //                return true;
+            //            }
+            //            if (ReferenceType == ReferenceTypes.Lower)
+            //            {
+            //                if (value > ReferenceValue)
+            //                    return false;
+            //                var CT_major = CTs.FirstOrDefault(x => x.ThresholdName == ConstraintThresholdNames.MajorViolation);
+            //                if (CT_major != null)
+            //                    if (CT_major.ThresholdValue > value)
+            //                        CT_major.ThresholdValue = double.NaN;
+            //                var CT_minor = DataCache.GetConstraintThresholdByConstraintId(ID).FirstOrDefault(x => x.ThresholdName == ConstraintThresholdNames.MinorViolation);
+            //                if (CT_minor != null)
+            //                {
+            //                    CT_minor.ThresholdValue = value;
+            //                    RefreshResultThresholdStatus();
+            //                    return true;
+            //                }
+            //                else
+            //                {
+            //                    if (value != double.NaN)
+            //                    {
+            //                        DataCache.AddConstraintThreshold(ConstraintThresholdNames.MinorViolation, ConstraintThresholdTypes.Violation, this, value);
+            //                        RefreshResultThresholdStatus();
+            //                        return true;
+            //                    }
+            //                    else
+            //                        return false;
+            //                }
+            //            }
+            //            else
+            //            {
+            //                if (value < ReferenceValue)
+            //                    return false;
+            //                var CT_major = CTs.FirstOrDefault(x => x.ThresholdName == ConstraintThresholdNames.MajorViolation);
+            //                if (CT_major != null)
+            //                    if (CT_major.ThresholdValue < value)
+            //                        CT_major.ThresholdValue = double.NaN;
+            //                var CT_minor = DataCache.GetConstraintThresholdByConstraintId(ID).FirstOrDefault(x => x.ThresholdName == ConstraintThresholdNames.MinorViolation);
+            //                if (CT_minor != null)
+            //                {
+            //                    CT_minor.ThresholdValue = value;
+            //                    RefreshResultThresholdStatus();
+            //                    return true;
+            //                }
+            //                else
+            //                {
+            //                    if (value != double.NaN)
+            //                    {
+            //                        DataCache.AddConstraintThreshold(ConstraintThresholdNames.MinorViolation, ConstraintThresholdTypes.Violation, this, value);
+            //                        RefreshResultThresholdStatus();
+            //                        return true;
+            //                    }
+            //                    else
+            //                        return false;
+            //                }
+            //            }
+            //        case ConstraintThresholdNames.Stop:
+            //            if (double.IsNaN(value)) //
+            //            {
+            //                var CT_stop = CTs.FirstOrDefault(x => x.ThresholdName == ConstraintThresholdNames.Stop);
+            //                if (CT_stop != null)
+            //                    CT_stop.ThresholdValue = value;
+            //                return true;
+            //            }
+            //            if (ReferenceType == ReferenceTypes.Lower)
+            //            {
+            //                if (value < ReferenceValue)
+            //                    return false;
+            //                var CT_stop = DataCache.GetConstraintThresholdByConstraintId(ID).FirstOrDefault(x => x.ThresholdName == ConstraintThresholdNames.Stop);
+            //                if (CT_stop != null)
+            //                {
+            //                    CT_stop.ThresholdValue = value;
+            //                    RefreshResultThresholdStatus();
+            //                    return true;
+            //                }
+            //                else
+            //                {
+            //                    if (value != double.NaN)
+            //                    {
+            //                        DataCache.AddConstraintThreshold(ConstraintThresholdNames.Stop, ConstraintThresholdTypes.Goal, this, value);
+            //                        RefreshResultThresholdStatus();
+            //                        return true;
+            //                    }
+            //                    else
+            //                        return false;
+            //                }
+            //            }
+            //            else
+            //            {
+            //                if (value > ReferenceValue)
+            //                    return false;
+            //                var CT_stop = DataCache.GetConstraintThresholdByConstraintId(ID).FirstOrDefault(x => x.ThresholdName == ConstraintThresholdNames.Stop);
+            //                if (CT_stop != null)
+            //                {
+            //                    CT_stop.ThresholdValue = value;
+            //                    RefreshResultThresholdStatus();
+            //                    return true;
+            //                }
+            //                else
+            //                {
+            //                    if (value != double.NaN)
+            //                    {
+            //                        DataCache.AddConstraintThreshold(ConstraintThresholdNames.Stop, ConstraintThresholdTypes.Goal, this, value);
+            //                        RefreshResultThresholdStatus();
+            //                        return true;
+            //                    }
+            //                    else
+            //                        return false;
+            //                }
+            //            }
+            //        default:
+            //            return false;
+            //    }
+            //}
             public void Delete()
             {
                 foreach (int SAId in RegisteredAssessmentIDs)
@@ -1864,7 +1912,8 @@ namespace SquintScript
                     else if (ConstraintScale == UnitScale.Absolute && ReferenceType == ReferenceTypes.Lower && LowerConstraintDoseScalesWithComponent)
                     {
                         double CompDose = DataCache.GetComponent(ComponentID).ReferenceDose;
-                        ConstraintValue = ConstraintValue * CompDose / DataCache.GetComponent(ComponentID).ReferenceDoseOriginal;
+                        double CompDoseRef = DataCache.GetComponent(ComponentID).ReferenceDoseOriginal;
+                        ConstraintValue = _ConstraintValue.ReferenceValue * CompDose /  DataCache.GetComponent(ComponentID).ReferenceDoseOriginal;
                         NotifyPropertyChanged("ConstraintValue");
                     }
                 }
@@ -1878,7 +1927,7 @@ namespace SquintScript
                     {
 
                         double CompDose = DataCache.GetComponent(ComponentID).ReferenceDose;
-                        ReferenceValue = ReferenceValue * CompDose / DataCache.GetComponent(ComponentID).ReferenceDoseOriginal;
+                        ReferenceValue = _ReferenceValue.ReferenceValue * CompDose / DataCache.GetComponent(ComponentID).ReferenceDoseOriginal;
                         NotifyPropertyChanged("ReferenceValue");
                     }
                 }
@@ -1916,61 +1965,63 @@ namespace SquintScript
                     ConstraintValue = _ConstraintValue.ReferenceValue
                 };
             }
+
+
         }
-        [AddINotifyPropertyChangedInterface]
-        public class ConstraintThreshold
-        {
-            public event EventHandler AssociatedConstraintDeleted;
-            //public event EventHandler NewConstraintThreshold;
-            private Constraint Con;
-            public ConstraintThreshold(DbConThreshold DbO_in, Constraint Con_in)
-            {
-                ID = DbO_in.ID;
-                Con = Con_in;
-                ThresholdValue = DbO_in.ThresholdValue;
-                _OriginalThresholdValue = DbO_in.ThresholdValue;
-                ThresholdName = (ConstraintThresholdNames)DbO_in.DbConThresholdDef.Threshold;
-                ThresholdType = (ConstraintThresholdTypes)DbO_in.DbConThresholdDef.ThresholdType;
-            }
-            public ConstraintThreshold(DbConThresholdDef DbCTdef, Constraint Constraint, double ThresholdValue_in)
-            {
-                ID = Ctr.IDGenerator();
-                Con = Constraint;
-                isCreated = true;
-                ThresholdValue = ThresholdValue_in;
-                _OriginalThresholdValue = ThresholdValue_in;
-                ThresholdName = (ConstraintThresholdNames)DbCTdef.Threshold;
-                ThresholdType = (ConstraintThresholdTypes)DbCTdef.ThresholdType;
-            }
-            public ConstraintThreshold(ConstraintThresholdNames Name, ConstraintThresholdTypes Type, Constraint Constraint, double ThresholdValue_in)
-            {
-                ID = Ctr.IDGenerator();
-                Con = Constraint;
-                isCreated = true;
-                ThresholdValue = ThresholdValue_in;
-                _OriginalThresholdValue = ThresholdValue_in;
-                ThresholdName = Name;
-                ThresholdType = Type;
-            }
-            public int ID { get; private set; }
-            public int ConstraintID { get { return Con.ID; } }
-            public ConstraintThresholdNames ThresholdName { get; set; }
-            public ConstraintThresholdTypes ThresholdType { get; set; }
-            private double _OriginalThresholdValue;
-            public double ThresholdValue { get; set; }
-            public string Description { get; set; }
-            public bool isCreated { get; private set; } = false;
-            public bool isModified
-            {
-                get
-                {
-                    if (Math.Abs(_OriginalThresholdValue - ThresholdValue) > 1E-5)
-                        return true;
-                    else
-                        return false;
-                }
-            }
-        }
+        //[AddINotifyPropertyChangedInterface]
+        //public class ConstraintThreshold
+        //{
+        //    public event EventHandler AssociatedConstraintDeleted;
+        //    //public event EventHandler NewConstraintThreshold;
+        //    private Constraint Con;
+        //    public ConstraintThreshold(DbConThreshold DbO_in, Constraint Con_in)
+        //    {
+        //        ID = DbO_in.ID;
+        //        Con = Con_in;
+        //        ThresholdValue = DbO_in.ThresholdValue;
+        //        _OriginalThresholdValue = DbO_in.ThresholdValue;
+        //        ThresholdName = (ConstraintThresholdNames)DbO_in.DbConThresholdDef.Threshold;
+        //        ThresholdType = (ConstraintThresholdTypes)DbO_in.DbConThresholdDef.ThresholdType;
+        //    }
+        //    public ConstraintThreshold(DbConThresholdDef DbCTdef, Constraint Constraint, double ThresholdValue_in)
+        //    {
+        //        ID = Ctr.IDGenerator();
+        //        Con = Constraint;
+        //        isCreated = true;
+        //        ThresholdValue = ThresholdValue_in;
+        //        _OriginalThresholdValue = ThresholdValue_in;
+        //        ThresholdName = (ConstraintThresholdNames)DbCTdef.Threshold;
+        //        ThresholdType = (ConstraintThresholdTypes)DbCTdef.ThresholdType;
+        //    }
+        //    public ConstraintThreshold(ConstraintThresholdNames Name, ConstraintThresholdTypes Type, Constraint Constraint, double ThresholdValue_in)
+        //    {
+        //        ID = Ctr.IDGenerator();
+        //        Con = Constraint;
+        //        isCreated = true;
+        //        ThresholdValue = ThresholdValue_in;
+        //        _OriginalThresholdValue = ThresholdValue_in;
+        //        ThresholdName = Name;
+        //        ThresholdType = Type;
+        //    }
+        //    public int ID { get; private set; }
+        //    public int ConstraintID { get { return Con.ID; } }
+        //    public ConstraintThresholdNames ThresholdName { get; set; }
+        //    public ConstraintThresholdTypes ThresholdType { get; set; }
+        //    private double _OriginalThresholdValue;
+        //    public double ThresholdValue { get; set; }
+        //    public string Description { get; set; }
+        //    public bool isCreated { get; private set; } = false;
+        //    public bool isModified
+        //    {
+        //        get
+        //        {
+        //            if (Math.Abs(_OriginalThresholdValue - ThresholdValue) > 1E-5)
+        //                return true;
+        //            else
+        //                return false;
+        //        }
+        //    }
+        //}
         [AddINotifyPropertyChangedInterface]
         public class Artifact
         {
@@ -2083,17 +2134,18 @@ namespace SquintScript
                 ID = CompId;
                 ProtocolID = ProtocolId;
             }
-            public Component(Component SC) // shallow clone
-            {
-                ID = Ctr.IDGenerator();
-                ProtocolID = SC.ProtocolID;
-                ComponentName = SC.ComponentName;
-                ComponentName = ComponentName + "_copy";
-                ComponentType = SC.ComponentType;
-                NumFractions = SC.NumFractions;
-                ReferenceDose = SC.ReferenceDose;
-                DisplayOrder = SC.DisplayOrder;
-            }
+            //public Component(Component SC) // shallow clone
+            //{
+            //    ID = Ctr.IDGenerator();
+            //    ProtocolID = SC.ProtocolID;
+            //    _ComponentName = new TrackedValue<string>(SC.ComponentName);
+            //    ComponentName = ComponentName + "_copy";
+            //    ComponentType = new TrackedValue<ComponentTypes>((ComponentTypes)DbO.ComponentType);
+            //    ComponentType = SC.ComponentType;
+            //    NumFractions = SC.NumFractions;
+            //    ReferenceDose = SC.ReferenceDose;
+            //    DisplayOrder = SC.DisplayOrder;
+            //}
             public Component(DbComponent DbO)
             {
                 ID = DbO.ID;
@@ -2892,28 +2944,7 @@ namespace SquintScript
             public TrackedValue<bool> isPointContourChecked { get; set; } = new TrackedValue<bool>(false);
             public TrackedValue<double> PointContourVolumeThreshold { get; set; } = new TrackedValue<double>(double.NaN);
         }
-        public class ConThresholdDef
-        {
-            public ConThresholdDef(DbConThresholdDef DbO_in)
-            {
-                _DbO = DbO_in;
-            }
-            private DbConThresholdDef _DbO;
-            public ConstraintThresholdNames ThresholdName
-            {
-                get
-                {
-                    return (ConstraintThresholdNames)_DbO.Threshold;
-                }
-            }
-            public ConstraintThresholdTypes ThreshholdType
-            {
-                get
-                {
-                    return (ConstraintThresholdTypes)_DbO.ThresholdType;
-                }
-            }
-        }
+
     }
 }
 

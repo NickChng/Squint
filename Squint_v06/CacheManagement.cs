@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Data.Entity.Infrastructure;
 using System.Linq;
+using System.Data.Entity;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
@@ -56,7 +57,6 @@ namespace SquintScript
             private static Dictionary<int, Component> _Components = new Dictionary<int, Component>(); // lookup component by key
             private static Dictionary<int, Assessment> _Assessments = new Dictionary<int, Assessment>();
             //private static Dictionary<int, Constituent> _Constituents = new Dictionary<int, Constituent>();
-            private static Dictionary<int, ConstraintThreshold> _ConstraintThresholds = new Dictionary<int, ConstraintThreshold>();
             private static Dictionary<int, AsyncStructure> _AsyncStructures = new Dictionary<int, AsyncStructure>();
             private static Dictionary<string, AsyncCourse> _Courses = new Dictionary<string, AsyncCourse>();
             //private static Dictionary<int, object> _EclipsePlans = new Dictionary<int, object>(); // may be PlanSetup or PlanSum
@@ -177,8 +177,6 @@ namespace SquintScript
             {
                 _Constraints[ID].ConstraintDeleted -= OnConstraintDeleted;
                 _Constraints.Remove(ID);
-                foreach (ConstraintThreshold CT in _ConstraintThresholds.Values.Where(x => x.ConstraintID == ID).ToList())
-                    _ConstraintThresholds.Remove(CT.ID);
             }
             public static Constraint GetConstraint(int ID)
             {
@@ -220,12 +218,12 @@ namespace SquintScript
                 _Components.Add(C.ID, C);
                 C.ComponentDeleted += OnComponentDeleted;
             }
-            public static Component DuplicateComponent(int CompID)
-            {
-                Component Cnew = new Component(_Components[CompID]);
-                _Components.Add(Cnew.ID, Cnew);
-                return Cnew;
-            }
+            //public static Component DuplicateComponent(int CompID)
+            //{
+            //    Component Cnew = new Component(_Components[CompID]);
+            //    _Components.Add(Cnew.ID, Cnew);
+            //    return Cnew;
+            //}
 
             public static void OnComponentDeleted(object sender, int ID)
             {
@@ -248,50 +246,50 @@ namespace SquintScript
                 return _Components.Values.OrderBy(x => x.DisplayOrder);
             }
 
-            public static void AddConstraintThreshold(ConstraintThreshold C)
-            {
-                _ConstraintThresholds.Add(C.ID, C);
-                if (C.ConstraintID == 493)
-                {
-                    var debugme = "hi";
-                }
-            }
-            public static void AddConstraintThreshold(ConstraintThresholdNames Name, ConstraintThresholdTypes Goal, Constraint Con, double value)
-            {
-                ConstraintThreshold CT = new ConstraintThreshold(Name, Goal, Con, value);
-                _ConstraintThresholds.Add(CT.ID, CT);
-                if (Con.ID == 493)
-                {
-                    var debugme = "hi";
-                }
-            }
+            //public static void AddConstraintThreshold(ConstraintThreshold C)
+            //{
+            //    _ConstraintThresholds.Add(C.ID, C);
+            //    if (C.ConstraintID == 493)
+            //    {
+            //        var debugme = "hi";
+            //    }
+            //}
+            //public static void AddConstraintThreshold(ConstraintThresholdNames Name, ConstraintThresholdTypes Goal, Constraint Con, double value)
+            //{
+            //    ConstraintThreshold CT = new ConstraintThreshold(Name, Goal, Con, value);
+            //    _ConstraintThresholds.Add(CT.ID, CT);
+            //    if (Con.ID == 493)
+            //    {
+            //        var debugme = "hi";
+            //    }
+            //}
 
-            public static ConstraintThreshold LoadConstraintThreshold(DbConThreshold DbCT, int ConId)
-            {
-                ConstraintThreshold CT = new ConstraintThreshold(DbCT, _Constraints[ConId]);
-                AddConstraintThreshold(CT);
-                return CT;
-            }
-            public static void DeleteConstraintThreshold(ConstraintThreshold C)
-            {
-                _ConstraintThresholds.Remove(C.ID);
-            }
-            public static void DeleteConstraintThreshold(int ID)
-            {
-                _ConstraintThresholds.Remove(ID);
-            }
-            public static ConstraintThreshold GetConstraintThreshold(int ID)
-            {
-                return _ConstraintThresholds[ID];
-            }
-            public static IEnumerable<ConstraintThreshold> GetConstraintThresholdByConstraintId(int ConID)
-            {
-                return _ConstraintThresholds.Values.Where(x => x.ConstraintID == ConID);
-            }
-            public static IEnumerable<ConstraintThreshold> GetAllConstraintThresholds()
-            {
-                return _ConstraintThresholds.Values;
-            }
+            //public static ConstraintThreshold LoadConstraintThreshold(DbConThreshold DbCT, int ConId)
+            //{
+            //    ConstraintThreshold CT = new ConstraintThreshold(DbCT, _Constraints[ConId]);
+            //    AddConstraintThreshold(CT);
+            //    return CT;
+            //}
+            //public static void DeleteConstraintThreshold(ConstraintThreshold C)
+            //{
+            //    _ConstraintThresholds.Remove(C.ID);
+            //}
+            //public static void DeleteConstraintThreshold(int ID)
+            //{
+            //    _ConstraintThresholds.Remove(ID);
+            //}
+            //public static ConstraintThreshold GetConstraintThreshold(int ID)
+            //{
+            //    return _ConstraintThresholds[ID];
+            //}
+            //public static IEnumerable<ConstraintThreshold> GetConstraintThresholdByConstraintId(int ConID)
+            //{
+            //    return _ConstraintThresholds.Values.Where(x => x.ConstraintID == ConID);
+            //}
+            //public static IEnumerable<ConstraintThreshold> GetAllConstraintThresholds()
+            //{
+            //    return _ConstraintThresholds.Values;
+            //}
 
             //public static void AddConstituent(Constituent C)
             //{
@@ -598,8 +596,8 @@ namespace SquintScript
                 {
                     if (Context.DbLibraryProtocols != null)
                     {
-                        List<DbLibraryProtocol> Protocols = Context.DbLibraryProtocols.Where(x => !x.isRetired).ToList();
-                        foreach (DbLibraryProtocol DbP in Protocols)
+                        List<DbProtocol> Protocols = Context.DbLibraryProtocols.Where(x => !x.isRetired).ToList();
+                        foreach (DbProtocol DbP in Protocols)
                         {
                             previewlist.Add(new ProtocolPreview(DbP.ID, DbP.ProtocolName)
                             {
@@ -647,7 +645,10 @@ namespace SquintScript
                         ClearProtocolData();
                         ProtocolLoaded = false;
                     }
-                    DbProtocol DbP = Context.DbLibraryProtocols.Where(x => x.ProtocolName == ProtocolName && !x.isRetired).SingleOrDefault();
+                    DbProtocol DbP = Context.DbLibraryProtocols
+                        .Include(x=>x.ProtocolStructures)
+                        .Include(x=>x.Components)
+                        .Where(x => x.ProtocolName == ProtocolName && !x.isRetired).SingleOrDefault();
                     if (DbP == null)
                     {
                         ProtocolLoaded = false;
@@ -693,25 +694,6 @@ namespace SquintScript
                                 {
                                     Constraint Con = new Constraint(DbCon); // starts tracking
                                     AddConstraint(Con);
-                                    if (DbCon.DbConThresholds != null) // ensure there is at least a major violation defined.
-                                        if (DbCon.DbConThresholds.Count > 0)
-                                            foreach (DbConThreshold DbConThresh in DbCon.DbConThresholds)
-                                            {
-                                                ConstraintThreshold CT = LoadConstraintThreshold(DbConThresh, Con.ID);
-                                            }
-                                        else
-                                        {
-                                            DbConThresholdDef MajorViolation = SquintDb.Context.DbConThresholdDefs.Where(x => x.Threshold == (int)ConstraintThresholdNames.MajorViolation).Single();
-                                            ConstraintThreshold CT = new ConstraintThreshold(MajorViolation, Con, Con.ReferenceValue);
-                                            AddConstraintThreshold(CT);
-                                        }
-                                    else
-                                    {
-                                        throw new NotImplementedException();
-                                        //DbConThresholdDef MajorViolation = SquintDb.Context.DbConThresholdDefs.Where(x => x.Threshold == (int)ConstraintThresholdNames.MajorViolation).Single();
-                                        //CT = new ConstraintThreshold(MajorViolation, _DbO.ID, _DbO.ReferenceValue);
-                                        //CT.ConstraintThresholdChanged += OnConstraintThresholdChanged;
-                                    }
                                 }
                             }
                         }
@@ -801,22 +783,6 @@ namespace SquintScript
                                 {
                                     Constraint Con = new Constraint(DbCon); // starts tracking
                                     AddConstraint(Con);
-                                    if (DbCon.DbConThresholds != null) // ensure there is at least a major violation defined.
-                                        if (DbCon.DbConThresholds.Count > 0)
-                                            foreach (DbSessionConThreshold DbConThresh in DbCon.DbConThresholds)
-                                            {
-                                                ConstraintThreshold CT = LoadConstraintThreshold(DbConThresh, Con.ID);
-                                            }
-                                        else
-                                        {
-                                            DbConThresholdDef MajorViolation = SquintDb.Context.DbConThresholdDefs.Where(x => x.Threshold == (int)ConstraintThresholdNames.MajorViolation).Single();
-                                            ConstraintThreshold CT = new ConstraintThreshold(MajorViolation, Con, Con.ReferenceValue);
-                                            AddConstraintThreshold(CT);
-                                        }
-                                    else
-                                    {
-                                        throw new NotImplementedException();
-                                    }
                                 }
                             }
                         }
@@ -950,16 +916,6 @@ namespace SquintScript
                     {
                         var C = CurrentProtocol.Checklist;
                         DbPC.DbProtocol = DbP;
-                        //DbPC.TreatmentTechniqueType = (int)C.TreatmentTechniqueType;
-                        //DbPC.MinFields = C.MinFields;
-                        //DbPC.MaxFields = C.MaxFields;
-                        //DbPC.VMAT_MinFieldColSeparation = C.VMAT_MinFieldColSeparation;
-                        //DbPC.NumIso = C.NumIso;
-                        //DbPC.MinXJaw = C.MinXJaw;
-                        //DbPC.MaxXJaw = C.MaxXJaw;
-                        //DbPC.MinYJaw = C.MinYJaw;
-                        //DbPC.MaxYJaw = C.MaxYJaw;
-                        //DbPC.VMAT_JawTracking = (int)C.VMAT_JawTracking;
                         DbPC.Algorithm = (int)C.Algorithm.Value;
                         DbPC.FieldNormalizationMode = (int)C.FieldNormalizationMode.Value;
                         DbPC.AlgorithmResolution = (double)C.AlgorithmResolution.Value;
@@ -1098,16 +1054,11 @@ namespace SquintScript
                                 DbCR.ResultValue = CRV.ResultValue;
                             }
                         }
-                        foreach (ConstraintThreshold CT in _ConstraintThresholds.Values.Where(x => x.ConstraintID == Con.ID))
-                        {
-                            DbSessionConThreshold DbCT = Context.DbSessionConThresholds.Create();
-                            Context.DbSessionConThresholds.Add(DbCT);
-                            DbCT.ConstraintID = DbO.ID;
-                            DbCT.DbConThresholdDef = Context.DbConThresholdDefs.Where(x => x.Threshold == (int)CT.ThresholdName).SingleOrDefault();
-                            DbCT.DbSession = DbS;
-                            DbCT.ThresholdValue = CT.ThresholdValue;
-                            DbCT.ParentConstraintThresholdID = CT.ID;
-                        }
+                        DbO.MajorViolation = Con.MajorViolation;
+                        DbO.MinorViolation = Con.MinorViolation;
+                        DbO.Stop = Con.Stop;
+
+
                     }
 
                     try
@@ -1123,7 +1074,7 @@ namespace SquintScript
                     }
                 }
             }
-            public static void Save_UpdateProtocol()
+            public static async Task Save_UpdateProtocol()
             {
                 using (SquintdBModel Context = new SquintdBModel())
                 {
@@ -1149,7 +1100,7 @@ namespace SquintScript
                             DbC.NumFractions = SC.NumFractions;
                             DbC.ReferenceDose = SC.ReferenceDose;
                             //update checklist
-                            Save_UpdateBeamDefinition(DbC);
+                            Save_UpdateBeamDefinition(Context, DbC);
                         }
                         else
                         {
@@ -1161,10 +1112,10 @@ namespace SquintScript
                             DbC.NumFractions = SC.NumFractions;
                             DbC.ReferenceDose = SC.ReferenceDose;
                             //update checklist
-                            Save_UpdateBeamDefinition(DbC);
+                            Save_UpdateBeamDefinition(Context, DbC);
                         }
 
-                        
+
                     }
 
                     foreach (Constraint Con in _Constraints.Values)
@@ -1180,6 +1131,7 @@ namespace SquintScript
                         {
                             DbO = Context.DbConstraints.Find(Con.ID);
                         }
+
                         // Update
                         DbO.PrimaryStructureID = Con.PrimaryStructureID;
                         DbO.ReferenceScale = (int)Con.ReferenceScale;
@@ -1192,6 +1144,10 @@ namespace SquintScript
                         DbO.ConstraintValue = Con.ConstraintValue;
                         DbO.DisplayOrder = Con.DisplayOrder.Value;
                         DbO.Fractions = Con.NumFractions;
+                        DbO.MajorViolation = Con.MajorViolation;
+                        DbO.MinorViolation = Con.MinorViolation;
+                        DbO.Stop = Con.Stop;
+
                         // Update constraint log
                         if (Con.isModified() || Con.isCreated)
                         {
@@ -1206,24 +1162,24 @@ namespace SquintScript
                             Context.DbConstraintChangelogs.Add(DbCC);
                         }
                         // Update constraint thresholds
-                        foreach (ConstraintThreshold CT in _ConstraintThresholds.Values.Where(x => x.ConstraintID == Con.ID))
-                        {
-                            DbConThreshold DbCT;
-                            if (CT.isCreated)
-                            {
-                                DbCT = Context.DbConThresholds.Create();
-                                Context.DbConThresholds.Add(DbCT);
-                                DbCT.ConstraintID = Con.ID;
-                                DbCT.DbConThresholdDef = Context.DbConThresholdDefs.Where(x => x.Threshold == (int)CT.ThresholdName).SingleOrDefault();
-                            }
-                            else
-                                DbCT = Context.DbConThresholds.Find(CT.ID); // at this point there is no mechanism for the user to create new thresholds for existing constraints
-                            DbCT.ThresholdValue = CT.ThresholdValue;
-                        }
+                        //foreach (ConstraintThreshold CT in _ConstraintThresholds.Values.Where(x => x.ConstraintID == Con.ID))
+                        //{
+                        //    DbConThreshold DbCT;
+                        //    if (CT.isCreated)
+                        //    {
+                        //        DbCT = Context.DbConThresholds.Create();
+                        //        Context.DbConThresholds.Add(DbCT);
+                        //        DbCT.ConstraintID = Con.ID;
+                        //        DbCT.DbConThresholdDef = Context.DbConThresholdDefs.Where(x => x.Threshold == (int)CT.ThresholdName).SingleOrDefault();
+                        //    }
+                        //    else
+                        //        DbCT = Context.DbConThresholds.Find(CT.ID); // at this point there is no mechanism for the user to create new thresholds for existing constraints
+                        //    DbCT.ThresholdValue = CT.ThresholdValue;
+                        //}
                     }
                     try
                     {
-                        Context.SaveChanges();
+                        await Context.SaveChangesAsync();
                         CurrentProtocol.LastModifiedBy = SquintUser;
                     }
                     catch (Exception ex)
@@ -1241,7 +1197,7 @@ namespace SquintScript
                     if (Context.DbLibraryProtocols.Select(x => x.ProtocolName).Contains(CurrentProtocol.ProtocolName))
                         CurrentProtocol.ProtocolName = CurrentProtocol.ProtocolName + "_copy";
                     //Duplicate Protocol
-                    DbLibraryProtocol DbP = Context.DbLibraryProtocols.Create();
+                    DbProtocol DbP = Context.DbLibraryProtocols.Create();
                     Context.DbLibraryProtocols.Add(DbP);
                     DbP.ID = IDGenerator();
                     DbP.ProtocolName = CurrentProtocol.ProtocolName;
@@ -1282,7 +1238,7 @@ namespace SquintScript
                         DbC.NumFractions = SC.NumFractions;
                         DbC.ReferenceDose = SC.ReferenceDose;
                         //Update checlist
-                        Save_UpdateBeamDefinition(DbC);
+                        Save_UpdateBeamDefinition(Context, DbC);
                     }
                     foreach (Constraint Con in _Constraints.Values)
                     {
@@ -1345,20 +1301,30 @@ namespace SquintScript
                 if (DbPC != null)
                 {
                     DbPC.SliceSpacing = CurrentProtocol.Checklist.SliceSpacing.Value;
+                    CurrentProtocol.Checklist.SliceSpacing.AcceptChanges();
                     DbPC.Algorithm = (int)CurrentProtocol.Checklist.Algorithm.Value;
+                    CurrentProtocol.Checklist.Algorithm.AcceptChanges();
                     DbPC.AlgorithmResolution = CurrentProtocol.Checklist.AlgorithmResolution.Value;
+                    CurrentProtocol.Checklist.AlgorithmResolution.AcceptChanges();
                     //DbPC.Artifacts
                     DbPC.CouchInterior = CurrentProtocol.Checklist.CouchInterior.Value;
+                    CurrentProtocol.Checklist.CouchInterior.AcceptChanges();
                     DbPC.CouchSurface = CurrentProtocol.Checklist.CouchSurface.Value;
+                    CurrentProtocol.Checklist.CouchSurface.AcceptChanges();
                     DbPC.FieldNormalizationMode = (int)CurrentProtocol.Checklist.FieldNormalizationMode.Value;
+                    CurrentProtocol.Checklist.FieldNormalizationMode.AcceptChanges();
                     DbPC.HeterogeneityOn = CurrentProtocol.Checklist.HeterogeneityOn.Value;
+                    CurrentProtocol.Checklist.HeterogeneityOn.AcceptChanges();
                     DbPC.PNVMax = CurrentProtocol.Checklist.PNVMax.Value;
+                    CurrentProtocol.Checklist.PNVMax.AcceptChanges();
                     DbPC.PNVMin = CurrentProtocol.Checklist.PNVMin.Value;
+                    CurrentProtocol.Checklist.PNVMin.AcceptChanges();
                     DbPC.SupportIndication = (int)CurrentProtocol.Checklist.SupportIndication.Value;
+                    CurrentProtocol.Checklist.SupportIndication.AcceptChanges();
                     //DbPC.TreatmentTechniqueType 
                 }
             }
-            private static void Save_UpdateBeamDefinition(DbComponent DbC)
+            private static void Save_UpdateBeamDefinition(SquintdBModel Context, DbComponent DbC)
             {
                 foreach (DbBeam DbB in DbC.DbBeams)
                 {
@@ -1369,27 +1335,41 @@ namespace SquintScript
                         if (DbBol != null && B.Boluses.FirstOrDefault() != null)
                         {
                             DbBol.HU = B.Boluses.FirstOrDefault().HU.Value;
+                            B.Boluses.FirstOrDefault().HU.AcceptChanges();
                             DbBol.Thickness = (double)B.Boluses.FirstOrDefault().Thickness.Value;
+                            B.Boluses.FirstOrDefault().Thickness.AcceptChanges();
                             DbBol.ToleranceHU = (double)B.Boluses.FirstOrDefault().ToleranceHU.Value;
+                            B.Boluses.FirstOrDefault().ToleranceHU.AcceptChanges();
                             DbBol.ToleranceThickness = (double)B.Boluses.FirstOrDefault().ToleranceThickness.Value;
+                            B.Boluses.FirstOrDefault().ToleranceThickness.AcceptChanges();
                             DbBol.Indication = (int)B.Boluses.FirstOrDefault().Indication.Value;
+                            B.Boluses.FirstOrDefault().Indication.AcceptChanges();
                         }
                         DbB.CouchRotation = B.CouchRotation.Value;
+                        B.CouchRotation.AcceptChanges();
                         DbB.DbEnergies.Clear();
-                        using (SquintdBModel context2 = new SquintdBModel())
-                            foreach (var energy in B.ValidEnergies)
-                                DbB.DbEnergies.Add(context2.DbEnergies.Find((int)energy));
+                        foreach (var energy in B.ValidEnergies)
+                            DbB.DbEnergies.Add(Context.DbEnergies.Find((int)energy));
                         DbB.JawTracking_Indication = (int)B.JawTracking_Indication.Value;
+                        B.JawTracking_Indication.AcceptChanges();
                         DbB.MaxColRotation = B.MaxColRotation.Value;
+                        B.MaxColRotation.AcceptChanges();
                         DbB.MaxMUWarning = B.MaxMUWarning.Value;
+                        B.MaxMUWarning.AcceptChanges();
                         DbB.MinMUWarning = B.MinMUWarning.Value;
+                        B.MinMUWarning.AcceptChanges();
                         DbB.MaxX = B.MaxX.Value;
+                        B.MaxX.AcceptChanges();
                         DbB.MinX = B.MinX.Value;
+                        B.MinX.AcceptChanges();
                         DbB.MaxY = B.MaxY.Value;
+                        B.MaxY.AcceptChanges();
                         DbB.MinY = B.MinY.Value;
+                        B.MinY.AcceptChanges();
                         DbB.ProtocolBeamName = B.ProtocolBeamName;
                         DbB.Technique = (int)B.Technique;
                         DbB.ToleranceTable = B.ToleranceTable.Value;
+                        B.ToleranceTable.AcceptChanges();
                     }
                     else
                         MessageBox.Show("Error in Save_UpdateBeamDefinition, component not found");

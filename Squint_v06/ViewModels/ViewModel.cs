@@ -92,14 +92,7 @@ namespace SquintScript.ViewModels
         public string LastModifiedBy { get { return _pp.LastModifiedBy; } }
         public ProtocolTypes ProtocolType { get { return _pp.ProtocolType; } }
         public ApprovalLevels ApprovalLevel { get { return _pp.Approval; } }
-        //private void OnProtocolListUpdated(object sender, EventArgs e)
-        //{
-        //    ProtocolName = Ctr.GetProtocol(Id).ProtocolName;
-        //}
-        public void Unsubscribe()
-        {
-            //Ctr.ProtocolListUpdated -= OnProtocolListUpdated;
-        }
+
     }
     public class StructureSelector : ObservableObject
     {
@@ -376,9 +369,12 @@ namespace SquintScript.ViewModels
             get { return Con.ConstraintValue; }
             set
             {
-                Con.ConstraintValue = value;
-                UpdateConstraint();
-                RaisePropertyChangedEvent(nameof(ConstraintValueColor));
+                if (value != Con.ConstraintValue)
+                {
+                    Con.ConstraintValue = value;
+                    UpdateConstraint();
+                    RaisePropertyChangedEvent(nameof(ConstraintValueColor));
+                }
             }
         }
         public wpfbrush ConstraintValueColor
@@ -396,14 +392,16 @@ namespace SquintScript.ViewModels
             get { return Con.ReferenceValue; }
             set
             {
-                bool CalcAfter = false;
-                if (!Con.isValid())
-                    CalcAfter = true;
-                Con.ReferenceValue = value;
-                if (CalcAfter)
-                    UpdateConstraint(); // only do this if the constraint was previously invalid
-                RaisePropertyChangedEvent(nameof(ReferenceValueColor));
-                RaisePropertyChangedEvent(nameof(RefreshFlag));
+                if (Con.ReferenceValue != value)
+                {
+                    bool CalcAfter = false;
+                    if (!Con.isValid())
+                        CalcAfter = true;
+                    Con.ReferenceValue = value;
+                    if (CalcAfter)
+                        UpdateConstraint(); // only do this if the constraint was previously invalid
+                    RaisePropertyChangedEvent(nameof(ReferenceValueColor));
+                }
             }
         }
         public wpfbrush ReferenceValueColor
@@ -420,12 +418,15 @@ namespace SquintScript.ViewModels
         {
             get
             {
-                return Con.StopValue;
+                return Con.Stop;
             }
             set
             {
-                Con.StopValue = value;
-                RefreshFlag = !RefreshFlag;
+                if (!Con.Stop.CloseEnough(value))
+                {
+                    Con.Stop = value;
+                    UpdateConstraint();
+                }
             }
         }
         public double MinorViolation
@@ -436,8 +437,12 @@ namespace SquintScript.ViewModels
             }
             set
             {
-                Con.MinorViolation = value;
-                RaisePropertyChangedEvent("RefreshFlag");
+
+                if (!Con.MinorViolation.CloseEnough(value))
+                {
+                    Con.MinorViolation = value;
+                    UpdateConstraint();
+                }
             }
         }
         public double MajorViolation
@@ -448,8 +453,11 @@ namespace SquintScript.ViewModels
             }
             set
             {
-                Con.MajorViolation = value;
-                RefreshFlag = !RefreshFlag;
+                if (!Con.MajorViolation.CloseEnough(value))
+                {
+                    Con.MajorViolation = value;
+                    UpdateConstraint();
+                }
             }
         }
         public ConstraintTypeCodes ConstraintType
@@ -574,8 +582,8 @@ namespace SquintScript.ViewModels
                     Con.ReferenceType = value;
                     if (CalcAfter)
                         UpdateConstraint();
-                    RaisePropertyChangedEvent(nameof(ConstraintSelector.ShortConstraintDefinition));
-                    RaisePropertyChangedEvent("OppositeReferenceTypeString"); // notify view to update the opposite as well
+                    //   RaisePropertyChangedEvent(nameof(ConstraintSelector.ShortConstraintDefinition));
+                    //   RaisePropertyChangedEvent("OppositeReferenceTypeString"); // notify view to update the opposite as well
                 }
             }
         }
@@ -708,7 +716,7 @@ namespace SquintScript.ViewModels
         // Event Handlers
         private async void UpdateConstraint()
         {
-            await Con.EvaluateConstraint();
+            await Task.Run(() => Con.EvaluateConstraint());
         }
         private void OnConstraintEvaluated(object sender, int AssessmentId)
         {
@@ -726,8 +734,14 @@ namespace SquintScript.ViewModels
                     RaisePropertyChangedEvent("DisplayOrder");
                     break;
                 default:
-                    RefreshFlag ^= true;
+                    RefreshFlag ^= true; // necessary for when these properties are updated internally to Squin, i.e. by an A/B ratio change
                     RaisePropertyChangedEvent(nameof(ConstraintSelector.ShortConstraintDefinition));
+                    RaisePropertyChangedEvent(nameof(ChangeStatusString));
+                    RaisePropertyChangedEvent(nameof(ConstraintSelector.ConstraintType));
+                    RaisePropertyChangedEvent(nameof(ConstraintSelector.ConstraintValue));
+                    RaisePropertyChangedEvent(nameof(ConstraintSelector.ConstraintUnit));
+                    RaisePropertyChangedEvent(nameof(ConstraintSelector.ReferenceValue));
+                    RaisePropertyChangedEvent(nameof(ConstraintSelector.ReferenceUnit));
                     break;
             }
         }
@@ -895,20 +909,20 @@ namespace SquintScript.ViewModels
                     // Apply structure aliasing
                     if (value != null)
                     {
-                        SetCurrentStructureSet(_CurrentStructureSet.StructureSetUID, AutomaticStructureAliasingEnabled);
+                        SetCurrentStructureSet(_CurrentStructureSet.StructureSetUID, AutomaticStructureAliasingEnabled, CalculateOnUpdate);
 
                     }
                 }
             }
         }
-        private async void SetCurrentStructureSet(string structureSetId, bool ApplyAliasing = true)
+        private async void SetCurrentStructureSet(string structureSetId, bool ApplyAliasing = true, bool CalculatOnStructureSetUpdate = true)
         {
             if (ParentView != null)
             {
                 ParentView.isLoading = true;
                 ParentView.LoadingString = "Applying structure aliases...";
                 bool success = await Task.Run(() => Ctr.SetCurrentStructureSet(_CurrentStructureSet.StructureSetUID, ApplyAliasing));
-                if (CalculateOnUpdate)
+                if (CalculatOnStructureSetUpdate)
                     Ctr.UpdateAllConstraints();
                 ParentView.isLoading = false;
             }
@@ -1572,12 +1586,7 @@ namespace SquintScript.ViewModels
         public ProtocolView Protocol { get; set; }
         public PatientView PatientPresenter { get; set; } = new PatientView(null);
         public SessionsView SessionsPresenter { get; set; } = new SessionsView();
-        //public ObservableCollection<ConstraintResultsView> SquintResults { get; set; } = new ObservableCollection<ConstraintResultsView>();
-        public FilterComboBox CentreComboBox { get; set; } = new FilterComboBox(ViewEnums.Centre);
-        public FilterComboBox SiteComboBox { get; set; } = new FilterComboBox(ViewEnums.Site);
-        public FilterComboBox TypeComboBox { get; set; } = new FilterComboBox(ViewEnums.ProtocolType);
-        public FilterComboBox ApprovalComboBox { get; set; } = new FilterComboBox(ViewEnums.Approval);
-        public FilterComboBox ApproverComboBox { get; set; } = new FilterComboBox(ViewEnums.Approver);
+
         public AssessmentView NewAssessmentId { get; private set; }
         public bool isPIDVisible { get; set; } = false;
         public bool AdminOptionsToggle { get; set; } = false;
@@ -1597,8 +1606,6 @@ namespace SquintScript.ViewModels
         public bool isConfigVisible { get; set; } = false;
         public bool isLoadProtocolPanelVisible { get; set; } = true;
         public bool isStructurePanelVisible { get; set; } = true;
-        public bool isProtocolLoaded { get; set; } = false;
-        public bool isProtocolLoading { get; set; } = false;
         public ObservableCollection<string> Protocols { get; } = new ObservableCollection<string> { "Protocol1", "Protocol2" };
 
         //UI Commands
@@ -1740,7 +1747,7 @@ namespace SquintScript.ViewModels
                             try
                             {
                                 if (filecount == filenames.Count())
-                                    finaltask =  new Task(() => Ctr.ImportProtocolFromXML(file, true));
+                                    finaltask = new Task(() => Ctr.ImportProtocolFromXML(file, true));
                                 else
                                 {
                                     importTasks.Add(Task.Run(() =>
@@ -1788,7 +1795,7 @@ namespace SquintScript.ViewModels
             System.Windows.Forms.OpenFileDialog d = new System.Windows.Forms.OpenFileDialog();
             d.Title = "Open Ctr.GetProtocolView() File";
             d.Filter = "XML files|*.xml";
-            d.InitialDirectory = @"\\srvnetapp02\bcca\docs\Physics\CN\Software\Squint\XML Protocol Library\v0.5 Library";
+            d.InitialDirectory = @"\\srvnetapp02\bcca\docs\Physics\CN\Software\Squint\XML Protocol Library\v0.6 Library";
             if (d.ShowDialog() == System.Windows.Forms.DialogResult.OK)
             {
                 MessageBox.Show(d.FileName.ToString());
@@ -1829,7 +1836,7 @@ namespace SquintScript.ViewModels
         {
             ProtocolCheckVisible ^= false;
             PlanCheckVisible ^= true;
-            
+
         }
         private double findMinDiff(double[] arr)
         {
@@ -1920,7 +1927,10 @@ namespace SquintScript.ViewModels
         }
         private void LaunchAdminView(object param = null)
         {
-            AdminOptionsToggle ^= true;
+            if (Ctr.PatientLoaded)
+                MessageBox.Show("Please close the current patient before starting protocol administration.");
+            else
+                AdminOptionsToggle ^= true;
         }
         private void DeleteConstraint(object param = null)
         {
@@ -1957,17 +1967,11 @@ namespace SquintScript.ViewModels
         }
         private void AddConstraint(object param = null)
         {
-            if (isProtocolLoaded)
-            {
-                Protocol.AddConstraint();
-            }
+            Protocol.AddConstraint();
         }
         private void AddStructure(object param = null)
         {
-            if (isProtocolLoaded)
-            {
-                Protocol.AddStructure();
-            }
+            Protocol.AddStructure();
         }
         private void ShiftConstraintUp(object param = null)
         {
@@ -2023,15 +2027,62 @@ namespace SquintScript.ViewModels
             AS.Delete();
         }
 
+        public ICommand UpdateProtocolCommand
+        {
+            get { return new DelegateCommand(UpdateProtocol); }
+        }
+        private async void UpdateProtocol(object param = null)
+        {
+            LoadingString = "Updating Protocol";
+            isLoading = true;
+            await Task.Run(() => Ctr.Save_UpdateProtocol());
+            isLoading = false;
+            LoadingString = "";
+        }
 
+        public ICommand DeleteSelectedProtocolCommand
+        {
+            get { return new DelegateCommand(DeleteProtocol); }
+        }
+        private async void DeleteProtocol(object param = null)
+        {
+            if (Ctr.GetActiveProtocol() != null)
+            {
+                var result = System.Windows.Forms.MessageBox.Show("This will delete the current protocol. Are you sure?", "Confirm protocol deletion", System.Windows.Forms.MessageBoxButtons.OKCancel);
+                if (result == System.Windows.Forms.DialogResult.OK)
+                {
+                    LoadingString = "Deleting Protocol";
+                    isLoading = true;
+                    await Task.Run(() => Ctr.DeleteProtocol(Ctr.GetActiveProtocol().ID));
+                    Protocol.Unsubscribe();
+                    Protocol = new ProtocolView(this);
+                    Ctr.CloseProtocol();
+                    isLoading = false;
+                    LoadingString = "";
+                }
+            }
+            else if (Protocol.SelectedProtocol != null)
+            {
+                var result = System.Windows.Forms.MessageBox.Show("This will delete the SELECTED protocol. Are you sure?", "Confirm protocol deletion", System.Windows.Forms.MessageBoxButtons.OKCancel);
+                if (result == System.Windows.Forms.DialogResult.OK)
+                {
+                    LoadingString = "Deleting Protocol";
+                    isLoading = true;
+                    await Task.Run(() => Ctr.DeleteProtocol(Protocol.SelectedProtocol.Id));
+                    isLoading = false;
+                    LoadingString = "";
+                }
+            }
+        }
 
-
-        private void LoadPatient(object param = null)
+        private async void LoadPatient(object param = null)
         {
             try
             {
                 if (PatientPresenter.ParentView == null)
                     PatientPresenter.ParentView = this; // pass the current view so it can access the isLoading variable
+                isLoading = true;
+                LoadingString = "Loading patient";
                 if (Ctr.PatientLoaded)
                 {
                     var Result = MessageBox.Show("Close current patient and all assessments?", "Close Patient?", MessageBoxButton.OKCancel);
@@ -2047,12 +2098,15 @@ namespace SquintScript.ViewModels
                         PatientPresenter.Courses.Add(new CourseSelector(CourseId));
                     }
                 }
-                Ctr.LoadPatientFromDatabase(PatientPresenter.PatientId);
+                AdminOptionsToggle = false;
+                await Task.Run(() => Ctr.LoadPatientFromDatabase(PatientPresenter.PatientId));
                 SessionsPresenter = new SessionsView();
                 if (Ctr.PatientLoaded)
                     PatientPresenter.TextBox_Background_Color = new System.Windows.Media.SolidColorBrush(wpfcolors.AliceBlue);
                 else
                     PatientPresenter.TextBox_Background_Color = new System.Windows.Media.SolidColorBrush(wpfcolors.DarkOrange);
+                isLoading = false;
+                LoadingString = "";
             }
             catch (Exception ex)
             {
@@ -2122,7 +2176,7 @@ namespace SquintScript.ViewModels
                 }
             }
             PatientPresenter.CalculateOnUpdate = true; // disable automatic calculation while model is updated
-            Ctr.UpdateAllConstraints();
+            //Ctr.UpdateAllConstraints();
             W.Close();
         }
 
@@ -2138,8 +2192,8 @@ namespace SquintScript.ViewModels
                 CloseCheckList();
                 PatientPresenter.Dispose();
                 PatientPresenter = new PatientView();
-                Protocol = new ProtocolView(this);
                 Protocol.Unsubscribe();
+                Protocol = new ProtocolView(this);
                 Ctr.CloseProtocol();
 
             }
