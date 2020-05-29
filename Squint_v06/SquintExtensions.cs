@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using System.ComponentModel;
 using System.Reflection;
 using System.ComponentModel.DataAnnotations;
+using System.Runtime.CompilerServices;
 
 namespace SquintScript.Extensions
 {
@@ -31,15 +32,40 @@ namespace SquintScript.Extensions
             }
             return null;
         }
+        
+        public static bool CloseEnough(this double? thisvalue, double? thatvalue, double eps = 1E-5)
+        {
+            if (thisvalue == null || thatvalue==null)
+            {
+                if (thisvalue == thatvalue)
+                    return true;
+                else return false;
+            }
+            if (Math.Abs((double)thisvalue - (double)thatvalue) < eps)
+                return true;
+            else return false;
+        }
         public static bool CloseEnough(this double thisvalue, double thatvalue, double eps = 1E-5)
         {
-            if (Math.Abs(thisvalue - thatvalue) < eps)
+            if (Math.Abs((double)thisvalue - (double)thatvalue) < eps)
+                return true;
+            else return false;
+        }
+        public static bool CloseEnough(this int? thisvalue, int? thatvalue, double eps)
+        {
+            if (thisvalue == null || thatvalue == null)
+            {
+                if (thisvalue == thatvalue)
+                    return true;
+                else return false;
+            }
+            if ((int)thisvalue == (int)thatvalue)
                 return true;
             else return false;
         }
         public static bool CloseEnough(this int thisvalue, int thatvalue, double eps)
         {
-            if (Math.Abs(thisvalue - thatvalue) < eps)
+            if (thisvalue == thatvalue)
                 return true;
             else return false;
         }

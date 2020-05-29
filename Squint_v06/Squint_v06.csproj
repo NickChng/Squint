@@ -138,8 +138,17 @@
     </ApplicationDefinition>
     <Compile Include="AdminWindow.xaml.cs" />
     <Compile Include="AsyncESAPI.cs" />
+    <Compile Include="Controls\EditBeamChecksPopup.xaml.cs">
+      <DependentUpon>EditBeamChecksPopup.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Controls\ChecklistControl.xaml.cs">
       <DependentUpon>ChecklistControl.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Controls\EclipseProtocolPopup.xaml.cs">
+      <DependentUpon>EclipseProtocolPopup.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Controls\AddStructureCheckPopup.xaml.cs">
+      <DependentUpon>AddStructureCheckPopup.xaml</DependentUpon>
     </Compile>
     <Compile Include="Controls\SquintProgressBar.xaml.cs">
       <DependentUpon>SquintProgressBar.xaml</DependentUpon>
@@ -150,6 +159,11 @@
     <Compile Include="Helpers\Logger.cs" />
     <Compile Include="Interfaces\ITestListItem.cs" />
     <Compile Include="PlanCheckController.cs" />
+    <Compile Include="Properties\Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
     <Compile Include="SquintExtensions.cs" />
     <Compile Include="TrackedValue.cs" />
     <Compile Include="DoseFunctions.cs" />
@@ -182,6 +196,7 @@
       <DependentUpon>ObjectiveControl.xaml</DependentUpon>
     </Compile>
     <Compile Include="ViewModelClasses\TestListItems.cs" />
+    <Compile Include="ViewModels\EclipseProtocolPopupViewModel.cs" />
     <Compile Include="ViewModels\Checklist_ViewModel.cs" />
     <Compile Include="ViewModels\Control_ViewModel.cs" />
     <Compile Include="Controls\SavePopup.xaml.cs">
@@ -214,10 +229,15 @@
     </Compile>
     <Compile Include="ViewModels\ProtocolViewModel.cs" />
     <Compile Include="ViewModels\ViewModel.cs" />
+    <Compile Include="VMS Templates\VMSProtocol.cs" />
     <Compile Include="WaitWindow.xaml.cs">
       <DependentUpon>WaitWindow.xaml</DependentUpon>
     </Compile>
     <Page Include="AdminWindow.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Controls\EditBeamChecksPopup.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
@@ -232,6 +252,14 @@
     <Page Include="Controls\CircleCheck.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Controls\EclipseProtocolPopup.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Controls\AddStructureCheckPopup.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
     </Page>
     <Page Include="Controls\LoadingControl.xaml">
       <SubType>Designer</SubType>
@@ -306,11 +334,6 @@
     <Compile Include="Properties\AssemblyInfo.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Properties\Resources.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>Resources.resx</DependentUpon>
-    </Compile>
     <Compile Include="Properties\Settings.Designer.cs">
       <AutoGen>True</AutoGen>
       <DependentUpon>Settings.settings</DependentUpon>
@@ -318,8 +341,8 @@
     </Compile>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
       <SubType>Designer</SubType>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
     <None Include="packages.config" />
     <None Include="Properties\Settings.settings">
@@ -395,25 +418,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\gears_running.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\import_tps.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="Resources\import_xml.png">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Resource>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\import-csv.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\ImportTPS.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="Resources\ImportXML.png">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Resource>
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Resources\link.png">
@@ -616,6 +620,21 @@
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Resources\check_trans_dark.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\Eclipse_Import.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\export_xml2.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\import_xml2.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\import_batch_xml2.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\undo.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">

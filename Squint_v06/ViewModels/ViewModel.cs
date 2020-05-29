@@ -94,9 +94,9 @@ namespace SquintScript.ViewModels
         public ApprovalLevels ApprovalLevel { get { return _pp.Approval; } }
 
     }
+    [AddINotifyPropertyChangedInterface]
     public class StructureSelector : ObservableObject
     {
-        private bool isSelected { get; set; }
         private Ctr.ProtocolStructure E;
         public int Id
         {
@@ -125,7 +125,7 @@ namespace SquintScript.ViewModels
                 else MessageBox.Show("Structure name must be greater than 1 character");
             }
         }
-
+        public bool Pinned { get; set; } = false;
         public string AssignedStructureId
         {
             get { return E.AssignedStructureId; }
@@ -139,10 +139,7 @@ namespace SquintScript.ViewModels
                 }
             }
         }
-        public List<string> GetAliases()
-        {
-            return E.DefaultEclipseAliases;
-        }
+        public ObservableCollection<string> Aliases { get; set; }
         public string LabelName
         {
             get
@@ -191,9 +188,38 @@ namespace SquintScript.ViewModels
         public StructureSelector(Ctr.ProtocolStructure Ein)
         {
             E = Ein;
+            Aliases = E.DefaultEclipseAliases;
             E.PropertyChanged += OnProtocolStructureChanged;
         }
-
+        public string NewAlias { get; set; }
+        public int SelectedAliasIndex { get; set; }
+        public bool DragSelected { get; set; }
+        public ICommand AddStructureAliasCommand
+        {
+            get { return new DelegateCommand(AddStructureAlias); }
+        }
+        private void AddStructureAlias(object param = null)
+        {
+            Ctr.AddStructureAlias(Id, NewAlias);
+            RaisePropertyChangedEvent(nameof(Aliases));
+        }
+        public ICommand RemoveStructureAliasCommand
+        {
+            get { return new DelegateCommand(RemoveStructureAlias); }
+        }
+        private void RemoveStructureAlias(object param = null)
+        {
+            Ctr.RemoveStructureAlias(Id, param as string);
+            RaisePropertyChangedEvent(nameof(Aliases));
+        }
+        public ICommand PinOptionsCommand
+        {
+            get { return new DelegateCommand(PinOptions); }
+        }
+        private void PinOptions(object param = null)
+        {
+            Pinned ^= true;
+        }
         public wpfcolor? StructureColor
         {
             get
@@ -348,6 +374,7 @@ namespace SquintScript.ViewModels
             get { return Con.ID; }
         }
         public bool Pinned { get; set; } = false;
+        public bool DragSelected { get; set; } = false;
         public wpfcolor Color { get; set; } = wpfcolors.PapayaWhip;
         public ComponentSelector Component
         {
@@ -414,7 +441,7 @@ namespace SquintScript.ViewModels
                     return new wpfbrush(wpfcolors.Black);
             }
         }
-        public double StopValue
+        public double? StopValue
         {
             get
             {
@@ -429,7 +456,7 @@ namespace SquintScript.ViewModels
                 }
             }
         }
-        public double MinorViolation
+        public double? MinorViolation
         {
             get
             {
@@ -445,7 +472,7 @@ namespace SquintScript.ViewModels
                 }
             }
         }
-        public double MajorViolation
+        public double? MajorViolation
         {
             get
             {
@@ -655,6 +682,13 @@ namespace SquintScript.ViewModels
 
 
             RefUnitList.Add(ConstraintUnits.Percent);
+            AvailableReferenceTypes.Clear();
+            foreach (ReferenceTypes RT in Enum.GetValues(typeof(ReferenceTypes)).Cast<ReferenceTypes>())
+            {
+                if (RT == ReferenceTypes.Unset)
+                    continue; // don't list this
+                AvailableReferenceTypes.Add(RT);
+            }
             if (Con.ConstraintType == ConstraintTypeCodes.CI)
             {
                 RefUnitList.Add(ConstraintUnits.Multiple);
@@ -670,23 +704,13 @@ namespace SquintScript.ViewModels
                 {
                     RefUnitList.Add(ConstraintUnits.cc);
                 }
-
-                foreach (ConstraintUnits U in RefUnitList)
-                {
-                    AvailableReferenceUnitTypes.Add(U);
-                }
-
-                RaisePropertyChangedEvent("ReferenceUnits");
-                AvailableReferenceTypes.Clear();
-                foreach (ReferenceTypes RT in Enum.GetValues(typeof(ReferenceTypes)).Cast<ReferenceTypes>())
-                {
-                    if (RT == ReferenceTypes.Unset)
-                        continue; // don't list this
-                    AvailableReferenceTypes.Add(RT);
-                }
-                //PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("ReferenceTypes"));
-                RaisePropertyChangedEvent("ReferenceTypes");
             }
+            foreach (ConstraintUnits U in RefUnitList)
+            {
+                AvailableReferenceUnitTypes.Add(U);
+            }
+            RaisePropertyChangedEvent("ReferenceUnits");
+            RaisePropertyChangedEvent("ReferenceTypes");
         }
         public ConstraintSelector(Ctr.Constraint ConIn, StructureSelector SSin)
         {
@@ -1586,12 +1610,12 @@ namespace SquintScript.ViewModels
         public ProtocolView Protocol { get; set; }
         public PatientView PatientPresenter { get; set; } = new PatientView(null);
         public SessionsView SessionsPresenter { get; set; } = new SessionsView();
-
+        public EclipseProtocolPopupViewModel EclipseProtocolView { get; set; }
         public AssessmentView NewAssessmentId { get; private set; }
         public bool isPIDVisible { get; set; } = false;
         public bool AdminOptionsToggle { get; set; } = false;
         public bool SquintIsBusy { get; set; } = false;
-        public int NumAdminButtons { get; private set; } = 6;
+        public int NumAdminButtons { get; private set; } = 7;
         public bool PlanCheckVisible { get; set; } = false;
         public string PlanCheckLoadingMessage { get; set; } = "Checking plan, please wait...";
         public bool isPlanCheckCalculating { get; set; } = false;
@@ -1807,6 +1831,25 @@ namespace SquintScript.ViewModels
                 MessageBox.Show("Error in importing protocol, please review XML file");
             }
         }
+
+        public ICommand ImportEclipseCommand
+        {
+            get { return new DelegateCommand(ImportEclipseProtocol); }
+        }
+
+        public bool ImportEclipseProtocolVisibility { get; set; } = false;
+        public void ImportEclipseProtocol(object param = null)
+        {
+            if (Ctr.PatientLoaded || Ctr.NumAssessments > 0)
+            {
+                System.Windows.Forms.DialogResult DR = System.Windows.Forms.MessageBox.Show("Please close patient before importing protocols...");
+                return;
+            }
+            EclipseProtocolView = new EclipseProtocolPopupViewModel(this);
+            ImportEclipseProtocolVisibility ^= true;
+            //        SquintIsBusy = true;
+        }
+
         private void CloseCheckList(object param = null)
         {
             ProtocolCheckVisible = true;
@@ -1838,6 +1881,19 @@ namespace SquintScript.ViewModels
             PlanCheckVisible ^= true;
 
         }
+        public ICommand DuplicateProtocolCommand
+        {
+            get { return new DelegateCommand(DuplicateProtocol); }
+        }
+        private async void DuplicateProtocol(object param = null)
+        {
+            LoadingString = "Creating copy of current protocol";
+            isLoading = true;
+            await Task.Run(() => Ctr.Save_DuplicateProtocol());
+            isLoading = false;
+            LoadingString = "";
+        }
+
         private double findMinDiff(double[] arr)
         {
             // Sort array in  
@@ -2212,12 +2268,5 @@ namespace SquintScript.ViewModels
         {
             isUserPanelVisible = !isUserPanelVisible;
         }
-        private void OnConstraintPropertyChanged(object sender, PropertyChangedEventArgs e)
-        {
-            // This captures changes to constraint properties that affect the layout of the constraints, i.e. displayorder
-
-        }
-
-
     }
 }

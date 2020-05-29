@@ -62,11 +62,12 @@
             </Grid.RowDefinitions>
             <TextBlock Grid.Row="0" Text="Beam Group Parameters:" FontSize="14" FontWeight="Bold" Background="White" Margin="10,5,0,5"/>
             <Border Grid.Row="1" Background="Black" CornerRadius="1,1,1,1" Height="2" Margin="10,3,10,5" HorizontalAlignment="Stretch"/>
-            <local:TestView Grid.Row="2" TestItems ="{Binding DataContext.GroupTests.Tests, RelativeSource={RelativeSource AncestorLevel=1, AncestorType=Grid,Mode=FindAncestor}}" 
+            <local:TestView Grid.Row="2" DataContext="{Binding GroupTests, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                            TestItems ="{Binding Tests, UpdateSourceTrigger=PropertyChanged, Mode=OneWay}" 
                             SetReferenceHeader="Reference Value"/>
         </Grid>
         <ListView Grid.Row="1" Margin ="0,0,0,0" ScrollViewer.HorizontalScrollBarVisibility="Disabled" 
-                  ItemsSource="{Binding Beams, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource BeamCheckViewListStyle}" HorizontalContentAlignment="Stretch" AlternationCount="2">
+                  ItemsSource="{Binding Beams, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource BeamCheckViewListStyle}" HorizontalContentAlignment="Stretch" AlternationCount="2">
             <ListView.ItemContainerStyle>
                 <Style TargetType="ListViewItem">
                     <Setter Property="Template">
@@ -94,23 +95,84 @@
             </ListView.ItemContainerStyle>
             <ListView.ItemTemplate>
                 <DataTemplate>
-                    <Grid HorizontalAlignment="Stretch">
+                    <Grid HorizontalAlignment="Stretch" Margin="5,0,0,0">
                         <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="*"/>
                         </Grid.RowDefinitions>
-                        <StackPanel Grid.Row="0" Orientation="Horizontal"  Margin="10,5,0,0">
+                        <StackPanel Grid.Row="0" Orientation="Horizontal"  Margin="10,5,0,0"                                     
+                            Visibility="{Binding DataContext.AdminOptionsToggle, RelativeSource={RelativeSource AncestorType=Window}, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource VisibilityInverseConverter}}">
                             <TextBlock Grid.Column="0" FontWeight="Bold" Name="TitleBlock" Text="{Binding FieldDescription, UpdateSourceTrigger=PropertyChanged}" FontSize="13" VerticalAlignment="Center"/>
                             <ComboBox Style="{DynamicResource ConstraintComboBoxStyle}" ItemsSource="{Binding Fields, UpdateSourceTrigger=PropertyChanged}" DisplayMemberPath="Id" 
                                       SelectedItem="{Binding Field, UpdateSourceTrigger=PropertyChanged}" MinWidth="75" VerticalAlignment="Center" VerticalContentAlignment="Center"/>
                             <local:CircleCheck Pass="{Binding DataContext.NoFieldAssigned, RelativeSource={RelativeSource AncestorLevel=2, AncestorType=Grid,Mode=FindAncestor}, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" CheckHeight="20" CheckWidth="20"
                                                             HorizontalAlignment="Right"/>
                         </StackPanel>
-                        <Border Grid.Row="1" Background="Black" CornerRadius="1,1,1,1" Height="2" Margin="10,3,10,5" HorizontalAlignment="Stretch"/>
-                        <local:TestView Grid.Row="2" TestItems ="{Binding DataContext.BeamTests.Tests, RelativeSource={RelativeSource AncestorLevel=1, AncestorType=Grid,Mode=FindAncestor}}" 
+                        <StackPanel Margin="10,5,0,5" Grid.Row="0" Orientation="Vertical" Visibility="{Binding DataContext.AdminOptionsToggle, RelativeSource={RelativeSource AncestorType=Window}, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource VisibilityConverter}}">
+                            <TextBlock Text="Beam Properties" FontSize="14" FontWeight="Bold" Margin="0,5,0,5"/>
+                            <Border Grid.Row="1" Background="Black" CornerRadius="1,1,1,1" Height="2" Margin="0,3,10,5" HorizontalAlignment="Stretch"/>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="100"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="Beam Name:" FontSize="13" FontWeight="Bold" VerticalAlignment="Center" HorizontalAlignment="Left"/>
+                                <TextBox Grid.Column="1" Text="{Binding ProtocolBeamName, Mode=TwoWay}" local:TextBoxExtensions.UpdateSourceOnKey="Return" Width="100" Height="25"
+                                         VerticalContentAlignment="Center"  HorizontalContentAlignment="Center"/>
+                                <TextBlock Grid.Column="2" Text="Aliases:" FontSize="13" FontWeight="Bold" VerticalAlignment="Center" HorizontalAlignment="Left" Margin="25,0,10,0"/>
+                                <Grid Grid.Column="3" Margin="20,0,0,0">
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="*"/>
+                                            <RowDefinition Height="Auto"/>
+                                        </Grid.RowDefinitions>
+                                        <ListBox Grid.Row="0" Name="beam_aliaslist" ItemsSource="{Binding Aliases, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" Margin="0,5,0,5" 
+                                     HorizontalAlignment="Left" VerticalAlignment="Stretch" HorizontalContentAlignment="Stretch" Background="White"
+                                         Width="200" Style="{DynamicResource ListBoxStyle1}" ItemContainerStyle="{DynamicResource SquintAliasesListBoxItemStyle}"
+                                     BorderThickness="0"  SelectedItem="{Binding SelectedAlias, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
+                                            <ListBox.ItemTemplate>
+                                                <DataTemplate>
+                                                    <Grid >
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="*"/>
+                                                            <ColumnDefinition Width="Auto"/>
+                                                        </Grid.ColumnDefinitions>
+                                                        <TextBlock Grid.Column="0" Text="{Binding}" VerticalAlignment="Center" HorizontalAlignment="Stretch" Background="Transparent"/>
+
+                                                        <Button Grid.Column="1" Style="{StaticResource ButtonStyle_Small}" VerticalAlignment="Center" Height="20" Width="20" Background="Transparent" 
+                                                        Command="{Binding DataContext.RemoveAliasCommand, RelativeSource={RelativeSource AncestorType=ListBox}}" CommandParameter="{Binding}">
+                                                            <Image Source="\Resources\x_trans.png"/>
+                                                        </Button>
+                                                    </Grid>
+
+                                                </DataTemplate>
+                                            </ListBox.ItemTemplate>
+                                        </ListBox>
+                                        <Grid Grid.Row="1" Height="25" Width="200" HorizontalAlignment="Left">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+                                            <TextBox Grid.Column="0" Text="{Binding NewAlias, Mode=TwoWay}" local:TextBoxExtensions.UpdateSourceOnKey="Return" Margin="0,0,10,0" Height="25"
+                                                 HorizontalContentAlignment="Center" VerticalContentAlignment="Center"/>
+                                            <Button Grid.Column="1" Style="{StaticResource ButtonStyle_Small}" Width="20" Height="20" HorizontalAlignment="Center"
+                                                VerticalAlignment="Center" Command="{Binding AddAliasCommand}" Margin="0,0,1,0">
+                                                <Image Source="\Resources\plus_trans.png"/>
+                                            </Button>
+                                        </Grid>
+                                    </Grid>
+                            </Grid>
+                            
+                           
+                        </StackPanel>
+                        <TextBlock Grid.Row="1" Text="Beam Checks" FontSize="14" FontWeight="Bold" Margin="10,3,10,5"/>
+                        <Border Grid.Row="2" Background="Black" CornerRadius="1,1,1,1" Height="2" Margin="10,3,10,5" HorizontalAlignment="Stretch"/>
+                        <local:TestView Grid.Row="3" DataContext ="{Binding BeamTests, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" TestItems="{Binding Tests, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                         SetReferenceHeader="Reference Value" />
-                   </Grid>
+                    </Grid>
                 </DataTemplate>
             </ListView.ItemTemplate>
         </ListView>

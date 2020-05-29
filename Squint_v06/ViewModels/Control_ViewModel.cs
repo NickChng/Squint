@@ -189,25 +189,12 @@ namespace SquintScript.Controls
         public string WarningMessage { get; set; }
     }
     [AddINotifyPropertyChangedInterface]
-    public class TestList_ViewModel
+    public class TestList_ViewModel :ObservableObject
     {
-        public event EventHandler TargetIdChange;
-
-        public List<string> TestListTargetIds { get; set; } = new List<string>();
-        private string _TestListTargetId = "unset";
-        public string TestListTargetId
+        public void SendUpdate()
         {
-            get
-            {
-                return _TestListTargetId;
-            }
-            set
-            {
-                _TestListTargetId = value;
-                TargetIdChange?.Invoke(this, EventArgs.Empty);
-            }
+            RaisePropertyChangedEvent(nameof(Tests));
         }
-        public string TestListTitle { get; set; } = "Default_Title";
         public ObservableCollection<ITestListItem> Tests { get; set; } = new ObservableCollection<ITestListItem>();
     }
     [AddINotifyPropertyChangedInterface]
@@ -215,11 +202,13 @@ namespace SquintScript.Controls
     {
         public string DebugString { get; set; } = "Default_Value";
         public ObservableCollection<BeamListItem> Beams { get; set; } = new ObservableCollection<BeamListItem>();
-        public TestList_ViewModel GroupTests { get; set; } = new TestList_ViewModel() { TestListTitle = "Default Beam Title" };
+        public TestList_ViewModel GroupTests { get; set; } = new TestList_ViewModel();
+
+        
 
     }
     [AddINotifyPropertyChangedInterface]
-    public class BeamListItem
+    public class BeamListItem :ObservableObject
     {
         public event EventHandler FieldChanged;
 
@@ -240,6 +229,7 @@ namespace SquintScript.Controls
         }
         public List<Ctr.TxFieldItem> Fields { get; set; }
         private Ctr.Beam RefBeam;
+        public ObservableCollection<string> Aliases { get; set; } = new ObservableCollection<string> { @"Field1" };
         public string FieldDescription { get; set; }
         public string BeamId { get { return Field.Id; } }
         public string ProtocolBeamName
@@ -274,11 +264,18 @@ namespace SquintScript.Controls
         public double StartAngle { get { return Field.GantryStart; } }
         public double EndAngle { get { return Field.GantryEnd; } }
         public bool NoFieldAssigned { get; set; } = true;
+        public string SelectedAlias { get; set; }
+        public string NewAlias { get; set; }
+     
         public BeamListItem(Ctr.Beam RefBeam_in, List<Ctr.TxFieldItem> TxFields)
         {
             RefBeam = RefBeam_in;
+            Aliases = RefBeam_in.EclipseAliases;
             Fields = TxFields;
             Field = null;
+        }
+        public void InitializeTests()
+        {
             BeamTests.Tests.Clear();
             if (Fields != null)
                 foreach (string alias in RefBeam.EclipseAliases)
@@ -291,26 +288,21 @@ namespace SquintScript.Controls
             FieldDescription = string.Format(@"Protocol field ""{0}"" assigned to plan field:", RefBeam.ProtocolBeamName);
 
             // Populate Tests
-            BeamTests.Tests.Add(new CheckRangeItem<double>(CheckTypes.MURange, double.NaN, RefBeam.MinMUWarning, RefBeam.MaxMUWarning, "MU outside normal range"));
-            var ValidEnergies = new List<TrackedValue<Energies>>();
-            foreach (var E in RefBeam.ValidEnergies)
-            {
-                ValidEnergies.Add(new TrackedValue<Energies>(E));
-            }
-            BeamTests.Tests.Add(new CheckContainsItem<Energies>(CheckTypes.ValidEnergies, Energies.Unset, ValidEnergies, "Not a valid energy"));
+            BeamTests.Tests.Add(new CheckRangeItem<double?>(CheckTypes.MURange, double.NaN, RefBeam.MinMUWarning, RefBeam.MaxMUWarning, "MU outside normal range"));
+            BeamTests.Tests.Add(new CheckContainsItem<Energies>(CheckTypes.ValidEnergies, Energies.Unset, RefBeam.ValidEnergies, "Not a valid energy"));
             BeamTests.Tests.Add(new TestListBeamStartStopItem(CheckTypes.BeamGeometry, null, RefBeam.ValidGeometries, "No valid geometry found"));
-            BeamTests.Tests.Add(new CheckValueItem<double>(CheckTypes.CouchRotation, -1, RefBeam.CouchRotation, new TrackedValue<double>(1E-2), "Non-standard couch rotation"));
+            BeamTests.Tests.Add(new CheckValueItem<double?>(CheckTypes.CouchRotation, -1, RefBeam.CouchRotation, new TrackedValue<double?>(1E-2), "Non-standard couch rotation"));
             BeamTests.Tests.Add(new CheckValueItem<bool?>(CheckTypes.JawTracking, null, new TrackedValue<bool?>(true), null, "No tracking detected"));
-            BeamTests.Tests.Add(new CheckValueItem<double>(CheckTypes.MinMLCOffsetFromAxial, -1, RefBeam.MinColRotation, new TrackedValue<double>(1E-2), "Collimator less than minimum offset") { ParameterOption = ParameterOptions.Optional, Test = TestType.GreaterThan });
+            BeamTests.Tests.Add(new CheckValueItem<double?>(CheckTypes.MinMLCOffsetFromAxial, -1, RefBeam.MinColRotation, new TrackedValue<double?>(1E-2), "Collimator less than minimum offset") { ParameterOption = ParameterOptions.Optional, Test = TestType.GreaterThan });
 
-            BeamTests.Tests.Add(new CheckValueItem<double>(CheckTypes.MinimumXfieldSize, -1, RefBeam.MinX, null, "X field too small") { Test = TestType.GreaterThan });
-            BeamTests.Tests.Add(new CheckValueItem<double>(CheckTypes.MaximumXfieldSize, -1, RefBeam.MaxX, null, "X field too large") { Test = TestType.LessThan });
-            BeamTests.Tests.Add(new CheckValueItem<double>(CheckTypes.MinimumYfieldSize, -1, RefBeam.MinY, null, "Y field too small") { Test = TestType.GreaterThan });
-            BeamTests.Tests.Add(new CheckValueItem<double>(CheckTypes.MaximumYfieldSize, -1, RefBeam.MaxY, null, "Y field too large") { Test = TestType.LessThan });
+            BeamTests.Tests.Add(new CheckValueItem<double?>(CheckTypes.MinimumXfieldSize, -1, RefBeam.MinX, null, "X field too small") { Test = TestType.GreaterThan });
+            BeamTests.Tests.Add(new CheckValueItem<double?>(CheckTypes.MaximumXfieldSize, -1, RefBeam.MaxX, null, "X field too large") { Test = TestType.LessThan });
+            BeamTests.Tests.Add(new CheckValueItem<double?>(CheckTypes.MinimumYfieldSize, -1, RefBeam.MinY, null, "Y field too small") { Test = TestType.GreaterThan });
+            BeamTests.Tests.Add(new CheckValueItem<double?>(CheckTypes.MaximumYfieldSize, -1, RefBeam.MaxY, null, "Y field too large") { Test = TestType.LessThan });
             BeamTests.Tests.Add(new CheckValueItem<string>(CheckTypes.ToleranceTable, "", RefBeam.ToleranceTable, null, "Incorrect Tol Table"));
-
             if (Field != null)
                 RefreshTests();
+            //RaisePropertyChangedEvent(nameof(BeamTests));
         }
         public void BeamChangeAction(string newFieldId = null)
         {
@@ -381,6 +373,9 @@ namespace SquintScript.Controls
                     case CheckTypes.MaximumYfieldSize:
                         Test.SetCheckValue(Ymax);
                         break;
+                    case CheckTypes.ToleranceTable:
+                        Test.SetCheckValue(ToleranceTable);
+                        break;
                 }
             }
 
@@ -428,7 +423,28 @@ namespace SquintScript.Controls
             //var TolTable = new TestListItem(string.Format(@"Tolerance Table (""{0}"")", Field.Id), string.Format("{0:0} HU", Field.ToleranceTable), string.Format("{0:0} HU", ProtocolTolTable), Warning, "");
             //BeamTests.Tests.Add(TolTable);
         }
-        public TestList_ViewModel BeamTests { get; set; } = new TestList_ViewModel() { TestListTitle = "Default Beam Title" };
+        public ICommand RemoveAliasCommand
+        {
+            get { return new DelegateCommand(RemoveAlias); }
+        }
+        public void RemoveAlias(object param = null)
+        {
+            string remAlias = param as string;
+            if (remAlias != null)
+                if (Aliases.Contains(remAlias))
+                    Aliases.Remove(remAlias);
+        }
+        public ICommand AddAliasCommand
+        {
+            get { return new DelegateCommand(AddAlias); }
+        }
+        public void AddAlias(object param = null)
+        {
+            if (NewAlias != null)
+                if (!Aliases.Contains(NewAlias))
+                    Aliases.Add(NewAlias);
+        }
+        public TestList_ViewModel BeamTests { get; set; } = new TestList_ViewModel();
     }
     [AddINotifyPropertyChangedInterface]
     public class Prescription_ViewModel

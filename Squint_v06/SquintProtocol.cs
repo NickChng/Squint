@@ -16,6 +16,8 @@ using System.Data;
 using SquintScript.Extensions;
 using SquintScript.Converters;
 using System.IO.Ports;
+using System.Net.Http.Headers;
+using System.Collections.ObjectModel;
 
 namespace SquintScript
 {
@@ -28,8 +30,14 @@ namespace SquintScript
         }
         public class Protocol
         {
-            //Required notification class
-            //public event PropertyChangedEventHandler PropertyChanged;
+            public class ProtocolReferenceValues
+            {
+                public string ProtocolName { get; private set; }
+                public ProtocolReferenceValues(string protocolName)
+                {
+                    ProtocolName = protocolName;
+                }
+            }
             public class ProtocolArgs : EventArgs
             {
                 public object Value;
@@ -37,6 +45,7 @@ namespace SquintScript
             public Protocol()
             {
                 ID = Ctr.IDGenerator();
+                Checklist = new ProtocolChecklist(ID);
             }
             public Protocol(DbProtocol DbO)
             {
@@ -54,10 +63,18 @@ namespace SquintScript
                 var DbChecklist = DbO.ProtocolChecklists.FirstOrDefault();
                 if (DbChecklist != null)
                     Checklist = new ProtocolChecklist(DbChecklist);
+                else
+                    Checklist = new ProtocolChecklist(ID);
             }
             //Properties
             public int ID { get; private set; }
-            public string ProtocolName { get; set; }
+
+            private TrackedValue<string> _ProtocolName = new TrackedValue<string>("");
+            public string ProtocolName
+            {
+                get { return _ProtocolName.Value; }
+                set { _ProtocolName.Value = value; }
+            }
             public ProtocolTypes ProtocolType { get; set; }
             public string CreationDate { get; set; }
             public ApprovalLevels ApprovalLevel { get; set; }
@@ -74,6 +91,15 @@ namespace SquintScript
             }
             // Protocol Checklist
             public ProtocolChecklist Checklist { get; set; }
+
+            public void AcceptChanges()
+            {
+                _ProtocolName.AcceptChanges();
+            }
+            public ProtocolReferenceValues GetReferenceValues()
+            {
+                return new ProtocolReferenceValues(_ProtocolName.ReferenceValue);
+            }
 
         }
         public class Session
@@ -346,18 +372,9 @@ namespace SquintScript
                     if (DbOS.ReferenceValue != DbOS.OriginalReferenceValue)
                         _ReferenceValue.Value = DbO.ReferenceValue;
                     // Look up thresholds
-                    if (DbOS.MajorViolation == null)
-                        _MajorViolation = new TrackedValue<double>(double.NaN);
-                    else
-                        _MajorViolation = new TrackedValue<double>((double)DbOS.MajorViolation);
-                    if (DbOS.MinorViolation == null)
-                        _MinorViolation = new TrackedValue<double>(double.NaN);
-                    else
-                        _MinorViolation = new TrackedValue<double>((double)DbOS.MinorViolation);
-                    if (DbOS.Stop == null)
-                        _Stop = new TrackedValue<double>(double.NaN);
-                    else
-                        _Stop = new TrackedValue<double>((double)DbOS.Stop);
+                    _MajorViolation = new TrackedValue<double?>(DbOS.MajorViolation);
+                    _MinorViolation = new TrackedValue<double?>(DbOS.MinorViolation);
+                    _Stop = new TrackedValue<double?>(DbOS.Stop);
                     _ReferenceType = new TrackedValue<ReferenceTypes>((ReferenceTypes)DbOS.OriginalReferenceType);
                     if (DbOS.ReferenceType != DbOS.OriginalReferenceType)
                         ReferenceType = (ReferenceTypes)DbOS.ReferenceType;
@@ -387,18 +404,9 @@ namespace SquintScript
                     _ConstraintScale = new TrackedValue<UnitScale>((UnitScale)DbO.ConstraintScale);
                     DisplayOrder = new TrackedValue<int>(DbO.DisplayOrder);
                     // Look up thresholds
-                    if (DbO.MajorViolation == null)
-                        _MajorViolation = new TrackedValue<double>(double.NaN);
-                    else
-                        _MajorViolation = new TrackedValue<double>((double)DbO.MajorViolation);
-                    if (DbO.MinorViolation == null)
-                        _MinorViolation = new TrackedValue<double>(double.NaN);
-                    else
-                        _MinorViolation = new TrackedValue<double>((double)DbO.MinorViolation);
-                    if (DbO.Stop == null)
-                        _Stop = new TrackedValue<double>(double.NaN);
-                    else
-                        _Stop = new TrackedValue<double>((double)DbO.Stop);
+                    _MajorViolation = new TrackedValue<double?>(DbO.MajorViolation);
+                    _MinorViolation = new TrackedValue<double?>(DbO.MinorViolation);
+                    _Stop = new TrackedValue<double?>(DbO.Stop);
                 }
 
                 var ProtocolStructure = DataCache.GetProtocolStructure(DbO.PrimaryStructureID);
@@ -459,9 +467,9 @@ namespace SquintScript
                     SC.ReferenceFractionsChanged += OnComponentFractionsChanging;
                 }
                 // Initialize thresholds
-                _MajorViolation = new TrackedValue<double>(ReferenceValue);
-                _MinorViolation = new TrackedValue<double>(double.NaN);
-                _Stop = new TrackedValue<double>(double.NaN);
+                _MajorViolation = new TrackedValue<double?>(ReferenceValue);
+                _MinorViolation = new TrackedValue<double?>(null);
+                _Stop = new TrackedValue<double?>(null);
             }
             public Constraint(Constraint Con)
             {
@@ -499,241 +507,208 @@ namespace SquintScript
                     SC.ReferenceFractionsChanged += OnComponentFractionsChanging;
                 }
             }
-            public Constraint(SquintEclipseProtocol.Item Item, int ComponentID = -1)
+
+
+
+            public Constraint(VMSTemplates.ProtocolPhasesPhasePrescriptionMeasureItem MI, int componentID, int structureId, int displayOrder)
             {
-                //// This constructor duplications the input constraint 
-                //if (Item.Modifier == 5)
-                //    return; // this is a reference point which is ignored by Squint
-                //if (Item.Modifier == 6) //unknown value
-                //    return;
-                //_DbO = DataCache.SquintDb.Context.DbSessionConstraints.Create();
-                //DataCache.SquintDb.Context.DbConstraints.Add(_DbO);
-                //_DbO.ID = Ctr.IDGenerator();
-                //_DbO.SecondaryStructureID = 1; // temp.. need to set this for Eclipse CI
-                //_DbO.PrimaryStructureID = ProtocolStructures.Values.Where(x => x.EclipseStructureName == Item.ID).SingleOrDefault().ID;
-                //bool setThreshold = true;
-                //if (Item.Dose == null)
-                //{
-                //    Item.Dose = 0; // if left empty, set to zero and don't set a major violation threshold because user left this blank in Eclipse
-                //    setThreshold = false;
-                //}
-                //switch (Item.Modifier)
-                //{
-                //    case 0:
-                //        _DbO.ConstraintType = (int)ConstraintTypeCodes.V; // At least X % receives more than Y dose
-                //        _DbO.ReferenceType = (int)ReferenceTypes.Lower;
-                //        _DbO.ConstraintValue = Item.Parameter;
-                //        _DbO.ConstraintScale = (int)UnitScale.Relative;
-                //        _DbO.ReferenceScale = (int)UnitScale.Absolute;
-                //        break;
-                //    case 1:
-                //        _DbO.ConstraintType = (int)ConstraintTypeCodes.V; // At most X % receives more than Y dose
-                //        _DbO.ReferenceType = (int)ReferenceTypes.Upper;
-                //        _DbO.ConstraintValue = Item.Parameter;
-                //        _DbO.ConstraintScale = (int)UnitScale.Relative;
-                //        _DbO.ReferenceScale = (int)UnitScale.Absolute;
-                //        break;
-                //    case 2:
-                //        _DbO.ConstraintType = (int)ConstraintTypeCodes.M;  // Mean dose is
-                //        _DbO.ReferenceType = (int)ReferenceTypes.Lower;
-                //        _DbO.ConstraintValue = Item.Parameter;
-                //        _DbO.ConstraintScale = (int)UnitScale.Absolute;
-                //        _DbO.ReferenceScale = (int)UnitScale.Absolute;
-                //        break;
-                //    case 3:
-                //        _DbO.ConstraintType = (int)ConstraintTypeCodes.D; // Max dose is 
-                //        _DbO.ReferenceType = (int)ReferenceTypes.Upper;
-                //        _DbO.ConstraintValue = 0;
-                //        _DbO.ConstraintScale = (int)UnitScale.Relative;
-                //        _DbO.ReferenceScale = (int)UnitScale.Absolute;
-                //        break;
-                //    case 4:
-                //        _DbO.ConstraintType = (int)ConstraintTypeCodes.D; // Min dose is 
-                //        _DbO.ReferenceType = (int)ReferenceTypes.Lower;
-                //        _DbO.ConstraintValue = 100;
-                //        _DbO.ConstraintScale = (int)UnitScale.Relative;
-                //        _DbO.ReferenceScale = (int)UnitScale.Absolute;
-                //        break;
-                //    case 5:
-                //        //reference point which is aborted above
-                //        break;
-                //    case 6:
-                //        // unknown
-                //        break;
-                //    case 7:
-                //        _DbO.ConstraintType = (int)ConstraintTypeCodes.M; // Mean dose is greater than
-                //        _DbO.ReferenceType = (int)ReferenceTypes.Lower;
-                //        _DbO.ConstraintValue = Item.Parameter;
-                //        _DbO.ConstraintScale = (int)UnitScale.Absolute;
-                //        _DbO.ReferenceScale = (int)UnitScale.Absolute;
-                //        break;
-                //    case 8:
-                //        _DbO.ConstraintType = (int)ConstraintTypeCodes.M; // Mean dose is less than
-                //        _DbO.ReferenceType = (int)ReferenceTypes.Upper;
-                //        _DbO.ConstraintValue = Item.Parameter;
-                //        _DbO.ConstraintScale = (int)UnitScale.Absolute;
-                //        _DbO.ReferenceScale = (int)UnitScale.Absolute;
-                //        break;
-                //    case 9:
-                //        _DbO.ConstraintType = (int)ConstraintTypeCodes.D; // Min dose is greater than
-                //        _DbO.ReferenceType = (int)ReferenceTypes.Lower;
-                //        _DbO.ConstraintValue = 100;
-                //        _DbO.ConstraintScale = (int)UnitScale.Relative;
-                //        _DbO.ReferenceScale = (int)UnitScale.Absolute;
-                //        break;
-                //    case 10:
-                //        _DbO.ConstraintType = (int)ConstraintTypeCodes.D; // Max dose is  less than
-                //        _DbO.ReferenceType = (int)ReferenceTypes.Upper;
-                //        _DbO.ConstraintValue = 0;
-                //        _DbO.ConstraintScale = (int)UnitScale.Relative;
-                //        _DbO.ReferenceScale = (int)UnitScale.Absolute;
-                //        break;
-                //    default:
-                //        string debug = "";
-                //        break;
-                //}
-                //if (Item.Dose != null)
-                //    _DbO.ReferenceValue = (double)Item.Dose * 100 * DataCache.GetComponent(ComponentID).NumFractions;
-                //if (ComponentID != -1)
-                //    _DbO.ComponentID = ComponentID;
-                //lock (Lock)
-                //{
-                //    Constraints.Add(ID, this);
-                //}
-                //if (setThreshold)
-                //{
-                //    DbConThresholdDef MajorViolation = DataCache.SquintDb.Context.DbConThresholdDefs.Where(x => x.Threshold == (int)ConstraintThresholdNames.MajorViolation).Single();
-                //    ConstraintThreshold newCT = new ConstraintThreshold(MajorViolation, _DbO.ID, _DbO.ReferenceValue);
-                //}
-                //Component SC = Components[_DbO.ComponentID];
-                //ProtocolStructure ProtocolStructure_DvH = ProtocolStructures.Values.Where(x => x.ID == _DbO.PrimaryStructureID && x.ProtocolID == DataCache.CurrentProtocol.ID).SingleOrDefault();
-                //ProtocolStructure_DvH.NewProtocolStructureCommitting += OnNewProtocolStructureChanged_Primary;
-                //ProtocolStructure_DvH.ProtocolStructureDeleting += OnProtocolStructureDeleting_Primary;
-                //ProtocolStructure_DvH.ProtocolStructureChanged += OnProtocolStructureChanged;
-                //if (_DbO.SecondaryStructureID != 1)
-                //{
-                //    ProtocolStructure ProtocolStructure_CI = ProtocolStructures.Values.Where(x => x.ID == _DbO.SecondaryStructureID && x.ProtocolID == DataCache.CurrentProtocol.ID).SingleOrDefault();
-                //    ProtocolStructure_CI.NewProtocolStructureCommitting += OnNewProtocolStructureChanged_Secondary;
-                //    ProtocolStructure_CI.ProtocolStructureDeleting += OnProtocolStructureDeleting_Secondary;
-                //    ProtocolStructure_CI.ProtocolStructureChanged += OnProtocolStructureChanged;
-                //}
-                //SC.ComponentDeleted += OnComponentDeleted;
-                //SC.ReferenceDoseChanged += OnComponentDoseChanging;
-                //SC.ReferenceFractionsChanged += OnComponentFractionsChanging;
-                //SC.NewComponentCommitting += OnNewComponentCommitting;
-                //ExceptionType = ExceptionTypes.None;
-                //ManageSaveEvents();
-                //ID = _DbO.ID;
+                // This constructor creates a constraint from an Eclipse Clinical Protocol MeasureItem
+                ID = IDGenerator();
+                isCreated = true;
+                _ComponentID = new TrackedValue<int>(componentID);
+                _PrimaryStructureID = new TrackedValue<int>(structureId);
+                DisplayOrder = new TrackedValue<int>(displayOrder);
+                if (MI.Modifier == 5)
+                    return; // this is a reference point which is ignored by Squint
+                            //_DbO = DataCache.SquintDb.Context.DbSessionConstraints.Create();
+                            //DataCache.SquintDb.Context.DbConstraints.Add(_DbO);
+                            //_DbO.ID = Ctr.IDGenerator();
+                            //_DbO.SecondaryStructureID = 1; // temp.. need to set this for Eclipse CI
+                            //_DbO.PrimaryStructureID = ProtocolStructures.Values.Where(x => x.EclipseStructureName == Item.ID).SingleOrDefault().ID;
+                            // Reference TYpe
+                switch (MI.Modifier)
+                {
+                    case 0: // lower constraint
+                        _ReferenceType = new TrackedValue<ReferenceTypes>(ReferenceTypes.Lower);
+                        //if (V > (double)MI.Value)
+                        //    ConstraintMet = true;
+                        //ConstraintString = string.Format("{0} (Id={5}): V{1:0.#} [{2}] > {3:0.#} [{4}]", MI.ID, MI.TypeSpecifier, ConUnit, MI.Value, RefUnit, S.Id);
+                        break;
+                    case 1: // upper constraint
+                        _ReferenceType = new TrackedValue<ReferenceTypes>(ReferenceTypes.Upper);
+                        //if (V < (double)MI.Value)
+                        //    ConstraintMet = true;
+                        //ConstraintString = string.Format("{0} (Id={5}): V{1:0.#} [{2}] < {3:0.#} [{4}]", MI.ID, MI.TypeSpecifier, ConUnit, MI.Value, RefUnit, S.Id);
+                        break;
+                    case 2: // equality
+                        _ReferenceType = new TrackedValue<ReferenceTypes>(ReferenceTypes.Unset);
+                        //if (Math.Abs(V - (double)MI.Value) < 1E-5)
+                        //    ConstraintMet = true;
+                        //ConstraintString = string.Format("{0} (Id={5}): V{1:0.#} [{2}] = {3:0.#} [{4}]", MI.ID, MI.TypeSpecifier, ConUnit, MI.Value, RefUnit, S.Id);
+                        break;
+                }
+                if (MI.ReportDQPValueInAbsoluteUnits)
+                    _ReferenceScale = new TrackedValue<UnitScale>(UnitScale.Absolute);
+                else
+                    _ReferenceScale = new TrackedValue<UnitScale>(UnitScale.Relative);
+                if (MI != null)
+                {
+                    switch (MI.Type) // type of DVH constraint
+                    {
+                        case 0: // Conformity Index less than
+                            _ConstraintScale = new TrackedValue<UnitScale>(UnitScale.Relative);
+                            _ConstraintType = new TrackedValue<ConstraintTypeCodes>(ConstraintTypeCodes.CI);
+                            _SecondaryStructureID = new TrackedValue<int>(structureId);
+                            _ConstraintValue = new TrackedValue<double>(100);
+                            _ReferenceScale = new TrackedValue<UnitScale>(UnitScale.Absolute);
+                            _ReferenceType = new TrackedValue<ReferenceTypes>(ReferenceTypes.Upper);
+                            _ReferenceValue = new TrackedValue<double>((double)MI.Value);
+                            break;
+                        case 2: // this is a Vx[%] type constraint
+                            _ConstraintType = new TrackedValue<ConstraintTypeCodes>(ConstraintTypeCodes.V);
+                            _ConstraintScale = new TrackedValue<UnitScale>(UnitScale.Relative); // ConUnit = "%";
+                            if (MI.Value == null)
+                                _ReferenceValue = new TrackedValue<double>(double.NaN);
+                            else
+                            {
+                                var val = (double)MI.Value;
+                                if (MI.ReportDQPValueInAbsoluteUnits)
+                                    val = val / 1000; // convert to cc
+                                _ReferenceValue = new TrackedValue<double>(val);
+                            }
+
+                            if (MI.TypeSpecifier == null)
+                                _ConstraintValue = new TrackedValue<double>(double.NaN);
+                            else
+                                _ConstraintValue = new TrackedValue<double>((double)MI.TypeSpecifier);
+                            _MajorViolation = new TrackedValue<double?>(ReferenceValue);
+                            break;
+                        case 3: // this is a Vx[Gy] type constraint
+                            _ConstraintType = new TrackedValue<ConstraintTypeCodes>(ConstraintTypeCodes.V);
+                            _ConstraintScale = new TrackedValue<UnitScale>(UnitScale.Absolute);
+
+                            if (MI.Value == null)
+                                _ReferenceValue = new TrackedValue<double>(double.NaN);
+                            else
+                            {
+                                var val = (double)MI.Value;
+                                if (MI.ReportDQPValueInAbsoluteUnits)
+                                    val = val / 1000; // convert to cc
+                                _ReferenceValue = new TrackedValue<double>(val);
+                            }
+                            if (MI.TypeSpecifier == null)
+                                _ConstraintValue = new TrackedValue<double>(double.NaN);
+                            else
+                                _ConstraintValue = new TrackedValue<double>((double)MI.TypeSpecifier * 100);
+                            _MajorViolation = new TrackedValue<double?>(ReferenceValue);
+                            break;
+                        case 5: // this is a Dx cc type constraint
+                            _ConstraintType = new TrackedValue<ConstraintTypeCodes>(ConstraintTypeCodes.D);
+                            _ConstraintScale = new TrackedValue<UnitScale>(UnitScale.Absolute);
+                            if (MI.Value == null)
+                                _ReferenceValue = new TrackedValue<double>(double.NaN);
+                            else
+                            {
+                                var val = (double)MI.Value;
+                                if (MI.ReportDQPValueInAbsoluteUnits)
+                                    val = val * 100; // convert to cGy
+                                _ReferenceValue = new TrackedValue<double>(val);
+                            }
+                            if (MI.TypeSpecifier == null)
+                                _ConstraintValue = new TrackedValue<double>(double.NaN);
+                            else
+                                _ConstraintValue = new TrackedValue<double>((double)MI.TypeSpecifier);
+                            break;
+                        default:
+                            {
+                                MessageBox.Show(string.Format("MI.Type = {0} not handled", MI.Type));
+                                _ConstraintType = new TrackedValue<ConstraintTypeCodes>(ConstraintTypeCodes.Unset);
+                                _ConstraintScale = new TrackedValue<UnitScale>(UnitScale.Unset);
+                                _ReferenceValue = new TrackedValue<double>(double.NaN);
+                                _ConstraintValue = new TrackedValue<double>(double.NaN);
+                                break;
+                            }
+                    }
+                }
+                //Subscribe
+                var PS = DataCache.GetProtocolStructure(structureId);
+                if (PS != null)
+                    PS.PropertyChanged += OnProtocolStructureChanged;
+                else
+                    MessageBox.Show(@"Error: Structure not found when trying to create constraint");
+
+                var SC = DataCache.GetComponent(componentID);
+                if (SC != null)
+                {
+                    SC.ReferenceDoseChanged += OnComponentDoseChanging;
+                    SC.ReferenceFractionsChanged += OnComponentFractionsChanging;
+                    _NumFractions = new TrackedValue<int>(SC.NumFractions);
+                }
+                else
+                    MessageBox.Show(@"Error: Component not found when trying to create constraint");
             }
-            public Constraint(SquintEclipseProtocol.MeasureItem MI, int ComponentID = -1)
+            public Constraint(VMSTemplates.ProtocolPhasesPhasePrescriptionItem PI, int componentID, int structureId, int displayOrder)
             {
-                //// This constructor duplications the input constraint 
-                //if (MI.Type == 0 || MI.Type == 1)
-                //{
-                //    return; // conformity and gradient index not handled
-                //}
-                //_DbO = DataCache.SquintDb.Context.DbSessionConstraints.Create();
-                //DataCache.SquintDb.Context.DbConstraints.Add(_DbO);
-                //_DbO.ID = IDGenerator();
-                //_DbO.SecondaryStructureID = 1; // temp.. need to set this for Eclipse CI
-                //_DbO.PrimaryStructureID = ProtocolStructures.Values.Where(x => x.EclipseStructureName.ToUpper() == MI.ID.ToUpper()).SingleOrDefault().ID;
-                //if (MI.ReportDQPValueInAbsoluteUnits)
-                //    _DbO.ReferenceScale = (int)UnitScale.Absolute;
-                //else
-                //    _DbO.ReferenceScale = (int)UnitScale.Relative;
-                //bool setThreshold = true;
-                //if (MI.Value == null)
-                //{
-                //    MI.Value = 0; // if left empty, set to zero and don't set a major violation threshold because user left this blank in Eclipse
-                //    setThreshold = false;
-                //}
-                //switch (MI.Type)
-                //{
-                //    case 2:
-                //        _DbO.ConstraintType = (int)ConstraintTypeCodes.V;
-                //        if (ReferenceScale == UnitScale.Absolute)
-                //            _DbO.ReferenceValue = (double)MI.Value / 1000;
-                //        else
-                //            _DbO.ReferenceValue = (double)MI.Value;
-                //        _DbO.ConstraintScale = (int)UnitScale.Relative;
-                //        _DbO.ConstraintValue = (double)MI.TypeSpecifier; //return value in percent
-                //        break;
-                //    case 3:
-                //        _DbO.ConstraintType = (int)ConstraintTypeCodes.V;
-                //        if (ReferenceScale == UnitScale.Absolute)
-                //            _DbO.ReferenceValue = (double)MI.Value / 1000;
-                //        else
-                //            _DbO.ReferenceValue = (double)MI.Value;
-                //        _DbO.ConstraintScale = (int)UnitScale.Absolute;
-                //        _DbO.ConstraintValue = (double)MI.TypeSpecifier * 100;
-                //        break;
-                //    case 4:
-                //        _DbO.ConstraintType = (int)ConstraintTypeCodes.D;
-                //        _DbO.ConstraintScale = (int)UnitScale.Relative;
-                //        _DbO.ConstraintValue = (double)MI.TypeSpecifier; //return value in percent
-                //        if (ReferenceScale == UnitScale.Absolute)
-                //            _DbO.ReferenceValue = (double)MI.Value * 100;
-                //        else
-                //            _DbO.ReferenceValue = (double)MI.Value;
-                //        break;
-                //    case 5:
-                //        _DbO.ConstraintType = (int)ConstraintTypeCodes.D;
-                //        _DbO.ConstraintScale = (int)UnitScale.Absolute;
-                //        _DbO.ConstraintValue = (double)MI.TypeSpecifier; // convert to cGy
-                //        if (ReferenceScale == UnitScale.Absolute)
-                //            _DbO.ReferenceValue = (double)MI.Value * 100;
-                //        else
-                //            _DbO.ReferenceValue = (double)MI.Value;
-                //        break;
-                //    default:
-                //        break;
-                //}
-                //switch (MI.Modifier)
-                //{
-                //    case 0:
-                //        _DbO.ReferenceType = (int)ReferenceTypes.Lower;
-                //        break;
-                //    case 1:
-                //        _DbO.ReferenceType = (int)ReferenceTypes.Upper;
-                //        break;
-                //    case 2:
-                //        _DbO.ReferenceType = (int)ReferenceTypes.Lower; // this is an "is equal to" constraint (i.e. for normalization), which Squint treats as a lower constraint
-                //        break;
-                //}
-                //if (MI.ReportDQPValueInAbsoluteUnits)
-                //    _DbO.ReferenceScale = (int)UnitScale.Absolute;
-                //else
-                //    _DbO.ReferenceScale = (int)UnitScale.Relative;
-                //if (ComponentID != -1)
-                //    _DbO.ComponentID = ComponentID;
-                //lock (Lock)
-                //{
-                //    Constraints.Add(_DbO.ID, this);
-                //}
-                //if (setThreshold)
-                //{
-                //    DbConThresholdDef MajorViolation = DataCache.SquintDb.Context.DbConThresholdDefs.Where(x => x.Threshold == (int)ConstraintThresholdNames.MajorViolation).Single();
-                //    ConstraintThreshold newCT = new ConstraintThreshold(MajorViolation, _DbO.ID, _DbO.ReferenceValue);
-                //}
-                //Component SC = Components[_DbO.ComponentID];
-                //ProtocolStructure ProtocolStructure_DvH = ProtocolStructures.Values.Where(x => x.ID == _DbO.PrimaryStructureID && x.ProtocolID == DataCache.CurrentProtocol.ID).SingleOrDefault();
-                //ProtocolStructure_DvH.NewProtocolStructureCommitting += OnNewProtocolStructureChanged_Primary;
-                //ProtocolStructure_DvH.ProtocolStructureDeleting += OnProtocolStructureDeleting_Primary;
-                //ProtocolStructure_DvH.ProtocolStructureChanged += OnProtocolStructureChanged;
-                //if (_DbO.SecondaryStructureID != 1)
-                //{
-                //    ProtocolStructure ProtocolStructure_CI = ProtocolStructures.Values.Where(x => x.ID == _DbO.SecondaryStructureID && x.ProtocolID == DataCache.CurrentProtocol.ID).SingleOrDefault();
-                //    ProtocolStructure_CI.NewProtocolStructureCommitting += OnNewProtocolStructureChanged_Secondary;
-                //    ProtocolStructure_CI.ProtocolStructureDeleting += OnProtocolStructureDeleting_Secondary;
-                //    ProtocolStructure_CI.ProtocolStructureChanged += OnProtocolStructureChanged;
-                //}
-                //SC.ComponentDeleted += OnComponentDeleted;
-                //SC.ReferenceDoseChanged += OnComponentDoseChanging;
-                //SC.ReferenceFractionsChanged += OnComponentFractionsChanging;
-                //SC.NewComponentCommitting += OnNewComponentCommitting;
-                //ExceptionType = ExceptionTypes.None;
-                //ManageSaveEvents();
-                //ID = _DbO.ID;
+                // This constructor creates a constraint from an Eclipse Clinical Protocol MeasureItem
+                ID = IDGenerator();
+                isCreated = true;
+                _ComponentID = new TrackedValue<int>(componentID);
+                _PrimaryStructureID = new TrackedValue<int>(structureId);
+                DisplayOrder = new TrackedValue<int>(displayOrder);
+                if (PI != null) // is RxItem
+                {
+                    switch (PI.Modifier)
+                    {
+                        case 0: // Dx% > y cGy
+                            _ConstraintScale = new TrackedValue<UnitScale>(UnitScale.Relative);
+                            _ConstraintType = new TrackedValue<ConstraintTypeCodes>(ConstraintTypeCodes.D);
+                            _ConstraintValue = new TrackedValue<double>(PI.Parameter);
+                            _ReferenceScale = new TrackedValue<UnitScale>(UnitScale.Absolute);
+                            _ReferenceType = new TrackedValue<ReferenceTypes>(ReferenceTypes.Lower);
+                            _ReferenceValue = new TrackedValue<double>(PI.TotalDose * 100);
+                            break;
+                        case 7: // Mean is more than cGy
+                            _ConstraintScale = new TrackedValue<UnitScale>(UnitScale.Absolute);
+                            _ConstraintType = new TrackedValue<ConstraintTypeCodes>(ConstraintTypeCodes.M);
+                            _ReferenceValue = new TrackedValue<double>(PI.TotalDose);
+                            _ReferenceScale = new TrackedValue<UnitScale>(UnitScale.Absolute);
+                            _ReferenceType = new TrackedValue<ReferenceTypes>(ReferenceTypes.Lower);
+                            _ConstraintValue = new TrackedValue<double>(0);
+                            break;
+                        case 8: // Mean is less than cGy
+                            _ConstraintScale = new TrackedValue<UnitScale>(UnitScale.Absolute);
+                            _ConstraintType = new TrackedValue<ConstraintTypeCodes>(ConstraintTypeCodes.M);
+                            _ReferenceValue = new TrackedValue<double>(PI.TotalDose);
+                            _ReferenceScale = new TrackedValue<UnitScale>(UnitScale.Absolute);
+                            _ReferenceType = new TrackedValue<ReferenceTypes>(ReferenceTypes.Upper);
+                            _ConstraintValue = new TrackedValue<double>(0);
+                            break;
+                        default:
+                            MessageBox.Show(string.Format("PI.Type = {0} not handled", PI.Modifier));
+                            break;
+                    }
+                }
+                else
+                    MessageBox.Show(@"Error: Eclipse prescription item in protocol was null!");
+                //Subscribe
+                var PS = DataCache.GetProtocolStructure(structureId);
+                if (PS != null)
+                    PS.PropertyChanged += OnProtocolStructureChanged;
+                else
+                    MessageBox.Show(@"Error: Structure not found when trying to create constraint");
+
+
+                var SC = DataCache.GetComponent(componentID);
+                if (SC != null)
+                {
+                    SC.ReferenceDoseChanged += OnComponentDoseChanging;
+                    SC.ReferenceFractionsChanged += OnComponentFractionsChanging;
+                    _NumFractions = new TrackedValue<int>(SC.NumFractions);
+                }
+                else
+                    MessageBox.Show(@"Error: Component not found when trying to create constraint");
+
+
             }
             //Events
             public static readonly object Lock = new object();
@@ -782,31 +757,31 @@ namespace SquintScript
                         return true;
                 }
             }
-            private TrackedValue<int> _NumFractions;
+            private TrackedValue<int> _NumFractions = new TrackedValue<int>(0);
             public int NumFractions { get { return _NumFractions.Value; } private set { _NumFractions.Value = value; } }
-            private TrackedValue<int> _ComponentID;
+            private TrackedValue<int> _ComponentID = new TrackedValue<int>(1);
             public int ComponentID { get { return _ComponentID.Value; } set { _ComponentID.Value = value; } }
             public string ComponentName { get { return DataCache.GetComponent(ComponentID).ComponentName; } }
-            private TrackedValue<int> _PrimaryStructureID { get; set; }
+            private TrackedValue<int> _PrimaryStructureID = new TrackedValue<int>(1);
             public int PrimaryStructureID { get { return _PrimaryStructureID.Value; } set { _PrimaryStructureID.Value = value; } }
-            private TrackedValue<int> _SecondaryStructureID { get; set; }
+            private TrackedValue<int> _SecondaryStructureID = new TrackedValue<int>(1);
             public int SecondaryStructureID { get { return _SecondaryStructureID.Value; } set { _SecondaryStructureID.Value = value; } }
-            private TrackedValue<double> _ReferenceValue { get; set; }
+            private TrackedValue<double> _ReferenceValue = new TrackedValue<double>(double.NaN);
             public double ReferenceValue
             {
                 get { return _ReferenceValue.Value; }
                 set { _ReferenceValue.Value = value; }
             }
             //private bool _wasSessionModified { get; set; } = false;  // this is true if the loaded constraint was modified in its session
-            private TrackedValue<ReferenceTypes> _ReferenceType;
+            private TrackedValue<ReferenceTypes> _ReferenceType = new TrackedValue<ReferenceTypes>(ReferenceTypes.Unset);
             public ReferenceTypes ReferenceType { get { return _ReferenceType.Value; } set { _ReferenceType.Value = value; } }
-            private TrackedValue<ConstraintTypeCodes> _ConstraintType;
+            private TrackedValue<ConstraintTypeCodes> _ConstraintType = new TrackedValue<ConstraintTypeCodes>(ConstraintTypeCodes.Unset);
             public ConstraintTypeCodes ConstraintType { get { return _ConstraintType.Value; } set { _ConstraintType.Value = value; } }
-            private TrackedValue<UnitScale> _ConstraintScale;
+            private TrackedValue<UnitScale> _ConstraintScale = new TrackedValue<UnitScale>(UnitScale.Unset);
             public UnitScale ConstraintScale { get { return _ConstraintScale.Value; } set { _ConstraintScale.Value = value; } }
-            private TrackedValue<UnitScale> _ReferenceScale { get; set; }// the constraint unit
+            private TrackedValue<UnitScale> _ReferenceScale { get; set; } = new TrackedValue<UnitScale>(UnitScale.Unset);// the constraint unit 
             public UnitScale ReferenceScale { get { return _ReferenceScale.Value; } set { _ReferenceScale.Value = value; } }
-            private TrackedValue<double> _ConstraintValue;
+            private TrackedValue<double> _ConstraintValue = new TrackedValue<double>(double.NaN);
             public double ConstraintValue
             {
                 get { return _ConstraintValue.Value; }
@@ -1244,12 +1219,12 @@ namespace SquintScript
                         if (ReferenceScale == UnitScale.Relative)
                         {
                             ReferenceValue = Math.Round(DoseFunctions.BED(_NumFractions.ReferenceValue, SC.NumFractions, _ReferenceValue.ReferenceValue / 100 * SC.ReferenceDose, abRatio)) * 100 / SC.ReferenceDose;
-                            if (_MajorViolation != null)
-                                _MajorViolation.Value = Math.Round(DoseFunctions.BED(_NumFractions.ReferenceValue, SC.NumFractions, _MajorViolation.ReferenceValue / 100 * SC.ReferenceDose, abRatio)) * 100 / SC.ReferenceDose;
-                            if (_MinorViolation != null)
-                                _MinorViolation.Value = Math.Round(DoseFunctions.BED(_NumFractions.ReferenceValue, SC.NumFractions, _MinorViolation.ReferenceValue / 100 * SC.ReferenceDose, abRatio)) * 100 / SC.ReferenceDose;
-                            if (_Stop != null)
-                                _Stop.Value = Math.Round(DoseFunctions.BED(_NumFractions.ReferenceValue, SC.NumFractions, _Stop.ReferenceValue / 100 * SC.ReferenceDose, abRatio)) * 100 / SC.ReferenceDose;
+                            if (_MajorViolation.Value != null && _MajorViolation.ReferenceValue != null)
+                                _MajorViolation.Value = Math.Round(DoseFunctions.BED(_NumFractions.ReferenceValue, SC.NumFractions, (double)_MajorViolation.ReferenceValue / 100 * SC.ReferenceDose, abRatio)) * 100 / SC.ReferenceDose;
+                            if (_MinorViolation.Value != null && _MinorViolation.ReferenceValue != null)
+                                _MinorViolation.Value = Math.Round(DoseFunctions.BED(_NumFractions.ReferenceValue, SC.NumFractions, (double)_MinorViolation.ReferenceValue / 100 * SC.ReferenceDose, abRatio)) * 100 / SC.ReferenceDose;
+                            if (_Stop.Value != null && _Stop.ReferenceValue != null)
+                                _Stop.Value = Math.Round(DoseFunctions.BED(_NumFractions.ReferenceValue, SC.NumFractions, (double)_Stop.ReferenceValue / 100 * SC.ReferenceDose, abRatio)) * 100 / SC.ReferenceDose;
                             NumFractions = SC.NumFractions;
                         }
                         else
@@ -1635,8 +1610,8 @@ namespace SquintScript
                 _ReferenceType.AcceptChanges();
                 _ReferenceValue.AcceptChanges();
             }
-            private TrackedValue<double> _Stop;
-            public double Stop
+            private TrackedValue<double?> _Stop = new TrackedValue<double?>(null);
+            public double? Stop
             {
                 get { return _Stop.Value; }
                 set
@@ -1651,8 +1626,8 @@ namespace SquintScript
                             _Stop.Value = value;
                 }
             }
-            private TrackedValue<double> _MinorViolation;
-            public double MinorViolation
+            private TrackedValue<double?> _MinorViolation = new TrackedValue<double?>(null);
+            public double? MinorViolation
             {
                 get { return _MinorViolation.Value; }
                 set
@@ -1667,8 +1642,8 @@ namespace SquintScript
                             _MinorViolation.Value = value;
                 }
             }
-            private TrackedValue<double> _MajorViolation;
-            public double MajorViolation
+            private TrackedValue<double?> _MajorViolation = new TrackedValue<double?>(null);
+            public double? MajorViolation
             {
                 get { return _MajorViolation.Value; }
                 set
@@ -1913,7 +1888,7 @@ namespace SquintScript
                     {
                         double CompDose = DataCache.GetComponent(ComponentID).ReferenceDose;
                         double CompDoseRef = DataCache.GetComponent(ComponentID).ReferenceDoseOriginal;
-                        ConstraintValue = _ConstraintValue.ReferenceValue * CompDose /  DataCache.GetComponent(ComponentID).ReferenceDoseOriginal;
+                        ConstraintValue = _ConstraintValue.ReferenceValue * CompDose / DataCache.GetComponent(ComponentID).ReferenceDoseOriginal;
                         NotifyPropertyChanged("ConstraintValue");
                     }
                 }
@@ -2094,7 +2069,11 @@ namespace SquintScript
                 }
 
             }
-
+            public ProtocolChecklist(int protocolId)
+            {
+                ID = IDGenerator();
+                ProtocolId = protocolId;
+            }
             public int ID { get; set; }
             public int ProtocolId { get; set; }
             //public TreatmentTechniques TreatmentTechniqueType { get; set; }
@@ -2110,17 +2089,18 @@ namespace SquintScript
             //public double MaxXJaw { get; set; }
             //public double MinYJaw { get; set; }
             //public double MaxYJaw { get; set; }
-            public TrackedValue<ParameterOptions> VMAT_JawTracking { get; set; }
-            public TrackedValue<AlgorithmTypes> Algorithm { get; set; }
-            public TrackedValue<FieldNormalizationTypes> FieldNormalizationMode { get; set; }
-            public TrackedValue<double?> AlgorithmResolution { get; set; }
-            public TrackedValue<double?> PNVMin { get; set; }
-            public TrackedValue<double?> PNVMax { get; set; }
-            public TrackedValue<double?> SliceSpacing { get; set; }
-            public TrackedValue<bool?> HeterogeneityOn { get; set; }
-            public TrackedValue<ParameterOptions> SupportIndication { get; set; }
-            public TrackedValue<double?> CouchSurface { get; set; }
-            public TrackedValue<double?> CouchInterior { get; set; }
+            public TrackedValue<ParameterOptions> VMAT_JawTracking { get; set; } = new TrackedValue<ParameterOptions>(ParameterOptions.Unset);
+            public TrackedValue<AlgorithmTypes> Algorithm { get; set; } = new TrackedValue<AlgorithmTypes>(AlgorithmTypes.Unset);
+            public TrackedValue<FieldNormalizationTypes> FieldNormalizationMode { get; set; } = new TrackedValue<FieldNormalizationTypes>(FieldNormalizationTypes.Unset);
+            public TrackedValue<double?> AlgorithmResolution { get; set; } = new TrackedValue<double?>(null);
+            public TrackedValue<double?> PrescribedPercentage { get; set; } = new TrackedValue<double?>(100);
+            public TrackedValue<double?> PNVMin { get; set; } = new TrackedValue<double?>(null);
+            public TrackedValue<double?> PNVMax { get; set; } = new TrackedValue<double?>(null);
+            public TrackedValue<double?> SliceSpacing { get; set; } = new TrackedValue<double?>(null);
+            public TrackedValue<bool?> HeterogeneityOn { get; set; } = new TrackedValue<bool?>(null);
+            public TrackedValue<ParameterOptions> SupportIndication { get; set; } = new TrackedValue<ParameterOptions>(ParameterOptions.Unset);
+            public TrackedValue<double?> CouchSurface { get; set; } = new TrackedValue<double?>(null);
+            public TrackedValue<double?> CouchInterior { get; set; } = new TrackedValue<double?>(null);
             public List<Artifact> Artifacts { get; set; } = new List<Artifact>();
             public List<BolusDefinition> Boluses { get; set; } = new List<BolusDefinition>();
         }
@@ -2149,10 +2129,10 @@ namespace SquintScript
             public Component(DbComponent DbO)
             {
                 ID = DbO.ID;
-                MinColOffset = new TrackedValue<double>((double)DbO.MinColOffset);
-                MinBeams = new TrackedValue<int>(DbO.MinBeams);
-                MaxBeams = new TrackedValue<int>(DbO.MaxBeams);
-                NumIso = new TrackedValue<int>(DbO.NumIso);
+                MinColOffset = new TrackedValue<int?>(DbO.MinColOffset);
+                MinBeams = new TrackedValue<int?>(DbO.MinBeams);
+                MaxBeams = new TrackedValue<int?>(DbO.MaxBeams);
+                NumIso = new TrackedValue<int?>(DbO.NumIso);
                 _ComponentName = new TrackedValue<string>(DbO.ComponentName);
                 ComponentType = new TrackedValue<ComponentTypes>((ComponentTypes)DbO.ComponentType);
                 _NumFractions = new TrackedValue<int>(DbO.NumFractions);
@@ -2163,10 +2143,10 @@ namespace SquintScript
             public Component(int ProtocolID, string ComponentName_in, int ReferenceFractions_in = 0, double ReferenceDose_in = 0, ComponentTypes ComponentType_in = ComponentTypes.Plan)
             {
                 ID = Ctr.IDGenerator();
-                ComponentName = ComponentName_in;
+                _ComponentName = new TrackedValue<string>(ComponentName_in);
                 ComponentType = new TrackedValue<ComponentTypes>(ComponentType_in);
-                NumFractions = ReferenceFractions_in;
-                ReferenceDose = ReferenceDose_in;
+                _NumFractions = new TrackedValue<int>(ReferenceFractions_in);
+                _ReferenceDose = new TrackedValue<double>(ReferenceDose_in);
                 if (DataCache.GetAllComponents().Count() > 0)
                     DisplayOrder = DataCache.GetAllComponents().Select(x => x.DisplayOrder).Max() + 1;
                 else
@@ -2200,25 +2180,25 @@ namespace SquintScript
             //    get { return _ComponentType.Value; }
             //    set { _ComponentType.Value = value; }
             //}
-            public TrackedValue<int> MinBeams { get; private set; }
+            public TrackedValue<int?> MinBeams { get; private set; }
             //public int MinBeams
             //{
             //    get { return _MinBeams.Value; }
             //    set { if { _MinBeams.Value = value; } }
             //}
-            public TrackedValue<int> MaxBeams { get; private set; }
+            public TrackedValue<int?> MaxBeams { get; private set; }
             //public int MaxBeams
             //{
             //    get { return _MaxBeams.Value; }
             //    set { _MaxBeams.Value = value; }
             //}
-            public TrackedValue<int> NumIso { get; private set; }
+            public TrackedValue<int?> NumIso { get; private set; }
             //public int NumIso
             //{
             //    get { return _NumIso.Value; }
             //    set { _NumIso.Value = value; }
             //}
-            public TrackedValue<double> MinColOffset { get; private set; }
+            public TrackedValue<int?> MinColOffset { get; private set; }
             //public int MinColOffset
             //{
             //    get { return _MinColOffset.Value; }
@@ -2782,8 +2762,11 @@ namespace SquintScript
                 ProtocolStructureName = DbO.ProtocolStructureName;
                 StructureLabelID = DbO.StructureLabelID;
                 DisplayOrder = DbO.DisplayOrder;
-                if (DbO.DefaultEclipseAliases != null)
-                    DefaultEclipseAliases = DbO.DefaultEclipseAliases.Split(';').ToList();
+                if (DbO.DbStructureAliases != null)
+                {
+                    foreach (var DbSA in DbO.DbStructureAliases.OrderBy(x=>x.DisplayOrder))
+                        DefaultEclipseAliases.Add(DbSA.EclipseStructureId);
+                }
                 if (DbO.DbStructureChecklist != null)
                 {
                     CheckList = new StructureCheckList(DbO.DbStructureChecklist);
@@ -2801,15 +2784,15 @@ namespace SquintScript
             public ProtocolStructure(string NewStructureName, int StructureLabelID_in = 1)
             {
                 ID = Ctr.IDGenerator();
-                //ES.PropertyChanged += OnESPropertyChanged;
+                isCreated = true;
                 CheckList = new StructureCheckList();
                 ProtocolStructureName = NewStructureName;
                 DisplayOrder = DataCache.GetAllProtocolStructures().Count() + 1;
                 ProtocolID = DataCache.CurrentProtocol.ID;
                 StructureLabelID = StructureLabelID_in;
-                //ES.PropertyChanged += OnESPropertyChanged;
+
             }
-            public List<string> DefaultEclipseAliases { get; private set; } = new List<string>();
+            public ObservableCollection<string> DefaultEclipseAliases { get; set; } = new ObservableCollection<string>();
             public string GetStructureDescription(bool GetParentValues = false)
             {
                 //if (GetParentValues)
@@ -2838,6 +2821,7 @@ namespace SquintScript
             }
             public int ID { get; private set; }
             public int DisplayOrder { get; set; }
+            public bool isCreated { get; private set; } = false;
             public int ProtocolID { get; private set; }
             public int StructureLabelID { get; set; }
             public string ProtocolStructureName { get; set; }
@@ -2938,11 +2922,11 @@ namespace SquintScript
             }
             public StructureCheckList(DbStructureChecklist DbO)
             {
-                isPointContourChecked = new TrackedValue<bool>(DbO.isPointContourChecked);
-                PointContourVolumeThreshold = new TrackedValue<double>(DbO.PointContourThreshold);
+                isPointContourChecked = new TrackedValue<bool?>(DbO.isPointContourChecked);
+                PointContourVolumeThreshold = new TrackedValue<double?>(DbO.PointContourThreshold);
             }
-            public TrackedValue<bool> isPointContourChecked { get; set; } = new TrackedValue<bool>(false);
-            public TrackedValue<double> PointContourVolumeThreshold { get; set; } = new TrackedValue<double>(double.NaN);
+            public TrackedValue<bool?> isPointContourChecked { get; set; } = new TrackedValue<bool?>(false);
+            public TrackedValue<double?> PointContourVolumeThreshold { get; set; } = new TrackedValue<double?>(double.NaN);
         }
 
     }

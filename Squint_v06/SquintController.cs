@@ -22,13 +22,14 @@ using System.Data.Entity;
 using SquintScript.ViewModels;
 using SquintScript.Extensions;
 using System.Windows.Threading;
+using System.Runtime.Remoting.Contexts;
 
 namespace SquintScript
 {
     public static class VersionContextConnection
     {
         private static string providerName = "Npgsql";
-        private static string databaseName = "Squint_v061_CN_Prod";
+        private static string databaseName = "Squint_v061_CN_Test";
         private static string userName = "postgres";
         private static string password = "bccacn";
         private static string host = "sprtqacn001";
@@ -483,7 +484,10 @@ namespace SquintScript
         }
         // State Data
         public static string SquintUser { get; private set; }
-        private static Protocol CurrentProtocol;
+        private static Protocol CurrentProtocol
+        {
+            get { if (ProtocolLoaded) return DataCache.CurrentProtocol; else return null; }
+        }
         public static AsyncStructureSet CurrentStructureSet { get; private set; }
         public static AsyncESAPI A { get; private set; }
         //private static Dictionary<int, StructureLabel> StructureLabels = new Dictionary<int, StructureLabel>();
@@ -892,10 +896,7 @@ namespace SquintScript
         }
         public static ProtocolStructure GetStructure(int StructureID)
         {
-            if (Structures.ContainsKey(StructureID))
-                return Structures[StructureID];
-            else
-                return null;
+            return DataCache.GetProtocolStructure(StructureID);
         }
         //public static StructureLabel GetStructureLabelView(int StructureLabelID)
         //{
@@ -1145,58 +1146,55 @@ namespace SquintScript
         {
             // ConstraintThreshold CT = new ConstraintThreshold(Name, ConstraintID, ThresholdValue);
         }
-        //public static bool ImportEclipseProtocol(SquintEclipseProtocol.Protocol ClinProtocol)
-        //{
-        //    // Reset adjusted protocol flag
-        //    ClosePatient();
-        //    CloseProtocol();
-        //    //load the XML document
-        //    try
-        //    {
-        //        DataCache.CreateNewProtocol();
-        //        DataCache.CurrentProtocol.ProtocolName = ClinProtocol.Preview.ID;
-        //        foreach (SquintEclipseProtocol.StructureClass ECPStructure in ClinProtocol.StructureTemplate.Structures.Structure)
-        //        {
-        //            new ProtocolStructure(ECPStructure.ID);
-        //        }
-        //        foreach (SquintEclipseProtocol.PhaseClass Phase in ClinProtocol.Phases.Phase)
-        //        {
-        //            Component SC = new Component(DataCache.CurrentProtocol.ID, Phase.ID);
-        //            SC.NumFractions = Phase.PlanTemplate.FractionCount;
-        //            SC.ReferenceDose = Phase.PlanTemplate.DosePerFraction * SC.NumFractions;
-        //            foreach (SquintEclipseProtocol.Item Item in Phase.Prescription.Items)
-        //            {
-        //                Constraint Con = new Constraint(Item, SC.ID);
-        //            }
-        //            foreach (SquintEclipseProtocol.MeasureItem MI in Phase.Prescription.MeasureItems)
-        //            {
-        //                Constraint Con = new Constraint(MI, SC.ID);
-        //            }
-        //        }
-        //        /*foreach (Constraint Con in DataCache.Constraints)
-        //        {
-        //            ConstraintAdded(null, CV.ID);
-        //        } */
-        //        var DbContext = SquintDb.Context;
-        //        List<string> ExistingProtocolNames = DbContext.DbLibraryProtocols.Where(y => !y.isRetired).Select(x => x.ProtocolName).ToList();
-        //        if (ExistingProtocolNames.Contains(DataCache.CurrentProtocol.ProtocolName))
-        //        {
-        //            MessageBox.Show(string.Format("A protocol of this name ({0}) already exists, please select a unique name for this protocol", DataCache.CurrentProtocol.ProtocolName));
-        //            return false;
-        //        }
-        //        else
-        //        {
-        //            DbContext.SaveChanges();
-        //        }
-        //        ProtocolOpened(DataCache.CurrentProtocol, EventArgs.Empty);
-        //        return true;
-        //    }
-        //    catch
-        //    {
-        //        MessageBox.Show("Error importing Clinical DataCache.CurrentProtocol. Check to make sure all DataCache.Constraints and structures are fully defined before importing.  No incomplete entries are allowed");
-        //        return false;
-        //    }
-        //}
+
+        public static bool ImportEclipseProtocol(VMSTemplates.Protocol P)
+        {
+            // Reset adjusted protocol flag
+            ClosePatient();
+            CloseProtocol();
+            //load the XML document
+            try
+            {
+                DataCache.CreateNewProtocol();
+                DataCache.CurrentProtocol.ProtocolName = P.Preview.ID;
+                var EclipseStructureIdToSquintStructureIdMapping = new Dictionary<string, int>();
+                foreach (VMSTemplates.ProtocolStructureTemplateStructure ECPStructure in P.StructureTemplate.Structures)
+                {
+                    var S = new ProtocolStructure(ECPStructure.ID);
+                    DataCache.AddProtocolStructure(S);
+                    EclipseStructureIdToSquintStructureIdMapping.Add(ECPStructure.ID, S.ID);
+                }
+                int numFractions = P.Phases.Phase.PlanTemplate.FractionCount;
+                double totalDose = P.Phases.Phase.PlanTemplate.DosePerFraction * numFractions * 100; // convert to cGy;
+                Component SC = new Component(DataCache.CurrentProtocol.ID, P.Phases.Phase.ID, numFractions, totalDose);
+                DataCache.AddComponent(SC);
+                int displayOrder = 0;
+                foreach (VMSTemplates.ProtocolPhasesPhasePrescriptionItem Item in P.Phases.Phase.Prescription.Item)
+                {
+                    int structureId = 1;
+                    if (EclipseStructureIdToSquintStructureIdMapping.ContainsKey(Item.ID))
+                        structureId = EclipseStructureIdToSquintStructureIdMapping[Item.ID];
+                    Constraint Con = new Constraint(Item, SC.ID, structureId, displayOrder++);
+                    DataCache.AddConstraint(Con);
+                }
+                foreach (VMSTemplates.ProtocolPhasesPhasePrescriptionMeasureItem MI in P.Phases.Phase.Prescription.MeasureItem)
+                {
+                    int structureId = 1;
+                    if (EclipseStructureIdToSquintStructureIdMapping.ContainsKey(MI.ID))
+                        structureId = EclipseStructureIdToSquintStructureIdMapping[MI.ID];
+                    Constraint Con = new Constraint(MI, SC.ID, structureId, displayOrder++);
+                    DataCache.AddConstraint(Con);
+                }
+                ProtocolLoaded = true;
+                ProtocolOpened?.Invoke(null, EventArgs.Empty);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Unspecified error importing Eclipse Protocol.");
+                return false;
+            }
+        }
         //public static async Task DeleteComponent(int ComponentID)
         //{
         //    //// method reports progress as a percent of deleted DataCache.Constraints
@@ -1544,14 +1542,14 @@ namespace SquintScript
                     }
                     if (S.EclipseAliases != null)
                     {
+                        int displayOrder = 1;
                         foreach (SquintProtocolXML.EclipseAlias EA in S.EclipseAliases.EclipseId)
                         {
-                            if (ProtocolStructure.DefaultEclipseAliases == null)
-                            {
-                                ProtocolStructure.DefaultEclipseAliases = string.Format("{0};", EA.Id);
-                            }
-                            else
-                                ProtocolStructure.DefaultEclipseAliases = ProtocolStructure.DefaultEclipseAliases + string.Format("{0};", EA.Id);
+                            DbStructureAlias DbSA = LocalContext.DbStructureAliases.Create();
+                            DbSA.DbProtocolStructure = ProtocolStructure;
+                            DbSA.EclipseStructureId = EA.Id;
+                            DbSA.DisplayOrder = displayOrder++;
+                            LocalContext.DbStructureAliases.Add(DbSA);
                         }
                     }
                     if (S.StructureChecklist != null)
@@ -1885,7 +1883,7 @@ namespace SquintScript
                         dBconDVH.MinorViolation = con.MinorViolation;
                     if (!con.Stop.CloseEnough(-1))
                         dBconDVH.Stop = con.Stop;
-                  
+
                     DbConstraintChangelog DbCC = LocalContext.DbConstraintChangelogs.Create();
                     LocalContext.DbConstraintChangelogs.Add(DbCC);
                     DbCC.ChangeDescription = con.Description;
@@ -1988,7 +1986,6 @@ namespace SquintScript
             {
                 CloseProtocol();
                 DataCache.LoadProtocol(ProtocolName);
-                CurrentProtocol = DataCache.CurrentProtocol;
                 ProtocolLoaded = true;
                 ProtocolOpened?.Invoke(null, EventArgs.Empty);
             }
@@ -2014,8 +2011,15 @@ namespace SquintScript
         public static void DeleteProtocol(int Id)
         {
             bool Deleted = DataCache.Delete_Protocol(Id);
+            if (ProtocolLoaded)
+            {
+                if (CurrentProtocol.ID == Id)
+                    DataCache.CloseProtocol();
+            }
             if (Deleted)
+            {
                 ProtocolListUpdated?.Invoke(null, EventArgs.Empty);
+            }
         }
         public static async Task<bool> Save_Session(string SessionComment)
         {
@@ -2047,11 +2051,6 @@ namespace SquintScript
                 DataCache.ClearAssessments();
                 if (await DataCache.Load_Session(ID))  // true if successful load
                 {
-                    CurrentProtocol = DataCache.CurrentProtocol;
-                    //foreach (Component Comp in DataCache.GetAllComponents())
-                    //{
-                    //    new Component(Comp);
-                    //}
                     foreach (Constraint Con in DataCache.GetAllConstraints())
                     {
                         foreach (Assessment A in DataCache.GetAllAssessments())
@@ -2341,10 +2340,7 @@ namespace SquintScript
             }
         }
 
-        //public static string GetStructureIDString(int ID)
-        //{
-        //    return DataCache.GetProtocolStructure(ID).EclipseStructureName;
-        //}
+       
         public static Assessment GetAssessment(int AssessmentID)
         {
             return DataCache.GetAssessment(AssessmentID);
@@ -2415,7 +2411,7 @@ namespace SquintScript
             else
             {
                 PatientLoaded = true;
-                _uiDispatcher.Invoke(PatientOpened, new[]{ null, EventArgs.Empty});
+                _uiDispatcher.Invoke(PatientOpened, new[] { null, EventArgs.Empty });
             }
         }
         public class PlanDescriptor
@@ -2439,7 +2435,29 @@ namespace SquintScript
         {
             return DataCache.Patient.CourseIds;
         }
+        
+        public static void AddNewContourCheck(ProtocolStructure S)
+        {
+            S.CheckList.isPointContourChecked.Value = true;
+            S.CheckList.PointContourVolumeThreshold.Value = 0.05;
+        }
+        public static void RemoveNewContourCheck(ProtocolStructure S)
+        {
+            S.CheckList.isPointContourChecked.Value = false;
+            S.CheckList.PointContourVolumeThreshold.Value = 0;
+        }
+        public static void AddNewBeamCheck(int ComponentId)
+        {
+            DataCache.AddBeam(new Beam(ComponentId));
+        }
 
-
+        public static void AddStructureAlias(int StructureId, string NewAlias)
+        {
+            DataCache.GetProtocolStructure(StructureId).DefaultEclipseAliases.Add(NewAlias);
+        }
+        public static void RemoveStructureAlias(int StructureId, string AliasToRemove)
+        {
+            DataCache.GetProtocolStructure(StructureId).DefaultEclipseAliases.Remove(AliasToRemove);
+        }
     }
 }

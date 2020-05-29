@@ -14,7 +14,7 @@ namespace SquintScript.ViewModels
 {
     [AddINotifyPropertyChangedInterface]
 
-    public class Checklist_ViewModel
+    public class Checklist_ViewModel : ObservableObject
     {
         public Controls.Beam_ViewModel Beam_ViewModel { get; set; } = new Controls.Beam_ViewModel();
         public Controls.LoadingViewModel Loading_ViewModel { get; set; } = new Controls.LoadingViewModel();
@@ -26,9 +26,20 @@ namespace SquintScript.ViewModels
         public Controls.TestList_ViewModel Prescription_ViewModel { get; set; } = new Controls.TestList_ViewModel();
 
         public ProtocolView ParentView { get; private set; }
-        public bool amEditing { get; set; } = false;
-        public bool adminMode { get { return ParentView.ParentView.AdminOptionsToggle; } }
+        public bool IsDirty { get; set; } = false;
+        //public bool adminMode { get { return ParentView.ParentView.AdminOptionsToggle; } }
+        public bool AddStructureCheckVisibility { get; set; }
+
+        public bool EditBeamChecksVisibility { get; set; }
         public ObservableCollection<ComponentSelector> Components { get; set; } = new ObservableCollection<ComponentSelector>();
+        public ObservableCollection<StructureSelector> Structures { get; set; } = new ObservableCollection<StructureSelector>();
+
+        private StructureSelector _SelectedStructure;
+        public StructureSelector SelectedStructure
+        {
+            get { return _SelectedStructure; }
+            set { _SelectedStructure = value; PopulateViewFromSelectedComponent(); }
+        }
 
         private ComponentSelector _SelectedComponent;
         public ComponentSelector SelectedComponent
@@ -51,6 +62,7 @@ namespace SquintScript.ViewModels
 
         private void Ctr_ProtocolUpdated(object sender, EventArgs e)
         {
+            ViewActiveProtocol();
             PopulateViewFromSelectedComponent();
         }
 
@@ -58,6 +70,8 @@ namespace SquintScript.ViewModels
         {
             foreach (var C in Ctr.GetComponentList())
                 Components.Add(new ComponentSelector(C));
+            foreach (var S in Ctr.GetStructureList().OrderBy(x => x.DisplayOrder))
+                Structures.Add(new StructureSelector(S));
         }
         private void PopulateViewFromSelectedComponent()
         {
@@ -68,9 +82,7 @@ namespace SquintScript.ViewModels
                 return;
             var P = Ctr.GetActiveProtocol();
             Ctr.Component Comp = Ctr.GetComponent(_SelectedComponent.Id);
-            var SliceSpacingReference = P.Checklist.SliceSpacing;
-            CheckValueItem<double?> SliceSpacing = new CheckValueItem<double?>(CheckTypes.SliceSpacing, null, SliceSpacingReference, new TrackedValue<double?>(1E-5), "Slice spacing does not match protocol");
-            SliceSpacing.CheckType = CheckTypes.SliceSpacing;
+            CheckValueItem<double?> SliceSpacing = new CheckValueItem<double?>(CheckTypes.SliceSpacing, null, P.Checklist.SliceSpacing, new TrackedValue<double?>(1E-5), "Slice spacing does not match protocol");
             CheckValueItem<string> Series = new CheckValueItem<string>(CheckTypes.SeriesId, null, null) { ParameterOption = ParameterOptions.Optional };
             CheckValueItem<string> Study = new CheckValueItem<string>(CheckTypes.StudyId, null, null) { ParameterOption = ParameterOptions.Optional };
             CheckValueItem<string> SeriesComment = new CheckValueItem<string>(CheckTypes.SeriesComment, null, null) { ParameterOption = ParameterOptions.Optional };
@@ -80,24 +92,20 @@ namespace SquintScript.ViewModels
 
             // Populate Calculation ViewModel
             Calculation_ViewModel.Tests.Clear(); // = new ObservableCollection<Controls.TestListItem<string>>();
-            var ProtocolAlgorithm = P.Checklist.Algorithm;
-            CheckValueItem<AlgorithmTypes> Algorithm = new CheckValueItem<AlgorithmTypes>(CheckTypes.Algorithm, AlgorithmTypes.Unset, ProtocolAlgorithm, null, "Algorithm mismatch");
+            CheckValueItem<AlgorithmTypes> Algorithm = new CheckValueItem<AlgorithmTypes>(CheckTypes.Algorithm, AlgorithmTypes.Unset, P.Checklist.Algorithm, null, "Algorithm mismatch");
             Calculation_ViewModel.Tests.Add(Algorithm);
 
-            var DGR_protocol = P.Checklist.AlgorithmResolution;
             var DGRwarningMessage = "Resolution deviation";
-            CheckValueItem<double?> DoseGridResolution = new CheckValueItem<double?>(CheckTypes.DoseGridResolution, null, DGR_protocol, new TrackedValue<double?>(1E-2), DGRwarningMessage);
+            CheckValueItem<double?> DoseGridResolution = new CheckValueItem<double?>(CheckTypes.DoseGridResolution, null, P.Checklist.AlgorithmResolution, new TrackedValue<double?>(1E-2), DGRwarningMessage);
             Calculation_ViewModel.Tests.Add(DoseGridResolution);
 
             // Heterogeneity
-            var ProtocolHeteroOn = P.Checklist.HeterogeneityOn;
             var HeteroWarningString = "Heterogeneity setting incorrect";
-            CheckValueItem<bool?> HeterogeneityOn = new CheckValueItem<bool?>(CheckTypes.HeterogeneityOn, null, ProtocolHeteroOn, null, HeteroWarningString, "Not set", "Not set");
+            CheckValueItem<bool?> HeterogeneityOn = new CheckValueItem<bool?>(CheckTypes.HeterogeneityOn, null, P.Checklist.HeterogeneityOn, null, HeteroWarningString, "Not set", "Not set");
             Calculation_ViewModel.Tests.Add(HeterogeneityOn);
 
             // Field Normalization
-            var ProtocolFieldNorm = P.Checklist.FieldNormalizationMode;
-            CheckValueItem<FieldNormalizationTypes> FieldNormTest = new CheckValueItem<FieldNormalizationTypes>(CheckTypes.FieldNormMode, FieldNormalizationTypes.Unset, ProtocolFieldNorm, null, "Non-standard normalization");
+            CheckValueItem<FieldNormalizationTypes> FieldNormTest = new CheckValueItem<FieldNormalizationTypes>(CheckTypes.FieldNormMode, FieldNormalizationTypes.Unset, P.Checklist.FieldNormalizationMode, null, "Non-standard normalization");
             Calculation_ViewModel.Tests.Add(FieldNormTest);
 
             // Support structures
@@ -142,7 +150,7 @@ namespace SquintScript.ViewModels
             CheckRangeItem<double?> PNVCheck = new CheckRangeItem<double?>(CheckTypes.PlanNormalization, null, P.Checklist.PNVMin, P.Checklist.PNVMax, PNVWarning);
 
             // Prescription percentage
-            CheckValueItem<double?> PlanRxPc = new CheckValueItem<double?>(CheckTypes.PrescribedPercentage, null, new TrackedValue<double?>(100), new TrackedValue<double?>(1E-5), "Not set to 100");
+            CheckValueItem<double?> PlanRxPc = new CheckValueItem<double?>(CheckTypes.PrescribedPercentage, null, P.Checklist.PrescribedPercentage, new TrackedValue<double?>(1E-5), "Not set to 100");
 
             // Check Rx and fractions
 
@@ -150,11 +158,13 @@ namespace SquintScript.ViewModels
             var TrackedRefDose = new TrackedValue<double?>(Comp.ReferenceDose);
             var TrackedDoseTolerance = new TrackedValue<double?>(1E-5);
             CheckValueItem<double?> RxCheck = new CheckValueItem<double?>(CheckTypes.PrescriptionDose, null, TrackedRefDose, TrackedDoseTolerance, RxDoseWarningString);
+            RxCheck.EditEnabled = false;
 
             var RefFractions = Comp.NumFractions;
             var TrackedRefFractions = new TrackedValue<int?>(Comp.NumFractions);
             var CheckFractionWarningString = "Plan fractions different from protocol";
             CheckValueItem<int?> FxCheck = new CheckValueItem<int?>(CheckTypes.NumFractions, null, TrackedRefFractions, null, CheckFractionWarningString);
+            FxCheck.EditEnabled = false;
             Prescription_ViewModel.Tests = new ObservableCollection<ITestListItem>() { RxCheck, FxCheck, CourseIntentTest, PNVCheck, PlanRxPc };
 
             // Beam checks
@@ -164,26 +174,45 @@ namespace SquintScript.ViewModels
             {
                 var BLI = new Controls.BeamListItem(Beam, null);
                 Beam_ViewModel.Beams.Add(BLI);
+                BLI.InitializeTests();
                 BLI.FieldChanged += new EventHandler((s, e) => BLI_PropertyChanged(s, e, Comp)); // this updates the MinColOffsetCheck if the field assignments on any reference beam are changed
             }
 
             // Iso Check
             //var IsoCentreWarning = Fields.Select(x => x.Isocentre).Distinct().Count() != Comp.NumIso;
-            CheckValueItem<int> NumIsoCheck = new CheckValueItem<int>(CheckTypes.NumIsocentres, -1, Comp.NumIso, null, "Num isocentres differs");
+            CheckValueItem<int?> NumIsoCheck = new CheckValueItem<int?>(CheckTypes.NumIsocentres, -1, Comp.NumIso, null, "Num isocentres differs");
             Beam_ViewModel.GroupTests.Tests.Add(NumIsoCheck);
 
             // Num Fields Check
             string BeamRangeWarning = "Number of beams outside range";
-            CheckRangeItem<int> FieldCountCheck = new CheckRangeItem<int>(CheckTypes.NumFields, -1, Comp.MinBeams, Comp.MaxBeams, BeamRangeWarning);
+            CheckRangeItem<int?> FieldCountCheck = new CheckRangeItem<int?>(CheckTypes.NumFields, -1, Comp.MinBeams, Comp.MaxBeams, BeamRangeWarning);
             Beam_ViewModel.GroupTests.Tests.Add(FieldCountCheck);
 
             // Min Col Offset
-            var MinColOffsetCheck = new CheckValueItem<double?>(CheckTypes.MinColOffset, null, null, null, "Protocol fields not assigned");
+            var MinColOffsetCheck = new CheckValueItem<int?>(CheckTypes.MinColOffset, null, Comp.MinColOffset, null, "Protocol fields not assigned");
             MinColOffsetCheck.Test = TestType.GreaterThan;
             Beam_ViewModel.GroupTests.Tests.Add(MinColOffsetCheck);
 
 
+            Targets_ViewModel.Tests.Clear();
+            foreach (Ctr.ProtocolStructure E in Ctr.GetStructureList())
+            {
+                if (E.CheckList != null)
+                {
+                    var C = E.CheckList;
+                    if ((bool)C.isPointContourChecked.Value)
+                    {
+                        string WarningString = "Subvolume less than threshold";
+                        var TL = new CheckValueItem<double?>(CheckTypes.MinSubvolume, null, C.PointContourVolumeThreshold, null, WarningString, "Not found", "Not specified");
+                        TL.OptionalNameSuffix = string.Format(@" ({0})", E.ProtocolStructureName);
+                        TL.Test = TestType.GreaterThan;
+                        Targets_ViewModel.Tests.Add(TL);
+                    }
 
+                }
+            }
+
+            //RaisePropertyChangedEvent(nameof(Beam_ViewModel))
 
             //// Target Structure Checks
             //Targets_ViewModel.Tests.Clear();
@@ -377,6 +406,7 @@ namespace SquintScript.ViewModels
             foreach (var Beam in Comp.GetBeams())
             {
                 var BLI = new Controls.BeamListItem(Beam, Fields);
+                BLI.InitializeTests();
                 Beam_ViewModel.Beams.Add(BLI);
                 BLI.FieldChanged += new EventHandler((s, e) => BLI_PropertyChanged(s, e, Comp)); // this updates the MinColOffsetCheck if the field assignments on any reference beam are changed
             }
@@ -384,16 +414,16 @@ namespace SquintScript.ViewModels
             // Iso Check
             //var IsoCentreWarning = Fields.Select(x => x.Isocentre).Distinct().Count() != Comp.NumIso;
             var NumIsoDetected = Fields.Select(x => x.Isocentre).Distinct().Count();
-            CheckValueItem<int> NumIsoCheck = new CheckValueItem<int>(CheckTypes.NumIsocentres, NumIsoDetected, Comp.NumIso, null, "Num isocentres differs");
+            CheckValueItem<int?> NumIsoCheck = new CheckValueItem<int?>(CheckTypes.NumIsocentres, NumIsoDetected, Comp.NumIso, null, "Num isocentres differs");
             Beam_ViewModel.GroupTests.Tests.Add(NumIsoCheck);
 
             // Num Fields Check
             string BeamRangeWarning = "Number of beams outside range";
-            CheckRangeItem<int> FieldCountCheck = new CheckRangeItem<int>(CheckTypes.NumFields, Fields.Count(), Comp.MinBeams, Comp.MaxBeams, BeamRangeWarning);
+            CheckRangeItem<int?> FieldCountCheck = new CheckRangeItem<int?>(CheckTypes.NumFields, Fields.Count(), Comp.MinBeams, Comp.MaxBeams, BeamRangeWarning);
             Beam_ViewModel.GroupTests.Tests.Add(FieldCountCheck);
 
             // Min Col Offset
-            if (Comp.MaxBeams.Value > 1 && !double.IsNaN(Comp.MinColOffset.Value) && Fields.Count > 1)
+            if (Comp.MaxBeams.Value > 1 && Comp.MinColOffset.Value != null && Fields.Count > 1)
             {
                 if (Beam_ViewModel.Beams.Any(x => x.Field == null))
                 {
@@ -404,8 +434,8 @@ namespace SquintScript.ViewModels
                 else
                 {
                     var ColOffset = Beam_ViewModel.Beams.Select(x => x.Field).Select(x => x.CollimatorAngle);
-                    var MinColOffset = findMinDiff(ColOffset.ToArray());
-                    var MinColOffsetCheck = new CheckValueItem<double>(CheckTypes.MinColOffset, MinColOffset, Comp.MinColOffset, new TrackedValue<double>(1E-2), "Insufficient collimator offset");
+                    int? MinColOffset = (int?)Math.Round(findMinDiff(ColOffset.ToArray()));
+                    var MinColOffsetCheck = new CheckValueItem<int?>(CheckTypes.MinColOffset, MinColOffset, Comp.MinColOffset, null, "Insufficient collimator offset");
                     MinColOffsetCheck.Test = TestType.GreaterThan;
                     Beam_ViewModel.GroupTests.Tests.Add(MinColOffsetCheck);
                 }
@@ -420,7 +450,7 @@ namespace SquintScript.ViewModels
                 if (E.CheckList != null)
                 {
                     var C = E.CheckList;
-                    if (C.isPointContourChecked.Value)
+                    if ((bool)C.isPointContourChecked.Value)
                     {
                         var VolParts = await E.PartVolumes(p.StructureSetUID);
                         double MinVol = double.NaN;
@@ -436,7 +466,7 @@ namespace SquintScript.ViewModels
                                 MinVol = 0.01;
                             }
                         }
-                        var TL = new CheckValueItem<double>(CheckTypes.MinSubvolume, MinVol, C.PointContourVolumeThreshold, null, WarningString, "Not found", "Not specified");
+                        var TL = new CheckValueItem<double?>(CheckTypes.MinSubvolume, MinVol, C.PointContourVolumeThreshold, null, WarningString, "Not found", "Not specified");
                         TL.OptionalNameSuffix = string.Format(@" of {1} (""{0}"") [cc]", E.AssignedStructureId, E.ProtocolStructureName);
                         TL.Test = TestType.GreaterThan;
                         Targets_ViewModel.Tests.Add(TL);
@@ -450,15 +480,15 @@ namespace SquintScript.ViewModels
         {
             //Refresh Field col separation check
 
-            if (Beam_ViewModel.Beams.Any(x => x.Field == null) || Comp.MaxBeams.Value < 2 || double.IsNaN(Comp.MinColOffset.Value))
+            if (Beam_ViewModel.Beams.Any(x => x.Field == null) || Comp.MaxBeams.Value < 2 || (Comp.MinColOffset.Value != null))
             {
                 return;
             }
             var ColOffset = Beam_ViewModel.Beams.Select(x => x.Field).Select(x => x.CollimatorAngle).ToList();
-            var MinColOffset = findMinDiff(ColOffset.ToArray());
+            var MinColOffset = (int?)Math.Round(findMinDiff(ColOffset.ToArray()));
             var OldTest = Beam_ViewModel.GroupTests.Tests.Where(x => x.CheckType == CheckTypes.MinColOffset).FirstOrDefault();
             Beam_ViewModel.GroupTests.Tests.Remove(OldTest);
-            var MinColOffsetCheck = new CheckValueItem<double>(CheckTypes.MinColOffset, MinColOffset, Comp.MinColOffset, new TrackedValue<double>(1E-2), "Insufficient collimator offset");
+            var MinColOffsetCheck = new CheckValueItem<int?>(CheckTypes.MinColOffset, MinColOffset, Comp.MinColOffset, null, "Insufficient collimator offset");
             MinColOffsetCheck.Test = TestType.GreaterThan;
             Beam_ViewModel.GroupTests.Tests.Add(MinColOffsetCheck);
         }
@@ -495,34 +525,9 @@ namespace SquintScript.ViewModels
             return diff;
         }
 
-
-        public ICommand StartEditingCommand
-        {
-            get { return new DelegateCommand(StartEditing); }
-        }
-
-        public ICommand AcceptEditsCommand
-        {
-            get { return new DelegateCommand(AcceptEdits); }
-        }
-
         public ICommand RejectEditsCommand
         {
             get { return new DelegateCommand(RejectEdits); }
-        }
-
-        private void StartEditing(object param = null)
-        {
-            amEditing ^= true;
-        }
-
-        private async void AcceptEdits(object param = null)
-        {
-            amEditing ^= true;
-            foreach (var Test in Simulation_ViewModel.Tests)
-            {
-                Test.CommitChanges();
-            }
         }
 
         private void RejectEdits(object param = null)
@@ -531,7 +536,81 @@ namespace SquintScript.ViewModels
             {
                 Test.RejectChanges();
             }
-            amEditing ^= true;
+        }
+        public ICommand AddNewContourCheckCommand
+        {
+            get { return new DelegateCommand(AddNewContourCheck); }
+        }
+        private void AddNewContourCheck(object param = null)
+        {
+            AddStructureCheckVisibility ^= true;
+            //PopulateViewFromSelectedComponent();
+        }
+        public ICommand AddMinSubVolumeCheckCommand
+        {
+            get { return new DelegateCommand(AddMinSubVolumeCheck); }
+        }
+        private void AddMinSubVolumeCheck(object param = null)
+        {
+            StructureSelector SS = param as StructureSelector;
+            if (SS != null)
+            {
+                Ctr.AddNewContourCheck(Ctr.GetStructure(SS.Id));
+                PopulateViewFromSelectedComponent();
+            }
+        }
+        public ICommand RemoveContourCheckCommand
+        {
+            get { return new DelegateCommand(RemoveContourCheck); }
+        }
+        public void RemoveContourCheck(object param = null)
+        {
+            StructureSelector SS = param as StructureSelector;
+            if (SS != null)
+            {
+                Ctr.RemoveNewContourCheck(Ctr.GetStructure(SS.Id));
+                PopulateViewFromSelectedComponent();
+            }
+        }
+
+        public ICommand EditBeamChecksCommand
+        {
+            get { return new DelegateCommand(EditBeamChecks); }
+        }
+
+        public void EditBeamChecks(object param = null)
+        {
+            EditBeamChecksVisibility ^= true;
+        }
+
+        public ICommand AddNewBeamCommand
+        {
+            get { return new DelegateCommand(AddNewBeamCheck); }
+        }
+
+        public void AddNewBeamCheck(object param = null)
+        {
+            ComponentSelector CS = SelectedComponent as ComponentSelector;
+            if (CS != null)
+            {
+                Ctr.AddNewBeamCheck(CS.Id);
+                PopulateViewFromSelectedComponent();
+                EditBeamChecksVisibility ^= true;
+            }
+        }
+
+        public ICommand RemoveSelectedBeamCommand
+        {
+            get { return new DelegateCommand(RemoveSelectedBeam); }
+        }
+
+        public void RemoveSelectedBeam(object param = null)
+        {
+            Ctr.Beam B = param as Ctr.Beam;
+            if (B != null)
+            {
+                B.ToRetire = true;
+            }
         }
     }
 }

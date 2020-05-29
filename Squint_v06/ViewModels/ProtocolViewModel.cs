@@ -285,6 +285,13 @@ namespace SquintScript.ViewModels
                 Structures.Add(new StructureSelector(E));
             }
         }
+
+        public void ViewLoadedProtocol()
+        {
+            ParentView.Protocol.UpdateProtocolView();
+            ParentView.Protocol.isProtocolLoaded = true;
+            isProtocolLoaded = true;
+        }
         public ICommand LoadSelectedProtocolCommand
         {
             get { return new DelegateCommand(LoadSelectedProtocol); }

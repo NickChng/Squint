@@ -13,6 +13,7 @@ using SquintScript.Extensions;
 using g3;
 using System.ComponentModel;
 using SquintScript.ViewModels;
+using System.Windows.Media.Converters;
 
 namespace SquintScript.ViewModelClasses
 {
@@ -106,6 +107,7 @@ namespace SquintScript.ViewModelClasses
         public void CommitChanges() { }
         public void RejectChanges() { }
 
+        public bool IsDirty { get; }
         public string WarningString 
         {
             get { return "Invalid"; }
@@ -172,7 +174,8 @@ namespace SquintScript.ViewModelClasses
                 }
             }
         }
-
+        public bool EditEnabled { get; set; } = true;
+        public bool IsDirty { get { return (Reference.IsChanged || Tolerance.IsChanged); } }
         public T SetReference
         {
             set
@@ -184,7 +187,7 @@ namespace SquintScript.ViewModelClasses
                 if (value != null)
                 {
                     Reference.Value = (T)value;
-                    //RaisePropertyChangedEvent(nameof(ReferenceValueString));
+                    //RaisePropertyChangedEvent(nameof(IsDirty));
                 }
             }
             get
@@ -195,7 +198,7 @@ namespace SquintScript.ViewModelClasses
                     return default;
             }
         }
-
+        
         public T SetTolerance
         {
             set
@@ -270,6 +273,11 @@ namespace SquintScript.ViewModelClasses
                 }
                 else
                 {
+                    if (Reference.Value == null)  // this is hacky; need to decide whether to support Reference.Value is null or Reference = null but not both.
+                        if (ParameterOption == ParameterOptions.Required)
+                            return false;
+                        else
+                            return null;
                     switch (Test)
                     {
                         case TestType.Equality:
@@ -307,8 +315,8 @@ namespace SquintScript.ViewModelClasses
         {
             CheckType = CT;
             Reference = RV;
-            Check = V;
             Tolerance = Tol;
+            Check = V;
             if (V is Enum)
             {
                 EditType = EditTypes.SingleSelection;
@@ -316,7 +324,13 @@ namespace SquintScript.ViewModelClasses
                 {
                     ReferenceCollection.Add(E);
                 }
+                if (Reference != null)
+                    SetReference = Reference.Value;
+                else
+                    SetReference = default(T);
+
             }
+            
             if (Tol != null)
                 EditType = EditTypes.SingleValueWithTolerance;
             _WarningString = WS;
@@ -336,218 +350,6 @@ namespace SquintScript.ViewModelClasses
                 Tolerance.RejectChanges();
         }
     }
-
-    //[AddINotifyPropertyChangedInterface]
-    //public class CheckClassItem<T> : TestListClassItem<T>, ITestListClassItem<T> where T : class
-    //{
-    //    public void SetCheckValue(object CheckThis)
-    //    {
-    //        Check = (T?)CheckThis;
-    //        RaisePropertyChangedEvent(nameof(CheckValueString));
-    //        RaisePropertyChangedEvent(nameof(Warning));
-    //    }
-    //    public EditTypes EditType { get; private set; } = EditTypes.SingleValue;
-    //    public TestType Test { get; set; } = TestType.Equality;
-    //    public ObservableCollection<T> ReferenceCollection { get; set; } = new ObservableCollection<T>();
-    //    public string ReferenceValueString
-    //    {
-    //        get
-    //        {
-    //            if (Reference == null)
-    //                return _EmptyRefValueString;
-    //            else
-    //            {
-    //                if (Check is double || Check is int)
-    //                {
-    //                    switch (Test)
-    //                    {
-    //                        case TestType.Equality:
-    //                            if (Tolerance != null)
-    //                                if ((dynamic)Tolerance.Value > 1E-2)
-    //                                    return string.Format("{0:0.###} \u00b1 {1:0.#}", Reference.Value, Tolerance.Value);
-    //                                else
-    //                                    return string.Format("{0:0.###}", Reference.Value);
-    //                            else
-    //                                return string.Format("{0:0.###}", Reference.Value);
-    //                        case TestType.GreaterThan:
-    //                            return string.Format("\u2265 {0:0.###}", Reference.Value);
-    //                        case TestType.LessThan:
-    //                            return string.Format("\u2264 {0:0.###}", Reference.Value);
-    //                        default:
-    //                            return string.Format("{0:0.###}", Reference.Value);
-    //                    }
-    //                }
-    //                else if (Check is Enum)
-    //                    return string.Format("{0}", (Reference.Value as Enum).Display());
-    //                else
-    //                    return Reference.Value.ToString();
-    //            }
-    //        }
-    //    }
-
-    //    public T SetReference
-    //    {
-    //        set
-    //        {
-    //            if (Reference == null)
-    //            {
-    //                Reference = new TrackedValue<T>(default(T));
-    //            }
-    //            if (value != null)
-    //            {
-    //                Reference.Value = (T)value;
-    //                //RaisePropertyChangedEvent(nameof(ReferenceValueString));
-    //            }
-    //        }
-    //        get
-    //        {
-    //            if (Reference != null)
-    //                return Reference.Value;
-    //            else
-    //                return default;
-    //        }
-    //    }
-
-    //    public T SetTolerance
-    //    {
-    //        set
-    //        {
-    //            if (Tolerance == null)
-    //            {
-    //                Tolerance = new TrackedValue<T>(default(T));
-    //            }
-    //            if (value != null)
-    //            {
-    //                Tolerance.Value = (T)value;
-    //                //RaisePropertyChangedEvent(nameof(ReferenceValueString));
-    //            }
-    //        }
-    //        get
-    //        {
-    //            if (Tolerance != null)
-    //                return Tolerance.Value;
-    //            else
-    //                return default;
-    //        }
-    //    }
-
-    //    public string CheckValueString
-    //    {
-    //        get
-    //        {
-    //            if (Check == null)
-    //                return _EmptyCheckValueString;
-    //            else
-    //            {
-    //                if (Check is double || Check is int)
-    //                    return string.Format("{0:0.###}", Check);
-    //                else if (Check is Enum)
-    //                    return (Check as Enum).Display();
-    //                else
-    //                    return Check.ToString();
-    //            }
-    //        }
-    //    }
-
-    //    public ParameterOptions ParameterOption = ParameterOptions.Required;
-
-    //    public bool Warning
-    //    {
-    //        get
-    //        {
-    //            if (CheckPass == null)
-    //                return false;
-    //            else
-    //                return !(bool)CheckPass;
-    //        }
-    //        set { }
-    //    }
-    //    public bool? CheckPass
-    //    {
-    //        get
-    //        {
-    //            if (Reference == null)
-    //            {
-    //                if (ParameterOption == ParameterOptions.Required)
-    //                    return false;
-    //                else
-    //                    return null;
-    //            }
-    //            else if (Check == null)
-    //            {
-    //                if (ParameterOption == ParameterOptions.Required)
-    //                    return false;
-    //                else
-    //                    return null;
-    //            }
-    //            else
-    //            {
-    //                switch (Test)
-    //                {
-    //                    case TestType.Equality:
-    //                        if (Tolerance == null)
-    //                        {
-    //                            if ((dynamic)Reference.Value == (dynamic)Check)
-    //                                return true;
-    //                            else
-    //                                return false;
-    //                        }
-    //                        else
-    //                        {
-    //                            if (Math.Abs((dynamic)Reference.Value - (dynamic)Check) < (dynamic)Tolerance.Value)
-    //                                return true;
-    //                            else
-    //                                return false;
-    //                        }
-    //                    case TestType.GreaterThan:
-    //                        if ((dynamic)Check >= (dynamic)Reference.Value)
-    //                            return true;
-    //                        else
-    //                            return false;
-    //                    case TestType.LessThan:
-    //                        if ((dynamic)Check <= (dynamic)Reference.Value)
-    //                            return true;
-    //                        else
-    //                            return false;
-    //                    default:
-    //                        return false;
-    //                }
-    //            }
-    //        }
-    //    }
-    //    public CheckClassItem(CheckTypes CT, T V, TrackedValue<T> RV, TrackedValue<T> Tol = null, string WS = "", string EmptyCheckValueString = "", string EmptyRefValueString = "")
-    //    {
-    //        CheckType = CT;
-    //        Reference = RV;
-    //        Check = V;
-    //        Tolerance = Tol;
-    //        if (V is Enum)
-    //        {
-    //            EditType = EditTypes.SingleSelection;
-    //            foreach (T E in Enum.GetValues(typeof(T)))
-    //            {
-    //                ReferenceCollection.Add(E);
-    //            }
-    //        }
-    //        if (Tol != null)
-    //            EditType = EditTypes.SingleValueWithTolerance;
-    //        _WarningString = WS;
-    //        _EmptyCheckValueString = EmptyCheckValueString;
-    //        _EmptyRefValueString = EmptyRefValueString;
-    //    }
-    //    public void CommitChanges()
-    //    {
-    //        if (Reference != null)
-    //            Ctr.UpdateChecklistReferenceValue(CheckType, Reference.Value);
-    //    }
-    //    public void RejectChanges()
-    //    {
-    //        if (Reference != null)
-    //            Reference.RejectChanges();
-    //        if (Tolerance != null)
-    //            Tolerance.RejectChanges();
-    //    }
-    //}
 
     [AddINotifyPropertyChangedInterface]
     public class CheckRangeItem<T> : TestListItem<T>, ITestListItem<T>
@@ -569,6 +371,53 @@ namespace SquintScript.ViewModelClasses
                 else
                     return
                          string.Format("{0:0.###} - {1:0.###}", Reference.Value, Reference2.Value);
+            }
+        }
+
+        public bool IsDirty { get { return (Reference.IsChanged || Reference2.IsChanged); } }
+        public T SetReference
+        {
+            set
+            {
+                if (Reference == null)
+                {
+                    Reference = new TrackedValue<T>(default(T));
+                }
+                if (value != null)
+                {
+                    Reference.Value = (T)value;
+                    RaisePropertyChangedEvent(nameof(IsDirty));
+                }
+            }
+            get
+            {
+                if (Reference != null)
+                    return Reference.Value;
+                else
+                    return default;
+            }
+        }
+
+        public T SetReference2
+        {
+            set
+            {
+                if (Reference2 == null)
+                {
+                    Reference2 = new TrackedValue<T>(default(T));
+                }
+                if (value != null)
+                {
+                    Reference2.Value = (T)value;
+                    RaisePropertyChangedEvent(nameof(IsDirty));
+                }
+            }
+            get
+            {
+                if (Reference2 != null)
+                    return Reference2.Value;
+                else
+                    return default;
             }
         }
 
@@ -658,8 +507,6 @@ namespace SquintScript.ViewModelClasses
             _EmptyCheckValueString = EmptyCheckValueString;
             _EmptyRefValueString = EmptyRefValueString;
         }
-        public void CommitChanges() { }
-        
         public void RejectChanges()
         {
             if (Reference != null)
@@ -671,14 +518,14 @@ namespace SquintScript.ViewModelClasses
     [AddINotifyPropertyChangedInterface]
     public class CheckContainsItem<T> : TestListItem<T>, ITestListItem<T> 
     {
-        public EditTypes EditType { get; private set; } = EditTypes.SingleValue;
+        public EditTypes EditType { get; private set; } = EditTypes.AnyOfValues;
         public void SetCheckValue(object CheckThis)
         {
             Check = (T)CheckThis;
             RaisePropertyChangedEvent(nameof(CheckValueString));
             RaisePropertyChangedEvent(nameof(Warning));
         }
-        public ObservableCollection<TrackedValue<T>> ReferenceCollection { get; set; }
+        public ObservableCollection<T> ReferenceCollection { get; set; }
         public string ReferenceValueString
         {
             get
@@ -688,14 +535,14 @@ namespace SquintScript.ViewModelClasses
                 else
                 {
                     if (Check is Enum)
-                        return string.Format("Any of {0}", string.Join(", ", ReferenceCollection.Select(x => (x.Value as Enum).Display())));
+                        return string.Format("{0}", string.Join(", ", ReferenceCollection.Select(x => (x as Enum).Display())));
                     else
-                        return string.Format("Any of {0}", string.Join(", ", ReferenceCollection.Select(x => x.Value)));
+                        return string.Format("{0}", string.Join(", ", ReferenceCollection));
                 }
             }
         }
-
-        public TrackedValue<T> Reference2 { get; set; }
+        public bool IsDirty { get { return false; } } // at present no way to manually change ReferenceCollection
+        //public TrackedValue<T> Reference2 { get; set; }
         public string CheckValueString
         {
             get
@@ -744,21 +591,59 @@ namespace SquintScript.ViewModelClasses
                 }
                 else
                 {
-                    if (ReferenceCollection.Select(x => x.Value).Contains((T)Check))
+                    if (ReferenceCollection.Contains((T)Check))
                         return true;
                     else
                         return false;
                 }
             }
         }
-        public CheckContainsItem(CheckTypes CT, T V, List<TrackedValue<T>> referenceCollection, string WS = "", string EmptyCheckValueString = "", string EmptyRefValueString = "")
+        public ObservableCollection<T> EnumOptions { get; set; } 
+        
+        public T SetReference { get; set; }
+        public CheckContainsItem(CheckTypes CT, T V, ObservableCollection<T> referenceCollection, string WS = "", string EmptyCheckValueString = "", string EmptyRefValueString = "")
         {
             CheckType = CT;
-            ReferenceCollection = new ObservableCollection<TrackedValue<T>>(referenceCollection);
+            if (V is Enum)
+            {
+                EnumOptions = new ObservableCollection<T>();
+                foreach (T val in Enum.GetValues(typeof(T)))
+                {
+                    EnumOptions.Add(val);
+                }
+                SetReference = EnumOptions.FirstOrDefault();
+            }
+            ReferenceCollection = referenceCollection as ObservableCollection<T>;
             Check = V;
             WarningString = WS;
             _EmptyCheckValueString = EmptyCheckValueString;
             _EmptyRefValueString = EmptyRefValueString;
+        }
+        public System.Windows.Input.ICommand RemoveItemCommand
+        {
+            get { return new DelegateCommand(RemoveItem); }
+        }
+        public void RemoveItem(object param = null)
+        {
+            if (param != null)
+            {
+                ReferenceCollection.Remove((T)param);
+                RaisePropertyChangedEvent(nameof(ReferenceCollection));
+                RaisePropertyChangedEvent(nameof(ReferenceValueString));
+            }
+        }
+        public System.Windows.Input.ICommand AddItemCommand
+        {
+            get { return new DelegateCommand(AddItem); }
+        }
+        public void AddItem(object param = null)
+        {
+            if (param != null)
+            {
+                ReferenceCollection.Add((T)param);
+                RaisePropertyChangedEvent(nameof(ReferenceCollection));
+                RaisePropertyChangedEvent(nameof(ReferenceValueString));
+            }
         }
         public void CommitChanges() { }
         public void RejectChanges()
@@ -781,6 +666,7 @@ namespace SquintScript.ViewModelClasses
         }
         public TestType TestType { get; set; } // to implement
 
+        public bool IsDirty { get { return false; } } // at present no way to edit beamgeometry
         public string ReferenceValueString
         {
             get

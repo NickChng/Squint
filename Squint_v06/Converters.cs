@@ -144,6 +144,52 @@ namespace SquintScript.Converters
                 return true;
         }
     }
+
+    public class VisibilitySelectionModeConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType,
+               object parameter, System.Globalization.CultureInfo culture)
+        {
+            if (value == null)
+                return Visibility.Collapsed;
+            if (value is Enum)
+                return Visibility.Visible;
+            else
+                return Visibility.Collapsed;
+        }
+        public object ConvertBack(object value, Type targetTypes,
+               object parameter, System.Globalization.CultureInfo culture)
+        {
+            Visibility? V = value as Visibility?;
+            if (V == Visibility.Hidden)
+                return false;
+            else
+                return true;
+        }
+    }
+
+    public class VisibilityTextBoxModeConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType,
+               object parameter, System.Globalization.CultureInfo culture)
+        {
+            if (value == null)
+                return Visibility.Collapsed;
+            if (value is Enum)
+                return Visibility.Collapsed;
+            else
+                return Visibility.Visible;
+        }
+        public object ConvertBack(object value, Type targetTypes,
+               object parameter, System.Globalization.CultureInfo culture)
+        {
+            Visibility? V = value as Visibility?;
+            if (V == Visibility.Hidden)
+                return false;
+            else
+                return true;
+        }
+    }
     public class ColumnHeaderColorConverter : IValueConverter
     {
         public object Convert(object value, Type targetType,
@@ -233,6 +279,26 @@ namespace SquintScript.Converters
             return "";
         }
     }
+
+    public class UnsetComboColourConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType,
+              object parameter, System.Globalization.CultureInfo culture)
+        {
+            var CS = value as ComponentSelector;
+            if (CS != null)
+            {
+                return new SolidColorBrush(Colors.AliceBlue);
+            }
+            else
+                return new SolidColorBrush(Colors.DarkOrange);
+        }
+        public object ConvertBack(object value, Type targetTypes,
+               object parameter, System.Globalization.CultureInfo culture)
+        {
+            return "";
+        }
+    }
     public class ItemToDisplay : IValueConverter
     {
         public object Convert(object value, Type targetType,
@@ -294,6 +360,10 @@ namespace SquintScript.Converters
         public object Convert(object[] value, Type targetType,
                object parameter, System.Globalization.CultureInfo culture)
         {
+            if (value.Length == 3)
+                if (value[2] is bool)
+                    if ((bool)value[2] == false)
+                        return Visibility.Collapsed; // if editing is explicitly disabled, collapse control
             if (!(value[0] is EditTypes) || value[1] == null)
                 return Visibility.Collapsed;
             EditTypes V = (EditTypes)value[0]; // determine the test edittype
@@ -314,6 +384,10 @@ namespace SquintScript.Converters
                     else return Visibility.Collapsed;
                 case EditTypes.RangeValues:
                     if (controlName == "RangeValues")
+                        return Visibility.Visible;
+                    else return Visibility.Collapsed;
+                case EditTypes.AnyOfValues:
+                    if (controlName == "AnyOfValues")
                         return Visibility.Visible;
                     else return Visibility.Collapsed;
                 default:
@@ -642,7 +716,7 @@ namespace SquintScript.Converters
                     var stripString = S.Replace(@"B_", @"").Replace(@"_", @"").ToUpper();
                     if (CurrentId == "") // if not assigned, use first alias
                     {
-                        foreach (string Alias in SS.GetAliases())
+                        foreach (string Alias in SS.Aliases)
                         {
                             var CompString = Alias.Replace(@"B_", @"").Replace(@"_", @"").ToUpper();
                             double LDist = LevenshteinDistance.Compute(stripString, CompString);
@@ -830,12 +904,27 @@ namespace SquintScript.Converters
         public object Convert(object value, Type targetType,
                object parameter, System.Globalization.CultureInfo culture)
         {
-            var E = (value as Enum);
-            if (E != null)
-                //return (E.GetType().GetProperty((string)parameter).GetValue(E, null) as Enum).Display();
-                return E.Display();
-            else
+            if (value == null)
                 return "";
+            var E = value as Enum;
+            if (E != null)
+                return E.Display();
+            var L = value as IEnumerable;
+            if (L != null)
+            {
+                var newList = new List<string>();
+                foreach (var v in L)
+                {
+                    E = v as Enum;
+                    if (E != null)
+                        newList.Add(E.Display());
+                    else
+                        newList.Add(v as string);
+                }
+                return newList;
+            }
+            else
+                return value as string;
 
             //return (value as Enum).Display();
             //switch (value.GetType())

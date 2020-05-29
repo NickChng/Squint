@@ -48,6 +48,10 @@ namespace SquintScript
                 .WithMany(t => t.ConstraintResults)
                 .HasForeignKey(m => m.AssessmentID)
                 .WillCascadeOnDelete(true);
+            modelBuilder.Entity<DbConstraintChangelog>()
+                .HasRequired(p => p.DbConstraintChangelog_Parent)
+                .WithMany()
+                .WillCascadeOnDelete(false);
 
 
             Database.SetInitializer<SquintdBModel>(new InitializeLookupTables());
@@ -427,6 +431,7 @@ namespace SquintScript
         public DbSet<DbStructureLabelException> DbStructureLabelExceptions { get; set; }
         public DbSet<DbStructureLabel> DbStructureLabels { get; set; }
         public DbSet<DbProtocolStructure> DbProtocolStructures { get; set; }
+        public DbSet<DbStructureAlias> DbStructureAliases { get; set; }
         // Plan Checks
         public DbSet<DbProtocolChecklist> DbProtocolChecklists { get; set; }
         public DbSet<DbArtifact> DbArtifacts { get; set; }
@@ -880,10 +885,10 @@ namespace SquintScript
         public string ComponentName { get; set; }
 
         // Beam Group Parameters
-        public int MinBeams { get; set; } = -1;
-        public int MaxBeams { get; set; } = -1;
-        public int NumIso { get; set; } = 1;
-        public int MinColOffset { get; set; } = 0;
+        public int? MinBeams { get; set; } 
+        public int? MaxBeams { get; set; } 
+        public int? NumIso { get; set; } 
+        public int? MinColOffset { get; set; } 
     }
 
     public class DbSessionComponent : DbComponent
@@ -1037,6 +1042,18 @@ namespace SquintScript
         public int BeamID { get; set; }
         public virtual DbBeam DbBeam { get; set; }
         public string EclipseFieldId { get; set; }
+        public int DisplayOrder { get; set; }
+    }
+
+    public class DbStructureAlias
+    {
+        [Key]
+        public int ID { get; set; }
+        public string EclipseStructureId { get; set; }
+        public int DisplayOrder { get; set; }
+        [ForeignKey("DbProtocolStructure")]
+        public int ProtocolStructureId { get; set; }
+        public virtual DbProtocolStructure DbProtocolStructure { get; set; }
     }
     public class DbProtocolStructure
     {
@@ -1053,10 +1070,10 @@ namespace SquintScript
         public virtual DbStructureChecklist DbStructureChecklist { get; set; }
         //Data
         public string ProtocolStructureName { get; set; }
-        public string DefaultEclipseAliases { get; set; }
         public bool isException { get; set; }
         public int DisplayOrder { get; set; }
         //
+        public virtual ICollection<DbStructureAlias> DbStructureAliases { get; set; }
         public virtual ICollection<DbSessionProtocolStructure> DbSessionProtocolStructures { get; set; }
         public virtual ICollection<DbArtifact> DbArtifacts { get; set; }
     }

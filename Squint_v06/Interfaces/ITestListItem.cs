@@ -1,4 +1,5 @@
-﻿using System;
+﻿using PropertyChanged;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -12,7 +13,7 @@ namespace SquintScript.Interfaces
     {
         void SetCheckValue(object value);
         CheckTypes CheckType { get; set; }
-        void CommitChanges();
+        bool IsDirty { get; }
         void RejectChanges();
     }
     public interface ITestListItem<T> : ITestListItem 

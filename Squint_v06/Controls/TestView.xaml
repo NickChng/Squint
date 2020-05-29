@@ -8,11 +8,10 @@
              xmlns:global="clr-namespace:SquintScript"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
-    <UserControl.DataContext>
-        <local:TestList_ViewModel/>
-    </UserControl.DataContext>
     <UserControl.Resources>
         <converters:ReferenceEditConverter x:Key="ReferenceEditConverter"/>
+        <converters:VisibilityTextBoxModeConverter x:Key="VisibilityTextBoxModeConverter"/>
+        <converters:VisibilitySelectionModeConverter x:Key="VisibilitySelectionModeConverter"/>
         <converters:CollimatorAngleCheckConverter x:Key="CollimatorAngleCheckConverter"/>
         <converters:TypeToBooleanConverter x:Key="TypeToBooleanConverter"/>
         <converters:TypeToStringConverter x:Key="TypeToStringConverter"/>
@@ -96,7 +95,7 @@
         </Grid.ColumnDefinitions>
         <ScrollViewer Grid.Column="0" ScrollViewer.HorizontalScrollBarVisibility="Auto" Template="{DynamicResource ScrollViewerTestViewControlTemplate}" Name="sv">
             <Grid>
-                <Grid Background="White" VerticalAlignment="Top" HorizontalAlignment="Stretch"  x:Name="TestGrid" Visibility="{Binding DataContext.ParentView.ParentView.AdminOptionsToggle, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:ChecklistControl}},  UpdateSourceTrigger=PropertyChanged, Converter={StaticResource VisibilityInverseConverter}}">
+                <Grid Background="White" VerticalAlignment="Top" HorizontalAlignment="Stretch"  x:Name="TestGrid" Visibility="{Binding DataContext.AdminOptionsToggle, RelativeSource={RelativeSource AncestorType=Window}, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource VisibilityInverseConverter}}">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="*"/>
@@ -164,7 +163,8 @@
                         </ListView.ItemTemplate>
                     </ListView>
                 </Grid>
-                <Grid Background="White" VerticalAlignment="Top" HorizontalAlignment="Stretch"  x:Name="EditTestGrid" Visibility="{Binding DataContext.ParentView.ParentView.AdminOptionsToggle, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:ChecklistControl}}, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource VisibilityConverter}}">
+                <Grid Background="White" VerticalAlignment="Top" HorizontalAlignment="Stretch"  x:Name="EditTestGrid" 
+                                          Visibility="{Binding DataContext.AdminOptionsToggle, RelativeSource={RelativeSource AncestorType=Window}, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource VisibilityConverter}}">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="*"/>
@@ -179,8 +179,8 @@
                         <TextBlock Grid.Column="1" Text="Current Reference" FontWeight="Bold" FontSize="13" HorizontalAlignment="Left" Margin="0,0,0,0"/>
                         <TextBlock Grid.Column="2" Text="New Reference" FontWeight="Bold" FontSize="13" HorizontalAlignment="Left" Margin="0,0,0,0"/>
                     </Grid>
-                    <ListView Grid.Row="1" Margin ="10,5,0,0" Name="EditTestListView" ItemsSource="{Binding Tests}" 
-                              HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch" AlternationCount="2"
+                    <ListView Grid.Row="1" Margin ="10,5,0,0" Name="EditTestListView" ItemsSource="{Binding Tests, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
+                              HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch" AlternationCount="2" 
                      ScrollViewer.HorizontalScrollBarVisibility="Disabled" Background="Transparent" BorderThickness="0">
                         <ListView.ItemContainerStyle>
                             <Style TargetType="ListViewItem">
@@ -215,7 +215,7 @@
                                         <ColumnDefinition Width="150"/>
                                         <ColumnDefinition Width="*"/>
                                     </Grid.ColumnDefinitions>
-                                    <TextBlock Grid.Column="0" Text="{Binding CheckTypeString, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" FontWeight="Bold" VerticalAlignment="Center"/>
+                                    <TextBlock Grid.Column="0" Text="{Binding CheckTypeString, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" FontWeight="Bold" VerticalAlignment="Center" Margin="0,5,0,5"/>
                                     <TextBlock Grid.Column="1" Text="{Binding ReferenceValueString, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Center"
                                                Foreground="{Binding Reference.IsChanged, Converter={StaticResource ReferenceEditConverter}, UpdateSourceTrigger=PropertyChanged}"/>
                                     <Grid Grid.Column="2">
@@ -224,9 +224,10 @@
                                                 <MultiBinding Converter="{StaticResource VisibilityEditModeConverter}">
                                                     <Binding Path="EditType"/>
                                                     <Binding Path="Name" RelativeSource="{RelativeSource Self}"/>
+                                                    <Binding Path="EditEnabled"/>
                                                 </MultiBinding>
                                             </Grid.Visibility>
-                                            <ComboBox ItemsSource="{Binding ReferenceCollection, UpdateSourceTrigger=PropertyChanged}" SelectedItem="{Binding SetReference, Mode=OneWayToSource}"
+                                            <ComboBox ItemsSource="{Binding ReferenceCollection, UpdateSourceTrigger=PropertyChanged}" SelectedItem="{Binding SetReference, Mode=TwoWay}"
                                                    VerticalAlignment="Center" Style="{DynamicResource ChecklistComboBoxStyle}"/>
                                         </Grid>
                                         <Grid x:Name="SingleValue">
@@ -238,6 +239,7 @@
                                                 <MultiBinding Converter="{StaticResource VisibilityEditModeConverter}">
                                                     <Binding Path="EditType"/>
                                                     <Binding Path="Name" RelativeSource="{RelativeSource Self}"/>
+                                                    <Binding Path="EditEnabled"/>
                                                 </MultiBinding>
                                             </Grid.Visibility>
                                             <TextBox Grid.Column="0" Text="{Binding SetReference, Mode=TwoWay}" 
@@ -252,13 +254,15 @@
                                                 <MultiBinding Converter="{StaticResource VisibilityEditModeConverter}">
                                                     <Binding Path="EditType"/>
                                                     <Binding Path="Name" RelativeSource="{RelativeSource Self}"/>
+                                                    <Binding Path="EditEnabled"/>
                                                 </MultiBinding>
                                             </Grid.Visibility>
                                             <TextBox Grid.Column="0" Text="{Binding SetReference, Mode=TwoWay}" 
                                                      Style="{StaticResource ChecklistTextBoxStyle}" local:TextBoxExtensions.UpdateSourceOnKey="Return"/>
                                             <StackPanel Grid.Column="1" Orientation="Horizontal">
                                                 <TextBlock Text="&#x00B1;" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="2,0,5,0"/>
-                                                <TextBox Text="{Binding SetTolerance, Mode=TwoWay}"  local:TextBoxExtensions.UpdateSourceOnKey="Return" 
+                                                <TextBox Text="{Binding SetTolerance, Mode=TwoWay}"  
+                                                         local:TextBoxExtensions.UpdateSourceOnKey="Return" 
                                                          Style="{StaticResource ChecklistTextBoxStyle}" Width="50"/>
                                             </StackPanel>
                                         </Grid>
@@ -267,18 +271,110 @@
                                                 <MultiBinding Converter="{StaticResource VisibilityEditModeConverter}">
                                                     <Binding Path="EditType"/>
                                                     <Binding Path="Name" RelativeSource="{RelativeSource Self}"/>
+                                                    <Binding Path="EditEnabled"/>
                                                 </MultiBinding>
                                             </Grid.Visibility>
                                             <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="150"/>
-                                                <ColumnDefinition Width="150"/>
+                                                <ColumnDefinition Width="100"/>
+                                                <ColumnDefinition Width="auto"/>
+                                                <ColumnDefinition Width="100"/>
                                             </Grid.ColumnDefinitions>
-                                            <TextBox Grid.Column="0" Text="{Binding SetReference, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
+                                            <TextBox Grid.Column="0" Text="{Binding SetReference, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" HorizontalContentAlignment="Center" Width="80"
                                                      Style="{StaticResource ChecklistTextBoxStyle}"/>
-                                            <TextBox Grid.Column="1" Text="{Binding SetReference, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
+                                            <TextBlock Grid.Column="1" Text="to" Margin="5,0,5,0" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                                            <TextBox Grid.Column="2" Text="{Binding SetReference2, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" HorizontalContentAlignment="Center" Width="80"
                                                       Style="{StaticResource ChecklistTextBoxStyle}"/>
                                         </Grid>
+                                        <Grid x:Name="AnyOfValues">
+                                            <Grid.Visibility>
+                                            <MultiBinding Converter="{StaticResource VisibilityEditModeConverter}">
+                                                <Binding Path="EditType"/>
+                                                <Binding Path="Name" RelativeSource="{RelativeSource Self}"/>
+                                                <Binding Path="EditEnabled"/>
+                                            </MultiBinding>
+                                            </Grid.Visibility>
+                                            <Grid Visibility="{Binding Check, Converter={StaticResource VisibilityTextBoxModeConverter}}">
+                                                <Grid.RowDefinitions>
+                                                    <RowDefinition Height="*"/>
+                                                    <RowDefinition Height="Auto"/>
+                                                </Grid.RowDefinitions>
+                                                <ListBox Grid.Row="0" ItemsSource="{Binding ReferenceCollection, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" 
+                                                         Margin="0,5,0,5" HorizontalAlignment="Left" VerticalAlignment="Stretch" HorizontalContentAlignment="Stretch" Background="White"
+                                                        Width="200" Style="{DynamicResource ListBoxStyle1}" ItemContainerStyle="{DynamicResource SquintAliasesListBoxItemStyle}"
+                                                        BorderThickness="0"  SelectedItem="{Binding Reference, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
+                                                    <ListBox.ItemTemplate>
+                                                        <DataTemplate>
+                                                            <Grid >
+                                                                <Grid.ColumnDefinitions>
+                                                                    <ColumnDefinition Width="*"/>
+                                                                    <ColumnDefinition Width="Auto"/>
+                                                                </Grid.ColumnDefinitions>
+                                                                <TextBlock Grid.Column="0" Text="{Binding Value}" VerticalAlignment="Center" HorizontalAlignment="Stretch" Foreground="LightSteelBlue" Background="Transparent"/>
+
+                                                                <Button Grid.Column="1" Style="{StaticResource ButtonStyle_Small}" VerticalAlignment="Center" Height="20" Width="20" Background="Transparent" 
+                                                                 Command="{Binding DataContext.RemoveItemCommand, RelativeSource={RelativeSource AncestorType=ListBox}}" CommandParameter="{Binding}">
+                                                                    <Image Source="\Resources\x_trans.png"/>
+                                                                </Button>
+                                                            </Grid>
+                                                        </DataTemplate>
+                                                    </ListBox.ItemTemplate>
+                                                </ListBox>
+                                                <Grid Grid.Row="1" Height="30" Width="200" HorizontalAlignment="Left">
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="*"/>
+                                                        <ColumnDefinition Width="Auto"/>
+                                                    </Grid.ColumnDefinitions>
+                                                    <TextBox Grid.Column="0" Text="{Binding SetReference, Mode=TwoWay}" Visibility="{Binding Check, Converter={StaticResource VisibilityTextBoxModeConverter}}"
+                                                         local:TextBoxExtensions.UpdateSourceOnKey="Return" Margin="10,0,10,0"
+                                                        HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Style="{StaticResource ChecklistTextBoxStyle}"/>
+                                                    <Button Grid.Column="1" Style="{StaticResource ButtonStyle_Small}" Width="20" Height="20" HorizontalAlignment="Center"
+                                                VerticalAlignment="Center" Command="{Binding AddItemCommand}" Margin="0,0,1,0">
+                                                        <Image Source="\Resources\plus_trans.png"/>
+                                                    </Button>
+                                                </Grid>
+                                            </Grid>
+                                            <Grid Visibility="{Binding Check, Converter={StaticResource VisibilitySelectionModeConverter}}">
+                                                <Grid.RowDefinitions>
+                                                    <RowDefinition Height="*"/>
+                                                    <RowDefinition Height="Auto"/>
+                                                </Grid.RowDefinitions>
+                                                <ListBox Grid.Row="0" ItemsSource="{Binding ReferenceCollection, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" DisplayMemberPath="Display"
+                                                        Margin="0,5,0,5" HorizontalAlignment="Left" VerticalAlignment="Stretch" HorizontalContentAlignment="Stretch" Background="White"
+                                                        Width="200" Style="{DynamicResource ListBoxStyle1}" ItemContainerStyle="{DynamicResource SquintAliasesListBoxItemStyle}"
+                                                        BorderThickness="0"  SelectedItem="{Binding Reference, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
+                                                    <ListBox.ItemTemplate>
+                                                        <DataTemplate>
+                                                            <Grid >
+                                                                <Grid.ColumnDefinitions>
+                                                                    <ColumnDefinition Width="*"/>
+                                                                    <ColumnDefinition Width="Auto"/>
+                                                                </Grid.ColumnDefinitions>
+                                                                <TextBlock Grid.Column="0" Text="{Binding}" VerticalAlignment="Center" HorizontalAlignment="Stretch" Foreground="SteelBlue" Background="Transparent"/>
+
+                                                                <Button Grid.Column="1" Style="{StaticResource ButtonStyle_Small}" VerticalAlignment="Center" Height="20" Width="20" Background="Transparent" 
+                                                                 Command="{Binding DataContext.RemoveItemCommand, RelativeSource={RelativeSource AncestorType=ListBox}}" CommandParameter="{Binding}">
+                                                                    <Image Source="\Resources\x_trans.png"/>
+                                                                </Button>
+                                                            </Grid>
+                                                        </DataTemplate>
+                                                    </ListBox.ItemTemplate>
+                                                </ListBox>
+                                                <Grid Grid.Row="1" Height="30" Width="200" HorizontalAlignment="Left" Margin="0,5,0,5">
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="*"/>
+                                                        <ColumnDefinition Width="Auto"/>
+                                                    </Grid.ColumnDefinitions>
+                                                    <ComboBox Grid.Column="0" Style="{DynamicResource ChecklistComboBoxStyle}" ItemsSource="{Binding EnumOptions}" Height="25" 
+                                                          SelectedItem="{Binding SetReference, Mode=TwoWay}" Visibility="{Binding Check, Converter={StaticResource VisibilitySelectionModeConverter}}"/>
+                                                    <Button Grid.Column="1" Style="{StaticResource ButtonStyle_Small}" Width="20" Height="20" HorizontalAlignment="Center"
+                                                VerticalAlignment="Center" Command="{Binding AddItemCommand}" CommandParameter="{Binding SetReference}" Margin="0,0,1,0">
+                                                        <Image Source="\Resources\plus_trans.png"/>
+                                                    </Button>
+                                                </Grid>
+                                            </Grid>
+                                        </Grid>
                                     </Grid>
+
                                 </Grid>
                             </DataTemplate>
                         </ListView.ItemTemplate>

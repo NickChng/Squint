@@ -24,7 +24,7 @@
     </Window.Resources>
     <Window.Cursor>
         <Binding Path="SquintIsBusy" Converter="{StaticResource BusyToCursorConverter}"/>
-    </Window.Cursor> 
+    </Window.Cursor>
     <Grid Width="Auto" Margin="5,5,5,5">
         <Grid.RowDefinitions>
             <RowDefinition Height="50"></RowDefinition>
@@ -119,6 +119,7 @@
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
                         </Grid.RowDefinitions>
                         <Button Grid.Row="0" Margin="0,0,0,0" Background="Transparent"  ToolTip="Edit plan check references" Style="{StaticResource ButtonStyle}" HorizontalAlignment="Left" VerticalAlignment="Center"
                                Command="{Binding DataContext.ToggleChecklistViewCommand, ElementName=SquintWindow}" CommandParameter="{Binding SelectedPlan}">
@@ -137,17 +138,23 @@
                         <Button Grid.Row="3" Style="{StaticResource ButtonStyle}" Command="{Binding DuplicateProtocolCommand}" ToolTip="Save changes as new protocol" CommandParameter="{Binding ElementName=SquintAdminWindow, Path=DataContext.AssessmentPresenter}" Margin="0,0,0,0">
                             <Image Source="/Resources/duplicate_large.png" Stretch="Uniform" Height="36" VerticalAlignment="Center" Margin="2,0,2,0"></Image>
                         </Button>
-                        <StackPanel Grid.Row="4" Orientation="Vertical" Margin="0,0,0,0">
-                            <Button Style="{StaticResource ButtonStyle}" ToolTip="Batch import of XML protocols"
-                                        Command="{Binding ImportProtocolDirectoryCommand}" Margin="0,0,0,0">
-                                <Image Source="/Resources/import_xml.png" Stretch="Fill"></Image>
-                            </Button>
-                            <Label Content="Batch" Margin="0,-10,0,0"/>
-                        </StackPanel>
-                        <Button Grid.Row="5" Style="{StaticResource ButtonStyle}" ToolTip="Import single XML protocol"
-                                    Command="{Binding ImportProtocolCommand}" Margin="0,0,0,10">
-                            <Image Source="/Resources/import_xml.png" Stretch="Fill" Margin="0,0,0,0" Height="36" VerticalAlignment="Bottom"></Image>
+                        <Button Grid.Row="4" Name="ImportEclipseProtocolButton" Style="{StaticResource ButtonStyle}" ToolTip="Import clinical protocol from Eclipse"
+                                    Command="{Binding ImportEclipseCommand}" Margin="0,0,0,10">
+                            <Image Source="/Resources/Eclipse_Import.png" Stretch="Fill" Margin="0,0,0,0" Height="36" VerticalAlignment="Bottom"></Image>
                         </Button>
+                        <Button Grid.Row="5" Style="{StaticResource ButtonStyle}" ToolTip="Batch import of XML protocols" Height="45"
+                                        Command="{Binding ImportProtocolDirectoryCommand}" Margin="0,0,0,10">
+                            <Image Source="/Resources/import_batch_xml2.png" Stretch="Fill"></Image>
+                        </Button>
+                        <Button Grid.Row="6" Style="{StaticResource ButtonStyle}" ToolTip="Import single XML protocol"
+                                    Command="{Binding ImportProtocolCommand}" Margin="0,0,0,10">
+                            <Image Source="/Resources/import_xml2.png" Stretch="Fill" Margin="0,0,0,0" Height="36" VerticalAlignment="Bottom"></Image>
+                        </Button>
+                        <Popup Name="ImportEclipseProtocolsPopup" PlacementTarget="{Binding ElementName=ImportEclipseProtocolButton}" 
+                               Placement="Left" StaysOpen="False" AllowsTransparency="True" PopupAnimation="Fade" 
+                               IsOpen="{Binding ImportEclipseProtocolVisibility, UpdateSourceTrigger=PropertyChanged}" >
+                            <SC:EclipseProtocolPopup DataContext="{Binding EclipseProtocolView}" MinHeight="35" Height="Auto"/>
+                        </Popup>
                     </Grid>
                     <Grid Grid.Row="1">
                         <Button Style="{StaticResource ButtonStyle}" ToolTip="Show/hide additional settings"
@@ -556,7 +563,7 @@
                             <TextBlock Grid.Column="4" Text="Type" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                             <ComboBox Grid.Column="5" Margin ="5,0,5,0" ItemsSource="{Binding Protocol.ProtocolTypeList, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" SelectedItem="{Binding Protocol.ProtocolType, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ConstraintComboBoxStyle}"/>
                             <TextBlock Grid.Column="6" Text="Approval" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                            <ComboBox Grid.Column="7" Margin ="5,0,5,0" ItemsSource="{Binding Protocol.ApprovalList, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" SelectedItem="{Binding Protocol.ApprovalLevel, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ConstraintComboBoxStyle}"/> 
+                            <ComboBox Grid.Column="7" Margin ="5,0,5,0" ItemsSource="{Binding Protocol.ApprovalList, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" SelectedItem="{Binding Protocol.ApprovalLevel, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ConstraintComboBoxStyle}"/>
                         </Grid>
                         <Grid Grid.Row="2">
                             <Grid.RowDefinitions>
@@ -665,9 +672,9 @@
                                                         </ComboBox.ItemTemplate>
                                                     </ComboBox>
                                                     <Label Grid.Column="0" Grid.Row="1"  Content="Reference Dose (cGy):" Padding="7,7,20,7"></Label>
-                                                    <TextBox Grid.Column="1" Grid.Row="1" Text="{Binding ReferenceDose}" Margin="20,5,40,5" Width="100" HorizontalAlignment="Right" HorizontalContentAlignment="Center" Background="AliceBlue" SC:TextBoxExtensions.UpdateSourceOnKey="Return"></TextBox>
+                                                    <TextBox Grid.Column="1" Grid.Row="1" Text="{Binding ReferenceDose, Mode=TwoWay}" Margin="20,5,40,5" Width="100" HorizontalAlignment="Right" HorizontalContentAlignment="Center" Background="AliceBlue" SC:TextBoxExtensions.UpdateSourceOnKey="Return"></TextBox>
                                                     <Label Grid.Column="0" Grid.Row="2"  Content="Fractions (#):" Padding="7,7,20,7"></Label>
-                                                    <TextBox Grid.Column="1" Grid.Row="2" Text="{Binding NumFractions}" Margin="60,5,40,5" Width="100" HorizontalAlignment="Right" HorizontalContentAlignment="Center" Background="AliceBlue" SC:TextBoxExtensions.UpdateSourceOnKey="Return"></TextBox>
+                                                    <TextBox Grid.Column="1" Grid.Row="2" Text="{Binding NumFractions, Mode=TwoWay}" Margin="60,5,40,5" Width="100" HorizontalAlignment="Right" HorizontalContentAlignment="Center" Background="AliceBlue" SC:TextBoxExtensions.UpdateSourceOnKey="Return"></TextBox>
                                                 </Grid>
                                             </Grid>
                                         </Grid>
@@ -766,8 +773,14 @@
                                                     <Grid.ColumnDefinitions>
                                                         <ColumnDefinition Width="*"/>
                                                         <ColumnDefinition Width="1.5*"/>
+                                                        <ColumnDefinition Width="Auto"/>
                                                     </Grid.ColumnDefinitions>
-                                                    <TextBlock Grid.Column="0" Text="{Binding ProtocolStructureName, UpdateSourceTrigger=PropertyChanged, Mode=OneWay}"  FontSize="13" Background="Transparent" Margin="10,3,0,0"></TextBlock>
+                                                    <TextBlock Grid.Column="0" Text="{Binding ProtocolStructureName, UpdateSourceTrigger=PropertyChanged, Mode=OneWay}" 
+                                                               Visibility="{Binding DataContext.AdminOptionsToggle, ElementName=SquintWindow, UpdateSourceTrigger=PropertyChanged,Converter={StaticResource VisibilityInverseConverter}}"
+                                                               FontSize="13" Background="Transparent" Margin="10,3,0,0"></TextBlock>
+                                                    <TextBox Grid.Column="0" Text="{Binding ProtocolStructureName, Mode=TwoWay}" Width="150" HorizontalAlignment="Left" 
+                                                             Visibility="{Binding DataContext.AdminOptionsToggle, ElementName=SquintWindow, UpdateSourceTrigger=PropertyChanged,Converter={StaticResource VisibilityConverter}}"
+                                                             FontSize="13" Background="AliceBlue" Margin="10,3,0,0" VerticalAlignment="Center" SC:TextBoxExtensions.UpdateSourceOnKey="Return" Height="25"></TextBox>
                                                     <Grid Grid.Column="1" Margin="20,0,0,0">
                                                         <Grid.ColumnDefinitions>
                                                             <ColumnDefinition Width="Auto"/>
@@ -775,27 +788,52 @@
                                                             <ColumnDefinition Width="*"/>
                                                         </Grid.ColumnDefinitions>
                                                         <Ellipse Grid.Column="0" Width="12" Height="12" Margin="10,0,10,0" Fill="{Binding StructureColor, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource Color2Brush}}"/>
-                                                        <TextBlock  Grid.Column="1" Text="{Binding Path=AssignedStructureId, Mode=OneWay}" HorizontalAlignment="Left" Foreground="SteelBlue" FontSize="13" Background="Transparent" ></TextBlock>
+                                                        <TextBlock  Visibility="{Binding AdminOptionsToggle, UpdateSourceTrigger=PropertyChanged,Converter={StaticResource VisibilityInverseConverter}}"
+                                                            Grid.Column="1" Text="{Binding Path=AssignedStructureId, Mode=OneWay}" HorizontalAlignment="Left" Foreground="SteelBlue" FontSize="13" Background="Transparent" ></TextBlock>
                                                         <Grid Grid.Column="2" HorizontalAlignment="Right" Visibility="{Binding LabelIsConsistent, Converter={StaticResource VisibilityConverter}, UpdateSourceTrigger=PropertyChanged}">
                                                             <Polygon Points="0,17 8,0 17,17" Fill="Transparent"  Grid.Column="1" Width="17" Height="17" Stroke="DarkOrange" StrokeThickness="2" ToolTip="{Binding LabelMismatchTooltip, UpdateSourceTrigger=PropertyChanged}" Margin="0,-2,0,0"/>
                                                             <TextBlock Grid.Column="1" IsHitTestVisible="false" Text="!" FontWeight="Bold" HorizontalAlignment="Center" Padding="0,1,0,0" VerticalAlignment="Center" Foreground="Black"/>
                                                         </Grid>
-
                                                     </Grid>
+                                                    <Button Grid.Column="2" ToolTip="Pin structure details"
+                                                            Style="{DynamicResource ButtonStyle_Small}" VerticalAlignment="Top" HorizontalAlignment="Right" Margin="0,0,5,0" 
+                                                            Command="{Binding PinOptionsCommand}">
+                                                        <Image>
+                                                            <Image.Style>
+                                                                <Style TargetType="Image">
+                                                                    <Style.Triggers>
+                                                                        <DataTrigger Binding="{Binding Pinned, UpdateSourceTrigger=PropertyChanged}" Value="false">
+                                                                            <Setter Property="Source" Value="/Resources/pin.png"/>
+                                                                        </DataTrigger>
+                                                                        <DataTrigger Binding="{Binding Pinned, UpdateSourceTrigger=PropertyChanged}" Value="true">
+                                                                            <Setter Property="Source" Value="/Resources/pin_remove.png"/>
+                                                                        </DataTrigger>
+                                                                    </Style.Triggers>
+                                                                </Style>
+                                                            </Image.Style>
+                                                        </Image>
+                                                    </Button>
                                                 </Grid>
                                                 <Grid Grid.Row="1">
                                                     <Grid.Tag>
                                                         <sys:Double>0.0</sys:Double>
                                                     </Grid.Tag>
                                                     <Grid.MaxHeight>
-                                                        <MultiBinding Converter="{StaticResource ExpanderConverter}" ConverterParameter="150">
+                                                        <MultiBinding Converter="{StaticResource ExpanderConverter}" ConverterParameter="500">
                                                             <Binding Path="Tag" RelativeSource="{RelativeSource Self}"/>
                                                         </MultiBinding>
                                                     </Grid.MaxHeight>
                                                     <Grid.Style>
                                                         <Style TargetType="Grid">
                                                             <Style.Triggers>
-                                                                <DataTrigger Binding="{Binding RelativeSource={RelativeSource AncestorLevel=1, AncestorType=ListViewItem}, UpdateSourceTrigger=PropertyChanged, Path=IsSelected}" Value="True">
+                                                                <DataTrigger Value="True">
+                                                                    <DataTrigger.Binding>
+                                                                        <MultiBinding Converter="{StaticResource SelectionConverter}" UpdateSourceTrigger="PropertyChanged">
+                                                                            <Binding RelativeSource="{RelativeSource AncestorLevel=1, AncestorType=ListViewItem}" UpdateSourceTrigger="PropertyChanged" Path="IsSelected" />
+                                                                            <Binding RelativeSource="{RelativeSource AncestorLevel=1, AncestorType=ListViewItem}" UpdateSourceTrigger="PropertyChanged" Path="DataContext.Pinned" />
+                                                                            <!--<Binding ElementName="SquintWindow" Path="DataContext.Protocol.DragSelected" />-->
+                                                                        </MultiBinding>
+                                                                    </DataTrigger.Binding>
                                                                     <DataTrigger.EnterActions>
                                                                         <BeginStoryboard Storyboard="{StaticResource ExpandPanel}"/>
                                                                     </DataTrigger.EnterActions>
@@ -806,7 +844,7 @@
                                                             </Style.Triggers>
                                                         </Style>
                                                     </Grid.Style>
-                                                    <GroupBox Header="Structure Properties" Margin="0,5,0,0" HorizontalContentAlignment="Stretch" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+                                                    <GroupBox Header="Structure Properties" Margin="0,0,0,0" HorizontalContentAlignment="Stretch" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
                                                         <Grid>
                                                             <Grid.RowDefinitions>
                                                                 <RowDefinition Height="Auto"/>
@@ -818,9 +856,11 @@
                                                                 <ColumnDefinition Width="*"/>
                                                             </Grid.ColumnDefinitions>
                                                             <TextBlock Grid.Row="0" Grid.Column="0" Text="Structure Name:" Margin="7,5,7,5" HorizontalAlignment="Left" Visibility="{Binding isUserAdded, Converter={StaticResource VisibilityConverter}, UpdateSourceTrigger=PropertyChanged}"/>
-                                                            <TextBox Grid.Row="0" Grid.Column="1" HorizontalAlignment="Center" Width="150" MaxLength="30" Text="{Binding ProtocolStructureName, Mode=TwoWay}" KeyUp="TextBox_KeyEnterUpdate" Visibility="{Binding isUserAdded, Converter={StaticResource VisibilityConverter}, UpdateSourceTrigger=PropertyChanged}"/>
-                                                            <TextBlock Grid.Row="1" Grid.Column="0" Text="Structure Id:" Margin="7,5,7,5" HorizontalAlignment="Left"></TextBlock>
-                                                            <ComboBox Grid.Row="1" Grid.Column="1" HorizontalAlignment="Stretch" MaxWidth="150" HorizontalContentAlignment="Center" Width="Auto" Margin="10,5,10,5" Style="{StaticResource ConstraintComboBoxStyle}"
+                                                            <TextBox Grid.Row="0" Grid.Column="1" HorizontalAlignment="Center" Width="150" MaxLength="50" Text="{Binding ProtocolStructureName, Mode=TwoWay}" KeyUp="TextBox_KeyEnterUpdate" Visibility="{Binding isUserAdded, Converter={StaticResource VisibilityConverter}, UpdateSourceTrigger=PropertyChanged}"/>
+                                                            <TextBlock Grid.Row="1" Grid.Column="0" Text="Structure Id:" Margin="7,5,7,5" HorizontalAlignment="Left" Visibility="{Binding DataContext.AdminOptionsToggle, ElementName=SquintWindow, UpdateSourceTrigger=PropertyChanged,Converter={StaticResource VisibilityInverseConverter}}" ></TextBlock>
+                                                            <TextBlock Grid.Row="1" Grid.Column="0" Text="Structure Aliases:" Margin="7,5,7,5" HorizontalAlignment="Left" Visibility="{Binding DataContext.AdminOptionsToggle, ElementName=SquintWindow, UpdateSourceTrigger=PropertyChanged,Converter={StaticResource VisibilityConverter}}"></TextBlock>
+                                                            <ComboBox Grid.Row="1" Grid.Column="1"  Visibility="{Binding DataContext.AdminOptionsToggle, ElementName=SquintWindow, UpdateSourceTrigger=PropertyChanged,Converter={StaticResource VisibilityInverseConverter}}"
+                                                                      HorizontalAlignment="Stretch" MaxWidth="150" HorizontalContentAlignment="Center" Width="Auto" Margin="10,5,10,5" Style="{StaticResource ConstraintComboBoxStyle}"
                                                                   MaxDropDownHeight="150" 
                                                                   SelectedItem="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type ListViewItem}}, Path=DataContext.AssignedStructureId, Mode=OneWayToSource}"
                                                                       Background="AliceBlue">
@@ -831,6 +871,46 @@
                                                                     </MultiBinding>
                                                                 </ComboBox.ItemsSource>
                                                             </ComboBox>
+                                                            <Grid Grid.Row="1" Grid.Column="1"  HorizontalAlignment="Center" VerticalAlignment="Center" Background="White"
+                                                                  Visibility="{Binding DataContext.AdminOptionsToggle, ElementName=SquintWindow, UpdateSourceTrigger=PropertyChanged,Converter={StaticResource VisibilityConverter}}">
+                                                                <Grid.RowDefinitions>
+                                                                    <RowDefinition Height="*"/>
+                                                                    <RowDefinition Height="Auto"/>
+                                                                </Grid.RowDefinitions>
+                                                                <ListBox Grid.Row="0" x:Name="structure_aliaslist" ItemsSource="{Binding Aliases, UpdateSourceTrigger=PropertyChanged}" Margin="0,5,0,5" HorizontalAlignment="Left" VerticalAlignment="Stretch" HorizontalContentAlignment="Stretch" Background="White" Width="200" Style="{DynamicResource ListBoxStyle1}" ItemContainerStyle="{DynamicResource SquintAliasesListBoxItemStyle}"
+                                                                    BorderThickness="0"  dd:DragDrop.IsDragSource="True" DragDrop.DragOver="AliasList_DragOver" SelectedIndex="{Binding SelectedAliasIndex, Mode=OneWayToSource}">
+                                                                    <ListBox.ItemTemplate>
+                                                                        <DataTemplate>
+                                                                            <Grid>
+                                                                                <Grid.ColumnDefinitions>
+                                                                                    <ColumnDefinition Width="Auto"/>
+                                                                                    <ColumnDefinition Width="*"/>
+                                                                                    <ColumnDefinition Width="Auto"/>
+                                                                                </Grid.ColumnDefinitions>
+                                                                                <Image Name ="DragImage"  Grid.Column="0" Height="20" Width="18" Stretch="Fill" RenderOptions.BitmapScalingMode="HighQuality" Source="\Resources\align.png" ToolTip="Drag to re-order" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="5,2,5,2" MouseDown="AliasList_MouseDown"/>
+                                                                                <TextBlock Grid.Column="1" Text="{Binding}" VerticalAlignment="Center" HorizontalAlignment="Stretch" Background="Transparent"/>
+                                                                                <Button Grid.Column="2" Style="{StaticResource ButtonStyle_Small}" VerticalAlignment="Center" Height="20" Width="20" Background="Transparent" 
+                                                        Command="{Binding DataContext.RemoveStructureAliasCommand, RelativeSource={RelativeSource AncestorType=ListBox}}" CommandParameter="{Binding}">
+                                                                                    <Image Source="\Resources\x_trans.png"/>
+                                                                                </Button>
+                                                                            </Grid>
+
+                                                                        </DataTemplate>
+                                                                    </ListBox.ItemTemplate>
+                                                                </ListBox>
+                                                                <Grid Grid.Row="1" Height="25" Width="200" HorizontalAlignment="Left">
+                                                                    <Grid.ColumnDefinitions>
+                                                                        <ColumnDefinition Width="*"/>
+                                                                        <ColumnDefinition Width="Auto"/>
+                                                                    </Grid.ColumnDefinitions>
+                                                                    <TextBox Grid.Column="0" Text="{Binding NewAlias, Mode=TwoWay}" SC:TextBoxExtensions.UpdateSourceOnKey="Return" Margin="0,0,10,0" Height="25"
+                                                 HorizontalContentAlignment="Center" VerticalContentAlignment="Center"/>
+                                                                    <Button Grid.Column="1" Style="{StaticResource ButtonStyle_Small}" Width="20" Height="20" HorizontalAlignment="Center"
+                                                VerticalAlignment="Center" Command="{Binding AddStructureAliasCommand}" Margin="0,0,1,0">
+                                                                        <Image Source="\Resources\plus_trans.png"/>
+                                                                    </Button>
+                                                                </Grid>
+                                                            </Grid>
                                                             <Grid Grid.Row="2" Grid.ColumnSpan="2">
                                                                 <Grid.ColumnDefinitions>
                                                                     <ColumnDefinition Width="Auto"/>
@@ -870,169 +950,172 @@
                                     <Image Source="/Resources/plus.png"></Image>
                                 </Button>
                             </Grid>
-                            <ListView Name="ConstraintListView" Grid.Row="5" Style="{StaticResource ListViewStyle_NoScroll}" ItemsSource="{Binding Protocol.Constraints, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" SelectedIndex="{Binding Protocol.SelectedIndex}" VerticalAlignment="Stretch" BorderThickness="0" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Center" ItemContainerStyle="{DynamicResource DraggableListViewItemStyle}"
-                                      SelectedItem="{Binding Protocol.SelectedConstraint, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" dd:DragDrop.IsDragSource="True" DragDrop.DragOver="ListView_DragOver" MouseUp="ConstraintListView_MouseUp" MouseLeave="ConstraintListView_MouseLeave" MouseEnter="ConstraintListView_MouseEnter">
-                                <ListView.ItemTemplate>
-                                    <DataTemplate>
-                                        <Grid>
-                                            <Grid.RowDefinitions>
-                                                <RowDefinition Height="Auto"/>
-                                                <RowDefinition Height="*"/>
-                                            </Grid.RowDefinitions>
-                                            <Grid Grid.Row="0">
-                                                <Grid.ColumnDefinitions>
-                                                    <ColumnDefinition Width="Auto"/>
-                                                    <ColumnDefinition Width="Auto"/>
-                                                    <ColumnDefinition Width="*"/>
-                                                    <ColumnDefinition Width="Auto"/>
-                                                    <ColumnDefinition Width="Auto"/>
-                                                    <ColumnDefinition Width="Auto"/>
-                                                </Grid.ColumnDefinitions>
-                                                <Image Name ="DragImage"  Grid.Column="0" Height="20" Width="18" Stretch="Fill" RenderOptions.BitmapScalingMode="HighQuality" Source="\Resources\align.png" ToolTip="Drag to re-order" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="5,2,5,2" MouseDown="DragImage_MouseDown"/>
-                                                <ComboBox Grid.Column="1" HorizontalAlignment="Stretch" Width="120" ItemsSource="{Binding ElementName=SquintWindow, Path=DataContext.Protocol.Structures}" DisplayMemberPath="ProtocolStructureName" Style="{StaticResource ConstraintComboBoxStyle}"
+                            <Grid Grid.Row="5" >
+                                <ListView Margin="10,0,0,0" Name="ConstraintListView" Style="{StaticResource ListViewStyle_NoScroll}" ItemsSource="{Binding Protocol.Constraints, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" SelectedIndex="{Binding Protocol.SelectedIndex}" VerticalAlignment="Stretch" BorderThickness="0" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Center" ItemContainerStyle="{DynamicResource DraggableListViewItemStyle}"
+                                      SelectedItem="{Binding Protocol.SelectedConstraint, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
+                                      dd:DragDrop.IsDragSource="True" DragDrop.DragOver="ListView_DragOver">
+                                    <ListView.ItemTemplate>
+                                        <DataTemplate>
+                                            <Grid>
+                                                <Grid.RowDefinitions>
+                                                    <RowDefinition Height="Auto"/>
+                                                    <RowDefinition Height="*"/>
+                                                </Grid.RowDefinitions>
+                                                <Grid Grid.Row="0">
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="Auto"/>
+                                                        <ColumnDefinition Width="Auto"/>
+                                                        <ColumnDefinition Width="*"/>
+                                                        <ColumnDefinition Width="Auto"/>
+                                                        <ColumnDefinition Width="Auto"/>
+                                                        <ColumnDefinition Width="Auto"/>
+                                                    </Grid.ColumnDefinitions>
+                                                    <Image Name ="DragImage"  Grid.Column="0" Height="20" Width="18" Stretch="Fill" RenderOptions.BitmapScalingMode="HighQuality" Source="\Resources\align.png" ToolTip="Drag to re-order" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="5,2,5,2" MouseDown="DragImage_MouseDown"/>
+                                                    <ComboBox Grid.Column="1" HorizontalAlignment="Stretch" Width="120" ItemsSource="{Binding ElementName=SquintWindow, Path=DataContext.Protocol.Structures}" DisplayMemberPath="ProtocolStructureName" Style="{StaticResource ConstraintComboBoxStyle}"
                                                                   MaxDropDownHeight="100" 
                                                                   VerticalAlignment="Center" 
                                                           SelectedItem="{Binding RelativeSource={RelativeSource FindAncestor, AncestorLevel=1, AncestorType={x:Type ListViewItem}}, Path=DataContext.SS, Converter={StaticResource GetConstraintStructureConverter}, Mode=TwoWay}"/>
-                                                <!--<TextBlock  Grid.Column="2" VerticalAlignment="Center" Text="{Binding ShortConstraintDefinition, UpdateSourceTrigger=PropertyChanged, Mode=OneWay}" Margin="5,0,10,0"></TextBlock>-->
-                                                <StackPanel Grid.Column="2" Orientation="Horizontal">
-                                                    <TextBlock VerticalAlignment="Center" Text="{Binding ShortConstraintDefinition, UpdateSourceTrigger=PropertyChanged, Mode=OneWay}" Margin="5,0,0,0"></TextBlock>
-                                                    <TextBlock VerticalAlignment="Center" Text="{Binding IsAddedStatus, UpdateSourceTrigger=PropertyChanged, Mode=OneWay}" Foreground="ForestGreen" FontStyle="Italic" Margin="5,0,0,0"></TextBlock>
-                                                    <TextBlock VerticalAlignment="Center" Text="{Binding ChangeStatusString, UpdateSourceTrigger=PropertyChanged, Mode=OneWay}" Foreground="DarkOrange" FontStyle="Italic" Margin="5,0,0,0"></TextBlock>
-                                                </StackPanel>
-                                                <ComboBox  Grid.Column="3" HorizontalAlignment="Right" MinWidth="50" Margin="0,0,0,0" VerticalAlignment="Center" ItemsSource="{Binding Components}" SelectedItem="{Binding Component}" Style="{StaticResource ConstraintComboBoxStyle}">
-                                                    <ComboBox.ItemTemplate>
-                                                        <DataTemplate>
-                                                            <TextBlock Text="{Binding ComponentName}"/>
-                                                        </DataTemplate>
-                                                    </ComboBox.ItemTemplate>
-                                                </ComboBox>
-                                                <Button Grid.Column="4" Name="ConstraintInfoButton" ToolTip="Constraint Information" Style="{DynamicResource ButtonStyle_Small}" Margin="5,5,0,5" 
+                                                    <!--<TextBlock  Grid.Column="2" VerticalAlignment="Center" Text="{Binding ShortConstraintDefinition, UpdateSourceTrigger=PropertyChanged, Mode=OneWay}" Margin="5,0,10,0"></TextBlock>-->
+                                                    <StackPanel Grid.Column="2" Orientation="Horizontal">
+                                                        <TextBlock VerticalAlignment="Center" Text="{Binding ShortConstraintDefinition, UpdateSourceTrigger=PropertyChanged, Mode=OneWay}" Margin="5,0,0,0"></TextBlock>
+                                                        <TextBlock VerticalAlignment="Center" Text="{Binding IsAddedStatus, UpdateSourceTrigger=PropertyChanged, Mode=OneWay}" Foreground="ForestGreen" FontStyle="Italic" Margin="5,0,0,0"></TextBlock>
+                                                        <TextBlock VerticalAlignment="Center" Text="{Binding ChangeStatusString, UpdateSourceTrigger=PropertyChanged, Mode=OneWay}" Foreground="DarkOrange" FontStyle="Italic" Margin="5,0,0,0"></TextBlock>
+                                                    </StackPanel>
+                                                    <ComboBox  Grid.Column="3" HorizontalAlignment="Right" MinWidth="50" Margin="0,0,0,0" VerticalAlignment="Center" ItemsSource="{Binding Components}" SelectedItem="{Binding Component}" Style="{StaticResource ConstraintComboBoxStyle}">
+                                                        <ComboBox.ItemTemplate>
+                                                            <DataTemplate>
+                                                                <TextBlock Text="{Binding ComponentName}"/>
+                                                            </DataTemplate>
+                                                        </ComboBox.ItemTemplate>
+                                                    </ComboBox>
+                                                    <Button Grid.Column="4" Name="ConstraintInfoButton" ToolTip="Constraint Information" Style="{DynamicResource ButtonStyle_Small}" Margin="5,5,0,5" 
                                                         Command="{Binding DataContext.GetConstraintInformationCommand, ElementName=SquintWindow}" CommandParameter="{Binding}">
-                                                    <Image Source="/Resources/appbar.question.png"/>
-                                                </Button>
-                                                <Popup Name="ConstraintInfoPopup" PlacementTarget="{Binding ElementName=SquintWindow}" Placement="Center" StaysOpen="False" AllowsTransparency="True" PopupAnimation="Fade"  IsOpen="{Binding ConstraintInfoVisibility, UpdateSourceTrigger=PropertyChanged}" >
-                                                    <SC:ConstraintInformation DataContext="{Binding}" MinHeight="35" Height="Auto"/>
-                                                </Popup>
-                                                <Button Grid.Column="5" ToolTip="Pin constraint details"
+                                                        <Image Source="/Resources/appbar.question.png"/>
+                                                    </Button>
+                                                    <Popup Name="ConstraintInfoPopup" PlacementTarget="{Binding ElementName=SquintWindow}" Placement="Center" StaysOpen="False" AllowsTransparency="True" PopupAnimation="Fade"  IsOpen="{Binding ConstraintInfoVisibility, UpdateSourceTrigger=PropertyChanged}" >
+                                                        <SC:ConstraintInformation DataContext="{Binding}" MinHeight="35" Height="Auto"/>
+                                                    </Popup>
+                                                    <Button Grid.Column="5" ToolTip="Pin constraint details"
                                                             Style="{DynamicResource ButtonStyle_Small}" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="0,5,5,5" 
                                                             Command="{Binding DataContext.PinConstraintCommand, ElementName=SquintWindow}" CommandParameter="{Binding}">
-                                                    <Image>
-                                                        <Image.Style>
-                                                            <Style TargetType="Image">
-                                                                <Style.Triggers>
-                                                                    <DataTrigger Binding="{Binding Path=Pinned, UpdateSourceTrigger=PropertyChanged}" Value="false">
-                                                                        <Setter Property="Source" Value="/Resources/pin.png"/>
-                                                                    </DataTrigger>
-                                                                    <DataTrigger Binding="{Binding Path=Pinned, UpdateSourceTrigger=PropertyChanged}" Value="true">
-                                                                        <Setter Property="Source" Value="/Resources/pin_remove.png"/>
-                                                                    </DataTrigger>
-                                                                </Style.Triggers>
-                                                            </Style>
-                                                        </Image.Style>
-                                                    </Image>
-                                                </Button>
-                                            </Grid>
-                                            <Grid Grid.Row="1">
-                                                <Grid.Tag>
-                                                    <sys:Double>0.0</sys:Double>
-                                                </Grid.Tag>
-                                                <Grid.MaxHeight>
-                                                    <MultiBinding Converter="{StaticResource ExpanderConverter}" ConverterParameter="100">
-                                                        <Binding Path="Tag" RelativeSource="{RelativeSource Self}"/>
-                                                    </MultiBinding>
-                                                </Grid.MaxHeight>
-                                                <Grid.Style>
-                                                    <Style TargetType="Grid">
-                                                        <Style.Triggers>
-                                                            <DataTrigger Value="True">
-                                                                <DataTrigger.Binding>
-                                                                    <MultiBinding Converter="{StaticResource SelectionConverter}" UpdateSourceTrigger="PropertyChanged">
-                                                                        <Binding RelativeSource="{RelativeSource AncestorLevel=1, AncestorType=ListViewItem}" UpdateSourceTrigger="PropertyChanged" Path="IsSelected" />
-                                                                        <Binding RelativeSource="{RelativeSource AncestorLevel=1, AncestorType=ListViewItem}" UpdateSourceTrigger="PropertyChanged" Path="DataContext.Pinned" />
-                                                                        <Binding ElementName="SquintWindow" Path="DataContext.Protocol.DragSelected" />
-                                                                    </MultiBinding>
-                                                                </DataTrigger.Binding>
-                                                                <DataTrigger.EnterActions>
-                                                                    <BeginStoryboard Storyboard="{StaticResource ExpandPanel}"/>
-                                                                </DataTrigger.EnterActions>
-                                                                <DataTrigger.ExitActions>
-                                                                    <BeginStoryboard Storyboard="{StaticResource CollapsePanel}"/>
-                                                                </DataTrigger.ExitActions>
-                                                            </DataTrigger>
-                                                        </Style.Triggers>
-                                                    </Style>
-                                                </Grid.Style>
-                                                <GroupBox Header="Edit Constraint" Background="Transparent">
-                                                    <Grid>
-                                                        <Grid.RowDefinitions>
-                                                            <RowDefinition Height="Auto"/>
-                                                            <RowDefinition Height="*"/>
-                                                        </Grid.RowDefinitions>
-                                                        <StackPanel Grid.Row="0" Orientation="Horizontal" Background="Transparent">
-                                                            <ComboBox ItemsSource ="{Binding Path=ConstraintTypes, UpdateSourceTrigger=PropertyChanged}" SelectedItem="{Binding ConstraintType}" Width="50" HorizontalAlignment="Left" Style="{StaticResource ConstraintComboBoxStyle}"></ComboBox>
-                                                            <TextBox Text ="{Binding ConstraintValue, Mode=TwoWay}" Style="{StaticResource ConstraintTextBoxStyle}" Width="50" SC:TextBoxExtensions.UpdateSourceOnKey="Return"
+                                                        <Image>
+                                                            <Image.Style>
+                                                                <Style TargetType="Image">
+                                                                    <Style.Triggers>
+                                                                        <DataTrigger Binding="{Binding Path=Pinned, UpdateSourceTrigger=PropertyChanged}" Value="false">
+                                                                            <Setter Property="Source" Value="/Resources/pin.png"/>
+                                                                        </DataTrigger>
+                                                                        <DataTrigger Binding="{Binding Path=Pinned, UpdateSourceTrigger=PropertyChanged}" Value="true">
+                                                                            <Setter Property="Source" Value="/Resources/pin_remove.png"/>
+                                                                        </DataTrigger>
+                                                                    </Style.Triggers>
+                                                                </Style>
+                                                            </Image.Style>
+                                                        </Image>
+                                                    </Button>
+                                                </Grid>
+                                                <Grid Grid.Row="1">
+                                                    <Grid.Tag>
+                                                        <sys:Double>0.0</sys:Double>
+                                                    </Grid.Tag>
+                                                    <Grid.MaxHeight>
+                                                        <MultiBinding Converter="{StaticResource ExpanderConverter}" ConverterParameter="100">
+                                                            <Binding Path="Tag" RelativeSource="{RelativeSource Self}"/>
+                                                        </MultiBinding>
+                                                    </Grid.MaxHeight>
+                                                    <Grid.Style>
+                                                        <Style TargetType="Grid">
+                                                            <Style.Triggers>
+                                                                <DataTrigger Value="True">
+                                                                    <DataTrigger.Binding>
+                                                                        <MultiBinding Converter="{StaticResource SelectionConverter}" UpdateSourceTrigger="PropertyChanged">
+                                                                            <Binding RelativeSource="{RelativeSource AncestorLevel=1, AncestorType=ListViewItem}" UpdateSourceTrigger="PropertyChanged" Path="IsSelected" />
+                                                                            <Binding RelativeSource="{RelativeSource AncestorLevel=1, AncestorType=ListViewItem}" UpdateSourceTrigger="PropertyChanged" Path="DataContext.Pinned" />
+                                                                            <Binding ElementName="SquintWindow" Path="DataContext.Protocol.DragSelected" />
+                                                                        </MultiBinding>
+                                                                    </DataTrigger.Binding>
+                                                                    <DataTrigger.EnterActions>
+                                                                        <BeginStoryboard Storyboard="{StaticResource ExpandPanel}"/>
+                                                                    </DataTrigger.EnterActions>
+                                                                    <DataTrigger.ExitActions>
+                                                                        <BeginStoryboard Storyboard="{StaticResource CollapsePanel}"/>
+                                                                    </DataTrigger.ExitActions>
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </Grid.Style>
+                                                    <GroupBox Header="Edit Constraint" Background="Transparent">
+                                                        <Grid>
+                                                            <Grid.RowDefinitions>
+                                                                <RowDefinition Height="Auto"/>
+                                                                <RowDefinition Height="*"/>
+                                                            </Grid.RowDefinitions>
+                                                            <StackPanel Grid.Row="0" Orientation="Horizontal" Background="Transparent">
+                                                                <ComboBox ItemsSource ="{Binding Path=ConstraintTypes, UpdateSourceTrigger=PropertyChanged}" SelectedItem="{Binding ConstraintType}" Width="50" HorizontalAlignment="Left" Style="{StaticResource ConstraintComboBoxStyle}"></ComboBox>
+                                                                <TextBox Text ="{Binding ConstraintValue, Mode=TwoWay}" Style="{StaticResource ConstraintTextBoxStyle}" Width="50" SC:TextBoxExtensions.UpdateSourceOnKey="Return"
                                                                         Foreground="{Binding ConstraintValueColor, UpdateSourceTrigger=PropertyChanged}"/>
-                                                            <ComboBox ItemsSource ="{Binding Path=ConstraintUnitTypes, UpdateSourceTrigger=PropertyChanged}" SelectedItem="{Binding ConstraintUnit}" Width="50" HorizontalAlignment="Left" Style="{StaticResource ConstraintComboBoxStyle}">
-                                                                <ComboBox.ItemTemplate>
-                                                                    <DataTemplate>
-                                                                        <TextBlock Text="{Binding Converter={StaticResource EnumDisplayTypesConverter}}"/>
-                                                                    </DataTemplate>
-                                                                </ComboBox.ItemTemplate>
-                                                            </ComboBox>
-                                                            <ComboBox ItemsSource ="{Binding Path=AvailableReferenceTypes, UpdateSourceTrigger=PropertyChanged}" SelectedItem="{Binding ReferenceType}" Width="50" HorizontalAlignment="Left" Style="{StaticResource ConstraintComboBoxStyle}">
-                                                                <ComboBox.ItemTemplate>
-                                                                    <DataTemplate>
-                                                                        <TextBlock Text="{Binding Converter={StaticResource EnumDisplayTypesConverter}}"/>
-                                                                    </DataTemplate>
-                                                                </ComboBox.ItemTemplate>
-                                                            </ComboBox>
-                                                            <TextBox Text ="{Binding ReferenceValue, Mode=TwoWay}" Style="{StaticResource ConstraintTextBoxStyle}" Foreground="{Binding ReferenceValueColor, UpdateSourceTrigger=PropertyChanged}"
+                                                                <ComboBox ItemsSource ="{Binding Path=ConstraintUnitTypes, UpdateSourceTrigger=PropertyChanged}" SelectedItem="{Binding ConstraintUnit}" Width="50" HorizontalAlignment="Left" Style="{StaticResource ConstraintComboBoxStyle}">
+                                                                    <ComboBox.ItemTemplate>
+                                                                        <DataTemplate>
+                                                                            <TextBlock Text="{Binding Converter={StaticResource EnumDisplayTypesConverter}}"/>
+                                                                        </DataTemplate>
+                                                                    </ComboBox.ItemTemplate>
+                                                                </ComboBox>
+                                                                <ComboBox ItemsSource ="{Binding Path=AvailableReferenceTypes, UpdateSourceTrigger=PropertyChanged}" SelectedItem="{Binding ReferenceType}" Width="50" HorizontalAlignment="Left" Style="{StaticResource ConstraintComboBoxStyle}">
+                                                                    <ComboBox.ItemTemplate>
+                                                                        <DataTemplate>
+                                                                            <TextBlock Text="{Binding Converter={StaticResource EnumDisplayTypesConverter}}"/>
+                                                                        </DataTemplate>
+                                                                    </ComboBox.ItemTemplate>
+                                                                </ComboBox>
+                                                                <TextBox Text ="{Binding ReferenceValue, Mode=TwoWay}" Style="{StaticResource ConstraintTextBoxStyle}" Foreground="{Binding ReferenceValueColor, UpdateSourceTrigger=PropertyChanged}"
                                                                      Width="50" SC:TextBoxExtensions.UpdateSourceOnKey="Return"></TextBox>
-                                                            <ComboBox ItemsSource ="{Binding Path=AvailableReferenceUnitTypes, UpdateSourceTrigger=PropertyChanged}" SelectedItem="{Binding ReferenceUnit}" Width="50" HorizontalAlignment="Left" Style="{StaticResource ConstraintComboBoxStyle}">
-                                                                <ComboBox.ItemTemplate>
-                                                                    <DataTemplate>
-                                                                        <TextBlock Text="{Binding Converter={StaticResource EnumDisplayTypesConverter}}"/>
-                                                                    </DataTemplate>
-                                                                </ComboBox.ItemTemplate>
-                                                            </ComboBox>
-                                                        </StackPanel>
-                                                        <StackPanel Grid.Row="1" Orientation="Horizontal">
-                                                            <Border CornerRadius="5,5,5,5" Margin ="5,0,0,0" Background="MediumSeaGreen" Height="25" Width="80">
-                                                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                                                                    <TextBlock Text="{Binding ReferenceType, Mode=OneWay, Converter={StaticResource EnumDisplayTypesConverter}, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,2,0" Foreground="White" Background="Transparent" HorizontalAlignment="Center"  VerticalAlignment="Center"/>
-                                                                    <TextBox Text="{Binding StopValue, Converter={StaticResource DoubleToDisplay}, Mode=TwoWay}" Foreground="White" Background="Transparent" BorderBrush="Transparent" HorizontalAlignment="Center" VerticalAlignment="Center" SC:TextBoxExtensions.UpdateSourceOnKey="Return"/>
-                                                                    <TextBlock Text="{Binding ReferenceUnit, Mode=OneWay, Converter={StaticResource EnumDisplayTypesConverter}, UpdateSourceTrigger=PropertyChanged}" Margin="2,0,0,0" Foreground="White" Background="Transparent" HorizontalAlignment="Center"  VerticalAlignment="Center"/>
-                                                                </StackPanel>
-                                                            </Border>
-                                                            <Border CornerRadius="5,5,5,5" Margin ="10,0,0,0" Background="PaleGreen" Height="25" Width="80">
-                                                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                                                                    <TextBlock Text="{Binding ReferenceType, Mode=OneWay, Converter={StaticResource EnumDisplayTypesConverter}, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,2,0" Foreground="Black" Background="Transparent" HorizontalAlignment="Center"  VerticalAlignment="Center"/>
-                                                                    <TextBlock Text="{Binding ReferenceValue, Mode=TwoWay, Converter={StaticResource DoubleToDisplay}}" Background="Transparent" HorizontalAlignment="Center"  VerticalAlignment="Center" SC:TextBoxExtensions.UpdateSourceOnKey="Return"/>
-                                                                    <TextBlock Text="{Binding ReferenceUnit, Mode=OneWay, Converter={StaticResource EnumDisplayTypesConverter}, UpdateSourceTrigger=PropertyChanged}" Background="Transparent" Margin="2,0,0,0" HorizontalAlignment="Center"  VerticalAlignment="Center"/>
-                                                                </StackPanel>
-                                                            </Border>
-                                                            <Border CornerRadius="5,5,5,5" Margin ="10,0,0,0" Background="DarkOrange" Height="25" Width="80">
-                                                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                                                                    <TextBlock Text="{Binding OppositeReferenceTypeString, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,2,0" Foreground="Black" Background="Transparent" HorizontalAlignment="Center"  VerticalAlignment="Center"/>
-                                                                    <TextBox Text="{Binding MinorViolation, Converter={StaticResource DoubleToDisplay}, Mode=TwoWay}" Background="Transparent" HorizontalAlignment="Center" BorderBrush="Transparent" VerticalAlignment="Center" SC:TextBoxExtensions.UpdateSourceOnKey="Return"/>
-                                                                    <TextBlock Text="{Binding ReferenceUnit, Mode=OneWay, Converter={StaticResource EnumDisplayTypesConverter}, UpdateSourceTrigger=PropertyChanged}" Background="Transparent" Margin="2,0,0,0" HorizontalAlignment="Center"  VerticalAlignment="Center"/>
-                                                                </StackPanel>
-                                                            </Border>
-                                                            <Border CornerRadius="5,5,5,5"  Margin ="10,0,0,0" Background="Tomato" Height="25" Width="80">
-                                                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                                                                    <TextBlock Text="{Binding OppositeReferenceTypeString, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,2,0" Foreground="Black" Background="Transparent" HorizontalAlignment="Center"  VerticalAlignment="Center"/>
-                                                                    <TextBox Text="{Binding MajorViolation, Converter={StaticResource DoubleToDisplay}, Mode=TwoWay}" Background="Transparent" HorizontalAlignment="Center" BorderBrush="Transparent" VerticalAlignment="Center" SC:TextBoxExtensions.UpdateSourceOnKey="Return"/>
-                                                                    <TextBlock Text="{Binding ReferenceUnit, Mode=OneWay, Converter={StaticResource EnumDisplayTypesConverter}, UpdateSourceTrigger=PropertyChanged}" Background="Transparent"  Margin="2,0,0,0" HorizontalAlignment="Center"  VerticalAlignment="Center"/>
-                                                                </StackPanel>
-                                                            </Border>
-                                                        </StackPanel>
-                                                    </Grid>
-                                                </GroupBox>
+                                                                <ComboBox ItemsSource ="{Binding Path=AvailableReferenceUnitTypes, UpdateSourceTrigger=PropertyChanged}" SelectedItem="{Binding ReferenceUnit}" Width="50" HorizontalAlignment="Left" Style="{StaticResource ConstraintComboBoxStyle}">
+                                                                    <ComboBox.ItemTemplate>
+                                                                        <DataTemplate>
+                                                                            <TextBlock Text="{Binding Converter={StaticResource EnumDisplayTypesConverter}}"/>
+                                                                        </DataTemplate>
+                                                                    </ComboBox.ItemTemplate>
+                                                                </ComboBox>
+                                                            </StackPanel>
+                                                            <StackPanel Grid.Row="1" Orientation="Horizontal">
+                                                                <Border CornerRadius="5,5,5,5" Margin ="5,0,0,0" Background="MediumSeaGreen" Height="25" Width="80">
+                                                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                                                        <TextBlock Text="{Binding ReferenceType, Mode=OneWay, Converter={StaticResource EnumDisplayTypesConverter}, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,2,0" Foreground="White" Background="Transparent" HorizontalAlignment="Center"  VerticalAlignment="Center"/>
+                                                                        <TextBox Text="{Binding StopValue, Converter={StaticResource DoubleToDisplay}, Mode=TwoWay}" Foreground="White" Background="Transparent" BorderBrush="Transparent" HorizontalAlignment="Center" VerticalAlignment="Center" SC:TextBoxExtensions.UpdateSourceOnKey="Return"/>
+                                                                        <TextBlock Text="{Binding ReferenceUnit, Mode=OneWay, Converter={StaticResource EnumDisplayTypesConverter}, UpdateSourceTrigger=PropertyChanged}" Margin="2,0,0,0" Foreground="White" Background="Transparent" HorizontalAlignment="Center"  VerticalAlignment="Center"/>
+                                                                    </StackPanel>
+                                                                </Border>
+                                                                <Border CornerRadius="5,5,5,5" Margin ="10,0,0,0" Background="PaleGreen" Height="25" Width="80">
+                                                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                                                        <TextBlock Text="{Binding ReferenceType, Mode=OneWay, Converter={StaticResource EnumDisplayTypesConverter}, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,2,0" Foreground="Black" Background="Transparent" HorizontalAlignment="Center"  VerticalAlignment="Center"/>
+                                                                        <TextBlock Text="{Binding ReferenceValue, Mode=TwoWay, Converter={StaticResource DoubleToDisplay}}" Background="Transparent" HorizontalAlignment="Center"  VerticalAlignment="Center" SC:TextBoxExtensions.UpdateSourceOnKey="Return"/>
+                                                                        <TextBlock Text="{Binding ReferenceUnit, Mode=OneWay, Converter={StaticResource EnumDisplayTypesConverter}, UpdateSourceTrigger=PropertyChanged}" Background="Transparent" Margin="2,0,0,0" HorizontalAlignment="Center"  VerticalAlignment="Center"/>
+                                                                    </StackPanel>
+                                                                </Border>
+                                                                <Border CornerRadius="5,5,5,5" Margin ="10,0,0,0" Background="DarkOrange" Height="25" Width="80">
+                                                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                                                        <TextBlock Text="{Binding OppositeReferenceTypeString, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,2,0" Foreground="Black" Background="Transparent" HorizontalAlignment="Center"  VerticalAlignment="Center"/>
+                                                                        <TextBox Text="{Binding MinorViolation, Converter={StaticResource DoubleToDisplay}, Mode=TwoWay}" Background="Transparent" HorizontalAlignment="Center" BorderBrush="Transparent" VerticalAlignment="Center" SC:TextBoxExtensions.UpdateSourceOnKey="Return"/>
+                                                                        <TextBlock Text="{Binding ReferenceUnit, Mode=OneWay, Converter={StaticResource EnumDisplayTypesConverter}, UpdateSourceTrigger=PropertyChanged}" Background="Transparent" Margin="2,0,0,0" HorizontalAlignment="Center"  VerticalAlignment="Center"/>
+                                                                    </StackPanel>
+                                                                </Border>
+                                                                <Border CornerRadius="5,5,5,5"  Margin ="10,0,0,0" Background="Tomato" Height="25" Width="80">
+                                                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                                                        <TextBlock Text="{Binding OppositeReferenceTypeString, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,2,0" Foreground="Black" Background="Transparent" HorizontalAlignment="Center"  VerticalAlignment="Center"/>
+                                                                        <TextBox Text="{Binding MajorViolation, Converter={StaticResource DoubleToDisplay}, Mode=TwoWay}" Background="Transparent" HorizontalAlignment="Center" BorderBrush="Transparent" VerticalAlignment="Center" SC:TextBoxExtensions.UpdateSourceOnKey="Return"/>
+                                                                        <TextBlock Text="{Binding ReferenceUnit, Mode=OneWay, Converter={StaticResource EnumDisplayTypesConverter}, UpdateSourceTrigger=PropertyChanged}" Background="Transparent"  Margin="2,0,0,0" HorizontalAlignment="Center"  VerticalAlignment="Center"/>
+                                                                    </StackPanel>
+                                                                </Border>
+                                                            </StackPanel>
+                                                        </Grid>
+                                                    </GroupBox>
+                                                </Grid>
                                             </Grid>
-                                        </Grid>
-                                    </DataTemplate>
-                                </ListView.ItemTemplate>
-                            </ListView>
+                                        </DataTemplate>
+                                    </ListView.ItemTemplate>
+                                </ListView>
+                            </Grid>
                         </Grid>
                     </Grid>
                 </Grid>

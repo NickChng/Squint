@@ -394,10 +394,20 @@ namespace SquintScript
 
             public static StructureLabel GetStructureLabel(int Id)
             {
+                if (!areStructuresLoaded)
+                {
+                    LoadStructures();
+                    areStructuresLoaded = true;
+                }
                 return _StructureLabels[Id];
             }
             public static string GetStructureCode(int Id)
             {
+                if (!areStructuresLoaded)
+                {
+                    LoadStructures();
+                    areStructuresLoaded = true;
+                }
                 return _StructureLabels[Id].Code;
             }
             public static IEnumerable<StructureLabel> GetAllStructureLabels()
@@ -646,18 +656,13 @@ namespace SquintScript
                         ProtocolLoaded = false;
                     }
                     DbProtocol DbP = Context.DbLibraryProtocols
-                        .Include(x=>x.ProtocolStructures)
-                        .Include(x=>x.Components)
+                        .Include(x => x.ProtocolStructures)
+                        .Include(x => x.Components)
                         .Where(x => x.ProtocolName == ProtocolName && !x.isRetired).SingleOrDefault();
                     if (DbP == null)
                     {
                         ProtocolLoaded = false;
                         return null;
-                    }
-                    if (!areStructuresLoaded)
-                    {
-                        LoadStructures();
-                        areStructuresLoaded = true;
                     }
                     try
                     {
@@ -737,11 +742,6 @@ namespace SquintScript
                     {
                         ClearProtocolData();
                         ProtocolLoaded = false;
-                    }
-                    if (!areStructuresLoaded)
-                    {
-                        LoadStructures();
-                        areStructuresLoaded = true;
                     }
                     try
                     {
@@ -901,13 +901,10 @@ namespace SquintScript
                         DbE.ProtocolStructureName = S.ProtocolStructureName;
                         DbE.StructureLabelID = S.StructureLabelID;
                         DbE.DisplayOrder = S.DisplayOrder;
-                        DbE.DefaultEclipseAliases = String.Join(";", S.DefaultEclipseAliases);
-                        // Create new checklist
-                        DbStructureChecklist DbSC = Context.DbStructureChecklists.Create();
-                        Context.DbStructureChecklists.Add(DbSC);
-                        DbSC.isPointContourChecked = S.CheckList.isPointContourChecked.Value;
-                        DbSC.PointContourThreshold = S.CheckList.PointContourVolumeThreshold.Value;
-                        DbE.DbStructureChecklist = DbSC;
+                      
+                        Save_UpdateStructureAliases(Context, DbE, S);
+                        Save_UpdateStructureCheckList(Context, DbE, S);
+                        
                     }
                     // Checklist
                     var DbPC = Context.DbProtocolChecklists.Create();
@@ -918,9 +915,9 @@ namespace SquintScript
                         DbPC.DbProtocol = DbP;
                         DbPC.Algorithm = (int)C.Algorithm.Value;
                         DbPC.FieldNormalizationMode = (int)C.FieldNormalizationMode.Value;
-                        DbPC.AlgorithmResolution = (double)C.AlgorithmResolution.Value;
-                        DbPC.PNVMin = (double)C.PNVMin.Value;
-                        DbPC.PNVMax = (double)C.PNVMax.Value;
+                        DbPC.AlgorithmResolution = C.AlgorithmResolution.Value;
+                        DbPC.PNVMin = C.PNVMin.Value;
+                        DbPC.PNVMax = C.PNVMax.Value;
                         DbPC.SliceSpacing = (double)C.SliceSpacing.Value;
                         DbPC.HeterogeneityOn = (bool)C.HeterogeneityOn.Value;
                         //Couch
@@ -955,12 +952,13 @@ namespace SquintScript
                         DbC.NumFractions = SC.NumFractions;
                         DbC.ReferenceDose = SC.ReferenceDose;
                         DbC.DisplayOrder = SC.DisplayOrder;
+                        DbC.MinColOffset = SC.MinColOffset.Value;
                         foreach (Beam B in SC.Beams())
                         {
                             var DbB = Context.DbBeams.Create();
                             Context.DbBeams.Add(DbB);
                             DbB.ComponentID = DbC.ID;
-                            DbB.CouchRotation = B.CouchRotation.Value;
+                            DbB.CouchRotation = (double)B.CouchRotation.Value;
                             foreach (string Alias in B.EclipseAliases)
                             {
                                 var DbBA = Context.DbBeamAliases.Create();
@@ -1080,7 +1078,15 @@ namespace SquintScript
                 {
                     //Update Protocol
                     DbProtocol DbP = Context.DbLibraryProtocols.Find(CurrentProtocol.ID);
+                    if (DbP == null) // new protocol
+                    {
+                        DbP = Context.DbLibraryProtocols.Create();
+                        Context.DbLibraryProtocols.Add(DbP);
+                        DbP.ID = IDGenerator();
+                    }
                     DbP.TreatmentCentreID = Context.DbTreatmentCentres.FirstOrDefault(x => x.TreatmentCentre == (int)CurrentProtocol.TreatmentCentre).ID;
+                    DbP.DbUser_Approver = Context.DbUsers.FirstOrDefault(x => x.ARIA_ID == SquintUser);
+                    DbP.DbUser_ProtocolAuthor = Context.DbUsers.FirstOrDefault(x => x.ARIA_ID == SquintUser);
                     DbP.TreatmentSiteID = Context.DbTreatmentSites.FirstOrDefault(x => x.TreatmentSite == (int)CurrentProtocol.TreatmentSite).ID;
                     DbP.ProtocolTypeID = Context.DbProtocolTypes.FirstOrDefault(x => x.ProtocolType == (int)CurrentProtocol.ProtocolType).ID;
                     DbP.ApprovalLevelID = Context.DbApprovalLevels.FirstOrDefault(x => x.ApprovalLevel == (int)CurrentProtocol.ApprovalLevel).ID;
@@ -1107,6 +1113,7 @@ namespace SquintScript
                             DbComponent DbC = Context.DbComponents.Create();
                             Context.DbComponents.Add(DbC);
                             DbC.ID = SC.ID;
+                            DbC.ProtocolID = DbP.ID;
                             //Update
                             DbC.ComponentName = SC.ComponentName;
                             DbC.NumFractions = SC.NumFractions;
@@ -1114,8 +1121,29 @@ namespace SquintScript
                             //update checklist
                             Save_UpdateBeamDefinition(Context, DbC);
                         }
-
-
+                    }
+                    foreach (ProtocolStructure S in _ProtocolStructures.Values)
+                    {
+                        DbProtocolStructure DbS;
+                        if (S.isCreated)
+                        {
+                            DbS = Context.DbProtocolStructures.Create();
+                            Context.DbProtocolStructures.Add(DbS);
+                            DbS.ID = S.ID;
+                            DbS.DbLibraryProtocol = DbP;
+                            DbS.StructureLabelID = 1;
+                            DbS.ProtocolStructureName = S.ProtocolStructureName;
+                            DbS.DisplayOrder = S.DisplayOrder;
+                        }
+                        else
+                        {
+                            DbS = Context.DbProtocolStructures.Find(S.ID);
+                            DbS.ProtocolStructureName = S.ProtocolStructureName;
+                            DbS.DisplayOrder = S.DisplayOrder;
+                            DbS.StructureLabelID = S.StructureLabelID;
+                        }
+                        Save_UpdateStructureCheckList(Context, DbS, S);
+                        Save_UpdateStructureAliases(Context, DbS, S);
                     }
 
                     foreach (Constraint Con in _Constraints.Values)
@@ -1151,9 +1179,13 @@ namespace SquintScript
                         // Update constraint log
                         if (Con.isModified() || Con.isCreated)
                         {
-                            int DbCC_ParentID = Context.DbConstraintChangelogs.Where(x => x.ConstraintID == Con.ID).Select(x => x.ID).OrderBy(x => x).First();
+                            var PreviousLogs = Context.DbConstraintChangelogs.Where(x => x.ConstraintID == Con.ID);
+                            int DbCC_ParentID = 1; // root 
+                            if (PreviousLogs.Count() > 0)
+                                DbCC_ParentID = PreviousLogs.OrderByDescending(x => x.Date).First().ID;
                             DbConstraintChangelog DbCC = Context.DbConstraintChangelogs.Create();
-                            //DbCC.ChangeDescription = GetConstraintView(Con.ID).ChangeDescription;
+                            if (Con.isCreated)
+                                DbCC.ChangeDescription = "Imported";
                             DbCC.ChangeAuthor = SquintUser;
                             DbCC.ConstraintID = Con.ID;
                             DbCC.ConstraintString = Con.GetConstraintString();
@@ -1216,15 +1248,26 @@ namespace SquintScript
                     Dictionary<int, int> StructureLookup = new Dictionary<int, int>();
                     foreach (ProtocolStructure S in _ProtocolStructures.Values)
                     {
-                        DbProtocolStructure DbE = Context.DbProtocolStructures.Create();
-                        Context.DbProtocolStructures.Add(DbE);
-                        DbE.ID = IDGenerator();
-                        StructureLookup.Add(S.ID, DbE.ID);
-                        DbE.ProtocolID = DbP.ID;
-                        DbE.ProtocolStructureName = S.ProtocolStructureName;
-                        DbE.StructureLabelID = S.StructureLabelID;
-                        DbE.DisplayOrder = S.DisplayOrder;
-                        DbE.DefaultEclipseAliases = String.Join(";", S.DefaultEclipseAliases);
+                        DbProtocolStructure DbS = Context.DbProtocolStructures.Create();
+                        Context.DbProtocolStructures.Add(DbS);
+                        DbS.ID = IDGenerator();
+                        StructureLookup.Add(S.ID, DbS.ID);
+                        DbS.ProtocolID = DbP.ID;
+                        DbS.ProtocolStructureName = S.ProtocolStructureName;
+                        DbS.StructureLabelID = S.StructureLabelID;
+                        DbS.DisplayOrder = S.DisplayOrder;
+                        //int displayOrder = 1;
+                        //foreach (string alias in S.DefaultEclipseAliases)
+                        //{
+                        //    DbStructureAlias DbSA = Context.DbStructureAliases.Create();
+                        //    DbSA.DbProtocolStructure = DbS;
+                        //    DbSA.EclipseStructureId = alias;
+                        //    DbSA.DisplayOrder = displayOrder++;
+                        //    DbSA.ID = IDGenerator();
+                        //    Context.DbStructureAliases.Add(DbSA);
+                        //}
+                        Save_UpdateStructureCheckList(Context, DbS, S);
+                        Save_UpdateStructureAliases(Context, DbS, S);
                     }
                     foreach (Component SC in _Components.Values)
                     {
@@ -1260,6 +1303,23 @@ namespace SquintScript
                         DbO.ConstraintValue = Con.ConstraintValue;
                         DbO.DisplayOrder = Con.DisplayOrder.Value;
                         DbO.Fractions = Con.NumFractions;
+                        DbO.MajorViolation = Con.MajorViolation;
+                        DbO.MinorViolation = Con.MinorViolation;
+                        DbO.Stop = Con.Stop;
+                        // Update constraint, indicating copy from current protocol
+                        var PreviousLogs = Context.DbConstraintChangelogs.Where(x => x.ConstraintID == Con.ID);
+                        int DbCC_ParentID = 1; // root 
+                        if (PreviousLogs.Count() > 0)
+                            DbCC_ParentID = PreviousLogs.OrderByDescending(x => x.Date).First().ID;
+                        DbConstraintChangelog DbCC = Context.DbConstraintChangelogs.Create();
+                        DbCC.ChangeDescription = string.Format("Copied from {0}", CurrentProtocol.GetReferenceValues().ProtocolName);
+                        DbCC.ChangeAuthor = SquintUser;
+                        DbCC.ConstraintID = DbO.ID;
+                        DbCC.ConstraintString = Con.GetConstraintString();
+                        DbCC.ParentLogID = DbCC_ParentID;
+                        DbCC.Date = DateTime.Now.ToBinary();
+                        Context.DbConstraintChangelogs.Add(DbCC);
+
                     }
                     try
                     {
@@ -1278,7 +1338,7 @@ namespace SquintScript
                     var DbP = Context.DbLibraryProtocols.Find(Id);
                     if (DbP != null)
                     {
-                        Context.Entry(DbP).State = System.Data.Entity.EntityState.Deleted;
+                        Context.Entry(DbP).State = EntityState.Deleted;
                         Context.SaveChanges();
                         return true;
                     }
@@ -1295,81 +1355,183 @@ namespace SquintScript
                 if (DbPC == null)
                 {
                     DbPC = Context.DbProtocolChecklists.Create();
+                    Context.DbProtocolChecklists.Add(DbPC);
                     DbPC.ID = IDGenerator();
                     DbPC.DbProtocol = DbP;
                 }
-                if (DbPC != null)
+
+
+                DbPC.SliceSpacing = CurrentProtocol.Checklist.SliceSpacing.Value;
+                CurrentProtocol.Checklist.SliceSpacing.AcceptChanges();
+                DbPC.Algorithm = (int)CurrentProtocol.Checklist.Algorithm.Value;
+                CurrentProtocol.Checklist.Algorithm.AcceptChanges();
+                DbPC.AlgorithmResolution = CurrentProtocol.Checklist.AlgorithmResolution.Value;
+                CurrentProtocol.Checklist.AlgorithmResolution.AcceptChanges();
+                //DbPC.Artifacts
+                DbPC.CouchInterior = CurrentProtocol.Checklist.CouchInterior.Value;
+                CurrentProtocol.Checklist.CouchInterior.AcceptChanges();
+                DbPC.CouchSurface = CurrentProtocol.Checklist.CouchSurface.Value;
+                CurrentProtocol.Checklist.CouchSurface.AcceptChanges();
+                DbPC.FieldNormalizationMode = (int)CurrentProtocol.Checklist.FieldNormalizationMode.Value;
+                CurrentProtocol.Checklist.FieldNormalizationMode.AcceptChanges();
+                DbPC.HeterogeneityOn = CurrentProtocol.Checklist.HeterogeneityOn.Value;
+                CurrentProtocol.Checklist.HeterogeneityOn.AcceptChanges();
+                DbPC.PNVMax = CurrentProtocol.Checklist.PNVMax.Value;
+                CurrentProtocol.Checklist.PNVMax.AcceptChanges();
+                DbPC.PNVMin = CurrentProtocol.Checklist.PNVMin.Value;
+                CurrentProtocol.Checklist.PNVMin.AcceptChanges();
+                DbPC.SupportIndication = (int)CurrentProtocol.Checklist.SupportIndication.Value;
+                CurrentProtocol.Checklist.SupportIndication.AcceptChanges();
+                //DbPC.TreatmentTechniqueType 
+
+            }
+
+            private static void Save_UpdateStructureCheckList(SquintdBModel Context, DbProtocolStructure DbS, ProtocolStructure S)
+            {
+                if (DbS.DbStructureChecklist == null) // no existing checklist in db
                 {
-                    DbPC.SliceSpacing = CurrentProtocol.Checklist.SliceSpacing.Value;
-                    CurrentProtocol.Checklist.SliceSpacing.AcceptChanges();
-                    DbPC.Algorithm = (int)CurrentProtocol.Checklist.Algorithm.Value;
-                    CurrentProtocol.Checklist.Algorithm.AcceptChanges();
-                    DbPC.AlgorithmResolution = CurrentProtocol.Checklist.AlgorithmResolution.Value;
-                    CurrentProtocol.Checklist.AlgorithmResolution.AcceptChanges();
-                    //DbPC.Artifacts
-                    DbPC.CouchInterior = CurrentProtocol.Checklist.CouchInterior.Value;
-                    CurrentProtocol.Checklist.CouchInterior.AcceptChanges();
-                    DbPC.CouchSurface = CurrentProtocol.Checklist.CouchSurface.Value;
-                    CurrentProtocol.Checklist.CouchSurface.AcceptChanges();
-                    DbPC.FieldNormalizationMode = (int)CurrentProtocol.Checklist.FieldNormalizationMode.Value;
-                    CurrentProtocol.Checklist.FieldNormalizationMode.AcceptChanges();
-                    DbPC.HeterogeneityOn = CurrentProtocol.Checklist.HeterogeneityOn.Value;
-                    CurrentProtocol.Checklist.HeterogeneityOn.AcceptChanges();
-                    DbPC.PNVMax = CurrentProtocol.Checklist.PNVMax.Value;
-                    CurrentProtocol.Checklist.PNVMax.AcceptChanges();
-                    DbPC.PNVMin = CurrentProtocol.Checklist.PNVMin.Value;
-                    CurrentProtocol.Checklist.PNVMin.AcceptChanges();
-                    DbPC.SupportIndication = (int)CurrentProtocol.Checklist.SupportIndication.Value;
-                    CurrentProtocol.Checklist.SupportIndication.AcceptChanges();
-                    //DbPC.TreatmentTechniqueType 
+                    DbStructureChecklist DbSC = Context.DbStructureChecklists.Create();
+                    Context.DbStructureChecklists.Add(DbSC);
+                    DbSC.ID = IDGenerator();
+                    if (S.CheckList == null) // create new checklist
+                    {
+                        DbSC.isPointContourChecked = false;
+                        DbSC.PointContourThreshold = 0.05;
+                    }
+                    else
+                    {
+                        DbSC.isPointContourChecked = (bool)S.CheckList.isPointContourChecked.Value;
+                        DbSC.PointContourThreshold = (double)S.CheckList.PointContourVolumeThreshold.Value;
+                    }
+                    S.CheckList.isPointContourChecked.AcceptChanges();
+                    S.CheckList.PointContourVolumeThreshold.AcceptChanges();
+                    DbS.DbStructureChecklist = DbSC;
+                }
+                else
+                {
+                    DbS.DbStructureChecklist.isPointContourChecked = (bool)S.CheckList.isPointContourChecked.Value;
+                    DbS.DbStructureChecklist.PointContourThreshold = (double)S.CheckList.PointContourVolumeThreshold.Value;
                 }
             }
+
+            private static void Save_UpdateStructureAliases(SquintdBModel Context, DbProtocolStructure DbS, ProtocolStructure S)
+            {
+                if (DbS.DbStructureAliases == null) //no existing aliases
+                    DbS.DbStructureAliases = new List<DbStructureAlias>();
+                foreach (string alias in S.DefaultEclipseAliases)
+                {
+                    DbStructureAlias DbSA = DbS.DbStructureAliases.FirstOrDefault(x => x.EclipseStructureId == alias);
+                    if (DbSA == null)
+                    {
+                        DbSA = Context.DbStructureAliases.Create();
+                        DbSA.EclipseStructureId = alias;
+                        DbSA.DbProtocolStructure = DbS;
+                        DbSA.DisplayOrder = S.DefaultEclipseAliases.IndexOf(alias)+1;
+                        DbSA.ID = IDGenerator();
+                        Context.DbStructureAliases.Add(DbSA);
+                    }
+                    else
+                    {
+                        DbSA.DisplayOrder = S.DefaultEclipseAliases.IndexOf(alias) + 1; // just update order
+                    }
+                }
+                foreach (DbStructureAlias DbSA in DbS.DbStructureAliases.Where(x => !S.DefaultEclipseAliases.Contains(x.EclipseStructureId)))
+                {
+                    Context.DbStructureAliases.Remove(DbSA);
+                }
+                
+            }
+
             private static void Save_UpdateBeamDefinition(SquintdBModel Context, DbComponent DbC)
             {
+                if (DbC.DbBeams == null)
+                    return;
+                foreach (Beam B in _Beams.Values.Where(x => x.ComponentID == DbC.ID))
+                {
+                    DbBeam DbB = DbC.DbBeams.FirstOrDefault(x => x.ID == B.ID);
+                    if (DbB == null)
+                    {
+                        DbB = Context.DbBeams.Create();
+                        Context.DbBeams.Add(DbB);
+                        DbB.DbComponent = DbC;
+                        DbB.DbBoluses = new List<DbBolus>();
+                        DbB.DbEnergies = new List<DbEnergy>();
+                        DbB.DbBeamAliases = new List<DbBeamAlias>();
+                    }
+                    else if (B.ToRetire)
+                    {
+                        Context.DbBeams.Remove(DbB);
+                        continue;
+                    }
+                    DbBolus DbBol = DbB.DbBoluses.FirstOrDefault();
+                    if (DbBol != null && B.Boluses.FirstOrDefault() != null)
+                    {
+                        DbBol.HU = B.Boluses.FirstOrDefault().HU.Value;
+                        B.Boluses.FirstOrDefault().HU.AcceptChanges();
+                        DbBol.Thickness = B.Boluses.FirstOrDefault().Thickness.Value;
+                        B.Boluses.FirstOrDefault().Thickness.AcceptChanges();
+                        DbBol.ToleranceHU = B.Boluses.FirstOrDefault().ToleranceHU.Value;
+                        B.Boluses.FirstOrDefault().ToleranceHU.AcceptChanges();
+                        DbBol.ToleranceThickness = B.Boluses.FirstOrDefault().ToleranceThickness.Value;
+                        B.Boluses.FirstOrDefault().ToleranceThickness.AcceptChanges();
+                        DbBol.Indication = (int)B.Boluses.FirstOrDefault().Indication.Value;
+                        B.Boluses.FirstOrDefault().Indication.AcceptChanges();
+                    }
+                    DbB.CouchRotation = B.CouchRotation.Value == null ? double.NaN : (double)B.CouchRotation.Value;
+                    B.CouchRotation.AcceptChanges();
+                    DbB.DbEnergies.Clear();
+                    foreach (var energy in B.ValidEnergies)
+                        DbB.DbEnergies.Add(Context.DbEnergies.Find((int)energy));
+                    DbB.JawTracking_Indication = (int)B.JawTracking_Indication.Value;
+                    B.JawTracking_Indication.AcceptChanges();
+                    DbB.MaxColRotation = B.MaxColRotation.Value == null ? double.NaN : (double)B.MaxColRotation.Value;
+                    B.MaxColRotation.AcceptChanges();
+                    DbB.MaxMUWarning = B.MaxMUWarning.Value == null ? double.NaN : (double)B.MaxMUWarning.Value;
+                    B.MaxMUWarning.AcceptChanges();
+                    DbB.MinMUWarning = B.MinMUWarning.Value == null ? double.NaN : (double)B.MinMUWarning.Value;
+                    B.MinMUWarning.AcceptChanges();
+                    DbB.MaxX = B.MaxX.Value == null ? double.NaN : (double)B.MaxX.Value;
+                    B.MaxX.AcceptChanges();
+                    DbB.MinX = B.MinX.Value == null ? double.NaN : (double)B.MinX.Value;
+                    B.MinX.AcceptChanges();
+                    DbB.MaxY = B.MaxY.Value == null ? double.NaN : (double)B.MaxY.Value;
+                    B.MaxY.AcceptChanges();
+                    DbB.MinY = B.MinY.Value == null ? double.NaN : (double)B.MinY.Value;
+                    B.MinY.AcceptChanges();
+                    DbB.ProtocolBeamName = B.ProtocolBeamName;
+                    DbB.Technique = (int)B.Technique;
+                    DbB.ToleranceTable = B.ToleranceTable.Value;
+                    B.ToleranceTable.AcceptChanges();
+
+                    List<string> newAliases = new List<string>(B.EclipseAliases);
+                    if (DbB.DbBeamAliases != null)
+                    {
+                        foreach (DbBeamAlias DbBA in DbB.DbBeamAliases.ToList())
+                        {
+                            if (newAliases.Contains(DbBA.EclipseFieldId))
+                                newAliases.Remove(DbBA.EclipseFieldId);
+                            else
+                                Context.DbBeamAliases.Remove(DbBA);
+                        }
+                        foreach (string newAlias in newAliases)
+                        {
+                            DbBeamAlias DbA = Context.DbBeamAliases.Create();
+                            DbA.EclipseFieldId = newAlias;
+                            DbA.DbBeam = DbB;
+                            Context.DbBeamAliases.Add(DbA);
+                        }
+
+
+                    }
+                }
+
                 foreach (DbBeam DbB in DbC.DbBeams)
                 {
                     if (_Beams.ContainsKey(DbB.ID))
                     {
                         var B = _Beams[DbB.ID];
-                        DbBolus DbBol = DbB.DbBoluses.FirstOrDefault();
-                        if (DbBol != null && B.Boluses.FirstOrDefault() != null)
-                        {
-                            DbBol.HU = B.Boluses.FirstOrDefault().HU.Value;
-                            B.Boluses.FirstOrDefault().HU.AcceptChanges();
-                            DbBol.Thickness = (double)B.Boluses.FirstOrDefault().Thickness.Value;
-                            B.Boluses.FirstOrDefault().Thickness.AcceptChanges();
-                            DbBol.ToleranceHU = (double)B.Boluses.FirstOrDefault().ToleranceHU.Value;
-                            B.Boluses.FirstOrDefault().ToleranceHU.AcceptChanges();
-                            DbBol.ToleranceThickness = (double)B.Boluses.FirstOrDefault().ToleranceThickness.Value;
-                            B.Boluses.FirstOrDefault().ToleranceThickness.AcceptChanges();
-                            DbBol.Indication = (int)B.Boluses.FirstOrDefault().Indication.Value;
-                            B.Boluses.FirstOrDefault().Indication.AcceptChanges();
-                        }
-                        DbB.CouchRotation = B.CouchRotation.Value;
-                        B.CouchRotation.AcceptChanges();
-                        DbB.DbEnergies.Clear();
-                        foreach (var energy in B.ValidEnergies)
-                            DbB.DbEnergies.Add(Context.DbEnergies.Find((int)energy));
-                        DbB.JawTracking_Indication = (int)B.JawTracking_Indication.Value;
-                        B.JawTracking_Indication.AcceptChanges();
-                        DbB.MaxColRotation = B.MaxColRotation.Value;
-                        B.MaxColRotation.AcceptChanges();
-                        DbB.MaxMUWarning = B.MaxMUWarning.Value;
-                        B.MaxMUWarning.AcceptChanges();
-                        DbB.MinMUWarning = B.MinMUWarning.Value;
-                        B.MinMUWarning.AcceptChanges();
-                        DbB.MaxX = B.MaxX.Value;
-                        B.MaxX.AcceptChanges();
-                        DbB.MinX = B.MinX.Value;
-                        B.MinX.AcceptChanges();
-                        DbB.MaxY = B.MaxY.Value;
-                        B.MaxY.AcceptChanges();
-                        DbB.MinY = B.MinY.Value;
-                        B.MinY.AcceptChanges();
-                        DbB.ProtocolBeamName = B.ProtocolBeamName;
-                        DbB.Technique = (int)B.Technique;
-                        DbB.ToleranceTable = B.ToleranceTable.Value;
-                        B.ToleranceTable.AcceptChanges();
+
+
                     }
                     else
                         MessageBox.Show("Error in Save_UpdateBeamDefinition, component not found");
