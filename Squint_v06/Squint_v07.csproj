@@ -138,6 +138,10 @@
     </ApplicationDefinition>
     <Compile Include="AdminWindow.xaml.cs" />
     <Compile Include="AsyncESAPI.cs" />
+    <Compile Include="ConfigXML.cs" />
+    <Compile Include="Controls\EditStructurePopup.xaml.cs">
+      <DependentUpon>EditStructurePopup.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Controls\EditBeamChecksPopup.xaml.cs">
       <DependentUpon>EditBeamChecksPopup.xaml</DependentUpon>
     </Compile>
@@ -164,6 +168,13 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
+    <Compile Include="ProtocolClasses\Assessment.cs" />
+    <Compile Include="ProtocolClasses\Component.cs" />
+    <Compile Include="ProtocolClasses\Constraint.cs" />
+    <Compile Include="ProtocolClasses\PlanAssociation.cs" />
+    <Compile Include="ProtocolClasses\Protocol.cs" />
+    <Compile Include="ProtocolClasses\ProtocolChecklist.cs" />
+    <Compile Include="ProtocolClasses\ProtocolStructure.cs" />
     <Compile Include="SquintExtensions.cs" />
     <Compile Include="TrackedValue.cs" />
     <Compile Include="DoseFunctions.cs" />
@@ -217,12 +228,12 @@
     <Compile Include="Helpers\g3helpers.cs" />
     <Compile Include="Levenshtein.cs" />
     <Compile Include="Serializer.cs" />
-    <Compile Include="SquintController.cs" />
+    <Compile Include="ControllerClasses\SquintController.cs" />
     <Compile Include="SquintdBModel.cs" />
     <Compile Include="SquintEclipseProtocol.cs" />
     <Compile Include="SquintEnums.cs" />
     <Compile Include="SquintPlanChecks.cs" />
-    <Compile Include="SquintProtocol.cs" />
+    <Compile Include="ProtocolClasses\SquintProtocol.cs" />
     <Compile Include="SquintProtocolXML.cs" />
     <Compile Include="StructureLabelXML.cs">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
@@ -234,6 +245,10 @@
       <DependentUpon>WaitWindow.xaml</DependentUpon>
     </Compile>
     <Page Include="AdminWindow.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Controls\EditStructurePopup.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
@@ -613,9 +628,6 @@
     <Folder Include="ConstraintProperties\" />
   </ItemGroup>
   <ItemGroup>
-    <SplashScreen Include="Resources\SquintSplash_v06.png" />
-  </ItemGroup>
-  <ItemGroup>
     <Resource Include="Resources\edit_trans.png" />
   </ItemGroup>
   <ItemGroup>
@@ -635,6 +647,12 @@
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Resources\undo.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\appbar.edit.slash.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <SplashScreen Include="Resources\SquintSplash.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">

@@ -53,7 +53,7 @@ namespace SquintScript
             private static Dictionary<int, Beam> _Beams = new Dictionary<int, Beam>(); // lookup Beam by its key
             private static Dictionary<int, Constraint> _Constraints = new Dictionary<int, Constraint>(); // lookup constraint by its key
             private static Dictionary<int, AsyncPlan> _AsyncPlans = new Dictionary<int, AsyncPlan>();
-            private static Dictionary<int, ECPlan> _Plans = new Dictionary<int, ECPlan>();
+            private static Dictionary<int, PlanAssociation> _Plans = new Dictionary<int, PlanAssociation>();
             private static Dictionary<int, Component> _Components = new Dictionary<int, Component>(); // lookup component by key
             private static Dictionary<int, Assessment> _Assessments = new Dictionary<int, Assessment>();
             //private static Dictionary<int, Constituent> _Constituents = new Dictionary<int, Constituent>();
@@ -128,31 +128,36 @@ namespace SquintScript
             {
                 CurrentProtocol = P;
             }
-            public static void AddPlan(ECPlan P)
+            public static void AddPlan(PlanAssociation P)
             {
                 _Plans.Add(P.ID, P);
-                P.PlanDeleting += OnPlanDeleting;
+                // P.PlanDeleting += OnPlanDeleting;
             }
             public static void OnPlanDeleting(object sender, int ID)
             {
-                _Plans[ID].PlanDeleting -= OnPlanDeleting;
+                //  _Plans[ID].PlanDeleting -= OnPlanDeleting;
                 _Plans.Remove(ID);
             }
             public static void DeletePlan(int ID)
             {
                 _Plans.Remove(ID);
             }
-            public static ECPlan GetPlan(int ID)
+            public static PlanAssociation GetPlanAssociation(int ID)
             {
                 return _Plans[ID];
             }
-            public static IEnumerable<ECPlan> GetAllPlans()
+
+            public static IEnumerable<PlanAssociation> GetPlanAssociations()
             {
                 return _Plans.Values;
             }
             public static void ClearPlans()
             {
                 _Plans.Clear();
+            }
+            public static void ClearPlan(PlanAssociation ECP)
+            {
+                _Plans.Remove(ECP.ID);
             }
             public static List<Beam> GetBeams(int CompID)
             {
@@ -171,12 +176,6 @@ namespace SquintScript
             public static void AddConstraint(Constraint C)
             {
                 _Constraints.Add(C.ID, C);
-                C.ConstraintDeleted += OnConstraintDeleted;
-            }
-            public static void OnConstraintDeleted(object sender, int ID)
-            {
-                _Constraints[ID].ConstraintDeleted -= OnConstraintDeleted;
-                _Constraints.Remove(ID);
             }
             public static Constraint GetConstraint(int ID)
             {
@@ -216,23 +215,6 @@ namespace SquintScript
             public static void AddComponent(Component C)
             {
                 _Components.Add(C.ID, C);
-                C.ComponentDeleted += OnComponentDeleted;
-            }
-            //public static Component DuplicateComponent(int CompID)
-            //{
-            //    Component Cnew = new Component(_Components[CompID]);
-            //    _Components.Add(Cnew.ID, Cnew);
-            //    return Cnew;
-            //}
-
-            public static void OnComponentDeleted(object sender, int ID)
-            {
-                _Components[ID].ComponentDeleted -= OnComponentDeleted;
-                _Components.Remove(ID);
-            }
-            public static void DeleteComponent(int ID)
-            {
-                _Components.Remove(ID);
             }
             public static Component GetComponent(int ID)
             {
@@ -254,7 +236,7 @@ namespace SquintScript
             //        var debugme = "hi";
             //    }
             //}
-            //public static void AddConstraintThreshold(ConstraintThresholdNames Name, ConstraintThresholdTypes Goal, Constraint Con, double value)
+            //public static void AddConstraintThreshold(ReferenceThresholdTypes Name, ConstraintThresholdTypes Goal, Constraint Con, double value)
             //{
             //    ConstraintThreshold CT = new ConstraintThreshold(Name, Goal, Con, value);
             //    _ConstraintThresholds.Add(CT.ID, CT);
@@ -385,6 +367,16 @@ namespace SquintScript
                 }
             }
 
+            public static bool TestDbConnection()
+            {
+                using (SquintdBModel Context = new SquintdBModel())
+                {
+                    if (Context.Database.Exists())
+                        return true;
+                    else return false;
+                }
+            }
+
             private static void LoadStructures()
             {
                 _StructureLabels.Clear();
@@ -399,7 +391,13 @@ namespace SquintScript
                     LoadStructures();
                     areStructuresLoaded = true;
                 }
-                return _StructureLabels[Id];
+                if (_StructureLabels.ContainsKey(Id))
+                    return _StructureLabels[Id];
+                else
+                {
+                    MessageBox.Show(string.Format("Structure Label {0} not found in dictionary, setting default...", Id));
+                    return _StructureLabels[1];
+                }
             }
             public static string GetStructureCode(int Id)
             {
@@ -425,25 +423,15 @@ namespace SquintScript
             public static void AddAssessment(Assessment A)
             {
                 _Assessments.Add(A.ID, A);
-                A.AssessmentDeleted += OnAssessmentDeleting;
+            }
 
-            }
-            public static void OnAssessmentDeleting(object sender, int ID)
+            public static void ClearAssessment(int ID)
             {
-                _Assessments[ID].AssessmentDeleted -= OnAssessmentDeleting;
-                DeleteAssessment(ID);
-            }
-            public static void DeleteAssessment(int ID)
-            {
-                _Assessments[ID].Delete();
                 _Assessments.Remove(ID);
             }
             public static void ClearAssessments()
             {
-                foreach (int AssessmentID in _Assessments.Keys.ToList())
-                {
-                    DeleteAssessment(AssessmentID);
-                }
+                _Assessments.Clear();
                 _AssessmentNameIterator = 1;
             }
             public static Assessment GetAssessment(int ID)
@@ -463,7 +451,8 @@ namespace SquintScript
 
             public static void AddAsyncPlan(AsyncPlan P)
             {
-                _AsyncPlans.Add(P.HashId, P);
+                if (!_AsyncPlans.ContainsKey(P.HashId))
+                    _AsyncPlans.Add(P.HashId, P);
             }
             public static bool isPlanLoaded(string CourseName, string PlanId)
             {
@@ -481,7 +470,7 @@ namespace SquintScript
             {
                 if (!_Courses.ContainsKey(CourseName))
                     LoadCourse(CourseName);
-                AsyncPlan AP = _AsyncPlans.Values.FirstOrDefault(x => x.Id == PlanId && x.Course.Id == CourseName && x.PlanType == PlanType);
+                AsyncPlan AP = _AsyncPlans.Values.FirstOrDefault(x => x.Id == PlanId && x.Course.Id == CourseName && x.ComponentType == PlanType);
                 if (AP == null)
                 {
                     AP = await _Courses[CourseName].GetPlan(PlanId);
@@ -713,16 +702,21 @@ namespace SquintScript
             }
             private static void ClearProtocolData()
             {
-                foreach (ProtocolStructure E in _ProtocolStructures.Values.ToList())
-                    E.Delete();
-                foreach (Constraint C in _Constraints.Values.ToList())
-                    C.Delete();
-                foreach (Component Comp in _Components.Values.ToList())
-                    Comp.Delete();
-                foreach (Beam B in _Beams.Values.ToList())
-                    B.Delete();
-                foreach (ECPlan P in _Plans.Values.ToList())
-                    P.Delete();
+                //foreach (ProtocolStructure E in _ProtocolStructures.Values.ToList())
+                //    E.Delete();
+                //foreach (Constraint C in _Constraints.Values.ToList())
+                //    C.Delete();
+                //foreach (Component Comp in _Components.Values.ToList())
+                //    Comp.Delete();
+                //foreach (Beam B in _Beams.Values.ToList())
+                //    B.Delete();
+                //foreach (ECPlan P in _Plans.Values.ToList())
+                //    P.Delete();
+                _ProtocolStructures.Clear();
+                _Constraints.Clear();
+                _Components.Clear();
+                _Beams.Clear();
+                _Plans.Clear();
                 CurrentProtocol = null;
             }
             public static async Task<bool> Load_Session(int ID)
@@ -747,7 +741,7 @@ namespace SquintScript
                     {
                         CurrentProtocol = new Protocol(DbSP);
                         CurrentSession.AddProtocol(CurrentProtocol);
-                        foreach (DbPlan DbP in DbS.SessionPlans)
+                        foreach (DbPlanAssociation DbP in DbS.SessionPlans)
                             // Load associated course
                             await GetCourse(DbP.CourseName); // this will load all of the Eclipse Courses and populate _AsyncPlans, but we don't create the ECPlan objects until the components are loaded
                         bool AtLeastOneStructure = false;
@@ -802,9 +796,9 @@ namespace SquintScript
                             Assessment A = new Assessment(DbA);
                             AddAssessment(A);
                         }
-                        foreach (DbPlan DbP in DbS.SessionPlans)
+                        foreach (DbPlanAssociation DbP in DbS.SessionPlans)
                         {
-                            ECPlan P = new ECPlan(DbP);
+                            PlanAssociation P = new PlanAssociation(DbP);
                             await P.LoadLinkedPlan(DbP);
                             AddPlan(P);
                         }
@@ -901,10 +895,10 @@ namespace SquintScript
                         DbE.ProtocolStructureName = S.ProtocolStructureName;
                         DbE.StructureLabelID = S.StructureLabelID;
                         DbE.DisplayOrder = S.DisplayOrder;
-                      
+
                         Save_UpdateStructureAliases(Context, DbE, S);
                         Save_UpdateStructureCheckList(Context, DbE, S);
-                        
+
                     }
                     // Checklist
                     var DbPC = Context.DbProtocolChecklists.Create();
@@ -916,8 +910,6 @@ namespace SquintScript
                         DbPC.Algorithm = (int)C.Algorithm.Value;
                         DbPC.FieldNormalizationMode = (int)C.FieldNormalizationMode.Value;
                         DbPC.AlgorithmResolution = C.AlgorithmResolution.Value;
-                        DbPC.PNVMin = C.PNVMin.Value;
-                        DbPC.PNVMax = C.PNVMax.Value;
                         DbPC.SliceSpacing = (double)C.SliceSpacing.Value;
                         DbPC.HeterogeneityOn = (bool)C.HeterogeneityOn.Value;
                         //Couch
@@ -988,11 +980,11 @@ namespace SquintScript
                         }
                         var Plans = _Plans.Values.Where(x => x.ComponentID == SC.ID);
                     }
-                    foreach (ECPlan P in _Plans.Values)
+                    foreach (PlanAssociation P in _Plans.Values)
                     {
                         if (P.Linked)
                         {
-                            DbPlan DbPl = Context.DbPlans.Create();
+                            DbPlanAssociation DbPl = Context.DbPlans.Create();
                             DbPl.SessionId = DbS.ID;
                             DbPl.AssessmentID = AssessmentLookup[P.AssessmentID];
                             DbPl.SessionComponentID = ComponentLookup[P.ComponentID];
@@ -1018,10 +1010,10 @@ namespace SquintScript
                         DbO.ReferenceScale = (int)Con.ReferenceScale;
                         DbO.ReferenceType = (int)Con.ReferenceType;
                         DbO.ReferenceValue = Con.ReferenceValue;
-                        if (Con.SecondaryStructureID == 1)
-                            DbO.SecondaryStructureID = 1;
+                        if (Con.ReferenceStructureId == 1)
+                            DbO.ReferenceStructureId = 1;
                         else
-                            DbO.SecondaryStructureID = StructureLookup[Con.SecondaryStructureID];
+                            DbO.ReferenceStructureId = StructureLookup[Con.ReferenceStructureId];
                         DbO.ConstraintScale = (int)Con.ConstraintScale;
                         DbO.ConstraintType = (int)Con.ConstraintType;
                         DbO.ConstraintValue = Con.ConstraintValue;
@@ -1031,7 +1023,7 @@ namespace SquintScript
                         var ConReferenceValues = Con.GetConstraintReferenceValues();
                         DbO.OriginalNumFractions = ConReferenceValues.NumFractions;
                         DbO.OriginalPrimaryStructureID = ConReferenceValues.PrimaryStructureID;
-                        DbO.OriginalSecondaryStructureID = ConReferenceValues.SecondaryStructureID;
+                        DbO.OriginalSecondaryStructureID = ConReferenceValues.ReferenceStructureId;
                         DbO.OriginalReferenceValue = ConReferenceValues.ReferenceValue;
                         DbO.OriginalReferenceType = (int)ConReferenceValues.ReferenceType;
                         DbO.OriginalConstraintType = (int)ConReferenceValues.ConstraintType;
@@ -1052,11 +1044,10 @@ namespace SquintScript
                                 DbCR.ResultValue = CRV.ResultValue;
                             }
                         }
-                        DbO.MajorViolation = Con.MajorViolation;
-                        DbO.MinorViolation = Con.MinorViolation;
-                        DbO.Stop = Con.Stop;
-
-
+                        DbO.ThresholdDataPath = Con.ThresholdDataPath;
+                        DbO.MajorViolation = (double)Con.MajorViolation;
+                        DbO.MinorViolation = (double)Con.MinorViolation;
+                        DbO.Stop = (double)Con.Stop;
                     }
 
                     try
@@ -1082,7 +1073,7 @@ namespace SquintScript
                     {
                         DbP = Context.DbLibraryProtocols.Create();
                         Context.DbLibraryProtocols.Add(DbP);
-                        DbP.ID = IDGenerator();
+                        DbP.ID = CurrentProtocol.ID;
                     }
                     DbP.TreatmentCentreID = Context.DbTreatmentCentres.FirstOrDefault(x => x.TreatmentCentre == (int)CurrentProtocol.TreatmentCentre).ID;
                     DbP.DbUser_Approver = Context.DbUsers.FirstOrDefault(x => x.ARIA_ID == SquintUser);
@@ -1093,34 +1084,13 @@ namespace SquintScript
                     DbP.LastModifiedBy = SquintUser;
                     DbP.LastModified = DateTime.Now.ToBinary();
                     DbP.ProtocolName = CurrentProtocol.ProtocolName;
+                    DbP.Comments = CurrentProtocol.Comments;
                     //Update Checklist
                     Save_UpdateProtocolCheckList(Context, DbP);
                     //Update Components
                     foreach (Component SC in _Components.Values)
                     {
-                        if (SC.ID > 0)
-                        {
-                            DbComponent DbC = Context.DbComponents.Find(SC.ID);
-                            //Update
-                            DbC.ComponentName = SC.ComponentName;
-                            DbC.NumFractions = SC.NumFractions;
-                            DbC.ReferenceDose = SC.ReferenceDose;
-                            //update checklist
-                            Save_UpdateBeamDefinition(Context, DbC);
-                        }
-                        else
-                        {
-                            DbComponent DbC = Context.DbComponents.Create();
-                            Context.DbComponents.Add(DbC);
-                            DbC.ID = SC.ID;
-                            DbC.ProtocolID = DbP.ID;
-                            //Update
-                            DbC.ComponentName = SC.ComponentName;
-                            DbC.NumFractions = SC.NumFractions;
-                            DbC.ReferenceDose = SC.ReferenceDose;
-                            //update checklist
-                            Save_UpdateBeamDefinition(Context, DbC);
-                        }
+                        Save_UpdateComponent(Context, SC, DbP.ID, false);
                     }
                     foreach (ProtocolStructure S in _ProtocolStructures.Values)
                     {
@@ -1132,91 +1102,33 @@ namespace SquintScript
                             DbS.ID = S.ID;
                             DbS.DbLibraryProtocol = DbP;
                             DbS.StructureLabelID = 1;
-                            DbS.ProtocolStructureName = S.ProtocolStructureName;
-                            DbS.DisplayOrder = S.DisplayOrder;
                         }
                         else
                         {
                             DbS = Context.DbProtocolStructures.Find(S.ID);
-                            DbS.ProtocolStructureName = S.ProtocolStructureName;
-                            DbS.DisplayOrder = S.DisplayOrder;
                             DbS.StructureLabelID = S.StructureLabelID;
                         }
+                        DbS.ProtocolStructureName = S.ProtocolStructureName;
+                        DbS.DisplayOrder = S.DisplayOrder;
+
                         Save_UpdateStructureCheckList(Context, DbS, S);
                         Save_UpdateStructureAliases(Context, DbS, S);
                     }
-
-                    foreach (Constraint Con in _Constraints.Values)
+                    foreach (Constraint con in _Constraints.Values)
                     {
-                        DbConstraint DbO;
-                        if (Con.isCreated)
-                        {
-                            DbO = Context.DbConstraints.Create();
-                            Context.DbConstraints.Add(DbO);
-                            DbO.ID = Con.ID;
-                        }
-                        else
-                        {
-                            DbO = Context.DbConstraints.Find(Con.ID);
-                        }
-
-                        // Update
-                        DbO.PrimaryStructureID = Con.PrimaryStructureID;
-                        DbO.ReferenceScale = (int)Con.ReferenceScale;
-                        DbO.ReferenceType = (int)Con.ReferenceType;
-                        DbO.ReferenceValue = Con.ReferenceValue;
-                        DbO.SecondaryStructureID = Con.SecondaryStructureID;
-                        DbO.ComponentID = Con.ComponentID;
-                        DbO.ConstraintScale = (int)Con.ConstraintScale;
-                        DbO.ConstraintType = (int)Con.ConstraintType;
-                        DbO.ConstraintValue = Con.ConstraintValue;
-                        DbO.DisplayOrder = Con.DisplayOrder.Value;
-                        DbO.Fractions = Con.NumFractions;
-                        DbO.MajorViolation = Con.MajorViolation;
-                        DbO.MinorViolation = Con.MinorViolation;
-                        DbO.Stop = Con.Stop;
-
-                        // Update constraint log
-                        if (Con.isModified() || Con.isCreated)
-                        {
-                            var PreviousLogs = Context.DbConstraintChangelogs.Where(x => x.ConstraintID == Con.ID);
-                            int DbCC_ParentID = 1; // root 
-                            if (PreviousLogs.Count() > 0)
-                                DbCC_ParentID = PreviousLogs.OrderByDescending(x => x.Date).First().ID;
-                            DbConstraintChangelog DbCC = Context.DbConstraintChangelogs.Create();
-                            if (Con.isCreated)
-                                DbCC.ChangeDescription = "Imported";
-                            DbCC.ChangeAuthor = SquintUser;
-                            DbCC.ConstraintID = Con.ID;
-                            DbCC.ConstraintString = Con.GetConstraintString();
-                            DbCC.ParentLogID = DbCC_ParentID;
-                            DbCC.Date = DateTime.Now.ToBinary();
-                            Context.DbConstraintChangelogs.Add(DbCC);
-                        }
-                        // Update constraint thresholds
-                        //foreach (ConstraintThreshold CT in _ConstraintThresholds.Values.Where(x => x.ConstraintID == Con.ID))
-                        //{
-                        //    DbConThreshold DbCT;
-                        //    if (CT.isCreated)
-                        //    {
-                        //        DbCT = Context.DbConThresholds.Create();
-                        //        Context.DbConThresholds.Add(DbCT);
-                        //        DbCT.ConstraintID = Con.ID;
-                        //        DbCT.DbConThresholdDef = Context.DbConThresholdDefs.Where(x => x.Threshold == (int)CT.ThresholdName).SingleOrDefault();
-                        //    }
-                        //    else
-                        //        DbCT = Context.DbConThresholds.Find(CT.ID); // at this point there is no mechanism for the user to create new thresholds for existing constraints
-                        //    DbCT.ThresholdValue = CT.ThresholdValue;
-                        //}
+                        Save_UpdateConstraint(Context, con, con.ComponentID, con.PrimaryStructureID, con.ReferenceStructureId, false);
                     }
+
                     try
                     {
                         await Context.SaveChangesAsync();
+                        if (CurrentProtocol.ID < 0) // first save of protocol
+                            LoadProtocolFromDb(CurrentProtocol.ProtocolName);
                         CurrentProtocol.LastModifiedBy = SquintUser;
                     }
                     catch (Exception ex)
                     {
-                        string debugme = "hi";
+                        MessageBox.Show("Error: Unable to update protocol.", "Error during save");
                     }
                 }
 
@@ -1242,84 +1154,35 @@ namespace SquintScript
                     DbP.LastModifiedBy = SquintUser;
                     DbP.LastModified = DateTime.Now.ToBinary();
                     DbP.ProtocolParentID = CurrentProtocol.ID;
+                    DbP.Comments = CurrentProtocol.Comments;
                     Save_UpdateProtocolCheckList(Context, DbP);
                     //Update Components
                     Dictionary<int, int> ComponentLookup = new Dictionary<int, int>();
                     Dictionary<int, int> StructureLookup = new Dictionary<int, int>();
+                    StructureLookup.Add(1, 1); // add dummy structure
                     foreach (ProtocolStructure S in _ProtocolStructures.Values)
                     {
                         DbProtocolStructure DbS = Context.DbProtocolStructures.Create();
                         Context.DbProtocolStructures.Add(DbS);
-                        DbS.ID = IDGenerator();
-                        StructureLookup.Add(S.ID, DbS.ID);
+                        DbS.ID = IDGenerator(); // because we are creating new
+                        StructureLookup.Add(S.ID, DbS.ID); // save map from old to new Id
                         DbS.ProtocolID = DbP.ID;
                         DbS.ProtocolStructureName = S.ProtocolStructureName;
                         DbS.StructureLabelID = S.StructureLabelID;
                         DbS.DisplayOrder = S.DisplayOrder;
-                        //int displayOrder = 1;
-                        //foreach (string alias in S.DefaultEclipseAliases)
-                        //{
-                        //    DbStructureAlias DbSA = Context.DbStructureAliases.Create();
-                        //    DbSA.DbProtocolStructure = DbS;
-                        //    DbSA.EclipseStructureId = alias;
-                        //    DbSA.DisplayOrder = displayOrder++;
-                        //    DbSA.ID = IDGenerator();
-                        //    Context.DbStructureAliases.Add(DbSA);
-                        //}
                         Save_UpdateStructureCheckList(Context, DbS, S);
                         Save_UpdateStructureAliases(Context, DbS, S);
                     }
                     foreach (Component SC in _Components.Values)
                     {
-                        DbComponent DbC = Context.DbComponents.Create();
-                        Context.DbComponents.Add(DbC);
-                        DbC.ID = IDGenerator();
-                        ComponentLookup.Add(SC.ID, DbC.ID);
-                        DbC.ProtocolID = DbP.ID;
-                        //Update
-                        DbC.ComponentName = SC.ComponentName;
-                        DbC.NumFractions = SC.NumFractions;
-                        DbC.ReferenceDose = SC.ReferenceDose;
-                        //Update checlist
-                        Save_UpdateBeamDefinition(Context, DbC);
+                        var newID = Save_UpdateComponent(Context, SC, DbP.ID, true);
+                        if (newID != null)
+                            ComponentLookup.Add(SC.ID, (int)newID);
                     }
                     foreach (Constraint Con in _Constraints.Values)
                     {
-                        DbConstraint DbO = Context.DbConstraints.Create();
-                        Context.DbConstraints.Add(DbO);
-                        DbO.ID = IDGenerator();
-                        DbO.ComponentID = ComponentLookup[Con.ComponentID];
-                        // Update
-                        DbO.PrimaryStructureID = StructureLookup[Con.PrimaryStructureID];
-                        DbO.ReferenceScale = (int)Con.ReferenceScale;
-                        DbO.ReferenceType = (int)Con.ReferenceType;
-                        DbO.ReferenceValue = Con.ReferenceValue;
-                        if (Con.SecondaryStructureID == 1)
-                            DbO.SecondaryStructureID = 1;
-                        else
-                            DbO.SecondaryStructureID = StructureLookup[Con.SecondaryStructureID];
-                        DbO.ConstraintScale = (int)Con.ConstraintScale;
-                        DbO.ConstraintType = (int)Con.ConstraintType;
-                        DbO.ConstraintValue = Con.ConstraintValue;
-                        DbO.DisplayOrder = Con.DisplayOrder.Value;
-                        DbO.Fractions = Con.NumFractions;
-                        DbO.MajorViolation = Con.MajorViolation;
-                        DbO.MinorViolation = Con.MinorViolation;
-                        DbO.Stop = Con.Stop;
-                        // Update constraint, indicating copy from current protocol
-                        var PreviousLogs = Context.DbConstraintChangelogs.Where(x => x.ConstraintID == Con.ID);
-                        int DbCC_ParentID = 1; // root 
-                        if (PreviousLogs.Count() > 0)
-                            DbCC_ParentID = PreviousLogs.OrderByDescending(x => x.Date).First().ID;
-                        DbConstraintChangelog DbCC = Context.DbConstraintChangelogs.Create();
-                        DbCC.ChangeDescription = string.Format("Copied from {0}", CurrentProtocol.GetReferenceValues().ProtocolName);
-                        DbCC.ChangeAuthor = SquintUser;
-                        DbCC.ConstraintID = DbO.ID;
-                        DbCC.ConstraintString = Con.GetConstraintString();
-                        DbCC.ParentLogID = DbCC_ParentID;
-                        DbCC.Date = DateTime.Now.ToBinary();
-                        Context.DbConstraintChangelogs.Add(DbCC);
-
+                        if (ComponentLookup.ContainsKey(Con.ComponentID))
+                            Save_UpdateConstraint(Context, Con, ComponentLookup[Con.ComponentID], StructureLookup[Con.PrimaryStructureID], StructureLookup[Con.ReferenceStructureId], true);
                     }
                     try
                     {
@@ -1346,6 +1209,118 @@ namespace SquintScript
                         return false;
                 }
 
+            }
+
+            private static int? Save_UpdateComponent(SquintdBModel Context, Component comp, int protocolId, bool createCopy)
+            {
+                DbComponent DbC;
+                if (comp.ToRetire)
+                {
+                    DbC = Context.DbComponents.Find(comp.ID);
+                    if (DbC != null && comp.ToRetire && !createCopy) // don't remove from template if creating copy
+                        Context.DbComponents.Remove(DbC);
+                    return null;
+                    //update checklist
+                }
+                else if (comp.ID < 0 || createCopy)
+                {
+                    DbC = Context.DbComponents.Create();
+                    Context.DbComponents.Add(DbC);
+                    if (createCopy)
+                        DbC.ID = IDGenerator();
+                    else
+                        DbC.ID = comp.ID;
+                }
+                else
+                {
+                    DbC = Context.DbComponents.Find(comp.ID);
+                }
+                // Update
+                DbC.ComponentName = comp.ComponentName;
+                DbC.ProtocolID = protocolId;
+                DbC.DisplayOrder = comp.DisplayOrder;
+                DbC.ComponentType = (int)comp.ComponentType.Value;
+                DbC.NumFractions = comp.NumFractions;
+                DbC.ReferenceDose = comp.ReferenceDose;
+                Save_UpdateBeamDefinition(Context, DbC, comp.ID, createCopy);
+
+                // Update checklist parameters
+                DbC.MaxBeams = comp.MaxBeams.Value;
+                comp.MaxBeams.AcceptChanges();
+                DbC.PNVMin = comp.PNVMin.Value;
+                comp.PNVMin.AcceptChanges();
+                DbC.PNVMax = comp.PNVMax.Value;
+                comp.PNVMax.AcceptChanges();
+                DbC.PrescribedPercentage = comp.PrescribedPercentage.Value;
+                comp.PrescribedPercentage.AcceptChanges();
+                DbC.NumIso = comp.NumIso.Value;
+                comp.NumIso.AcceptChanges();
+                DbC.MinBeams = comp.MinBeams.Value;
+                comp.MinBeams.AcceptChanges();
+                DbC.MinColOffset = comp.MinColOffset.Value;
+                comp.MinColOffset.AcceptChanges();
+                return DbC.ID;
+            }
+
+            private static void Save_UpdateConstraint(SquintdBModel Context, Constraint Con, int ComponentId, int StructureId, int refStructureId, bool createCopy)
+            {
+                DbConstraint DbO;
+                if ((Con.isCreated || createCopy) && !Con.ToRetire)
+                {
+                    DbO = Context.DbConstraints.Create();
+                    Context.DbConstraints.Add(DbO);
+                    if (createCopy)
+                        DbO.ID = IDGenerator();
+                    else
+                        DbO.ID = Con.ID;
+                }
+                else
+                {
+                    DbO = Context.DbConstraints.Find(Con.ID);
+                    if (Con.ToRetire)
+                    {
+                        if (DbO != null)
+                            Context.DbConstraints.Remove(DbO);
+                        return;
+                    }
+                }
+
+                // Update
+                DbO.PrimaryStructureID = StructureId;
+                DbO.ReferenceScale = (int)Con.ReferenceScale;
+                DbO.ReferenceType = (int)Con.ReferenceType;
+                DbO.ReferenceValue = Con.ReferenceValue;
+                DbO.ReferenceStructureId = refStructureId;
+                DbO.ComponentID = ComponentId;
+                DbO.ConstraintScale = (int)Con.ConstraintScale;
+                DbO.ConstraintType = (int)Con.ConstraintType;
+                DbO.ConstraintValue = Con.ConstraintValue;
+                DbO.DisplayOrder = Con.DisplayOrder.Value;
+                DbO.Fractions = Con.NumFractions;
+                DbO.ThresholdDataPath = Con.ThresholdDataPath;
+                DbO.MajorViolation = Con.MajorViolation;
+                DbO.MinorViolation = Con.MinorViolation;
+                DbO.Stop = Con.Stop;
+
+                // Update constraint log
+                if (Con.isModified() || Con.isCreated)
+                {
+                    var PreviousLogs = Context.DbConstraintChangelogs.Where(x => x.ConstraintID == Con.ID);
+                    int DbCC_ParentID = 1; // root 
+                    if (PreviousLogs.Count() > 0)
+                        DbCC_ParentID = PreviousLogs.OrderByDescending(x => x.Date).First().ID;
+                    DbConstraintChangelog DbCC = Context.DbConstraintChangelogs.Create();
+                    if (Con.isCreated)
+                        DbCC.ChangeDescription = "New";
+                    if (createCopy)
+                        DbCC.ChangeDescription = string.Format("Duplicated from protocol ({0})", CurrentProtocol.ProtocolName);
+                    DbCC.ChangeAuthor = SquintUser;
+                    DbCC.ConstraintID = DbO.ID;
+                    DbCC.ConstraintString = Con.GetConstraintString();
+                    DbCC.ParentLogID = DbCC_ParentID;
+                    DbCC.Date = DateTime.Now.ToBinary();
+                    Context.DbConstraintChangelogs.Add(DbCC);
+                }
             }
 
             // Checklist functions
@@ -1376,10 +1351,6 @@ namespace SquintScript
                 CurrentProtocol.Checklist.FieldNormalizationMode.AcceptChanges();
                 DbPC.HeterogeneityOn = CurrentProtocol.Checklist.HeterogeneityOn.Value;
                 CurrentProtocol.Checklist.HeterogeneityOn.AcceptChanges();
-                DbPC.PNVMax = CurrentProtocol.Checklist.PNVMax.Value;
-                CurrentProtocol.Checklist.PNVMax.AcceptChanges();
-                DbPC.PNVMin = CurrentProtocol.Checklist.PNVMin.Value;
-                CurrentProtocol.Checklist.PNVMin.AcceptChanges();
                 DbPC.SupportIndication = (int)CurrentProtocol.Checklist.SupportIndication.Value;
                 CurrentProtocol.Checklist.SupportIndication.AcceptChanges();
                 //DbPC.TreatmentTechniqueType 
@@ -1391,21 +1362,12 @@ namespace SquintScript
                 if (DbS.DbStructureChecklist == null) // no existing checklist in db
                 {
                     DbStructureChecklist DbSC = Context.DbStructureChecklists.Create();
+                    DbSC.ProtocolStructureID = DbS.ID;
                     Context.DbStructureChecklists.Add(DbSC);
-                    DbSC.ID = IDGenerator();
-                    if (S.CheckList == null) // create new checklist
-                    {
-                        DbSC.isPointContourChecked = false;
-                        DbSC.PointContourThreshold = 0.05;
-                    }
-                    else
-                    {
-                        DbSC.isPointContourChecked = (bool)S.CheckList.isPointContourChecked.Value;
-                        DbSC.PointContourThreshold = (double)S.CheckList.PointContourVolumeThreshold.Value;
-                    }
+                    DbSC.isPointContourChecked = (bool)S.CheckList.isPointContourChecked.Value;
+                    DbSC.PointContourThreshold = (double)S.CheckList.PointContourVolumeThreshold.Value;
                     S.CheckList.isPointContourChecked.AcceptChanges();
                     S.CheckList.PointContourVolumeThreshold.AcceptChanges();
-                    DbS.DbStructureChecklist = DbSC;
                 }
                 else
                 {
@@ -1426,7 +1388,7 @@ namespace SquintScript
                         DbSA = Context.DbStructureAliases.Create();
                         DbSA.EclipseStructureId = alias;
                         DbSA.DbProtocolStructure = DbS;
-                        DbSA.DisplayOrder = S.DefaultEclipseAliases.IndexOf(alias)+1;
+                        DbSA.DisplayOrder = S.DefaultEclipseAliases.IndexOf(alias) + 1;
                         DbSA.ID = IDGenerator();
                         Context.DbStructureAliases.Add(DbSA);
                     }
@@ -1439,33 +1401,49 @@ namespace SquintScript
                 {
                     Context.DbStructureAliases.Remove(DbSA);
                 }
-                
+
             }
 
-            private static void Save_UpdateBeamDefinition(SquintdBModel Context, DbComponent DbC)
+            private static void Save_UpdateBeamDefinition(SquintdBModel Context, DbComponent DbC, int sourceComponentID, bool createCopy)
             {
-                if (DbC.DbBeams == null)
-                    return;
-                foreach (Beam B in _Beams.Values.Where(x => x.ComponentID == DbC.ID))
+                foreach (Beam B in _Beams.Values.Where(x => x.ComponentID == sourceComponentID).ToList())
                 {
-                    DbBeam DbB = DbC.DbBeams.FirstOrDefault(x => x.ID == B.ID);
-                    if (DbB == null)
+                    DbBeam DbB = null;
+                    if (DbC.DbBeams != null)
+                        DbB = DbC.DbBeams.FirstOrDefault(x => x.ID == B.ID);
+                    if (B.ToRetire)
+                    {
+                        if (DbB != null && !createCopy) // don't delete if creating copy, just exclude from duplication
+                        {
+                            Context.DbBeams.Remove(DbB);
+                            _Beams.Remove(B.ID);
+                        }
+                        continue;
+                    }
+                    if (DbB == null || createCopy)
                     {
                         DbB = Context.DbBeams.Create();
+                        if (createCopy)
+                            DbB.ID = IDGenerator();
+                        else
+                            DbB.ID = B.ID;
                         Context.DbBeams.Add(DbB);
                         DbB.DbComponent = DbC;
                         DbB.DbBoluses = new List<DbBolus>();
                         DbB.DbEnergies = new List<DbEnergy>();
                         DbB.DbBeamAliases = new List<DbBeamAlias>();
                     }
-                    else if (B.ToRetire)
+
+                    if (B.Boluses.FirstOrDefault() != null)
                     {
-                        Context.DbBeams.Remove(DbB);
-                        continue;
-                    }
-                    DbBolus DbBol = DbB.DbBoluses.FirstOrDefault();
-                    if (DbBol != null && B.Boluses.FirstOrDefault() != null)
-                    {
+                        DbBolus DbBol = DbB.DbBoluses.FirstOrDefault();
+                        if (DbBol == null)
+                        {
+                            DbBol = Context.DbBoluses.Create();
+                            Context.DbBoluses.Add(DbBol);
+                            DbBol.ID = IDGenerator();
+                            DbBol.BeamId = DbB.ID;
+                        }
                         DbBol.HU = B.Boluses.FirstOrDefault().HU.Value;
                         B.Boluses.FirstOrDefault().HU.AcceptChanges();
                         DbBol.Thickness = B.Boluses.FirstOrDefault().Thickness.Value;
@@ -1525,17 +1503,17 @@ namespace SquintScript
                     }
                 }
 
-                foreach (DbBeam DbB in DbC.DbBeams)
-                {
-                    if (_Beams.ContainsKey(DbB.ID))
-                    {
-                        var B = _Beams[DbB.ID];
+                //foreach (DbBeam DbB in DbC.DbBeams)
+                //{
+                //    if (_Beams.ContainsKey(DbB.ID))
+                //    {
+                //        var B = _Beams[DbB.ID];
 
 
-                    }
-                    else
-                        MessageBox.Show("Error in Save_UpdateBeamDefinition, component not found");
-                }
+                //    }
+                //    else
+                //        MessageBox.Show("Error in Save_UpdateBeamDefinition, component not found");
+                //}
             }
         }
     }

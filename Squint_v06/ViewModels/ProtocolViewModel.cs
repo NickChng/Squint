@@ -20,6 +20,8 @@ using Controls = SquintScript.Controls;
 using SquintScript.ViewModelClasses;
 using SquintScript.Interfaces;
 using SquintScript.Extensions;
+using System.Windows.Threading;
+using Npgsql;
 
 namespace SquintScript.ViewModels
 {
@@ -40,8 +42,6 @@ namespace SquintScript.ViewModels
             Ctr.CurrentStructureSetChanged += UpdateAvailableStructureIds;
             Ctr.ProtocolListUpdated += UpdateProtocolList;
             Ctr.ProtocolConstraintOrderChanged += UpdateConstraintOrder;
-            Ctr.ConstraintAdded += OnConstraintAdded;
-            Ctr.ConstraintRemoved += OnConstraintRemoved;
         }
         // ViewModels
         public Presenter ParentView { get; set; }
@@ -52,8 +52,6 @@ namespace SquintScript.ViewModels
             Ctr.CurrentStructureSetChanged -= UpdateAvailableStructureIds;
             Ctr.ProtocolListUpdated -= UpdateProtocolList;
             Ctr.ProtocolConstraintOrderChanged -= UpdateConstraintOrder;
-            Ctr.ConstraintAdded -= OnConstraintAdded;
-            Ctr.ConstraintRemoved -= OnConstraintRemoved;
             ChecklistViewModel.Unsubscribe();
 
         }
@@ -64,6 +62,22 @@ namespace SquintScript.ViewModels
         public ProtocolSelector SelectedProtocol { get; set; } = new ProtocolSelector(new Ctr.ProtocolPreview());
 
         public bool isProtocolLoaded { get; set; }
+
+        public string Comments 
+        { 
+            get 
+            {
+                if (_P != null)
+                    return _P.Comments;
+                else
+                    return "";
+            } 
+            set 
+            {
+                if (_P != null)
+                    _P.Comments = value; 
+            } 
+        }
 
         public string ProtocolName
         {
@@ -198,7 +212,7 @@ namespace SquintScript.ViewModels
         }
         public Progress<int> Progress { get; set; }
         public ObservableCollection<StructureSelector> Structures { get; set; } = new ObservableCollection<StructureSelector>();
-        public ObservableCollection<string> AvailableStructureIds { get; private set; } = new ObservableCollection<string>() { "default" };
+        public ObservableCollection<string> AvailableStructureIds { get; private set; } = new ObservableCollection<string>() { "No structure set" };
         public ObservableCollection<ProtocolSelector> Protocols { get; set; } = new ObservableCollection<ProtocolSelector>();
         public ObservableCollection<ComponentSelector> Components { get; set; } = new ObservableCollection<ComponentSelector>();
         public ObservableCollection<ConstraintSelector> Constraints { get; set; } = new ObservableCollection<ConstraintSelector>();
@@ -242,32 +256,7 @@ namespace SquintScript.ViewModels
             //    }
             //}
         }
-        private void OnConstraintAdded(object sender, int Id)
-        {
-            Ctr.Constraint Con = Ctr.GetConstraint(Id);
-            if (Con != null)
-            {
-                StructureSelector SS = Structures.FirstOrDefault(x => x.Id == Con.PrimaryStructureID);
-                ConstraintSelector CS = new ConstraintSelector(Con, SS);
-                //var test = Constraints.FirstOrDefault(x => x.DisplayOrder == (Con.DisplayOrder - 1));
-                int Order = Constraints.IndexOf(Constraints.FirstOrDefault(x => x.DisplayOrder == (Con.DisplayOrder.Value - 1)));
-                Constraints.Insert(Order + 1, CS);
-            }
-        }
-        private void OnConstraintRemoved(object sender, int Id)
-        {
-            Constraints.Remove(Constraints.FirstOrDefault(x => x.Id == Id));
-        }
-        //private void OnProtocolPropertyChanged(object sender, PropertyChangedEventArgs e)
-        //{
-        //    switch (e.PropertyName)
-        //    {
-        //        case nameof(Ctr.Protocol.LastModifiedBy):
-        //            RaisePropertyChangedEvent(nameof(LastModifiedBy));
-        //            break;
-        //    }
-        //    RaisePropertyChangedEvent(nameof(Protocols));
-        //}
+     
         public void AddConstraint()
         {
             if (Ctr.ProtocolLoaded)
@@ -277,6 +266,7 @@ namespace SquintScript.ViewModels
             }
 
         }
+
         public void AddStructure()
         {
             if (Ctr.ProtocolLoaded)
@@ -286,10 +276,83 @@ namespace SquintScript.ViewModels
             }
         }
 
+        public ICommand AddComponentCommand
+        {
+            get { return new DelegateCommand(AddComponent); }
+        }
+
+        private void AddComponent(object param = null)
+        {
+            if (Ctr.ProtocolLoaded)
+            {
+                var newComponent = Ctr.AddComponent();
+                newComponent.DisplayOrder = Components.Count + 1;
+                var CS = new ComponentSelector(newComponent);
+                Components.Add(CS);
+                foreach (var conS in Constraints.ToList())
+                {
+                   conS.Components.Add(CS);
+                }
+            }
+        }
+
+        public ICommand DeleteComponentCommand
+        {
+            get { return new DelegateCommand(DeleteComponent); }
+        }
+
+        private void DeleteComponent(object param)
+        {
+            if (Ctr.ProtocolLoaded)
+            {
+                if (Ctr.GetComponentList().Count > 1)
+                {
+                    var csToDelete = param as ComponentSelector;
+                    var response = MessageBox.Show("Deleting this component will delete all associated constraints, continue?", "Delete component", MessageBoxButton.OKCancel);
+                    if (response == MessageBoxResult.OK)
+                    {
+                        Ctr.DeleteComponent(csToDelete.Id);
+                        Components.Remove(csToDelete);
+                        foreach (var CS in Constraints.ToList())
+                        {
+                            if (CS.Component.Id == csToDelete.Id)
+                                Constraints.Remove(CS);
+                            else
+                                CS.Components.Remove(CS.Components.FirstOrDefault(x => x.Id == csToDelete.Id));
+                        }
+                    }
+                }
+                else
+                {
+                    MessageBox.Show("Protocol must have at least one component.", "Cannot delete");
+                }
+            }
+        }
+
+        public ICommand DeleteConstraintCommand
+        {
+            get { return new DelegateCommand(DeleteConstraint); }
+        }
+        private void DeleteConstraint(object param = null)
+        {
+            var CS = param as ConstraintSelector;
+            if (CS != null)
+            {
+                if (CS.Id > 0)
+                {
+                    var D = MessageBox.Show("Delete this constraint?", "Confirm deletion", MessageBoxButton.OKCancel);
+                    if (D == MessageBoxResult.OK)
+                        Ctr.DeleteConstraint(CS.Id);
+                }
+                else
+                    Ctr.DeleteConstraint(CS.Id);
+                Constraints.Remove(CS);
+            }
+        }
+
         public void ViewLoadedProtocol()
         {
-            ParentView.Protocol.UpdateProtocolView();
-            ParentView.Protocol.isProtocolLoaded = true;
+            UpdateProtocolView();
             isProtocolLoaded = true;
         }
         public ICommand LoadSelectedProtocolCommand
@@ -301,14 +364,14 @@ namespace SquintScript.ViewModels
             if (ParentView.isLoading == true)
                 return;
             var PS = (ProtocolSelector)param;
-            if (PS == null)
+            if (PS.Id == 0)
                 return; // no protocol selected;
             ParentView.LoadingString = "Loading selected protocol...";
             ParentView.isLoading = true;
             AssessmentPresenter = new AssessmentsView(this);
-            await Task.Run(() => Ctr.LoadProtocolFromDb(PS.ProtocolName));
             ChecklistViewModel.Unsubscribe();
             ChecklistViewModel = new Checklist_ViewModel(this);
+            await Task.Run(() => Ctr.LoadProtocolFromDb(PS.ProtocolName));
             UpdateProtocolView();
             isProtocolLoaded = true;
             ParentView.isLoading = false;
@@ -320,23 +383,28 @@ namespace SquintScript.ViewModels
             RaisePropertyChangedEvent(nameof(TreatmentSite));
             RaisePropertyChangedEvent(nameof(ProtocolType));
             RaisePropertyChangedEvent(nameof(ApprovalLevel));
-            Structures.Clear();
-            Constraints.Clear();
-            Components.Clear();
+            RaisePropertyChangedEvent(nameof(Comments));
+            List<StructureSelector> SSList = new List<StructureSelector>();
+            List<ConstraintSelector> ConList = new List<ConstraintSelector>();
+            List<ComponentSelector> CompList = new List<ComponentSelector>();
             foreach (var S in Ctr.GetStructureList().OrderBy(x => x.DisplayOrder))
             {
-                Structures.Add(new StructureSelector(S));
+                var SS = new StructureSelector(S);
+                SSList.Add(SS);
             }
             foreach (var C in Ctr.GetConstraints().OrderBy(x => x.DisplayOrder))
             {
-                StructureSelector SS = Structures.FirstOrDefault(x => x.Id == C.PrimaryStructureID);
+                StructureSelector SS = SSList.FirstOrDefault(x => x.Id == C.PrimaryStructureID);
                 ConstraintSelector CS = new ConstraintSelector(C, SS);
-                Constraints.Add(CS);
+                ConList.Add(CS);
             }
             foreach (var Comp in Ctr.GetComponentList().OrderBy(x => x.DisplayOrder))
             {
-                Components.Add(new ComponentSelector(Comp));
+                CompList.Add(new ComponentSelector(Comp));
             }
+            Structures = new ObservableCollection<StructureSelector>(SSList);
+            Components = new ObservableCollection<ComponentSelector>(CompList);
+            Constraints = new ObservableCollection<ConstraintSelector>(ConList);
             AssessmentPresenter = new AssessmentsView(this);
             AssessmentPresenter.LoadAssessmentViews();
         }

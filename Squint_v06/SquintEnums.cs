@@ -97,6 +97,7 @@ namespace SquintScript
         [Description("Unset")] Unset,
         [Description("Curative")] Curative,
         [Description("Adjuvant")] Adjuvant,
+        [Description("Neo-adjuvant")] NeoAdjuvant,
         [Description("Palliative")] Palliative,
     }
 
@@ -244,6 +245,7 @@ namespace SquintScript
         [Description("Unchanged")] Unchanged,
         [Description("Modified")] Modified,
         [Description("Deleted")] Deleted,
+        [Description("New")] New,
     }
 
     public enum ExceptionTypes
@@ -290,9 +292,8 @@ namespace SquintScript
     public enum ComponentTypes
     {
         [Description("")] Unset = 0,
-        [Description("Plan")] Plan = 1,
+        [Description("Phase")] Phase = 1,
         [Description("Sum")] Sum = 2,
-        [Description("NonStdSum")] NonStdSum = 3,
     }
     public enum TypeCodes
     {
@@ -320,7 +321,20 @@ namespace SquintScript
         [Description("Mean Dose")] M = 4
     }
 
-    public enum ConstraintThresholdNames
+    public enum ReferenceThresholdCalculationTypes
+    {
+        [Description("Unset")] Unset,
+        [Description("Fixed")] Fixed,
+        [Description("Interpolated")] Interpolated,
+    }
+
+    public enum InterpolationParameterTypes
+    {
+        [Description("Unset")] Unset,
+        [Description("StructureVolume")] StructureVolume,
+    }
+
+    public enum ReferenceThresholdTypes
     {
         [Description("Unset")] Unset,
         [Description("None")] None,

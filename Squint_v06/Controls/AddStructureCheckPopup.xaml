@@ -130,7 +130,7 @@
                         <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
                     <TextBlock Grid.Row="0" Text="Select structure " FontSize="13" FontFamily="Arial" VerticalAlignment="Center" TextAlignment="Center" Margin="0,10,0,0"  HorizontalAlignment="Center"/>
-                    <ComboBox Grid.Row="1" Style="{DynamicResource ConstraintComboBoxStyle}" ItemsSource="{Binding Structures}"
+                    <ComboBox Grid.Row="1" Style="{DynamicResource ConstraintComboBoxStyle}" ItemsSource="{Binding ParentView.Structures, UpdateSourceTrigger=PropertyChanged}"
                               SelectedItem="{Binding SelectedStructure, Mode=OneWayToSource, UpdateSourceTrigger=PropertyChanged}"
                               DisplayMemberPath="ProtocolStructureName"/>
                 </Grid>

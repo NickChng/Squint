@@ -10,7 +10,6 @@ using SquintScript.ViewModels;
 
 namespace SquintScript
 {
-
     public interface ITrackedValue
     {
         bool IsChanged { get; }
@@ -21,6 +20,8 @@ namespace SquintScript
         protected T _ReferenceValue;
         protected T _CurrentValue;
         
+        public string DisplayName { get; set; }
+
         //private event EventHandler _UpdateEvent = null;
         
         //public void AcceptChangesOnEvent(EventHandler e)
@@ -101,7 +102,13 @@ namespace SquintScript
             set
             {
                 _CurrentValue = value;
-                IsChanged = !_CurrentValue.Equals(_ReferenceValue);
+                if (_CurrentValue == null)
+                    if (_ReferenceValue == null)
+                        IsChanged = false;
+                    else
+                        IsChanged = true;
+                else
+                    IsChanged = !_CurrentValue.Equals(_ReferenceValue);
 
             }
         }

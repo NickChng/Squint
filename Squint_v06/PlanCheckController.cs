@@ -24,47 +24,30 @@ using SquintScript.Extensions;
 
 namespace SquintScript
 {
-    public static partial class Ctr
-    {
-        public static void UpdateChecklistReferenceValue(CheckTypes CheckType, object ReferenceValue)
-        {
-            switch (CheckType)
-            {
-                case CheckTypes.Unset:
-                    MessageBox.Show("Error: Attempt to save undefined CheckType");
-                    break;
-                case CheckTypes.SliceSpacing:
-                    CurrentProtocol.Checklist.SliceSpacing.Value = (double)ReferenceValue;
-                    break;
-                default:
-                    MessageBox.Show(string.Format("Error: Attempt to save CheckType {0}", CheckType.Display()));
-                    break;
+    //public static partial class Ctr
+    //{
+    //    //public static void UpdateChecklistReferenceValue(CheckTypes CheckType, object ReferenceValue)
+    //    //{
+    //    //    switch (CheckType)
+    //    //    {
+    //    //        case CheckTypes.Unset:
+    //    //            MessageBox.Show("Error: Attempt to save undefined CheckType");
+    //    //            break;
+    //    //        case CheckTypes.SliceSpacing:
+    //    //            CurrentProtocol.Checklist.SliceSpacing.Value = (double)ReferenceValue;
+    //    //            break;
+    //    //        default:
+    //    //            MessageBox.Show(string.Format("Error: Attempt to save CheckType {0}", CheckType.Display()));
+    //    //            break;
 
-            }
-        }
-        public static void UpdateChecklistReferenceRange(CheckTypes CheckType, object Min, object Max)
-        {
-            switch (CheckType)
-            {
-                case CheckTypes.Unset:
-                    MessageBox.Show("Error: Attempt to save undefined CheckType");
-                    break;
-                case CheckTypes.PlanNormalization:
-                    CurrentProtocol.Checklist.PNVMax.Value = (double)Max;
-                    CurrentProtocol.Checklist.PNVMin.Value = (double)Min;
-                    break;
+    //    //    }
+    //    //}
+      
 
-            }
-        }
-        //public static void Save_UpdateProtocolChecklist()
-        //{
-        //    DataCache.Save_UpdateProtocolCheckList();
-        //}
-
-        public static async Task<double> GetVolumeAfterExpansion(PlanSelector ps, string StructureId, double Margin)
-        {
-            AsyncPlan p = await DataCache.GetAsyncPlan(ps.PlanUID, ps.CourseId);
-            return await p.CheckMargin(StructureId, Margin);
-        }
-    }
+    //    //public static async Task<double> GetVolumeAfterExpansion(PlanSelector ps, string StructureId, double Margin)
+    //    //{
+    //    //    AsyncPlan p = await DataCache.GetAsyncPlan(ps.PlanUID, ps.CourseId);
+    //    //    return await p.CheckMargin(StructureId, Margin);
+    //    //}
+    //}
 }

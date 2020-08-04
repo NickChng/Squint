@@ -229,6 +229,11 @@ namespace SquintScript.Controls
         }
         public List<Ctr.TxFieldItem> Fields { get; set; }
         private Ctr.Beam RefBeam;
+
+        public void RetireCheck()
+        {
+            RefBeam.ToRetire = true;
+        }
         public ObservableCollection<string> Aliases { get; set; } = new ObservableCollection<string> { @"Field1" };
         public string FieldDescription { get; set; }
         public string BeamId { get { return Field.Id; } }
@@ -290,11 +295,22 @@ namespace SquintScript.Controls
             // Populate Tests
             BeamTests.Tests.Add(new CheckRangeItem<double?>(CheckTypes.MURange, double.NaN, RefBeam.MinMUWarning, RefBeam.MaxMUWarning, "MU outside normal range"));
             BeamTests.Tests.Add(new CheckContainsItem<Energies>(CheckTypes.ValidEnergies, Energies.Unset, RefBeam.ValidEnergies, "Not a valid energy"));
-            BeamTests.Tests.Add(new TestListBeamStartStopItem(CheckTypes.BeamGeometry, null, RefBeam.ValidGeometries, "No valid geometry found"));
+            //BeamTests.Tests.Add(new TestListBeamStartStopItem(CheckTypes.BeamGeometry, null, RefBeam.ValidGeometries, "No valid geometry found"));
+            BeamTests.Tests.Add(new CheckContainsItem<Ctr.BeamGeometry>(CheckTypes.BeamGeometry, new Ctr.BeamGeometry(), RefBeam.ValidGeometries, "No valid geometry found"));
             BeamTests.Tests.Add(new CheckValueItem<double?>(CheckTypes.CouchRotation, -1, RefBeam.CouchRotation, new TrackedValue<double?>(1E-2), "Non-standard couch rotation"));
-            BeamTests.Tests.Add(new CheckValueItem<bool?>(CheckTypes.JawTracking, null, new TrackedValue<bool?>(true), null, "No tracking detected"));
+            switch (RefBeam.JawTracking_Indication.Value)
+            {
+                case ParameterOptions.Required:
+                    BeamTests.Tests.Add(new CheckValueItem<bool?>(CheckTypes.JawTracking, null, new TrackedValue<bool?>(true), null, "No tracking detected"));
+                    break;
+                case ParameterOptions.Optional:
+                    BeamTests.Tests.Add(new CheckValueItem<bool?>(CheckTypes.JawTracking, null, null, null, "No tracking detected"));
+                    break;
+                case ParameterOptions.None:
+                    BeamTests.Tests.Add(new CheckValueItem<bool?>(CheckTypes.JawTracking, null, new TrackedValue<bool?>(false), null, "No tracking detected"));
+                    break;
+            }
             BeamTests.Tests.Add(new CheckValueItem<double?>(CheckTypes.MinMLCOffsetFromAxial, -1, RefBeam.MinColRotation, new TrackedValue<double?>(1E-2), "Collimator less than minimum offset") { ParameterOption = ParameterOptions.Optional, Test = TestType.GreaterThan });
-
             BeamTests.Tests.Add(new CheckValueItem<double?>(CheckTypes.MinimumXfieldSize, -1, RefBeam.MinX, null, "X field too small") { Test = TestType.GreaterThan });
             BeamTests.Tests.Add(new CheckValueItem<double?>(CheckTypes.MaximumXfieldSize, -1, RefBeam.MaxX, null, "X field too large") { Test = TestType.LessThan });
             BeamTests.Tests.Add(new CheckValueItem<double?>(CheckTypes.MinimumYfieldSize, -1, RefBeam.MinY, null, "Y field too small") { Test = TestType.GreaterThan });

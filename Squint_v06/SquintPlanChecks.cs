@@ -14,15 +14,18 @@ using System.Data.Entity;
 using System.Collections.ObjectModel;
 using PropertyChanged;
 using System.Data;
+using SquintScript.Interfaces;
+using SquintScript.Extensions;
 
 namespace SquintScript
 {
     public static partial class Ctr
     {
-        public class BeamGeometry
+        public class BeamGeometry : IDisplayable, IElementOf<BeamGeometry>
         {
             public Trajectories Trajectory { get; set; } = Trajectories.Unset;
             public string GeometryName { get; set; } = "Unset";
+            public string DisplayName { get { return GeometryName; } }
             public double StartAngle { get; set; } = double.NaN;
             public double EndAngle { get; set; } = double.NaN;
             public double StartAngleTolerance { get; set; } = 1;
@@ -45,11 +48,44 @@ namespace SquintScript
                         return A;
                 }
             }
+
+            public string SuperSetName { get; private set; } = "";
+            public bool IsElementOf(BeamGeometry G)
+            {
+
+                if (Trajectory == Trajectories.Static)
+                {
+                    if (StartAngle.CloseEnough(G.StartAngle, G.StartAngleTolerance))
+                    {
+                        SuperSetName = G.GeometryName;
+                        return true;
+                    }
+                    else return false;
+                }
+                else // some kind of arc
+                {
+                    double InvariantMaxStart = G.GetInvariantAngle(G.StartAngle) + G.StartAngleTolerance;
+                    double InvariantMinStart = InvariantMaxStart - 2 * G.StartAngleTolerance;
+                    double InvariantMaxEnd = G.GetInvariantAngle(G.EndAngle) + G.EndAngleTolerance;
+                    double InvariantMinEnd = InvariantMaxEnd - 2 * G.EndAngleTolerance;
+
+                    var FieldStart = G.GetInvariantAngle(StartAngle);
+                    var FieldEnd = G.GetInvariantAngle(EndAngle);
+
+                    if (FieldStart >= InvariantMinStart && FieldStart <= InvariantMaxStart && FieldEnd >= InvariantMinEnd && FieldEnd <= InvariantMaxEnd)
+                    {
+                        SuperSetName = G.GeometryName;
+                        return true;
+                    }
+                    else return false;
+                }
+            }
         }
 
         [AddINotifyPropertyChangedInterface]
         public class Beam
         {
+
             //References
             public int ID { get; private set; }
             public int ComponentID { get; private set; }
@@ -71,7 +107,7 @@ namespace SquintScript
             public TrackedValue<double?> MaxY { get; set; }
             public TrackedValue<ParameterOptions> JawTracking_Indication { get; set; }
             public ObservableCollection<string> EclipseAliases { get; set; } = new ObservableCollection<string>();
-            public List<BeamGeometry> ValidGeometries { get; set; } = new List<BeamGeometry>();
+            public ObservableCollection<BeamGeometry> ValidGeometries { get; set; } = new ObservableCollection<BeamGeometry>();
             public List<BolusDefinition> Boluses { get; set; } = new List<BolusDefinition>();
             // Methods
             public void Delete()

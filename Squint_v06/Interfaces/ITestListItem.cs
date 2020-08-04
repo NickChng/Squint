@@ -9,6 +9,16 @@ using System.Windows;
 
 namespace SquintScript.Interfaces
 {
+
+    public interface IDisplayable
+    {
+        string DisplayName { get; }
+    }
+    public interface IElementOf<T>
+    {
+        bool IsElementOf(T SuperSet);
+        string SuperSetName { get; }
+    }
     public interface ITestListItem
     {
         void SetCheckValue(object value);

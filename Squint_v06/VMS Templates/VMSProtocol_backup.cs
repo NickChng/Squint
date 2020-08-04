@@ -17,7 +17,7 @@ namespace VMSTemplates
 
         private object fieldAlignmentRulesField;
 
-        private ProtocolPhase[] phasesField;
+        private ProtocolPhases phasesField;
 
         private ProtocolReview reviewField;
 
@@ -63,8 +63,7 @@ namespace VMSTemplates
         }
 
         /// <remarks/>
-        [System.Xml.Serialization.XmlArrayItemAttribute("Phase", IsNullable = false)]
-        public ProtocolPhase[] Phases
+        public ProtocolPhases Phases
         {
             get
             {
@@ -321,7 +320,7 @@ namespace VMSTemplates
 
         private ProtocolStructureTemplateStructureIdentification identificationField;
 
-        private ushort? typeIndexField;
+        private byte typeIndexField;
 
         private string colorAndStyleField;
 
@@ -329,11 +328,11 @@ namespace VMSTemplates
 
         private string searchCTHighField;
 
-        private ushort? dVHLineStyleField;
+        private byte dVHLineStyleField;
 
         private int dVHLineColorField;
 
-        private ushort? dVHLineWidthField;
+        private byte dVHLineWidthField;
 
         private object eUDAlphaField;
 
@@ -361,7 +360,7 @@ namespace VMSTemplates
         }
 
         /// <remarks/>
-        public ushort? TypeIndex
+        public byte TypeIndex
         {
             get
             {
@@ -415,7 +414,7 @@ namespace VMSTemplates
         }
 
         /// <remarks/>
-        public ushort? DVHLineStyle
+        public byte DVHLineStyle
         {
             get
             {
@@ -441,7 +440,7 @@ namespace VMSTemplates
         }
 
         /// <remarks/>
-        public ushort? DVHLineWidth
+        public byte DVHLineWidth
         {
             get
             {
@@ -547,11 +546,11 @@ namespace VMSTemplates
 
         private object volumeIDField;
 
-        private string volumeCodeField;
+        private object volumeCodeField;
 
         private string volumeTypeField;
 
-        private string volumeCodeTableField;
+        private object volumeCodeTableField;
 
         private ProtocolStructureTemplateStructureIdentificationStructureCode structureCodeField;
 
@@ -569,7 +568,7 @@ namespace VMSTemplates
         }
 
         /// <remarks/>
-        public string VolumeCode
+        public object VolumeCode
         {
             get
             {
@@ -595,7 +594,7 @@ namespace VMSTemplates
         }
 
         /// <remarks/>
-        public string VolumeCodeTable
+        public object VolumeCodeTable
         {
             get
             {
@@ -632,7 +631,7 @@ namespace VMSTemplates
 
         private string codeSchemeField;
 
-        private double codeSchemeVersionField;
+        private decimal codeSchemeVersionField;
 
         /// <remarks/>
         [System.Xml.Serialization.XmlAttributeAttribute()]
@@ -664,7 +663,7 @@ namespace VMSTemplates
 
         /// <remarks/>
         [System.Xml.Serialization.XmlAttributeAttribute()]
-        public double CodeSchemeVersion
+        public decimal CodeSchemeVersion
         {
             get
             {
@@ -681,12 +680,35 @@ namespace VMSTemplates
     [System.SerializableAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
     [System.Xml.Serialization.XmlTypeAttribute(AnonymousType = true)]
-    public partial class ProtocolPhase
+    public partial class ProtocolPhases
+    {
+
+        private ProtocolPhasesPhase phaseField;
+
+        /// <remarks/>
+        public ProtocolPhasesPhase Phase
+        {
+            get
+            {
+                return this.phaseField;
+            }
+            set
+            {
+                this.phaseField = value;
+            }
+        }
+    }
+
+    /// <remarks/>
+    [System.SerializableAttribute()]
+    [System.ComponentModel.DesignerCategoryAttribute("code")]
+    [System.Xml.Serialization.XmlTypeAttribute(AnonymousType = true)]
+    public partial class ProtocolPhasesPhase
     {
 
         private string modeField;
 
-        private object defaultEnergyKVField;
+        private string defaultEnergyKVField;
 
         private ushort? fractionCountField;
 
@@ -702,11 +724,11 @@ namespace VMSTemplates
 
         private object localizationTechniqueField;
 
-        private ProtocolPhasePrescription prescriptionField;
+        private ProtocolPhasesPhasePrescription prescriptionField;
 
-        private ProtocolPhasePlanTemplate planTemplateField;
+        private ProtocolPhasesPhasePlanTemplate planTemplateField;
 
-        private ProtocolPhaseObjectiveTemplate objectiveTemplateField;
+        private ProtocolPhasesPhaseObjectiveTemplate objectiveTemplateField;
 
         private string idField;
 
@@ -724,8 +746,7 @@ namespace VMSTemplates
         }
 
         /// <remarks/>
-        [System.Xml.Serialization.XmlElementAttribute(IsNullable = true)]
-        public object DefaultEnergyKV
+        public string DefaultEnergyKV
         {
             get
             {
@@ -831,7 +852,7 @@ namespace VMSTemplates
         }
 
         /// <remarks/>
-        public ProtocolPhasePrescription Prescription
+        public ProtocolPhasesPhasePrescription Prescription
         {
             get
             {
@@ -844,7 +865,7 @@ namespace VMSTemplates
         }
 
         /// <remarks/>
-        public ProtocolPhasePlanTemplate PlanTemplate
+        public ProtocolPhasesPhasePlanTemplate PlanTemplate
         {
             get
             {
@@ -857,7 +878,7 @@ namespace VMSTemplates
         }
 
         /// <remarks/>
-        public ProtocolPhaseObjectiveTemplate ObjectiveTemplate
+        public ProtocolPhasesPhaseObjectiveTemplate ObjectiveTemplate
         {
             get
             {
@@ -888,18 +909,18 @@ namespace VMSTemplates
     [System.SerializableAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
     [System.Xml.Serialization.XmlTypeAttribute(AnonymousType = true)]
-    public partial class ProtocolPhasePrescription
+    public partial class ProtocolPhasesPhasePrescription
     {
 
-        private ProtocolPhasePrescriptionItem[] itemField;
+        private ProtocolPhasesPhasePrescriptionItem[] itemField;
 
-        private ProtocolPhasePrescriptionMeasureItem[] measureItemField;
+        private ProtocolPhasesPhasePrescriptionMeasureItem[] measureItemField;
 
         private decimal versionField;
 
         /// <remarks/>
         [System.Xml.Serialization.XmlElementAttribute("Item")]
-        public ProtocolPhasePrescriptionItem[] Item
+        public ProtocolPhasesPhasePrescriptionItem[] Item
         {
             get
             {
@@ -913,7 +934,7 @@ namespace VMSTemplates
 
         /// <remarks/>
         [System.Xml.Serialization.XmlElementAttribute("MeasureItem")]
-        public ProtocolPhasePrescriptionMeasureItem[] MeasureItem
+        public ProtocolPhasesPhasePrescriptionMeasureItem[] MeasureItem
         {
             get
             {
@@ -944,16 +965,16 @@ namespace VMSTemplates
     [System.SerializableAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
     [System.Xml.Serialization.XmlTypeAttribute(AnonymousType = true)]
-    public partial class ProtocolPhasePrescriptionItem
+    public partial class ProtocolPhasesPhasePrescriptionItem
     {
 
-        private ushort typeField;
+        private int typeField;
 
-        private ushort? modifierField;
+        private int modifierField;
 
-        private double? parameterField;
+        private double parameterField;
 
-        private double? doseField;
+        private decimal doseField;
 
         private double? totalDoseField;
 
@@ -962,7 +983,7 @@ namespace VMSTemplates
         private bool primaryField;
 
         /// <remarks/>
-        public ushort Type
+        public int Type
         {
             get
             {
@@ -975,7 +996,7 @@ namespace VMSTemplates
         }
 
         /// <remarks/>
-        public ushort? Modifier
+        public int Modifier
         {
             get
             {
@@ -988,7 +1009,7 @@ namespace VMSTemplates
         }
 
         /// <remarks/>
-        public double? Parameter
+        public double Parameter
         {
             get
             {
@@ -1001,7 +1022,7 @@ namespace VMSTemplates
         }
 
         /// <remarks/>
-        public double? Dose
+        public decimal Dose
         {
             get
             {
@@ -1014,7 +1035,7 @@ namespace VMSTemplates
         }
 
         /// <remarks/>
-        public double? TotalDose
+        public double TotalDose
         {
             get
             {
@@ -1059,12 +1080,12 @@ namespace VMSTemplates
     [System.SerializableAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
     [System.Xml.Serialization.XmlTypeAttribute(AnonymousType = true)]
-    public partial class ProtocolPhasePrescriptionMeasureItem
+    public partial class ProtocolPhasesPhasePrescriptionMeasureItem
     {
 
-        private ushort? typeField;
+        private int? typeField;
 
-        private ushort? modifierField;
+        private int? modifierField;
 
         private double? valueField;
 
@@ -1075,7 +1096,7 @@ namespace VMSTemplates
         private string idField;
 
         /// <remarks/>
-        public ushort? Type
+        public int? Type
         {
             get
             {
@@ -1088,7 +1109,7 @@ namespace VMSTemplates
         }
 
         /// <remarks/>
-        public ushort? Modifier
+        public int? Modifier
         {
             get
             {
@@ -1158,27 +1179,27 @@ namespace VMSTemplates
     [System.SerializableAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
     [System.Xml.Serialization.XmlTypeAttribute(AnonymousType = true)]
-    public partial class ProtocolPhasePlanTemplate
+    public partial class ProtocolPhasesPhasePlanTemplate
     {
 
-        private double? prescribedPercentageField;
+        private double prescribedPercentageField;
 
-        private double? dosePerFractionField;
+        private double dosePerFractionField;
 
-        private ushort? fractionCountField;
+        private int fractionCountField;
 
         private object fieldAlignmentRulesField;
 
-        private ProtocolPhasePlanTemplatePrescriptionSite prescriptionSiteField;
+        private ProtocolPhasesPhasePlanTemplatePrescriptionSite prescriptionSiteField;
 
         private object bolusesField;
 
-        private ProtocolPhasePlanTemplateField[] fieldsField;
+        private ProtocolPhasesPhasePlanTemplateField[] fieldsField;
 
         private decimal versionField;
 
         /// <remarks/>
-        public double? PrescribedPercentage
+        public double PrescribedPercentage
         {
             get
             {
@@ -1191,7 +1212,7 @@ namespace VMSTemplates
         }
 
         /// <remarks/>
-        public double? DosePerFraction
+        public double DosePerFraction
         {
             get
             {
@@ -1204,7 +1225,7 @@ namespace VMSTemplates
         }
 
         /// <remarks/>
-        public ushort? FractionCount
+        public int FractionCount
         {
             get
             {
@@ -1230,7 +1251,7 @@ namespace VMSTemplates
         }
 
         /// <remarks/>
-        public ProtocolPhasePlanTemplatePrescriptionSite PrescriptionSite
+        public ProtocolPhasesPhasePlanTemplatePrescriptionSite PrescriptionSite
         {
             get
             {
@@ -1257,7 +1278,7 @@ namespace VMSTemplates
 
         /// <remarks/>
         [System.Xml.Serialization.XmlArrayItemAttribute("Field", IsNullable = false)]
-        public ProtocolPhasePlanTemplateField[] Fields
+        public ProtocolPhasesPhasePlanTemplateField[] Fields
         {
             get
             {
@@ -1288,7 +1309,7 @@ namespace VMSTemplates
     [System.SerializableAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
     [System.Xml.Serialization.XmlTypeAttribute(AnonymousType = true)]
-    public partial class ProtocolPhasePlanTemplatePrescriptionSite
+    public partial class ProtocolPhasesPhasePlanTemplatePrescriptionSite
     {
 
         private string volumeIDField;
@@ -1356,48 +1377,48 @@ namespace VMSTemplates
     [System.SerializableAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
     [System.Xml.Serialization.XmlTypeAttribute(AnonymousType = true)]
-    public partial class ProtocolPhasePlanTemplateField
+    public partial class ProtocolPhasesPhasePlanTemplateField
     {
 
         private string typeField;
 
-        private ProtocolPhasePlanTemplateFieldTarget targetField;
+        private ProtocolPhasesPhasePlanTemplateFieldTarget targetField;
 
         private string treatmentUnitField;
 
         private string techniqueField;
 
-        private ProtocolPhasePlanTemplateFieldEnergy energyField;
+        private ProtocolPhasesPhasePlanTemplateFieldEnergy energyField;
 
         private object primaryFluenceModeField;
 
-        private string dRRTemplateField;
+        private object dRRTemplateField;
 
-        private ushort? doseRateField;
+        private ushort doseRateField;
 
-        private ushort? sFEDField;
+        private double? sFEDField;
 
-        private ProtocolPhasePlanTemplateFieldGantry gantryField;
+        private ProtocolPhasesPhasePlanTemplateFieldGantry gantryField;
 
-        private ProtocolPhasePlanTemplateFieldCollimator collimatorField;
+        private ProtocolPhasesPhasePlanTemplateFieldCollimator collimatorField;
 
-        private ushort? tableRtnField;
+        private double tableRtnField;
 
         private string toleranceTableIDField;
 
-        private double? weightField;
+        private double weightField;
 
-        private ProtocolPhasePlanTemplateFieldFieldMargin fieldMarginField;
+        private ProtocolPhasesPhasePlanTemplateFieldFieldMargin fieldMarginField;
 
         private object skinFlashMarginField;
 
         private object fieldBolusesField;
 
-        private ProtocolPhasePlanTemplateFieldIsocenter isocenterField;
+        private ProtocolPhasesPhasePlanTemplateFieldIsocenter isocenterField;
 
         private object blocksField;
 
-        private object mLCPlansField;
+        private ProtocolPhasesPhasePlanTemplateFieldMLCPlans mLCPlansField;
 
         private object wedgesField;
 
@@ -1429,7 +1450,7 @@ namespace VMSTemplates
         }
 
         /// <remarks/>
-        public ProtocolPhasePlanTemplateFieldTarget Target
+        public ProtocolPhasesPhasePlanTemplateFieldTarget Target
         {
             get
             {
@@ -1468,7 +1489,7 @@ namespace VMSTemplates
         }
 
         /// <remarks/>
-        public ProtocolPhasePlanTemplateFieldEnergy Energy
+        public ProtocolPhasesPhasePlanTemplateFieldEnergy Energy
         {
             get
             {
@@ -1494,7 +1515,7 @@ namespace VMSTemplates
         }
 
         /// <remarks/>
-        public string DRRTemplate
+        public object DRRTemplate
         {
             get
             {
@@ -1507,7 +1528,7 @@ namespace VMSTemplates
         }
 
         /// <remarks/>
-        public ushort? DoseRate
+        public ushort DoseRate
         {
             get
             {
@@ -1520,7 +1541,7 @@ namespace VMSTemplates
         }
 
         /// <remarks/>
-        public ushort? SFED
+        public double? SFED
         {
             get
             {
@@ -1533,7 +1554,7 @@ namespace VMSTemplates
         }
 
         /// <remarks/>
-        public ProtocolPhasePlanTemplateFieldGantry Gantry
+        public ProtocolPhasesPhasePlanTemplateFieldGantry Gantry
         {
             get
             {
@@ -1546,7 +1567,7 @@ namespace VMSTemplates
         }
 
         /// <remarks/>
-        public ProtocolPhasePlanTemplateFieldCollimator Collimator
+        public ProtocolPhasesPhasePlanTemplateFieldCollimator Collimator
         {
             get
             {
@@ -1559,7 +1580,7 @@ namespace VMSTemplates
         }
 
         /// <remarks/>
-        public ushort? TableRtn
+        public double TableRtn
         {
             get
             {
@@ -1585,7 +1606,7 @@ namespace VMSTemplates
         }
 
         /// <remarks/>
-        public double? Weight
+        public double Weight
         {
             get
             {
@@ -1598,7 +1619,7 @@ namespace VMSTemplates
         }
 
         /// <remarks/>
-        public ProtocolPhasePlanTemplateFieldFieldMargin FieldMargin
+        public ProtocolPhasesPhasePlanTemplateFieldFieldMargin FieldMargin
         {
             get
             {
@@ -1638,7 +1659,7 @@ namespace VMSTemplates
         }
 
         /// <remarks/>
-        public ProtocolPhasePlanTemplateFieldIsocenter Isocenter
+        public ProtocolPhasesPhasePlanTemplateFieldIsocenter Isocenter
         {
             get
             {
@@ -1664,7 +1685,7 @@ namespace VMSTemplates
         }
 
         /// <remarks/>
-        public object MLCPlans
+        public ProtocolPhasesPhasePlanTemplateFieldMLCPlans MLCPlans
         {
             get
             {
@@ -1791,19 +1812,19 @@ namespace VMSTemplates
     [System.SerializableAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
     [System.Xml.Serialization.XmlTypeAttribute(AnonymousType = true)]
-    public partial class ProtocolPhasePlanTemplateFieldTarget
+    public partial class ProtocolPhasesPhasePlanTemplateFieldTarget
     {
 
-        private object volumeIDField;
+        private string volumeIDField;
 
         private object volumeCodeField;
 
-        private object volumeTypeField;
+        private string volumeTypeField;
 
         private object volumeCodeTableField;
 
         /// <remarks/>
-        public object VolumeID
+        public string VolumeID
         {
             get
             {
@@ -1829,7 +1850,7 @@ namespace VMSTemplates
         }
 
         /// <remarks/>
-        public object VolumeType
+        public string VolumeType
         {
             get
             {
@@ -1859,12 +1880,12 @@ namespace VMSTemplates
     [System.SerializableAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
     [System.Xml.Serialization.XmlTypeAttribute(AnonymousType = true)]
-    public partial class ProtocolPhasePlanTemplateFieldEnergy
+    public partial class ProtocolPhasesPhasePlanTemplateFieldEnergy
     {
 
         private string typeField;
 
-        private ushort? energyKVField;
+        private ushort energyKVField;
 
         private object maxEnergyKVField;
 
@@ -1882,7 +1903,7 @@ namespace VMSTemplates
         }
 
         /// <remarks/>
-        public ushort? EnergyKV
+        public ushort EnergyKV
         {
             get
             {
@@ -1913,7 +1934,7 @@ namespace VMSTemplates
     [System.SerializableAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
     [System.Xml.Serialization.XmlTypeAttribute(AnonymousType = true)]
-    public partial class ProtocolPhasePlanTemplateFieldGantry
+    public partial class ProtocolPhasesPhasePlanTemplateFieldGantry
     {
 
         private double? rtnField;
@@ -1936,7 +1957,6 @@ namespace VMSTemplates
         }
 
         /// <remarks/>
-        [System.Xml.Serialization.XmlElementAttribute(IsNullable = true)]
         public double? StopRtn
         {
             get
@@ -1967,23 +1987,23 @@ namespace VMSTemplates
     [System.SerializableAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
     [System.Xml.Serialization.XmlTypeAttribute(AnonymousType = true)]
-    public partial class ProtocolPhasePlanTemplateFieldCollimator
+    public partial class ProtocolPhasesPhasePlanTemplateFieldCollimator
     {
 
-        private ushort? rtnField;
+        private double rtnField;
 
         private string modeField;
 
-        private double? x1Field;
+        private decimal x1Field;
 
-        private double? x2Field;
+        private decimal x2Field;
 
-        private double? y1Field;
+        private decimal y1Field;
 
-        private double? y2Field;
+        private decimal y2Field;
 
         /// <remarks/>
-        public ushort? Rtn
+        public double Rtn
         {
             get
             {
@@ -2009,7 +2029,7 @@ namespace VMSTemplates
         }
 
         /// <remarks/>
-        public double? X1
+        public decimal X1
         {
             get
             {
@@ -2022,7 +2042,7 @@ namespace VMSTemplates
         }
 
         /// <remarks/>
-        public double? X2
+        public decimal X2
         {
             get
             {
@@ -2035,7 +2055,7 @@ namespace VMSTemplates
         }
 
         /// <remarks/>
-        public double? Y1
+        public decimal Y1
         {
             get
             {
@@ -2048,7 +2068,7 @@ namespace VMSTemplates
         }
 
         /// <remarks/>
-        public double? Y2
+        public decimal Y2
         {
             get
             {
@@ -2065,7 +2085,7 @@ namespace VMSTemplates
     [System.SerializableAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
     [System.Xml.Serialization.XmlTypeAttribute(AnonymousType = true)]
-    public partial class ProtocolPhasePlanTemplateFieldFieldMargin
+    public partial class ProtocolPhasesPhasePlanTemplateFieldFieldMargin
     {
 
         private object leftField;
@@ -2185,7 +2205,7 @@ namespace VMSTemplates
     [System.SerializableAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
     [System.Xml.Serialization.XmlTypeAttribute(AnonymousType = true)]
-    public partial class ProtocolPhasePlanTemplateFieldIsocenter
+    public partial class ProtocolPhasesPhasePlanTemplateFieldIsocenter
     {
 
         private string placementField;
@@ -2257,14 +2277,371 @@ namespace VMSTemplates
     [System.SerializableAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
     [System.Xml.Serialization.XmlTypeAttribute(AnonymousType = true)]
-    public partial class ProtocolPhaseObjectiveTemplate
+    public partial class ProtocolPhasesPhasePlanTemplateFieldMLCPlans
+    {
+
+        private ProtocolPhasesPhasePlanTemplateFieldMLCPlansMLCPlan mLCPlanField;
+
+        /// <remarks/>
+        public ProtocolPhasesPhasePlanTemplateFieldMLCPlansMLCPlan MLCPlan
+        {
+            get
+            {
+                return this.mLCPlanField;
+            }
+            set
+            {
+                this.mLCPlanField = value;
+            }
+        }
+    }
+
+    /// <remarks/>
+    [System.SerializableAttribute()]
+    [System.ComponentModel.DesignerCategoryAttribute("code")]
+    [System.Xml.Serialization.XmlTypeAttribute(AnonymousType = true)]
+    public partial class ProtocolPhasesPhasePlanTemplateFieldMLCPlansMLCPlan
+    {
+
+        private string modelNameField;
+
+        private int segmentCountField;
+
+        private ProtocolPhasesPhasePlanTemplateFieldMLCPlansMLCPlanMLCMargin mLCMarginField;
+
+        private string contourMeetPointField;
+
+        private string closedMeetPointField;
+
+        private ProtocolPhasesPhasePlanTemplateFieldMLCPlansMLCPlanTarget targetField;
+
+        private string idField;
+
+        private bool dynamicFlagField;
+
+        /// <remarks/>
+        public string ModelName
+        {
+            get
+            {
+                return this.modelNameField;
+            }
+            set
+            {
+                this.modelNameField = value;
+            }
+        }
+
+        /// <remarks/>
+        public int SegmentCount
+        {
+            get
+            {
+                return this.segmentCountField;
+            }
+            set
+            {
+                this.segmentCountField = value;
+            }
+        }
+
+        /// <remarks/>
+        public ProtocolPhasesPhasePlanTemplateFieldMLCPlansMLCPlanMLCMargin MLCMargin
+        {
+            get
+            {
+                return this.mLCMarginField;
+            }
+            set
+            {
+                this.mLCMarginField = value;
+            }
+        }
+
+        /// <remarks/>
+        public string ContourMeetPoint
+        {
+            get
+            {
+                return this.contourMeetPointField;
+            }
+            set
+            {
+                this.contourMeetPointField = value;
+            }
+        }
+
+        /// <remarks/>
+        public string ClosedMeetPoint
+        {
+            get
+            {
+                return this.closedMeetPointField;
+            }
+            set
+            {
+                this.closedMeetPointField = value;
+            }
+        }
+
+        /// <remarks/>
+        public ProtocolPhasesPhasePlanTemplateFieldMLCPlansMLCPlanTarget Target
+        {
+            get
+            {
+                return this.targetField;
+            }
+            set
+            {
+                this.targetField = value;
+            }
+        }
+
+        /// <remarks/>
+        [System.Xml.Serialization.XmlAttributeAttribute()]
+        public string ID
+        {
+            get
+            {
+                return this.idField;
+            }
+            set
+            {
+                this.idField = value;
+            }
+        }
+
+        /// <remarks/>
+        [System.Xml.Serialization.XmlAttributeAttribute()]
+        public bool DynamicFlag
+        {
+            get
+            {
+                return this.dynamicFlagField;
+            }
+            set
+            {
+                this.dynamicFlagField = value;
+            }
+        }
+    }
+
+    /// <remarks/>
+    [System.SerializableAttribute()]
+    [System.ComponentModel.DesignerCategoryAttribute("code")]
+    [System.Xml.Serialization.XmlTypeAttribute(AnonymousType = true)]
+    public partial class ProtocolPhasesPhasePlanTemplateFieldMLCPlansMLCPlanMLCMargin
+    {
+
+        private object leftField;
+
+        private object rightField;
+
+        private object topField;
+
+        private object bottomField;
+
+        private bool bEVMarginFlagField;
+
+        private bool ellipticalMarginFlagField;
+
+        private bool optimizeCollRtnFlagField;
+
+        private byte jawFittingModeField;
+
+        /// <remarks/>
+        [System.Xml.Serialization.XmlElementAttribute(IsNullable = true)]
+        public object Left
+        {
+            get
+            {
+                return this.leftField;
+            }
+            set
+            {
+                this.leftField = value;
+            }
+        }
+
+        /// <remarks/>
+        [System.Xml.Serialization.XmlElementAttribute(IsNullable = true)]
+        public object Right
+        {
+            get
+            {
+                return this.rightField;
+            }
+            set
+            {
+                this.rightField = value;
+            }
+        }
+
+        /// <remarks/>
+        [System.Xml.Serialization.XmlElementAttribute(IsNullable = true)]
+        public object Top
+        {
+            get
+            {
+                return this.topField;
+            }
+            set
+            {
+                this.topField = value;
+            }
+        }
+
+        /// <remarks/>
+        [System.Xml.Serialization.XmlElementAttribute(IsNullable = true)]
+        public object Bottom
+        {
+            get
+            {
+                return this.bottomField;
+            }
+            set
+            {
+                this.bottomField = value;
+            }
+        }
+
+        /// <remarks/>
+        [System.Xml.Serialization.XmlAttributeAttribute()]
+        public bool BEVMarginFlag
+        {
+            get
+            {
+                return this.bEVMarginFlagField;
+            }
+            set
+            {
+                this.bEVMarginFlagField = value;
+            }
+        }
+
+        /// <remarks/>
+        [System.Xml.Serialization.XmlAttributeAttribute()]
+        public bool EllipticalMarginFlag
+        {
+            get
+            {
+                return this.ellipticalMarginFlagField;
+            }
+            set
+            {
+                this.ellipticalMarginFlagField = value;
+            }
+        }
+
+        /// <remarks/>
+        [System.Xml.Serialization.XmlAttributeAttribute()]
+        public bool OptimizeCollRtnFlag
+        {
+            get
+            {
+                return this.optimizeCollRtnFlagField;
+            }
+            set
+            {
+                this.optimizeCollRtnFlagField = value;
+            }
+        }
+
+        /// <remarks/>
+        [System.Xml.Serialization.XmlAttributeAttribute()]
+        public byte JawFittingMode
+        {
+            get
+            {
+                return this.jawFittingModeField;
+            }
+            set
+            {
+                this.jawFittingModeField = value;
+            }
+        }
+    }
+
+    /// <remarks/>
+    [System.SerializableAttribute()]
+    [System.ComponentModel.DesignerCategoryAttribute("code")]
+    [System.Xml.Serialization.XmlTypeAttribute(AnonymousType = true)]
+    public partial class ProtocolPhasesPhasePlanTemplateFieldMLCPlansMLCPlanTarget
+    {
+
+        private string volumeIDField;
+
+        private object volumeCodeField;
+
+        private string volumeTypeField;
+
+        private object volumeCodeTableField;
+
+        /// <remarks/>
+        public string VolumeID
+        {
+            get
+            {
+                return this.volumeIDField;
+            }
+            set
+            {
+                this.volumeIDField = value;
+            }
+        }
+
+        /// <remarks/>
+        public object VolumeCode
+        {
+            get
+            {
+                return this.volumeCodeField;
+            }
+            set
+            {
+                this.volumeCodeField = value;
+            }
+        }
+
+        /// <remarks/>
+        public string VolumeType
+        {
+            get
+            {
+                return this.volumeTypeField;
+            }
+            set
+            {
+                this.volumeTypeField = value;
+            }
+        }
+
+        /// <remarks/>
+        public object VolumeCodeTable
+        {
+            get
+            {
+                return this.volumeCodeTableField;
+            }
+            set
+            {
+                this.volumeCodeTableField = value;
+            }
+        }
+    }
+
+    /// <remarks/>
+    [System.SerializableAttribute()]
+    [System.ComponentModel.DesignerCategoryAttribute("code")]
+    [System.Xml.Serialization.XmlTypeAttribute(AnonymousType = true)]
+    public partial class ProtocolPhasesPhaseObjectiveTemplate
     {
 
         private string typeField;
 
-        private ProtocolPhaseObjectiveTemplateHelios heliosField;
+        private ProtocolPhasesPhaseObjectiveTemplateHelios heliosField;
 
-        private ProtocolPhaseObjectiveTemplateObjectivesOneStructure[] objectivesAllStructuresField;
+        private ProtocolPhasesPhaseObjectiveTemplateObjectivesOneStructure[] objectivesAllStructuresField;
 
         private decimal versionField;
 
@@ -2282,7 +2659,7 @@ namespace VMSTemplates
         }
 
         /// <remarks/>
-        public ProtocolPhaseObjectiveTemplateHelios Helios
+        public ProtocolPhasesPhaseObjectiveTemplateHelios Helios
         {
             get
             {
@@ -2296,7 +2673,7 @@ namespace VMSTemplates
 
         /// <remarks/>
         [System.Xml.Serialization.XmlArrayItemAttribute("ObjectivesOneStructure", IsNullable = false)]
-        public ProtocolPhaseObjectiveTemplateObjectivesOneStructure[] ObjectivesAllStructures
+        public ProtocolPhasesPhaseObjectiveTemplateObjectivesOneStructure[] ObjectivesAllStructures
         {
             get
             {
@@ -2327,26 +2704,26 @@ namespace VMSTemplates
     [System.SerializableAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
     [System.Xml.Serialization.XmlTypeAttribute(AnonymousType = true)]
-    public partial class ProtocolPhaseObjectiveTemplateHelios
+    public partial class ProtocolPhasesPhaseObjectiveTemplateHelios
     {
 
-        private ushort? defaultSmoothingXField;
+        private byte defaultSmoothingXField;
 
-        private ushort? defaultSmoothingYField;
+        private byte defaultSmoothingYField;
 
-        private ushort? defaultMinimizeDoseField;
+        private byte defaultMinimizeDoseField;
 
         private string defaultOptimizationTypeField;
 
-        private ushort? maxIterationsField;
+        private ushort maxIterationsField;
 
-        private ushort? maxTimeField;
+        private byte maxTimeField;
 
-        private ProtocolPhaseObjectiveTemplateHeliosNormalTissueObjective normalTissueObjectiveField;
+        private ProtocolPhasesPhaseObjectiveTemplateHeliosNormalTissueObjective normalTissueObjectiveField;
 
-        private ProtocolPhaseObjectiveTemplateHeliosGeos geosField;
+        private ProtocolPhasesPhaseObjectiveTemplateHeliosGeos geosField;
 
-        private ProtocolPhaseObjectiveTemplateHeliosImat imatField;
+        private ProtocolPhasesPhaseObjectiveTemplateHeliosImat imatField;
 
         private bool defaultFixedJawsField;
 
@@ -2359,7 +2736,7 @@ namespace VMSTemplates
         private bool aldoField;
 
         /// <remarks/>
-        public ushort? DefaultSmoothingX
+        public byte DefaultSmoothingX
         {
             get
             {
@@ -2372,7 +2749,7 @@ namespace VMSTemplates
         }
 
         /// <remarks/>
-        public ushort? DefaultSmoothingY
+        public byte DefaultSmoothingY
         {
             get
             {
@@ -2385,7 +2762,7 @@ namespace VMSTemplates
         }
 
         /// <remarks/>
-        public ushort? DefaultMinimizeDose
+        public byte DefaultMinimizeDose
         {
             get
             {
@@ -2411,7 +2788,7 @@ namespace VMSTemplates
         }
 
         /// <remarks/>
-        public ushort? MaxIterations
+        public ushort MaxIterations
         {
             get
             {
@@ -2424,7 +2801,7 @@ namespace VMSTemplates
         }
 
         /// <remarks/>
-        public ushort? MaxTime
+        public byte MaxTime
         {
             get
             {
@@ -2437,7 +2814,7 @@ namespace VMSTemplates
         }
 
         /// <remarks/>
-        public ProtocolPhaseObjectiveTemplateHeliosNormalTissueObjective NormalTissueObjective
+        public ProtocolPhasesPhaseObjectiveTemplateHeliosNormalTissueObjective NormalTissueObjective
         {
             get
             {
@@ -2450,7 +2827,7 @@ namespace VMSTemplates
         }
 
         /// <remarks/>
-        public ProtocolPhaseObjectiveTemplateHeliosGeos Geos
+        public ProtocolPhasesPhaseObjectiveTemplateHeliosGeos Geos
         {
             get
             {
@@ -2463,7 +2840,7 @@ namespace VMSTemplates
         }
 
         /// <remarks/>
-        public ProtocolPhaseObjectiveTemplateHeliosImat Imat
+        public ProtocolPhasesPhaseObjectiveTemplateHeliosImat Imat
         {
             get
             {
@@ -2550,18 +2927,18 @@ namespace VMSTemplates
     [System.SerializableAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
     [System.Xml.Serialization.XmlTypeAttribute(AnonymousType = true)]
-    public partial class ProtocolPhaseObjectiveTemplateHeliosNormalTissueObjective
+    public partial class ProtocolPhasesPhaseObjectiveTemplateHeliosNormalTissueObjective
     {
 
         private bool useField;
 
         private byte priorityField;
 
-        private double distanceFromTargetBorderField;
+        private decimal distanceFromTargetBorderField;
 
-        private double startDoseField;
+        private byte startDoseField;
 
-        private double endDoseField;
+        private byte endDoseField;
 
         private decimal fallOffField;
 
@@ -2596,7 +2973,7 @@ namespace VMSTemplates
         }
 
         /// <remarks/>
-        public double DistanceFromTargetBorder
+        public decimal DistanceFromTargetBorder
         {
             get
             {
@@ -2609,7 +2986,7 @@ namespace VMSTemplates
         }
 
         /// <remarks/>
-        public double StartDose
+        public byte StartDose
         {
             get
             {
@@ -2622,7 +2999,7 @@ namespace VMSTemplates
         }
 
         /// <remarks/>
-        public double EndDose
+        public byte EndDose
         {
             get
             {
@@ -2678,7 +3055,7 @@ namespace VMSTemplates
     [System.SerializableAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
     [System.Xml.Serialization.XmlTypeAttribute(AnonymousType = true)]
-    public partial class ProtocolPhaseObjectiveTemplateHeliosGeos
+    public partial class ProtocolPhasesPhaseObjectiveTemplateHeliosGeos
     {
 
         private string initialFieldDistributionField;
@@ -2776,7 +3153,7 @@ namespace VMSTemplates
     [System.SerializableAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
     [System.Xml.Serialization.XmlTypeAttribute(AnonymousType = true)]
-    public partial class ProtocolPhaseObjectiveTemplateHeliosImat
+    public partial class ProtocolPhasesPhaseObjectiveTemplateHeliosImat
     {
 
         private byte mUWeightField;
@@ -2861,20 +3238,20 @@ namespace VMSTemplates
     [System.SerializableAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
     [System.Xml.Serialization.XmlTypeAttribute(AnonymousType = true)]
-    public partial class ProtocolPhaseObjectiveTemplateObjectivesOneStructure
+    public partial class ProtocolPhasesPhaseObjectiveTemplateObjectivesOneStructure
     {
 
-        private ProtocolPhaseObjectiveTemplateObjectivesOneStructureStructureTarget structureTargetField;
+        private ProtocolPhasesPhaseObjectiveTemplateObjectivesOneStructureStructureTarget structureTargetField;
 
-        private string distanceField;
+        private object distanceField;
 
         private object samplePointsField;
 
-        private string colorField;
+        private object colorField;
 
         private object avoidanceStructureModeField;
 
-        private ProtocolPhaseObjectiveTemplateObjectivesOneStructureObjective[] structureObjectivesField;
+        private ProtocolPhasesPhaseObjectiveTemplateObjectivesOneStructureObjective[] structureObjectivesField;
 
         private string idField;
 
@@ -2883,7 +3260,7 @@ namespace VMSTemplates
         private bool surfaceOnlyField;
 
         /// <remarks/>
-        public ProtocolPhaseObjectiveTemplateObjectivesOneStructureStructureTarget StructureTarget
+        public ProtocolPhasesPhaseObjectiveTemplateObjectivesOneStructureStructureTarget StructureTarget
         {
             get
             {
@@ -2897,7 +3274,7 @@ namespace VMSTemplates
 
         /// <remarks/>
         [System.Xml.Serialization.XmlElementAttribute(IsNullable = true)]
-        public string Distance
+        public object Distance
         {
             get
             {
@@ -2925,7 +3302,7 @@ namespace VMSTemplates
 
         /// <remarks/>
         [System.Xml.Serialization.XmlElementAttribute(IsNullable = true)]
-        public string Color
+        public object Color
         {
             get
             {
@@ -2952,7 +3329,7 @@ namespace VMSTemplates
 
         /// <remarks/>
         [System.Xml.Serialization.XmlArrayItemAttribute("Objective", IsNullable = false)]
-        public ProtocolPhaseObjectiveTemplateObjectivesOneStructureObjective[] StructureObjectives
+        public ProtocolPhasesPhaseObjectiveTemplateObjectivesOneStructureObjective[] StructureObjectives
         {
             get
             {
@@ -3011,16 +3388,18 @@ namespace VMSTemplates
     [System.SerializableAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
     [System.Xml.Serialization.XmlTypeAttribute(AnonymousType = true)]
-    public partial class ProtocolPhaseObjectiveTemplateObjectivesOneStructureStructureTarget
+    public partial class ProtocolPhasesPhaseObjectiveTemplateObjectivesOneStructureStructureTarget
     {
 
         private object volumeIDField;
 
-        private string volumeCodeField;
+        private object volumeCodeField;
 
         private string volumeTypeField;
 
-        private string volumeCodeTableField;
+        private object volumeCodeTableField;
+
+        private ProtocolPhasesPhaseObjectiveTemplateObjectivesOneStructureStructureTargetStructureCode structureCodeField;
 
         /// <remarks/>
         public object VolumeID
@@ -3036,7 +3415,7 @@ namespace VMSTemplates
         }
 
         /// <remarks/>
-        public string VolumeCode
+        public object VolumeCode
         {
             get
             {
@@ -3062,7 +3441,7 @@ namespace VMSTemplates
         }
 
         /// <remarks/>
-        public string VolumeCodeTable
+        public object VolumeCodeTable
         {
             get
             {
@@ -3073,31 +3452,100 @@ namespace VMSTemplates
                 this.volumeCodeTableField = value;
             }
         }
+
+        /// <remarks/>
+        public ProtocolPhasesPhaseObjectiveTemplateObjectivesOneStructureStructureTargetStructureCode StructureCode
+        {
+            get
+            {
+                return this.structureCodeField;
+            }
+            set
+            {
+                this.structureCodeField = value;
+            }
+        }
     }
 
     /// <remarks/>
     [System.SerializableAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
     [System.Xml.Serialization.XmlTypeAttribute(AnonymousType = true)]
-    public partial class ProtocolPhaseObjectiveTemplateObjectivesOneStructureObjective
+    public partial class ProtocolPhasesPhaseObjectiveTemplateObjectivesOneStructureStructureTargetStructureCode
     {
 
-        private ushort typeField;
+        private string codeField;
 
-        private ushort operatorField;
+        private string codeSchemeField;
 
-        private double? doseField;
+        private decimal codeSchemeVersionField;
+
+        /// <remarks/>
+        [System.Xml.Serialization.XmlAttributeAttribute()]
+        public string Code
+        {
+            get
+            {
+                return this.codeField;
+            }
+            set
+            {
+                this.codeField = value;
+            }
+        }
+
+        /// <remarks/>
+        [System.Xml.Serialization.XmlAttributeAttribute()]
+        public string CodeScheme
+        {
+            get
+            {
+                return this.codeSchemeField;
+            }
+            set
+            {
+                this.codeSchemeField = value;
+            }
+        }
+
+        /// <remarks/>
+        [System.Xml.Serialization.XmlAttributeAttribute()]
+        public decimal CodeSchemeVersion
+        {
+            get
+            {
+                return this.codeSchemeVersionField;
+            }
+            set
+            {
+                this.codeSchemeVersionField = value;
+            }
+        }
+    }
+
+    /// <remarks/>
+    [System.SerializableAttribute()]
+    [System.ComponentModel.DesignerCategoryAttribute("code")]
+    [System.Xml.Serialization.XmlTypeAttribute(AnonymousType = true)]
+    public partial class ProtocolPhasesPhaseObjectiveTemplateObjectivesOneStructureObjective
+    {
+
+        private byte typeField;
+
+        private byte operatorField;
+
+        private decimal doseField;
 
         private double? volumeField;
 
-        private ushort priorityField;
+        private byte priorityField;
 
         private object parameterAField;
 
-        private ushort groupField;
+        private byte groupField;
 
         /// <remarks/>
-        public ushort Type
+        public byte Type
         {
             get
             {
@@ -3110,7 +3558,7 @@ namespace VMSTemplates
         }
 
         /// <remarks/>
-        public ushort Operator
+        public byte Operator
         {
             get
             {
@@ -3123,7 +3571,7 @@ namespace VMSTemplates
         }
 
         /// <remarks/>
-        public double? Dose
+        public decimal Dose
         {
             get
             {
@@ -3149,7 +3597,7 @@ namespace VMSTemplates
         }
 
         /// <remarks/>
-        public ushort Priority
+        public byte Priority
         {
             get
             {
@@ -3176,7 +3624,7 @@ namespace VMSTemplates
         }
 
         /// <remarks/>
-        public ushort Group
+        public byte Group
         {
             get
             {
@@ -3196,7 +3644,7 @@ namespace VMSTemplates
     public partial class ProtocolReview
     {
 
-        private ProtocolReviewReviewStructure[] reviewStructuresField;
+        private object reviewStructuresField;
 
         private bool showMinField;
 
@@ -3225,8 +3673,7 @@ namespace VMSTemplates
         private bool showGradientMeasureField;
 
         /// <remarks/>
-        [System.Xml.Serialization.XmlArrayItemAttribute("ReviewStructure", IsNullable = false)]
-        public ProtocolReviewReviewStructure[] ReviewStructures
+        public object ReviewStructures
         {
             get
             {
@@ -3420,44 +3867,4 @@ namespace VMSTemplates
             }
         }
     }
-
-    /// <remarks/>
-    [System.SerializableAttribute()]
-    [System.ComponentModel.DesignerCategoryAttribute("code")]
-    [System.Xml.Serialization.XmlTypeAttribute(AnonymousType = true)]
-    public partial class ProtocolReviewReviewStructure
-    {
-
-        private string typeField;
-
-        private string itemField;
-
-        /// <remarks/>
-        public string Type
-        {
-            get
-            {
-                return this.typeField;
-            }
-            set
-            {
-                this.typeField = value;
-            }
-        }
-
-        /// <remarks/>
-        public string Item
-        {
-            get
-            {
-                return this.itemField;
-            }
-            set
-            {
-                this.itemField = value;
-            }
-        }
-    }
-
-
 }

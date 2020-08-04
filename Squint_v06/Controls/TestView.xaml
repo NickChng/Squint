@@ -124,7 +124,7 @@
                                                     <Style TargetType="Grid">
                                                         <Style.Triggers>
                                                             <DataTrigger Binding="{Binding RelativeSource={RelativeSource AncestorType={x:Type ListViewItem}}, Path=(ItemsControl.AlternationIndex), UpdateSourceTrigger=PropertyChanged, Converter={StaticResource TestConverter}}" Value="0">
-                                                                <Setter Property="Background" Value="AliceBlue"/>
+                                                                <Setter Property="Background" Value="{Binding DataContext.AdminOptionsToggle, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource AdminColorModeTestListConverter}, UpdateSourceTrigger=PropertyChanged, ConverterParameter=AliceBlue}"/>
                                                             </DataTrigger>
                                                             <DataTrigger Binding="{Binding RelativeSource={RelativeSource AncestorType={x:Type ListViewItem}}, Path=(ItemsControl.AlternationIndex), UpdateSourceTrigger=PropertyChanged, Converter={StaticResource TestConverter}}" Value="1">
                                                                 <Setter Property="Background" Value="Transparent"/>
@@ -192,7 +192,7 @@
                                                     <Style TargetType="Grid">
                                                         <Style.Triggers>
                                                             <DataTrigger Binding="{Binding RelativeSource={RelativeSource AncestorType={x:Type ListViewItem}}, Path=(ItemsControl.AlternationIndex), UpdateSourceTrigger=PropertyChanged, Converter={StaticResource TestConverter}}" Value="0">
-                                                                <Setter Property="Background" Value="AliceBlue"/>
+                                                                <Setter Property="Background" Value="{Binding DataContext.AdminOptionsToggle, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource AdminColorModeTestListConverter}, UpdateSourceTrigger=PropertyChanged, ConverterParameter=AliceBlue}"/>
                                                             </DataTrigger>
                                                             <DataTrigger Binding="{Binding RelativeSource={RelativeSource AncestorType={x:Type ListViewItem}}, Path=(ItemsControl.AlternationIndex), UpdateSourceTrigger=PropertyChanged, Converter={StaticResource TestConverter}}" Value="1">
                                                                 <Setter Property="Background" Value="Transparent"/>
@@ -293,53 +293,13 @@
                                                 <Binding Path="EditEnabled"/>
                                             </MultiBinding>
                                             </Grid.Visibility>
-                                            <Grid Visibility="{Binding Check, Converter={StaticResource VisibilityTextBoxModeConverter}}">
+                                            <Grid>
                                                 <Grid.RowDefinitions>
                                                     <RowDefinition Height="*"/>
                                                     <RowDefinition Height="Auto"/>
                                                 </Grid.RowDefinitions>
-                                                <ListBox Grid.Row="0" ItemsSource="{Binding ReferenceCollection, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" 
-                                                         Margin="0,5,0,5" HorizontalAlignment="Left" VerticalAlignment="Stretch" HorizontalContentAlignment="Stretch" Background="White"
-                                                        Width="200" Style="{DynamicResource ListBoxStyle1}" ItemContainerStyle="{DynamicResource SquintAliasesListBoxItemStyle}"
-                                                        BorderThickness="0"  SelectedItem="{Binding Reference, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
-                                                    <ListBox.ItemTemplate>
-                                                        <DataTemplate>
-                                                            <Grid >
-                                                                <Grid.ColumnDefinitions>
-                                                                    <ColumnDefinition Width="*"/>
-                                                                    <ColumnDefinition Width="Auto"/>
-                                                                </Grid.ColumnDefinitions>
-                                                                <TextBlock Grid.Column="0" Text="{Binding Value}" VerticalAlignment="Center" HorizontalAlignment="Stretch" Foreground="LightSteelBlue" Background="Transparent"/>
-
-                                                                <Button Grid.Column="1" Style="{StaticResource ButtonStyle_Small}" VerticalAlignment="Center" Height="20" Width="20" Background="Transparent" 
-                                                                 Command="{Binding DataContext.RemoveItemCommand, RelativeSource={RelativeSource AncestorType=ListBox}}" CommandParameter="{Binding}">
-                                                                    <Image Source="\Resources\x_trans.png"/>
-                                                                </Button>
-                                                            </Grid>
-                                                        </DataTemplate>
-                                                    </ListBox.ItemTemplate>
-                                                </ListBox>
-                                                <Grid Grid.Row="1" Height="30" Width="200" HorizontalAlignment="Left">
-                                                    <Grid.ColumnDefinitions>
-                                                        <ColumnDefinition Width="*"/>
-                                                        <ColumnDefinition Width="Auto"/>
-                                                    </Grid.ColumnDefinitions>
-                                                    <TextBox Grid.Column="0" Text="{Binding SetReference, Mode=TwoWay}" Visibility="{Binding Check, Converter={StaticResource VisibilityTextBoxModeConverter}}"
-                                                         local:TextBoxExtensions.UpdateSourceOnKey="Return" Margin="10,0,10,0"
-                                                        HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Style="{StaticResource ChecklistTextBoxStyle}"/>
-                                                    <Button Grid.Column="1" Style="{StaticResource ButtonStyle_Small}" Width="20" Height="20" HorizontalAlignment="Center"
-                                                VerticalAlignment="Center" Command="{Binding AddItemCommand}" Margin="0,0,1,0">
-                                                        <Image Source="\Resources\plus_trans.png"/>
-                                                    </Button>
-                                                </Grid>
-                                            </Grid>
-                                            <Grid Visibility="{Binding Check, Converter={StaticResource VisibilitySelectionModeConverter}}">
-                                                <Grid.RowDefinitions>
-                                                    <RowDefinition Height="*"/>
-                                                    <RowDefinition Height="Auto"/>
-                                                </Grid.RowDefinitions>
-                                                <ListBox Grid.Row="0" ItemsSource="{Binding ReferenceCollection, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" DisplayMemberPath="Display"
-                                                        Margin="0,5,0,5" HorizontalAlignment="Left" VerticalAlignment="Stretch" HorizontalContentAlignment="Stretch" Background="White"
+                                                <ListBox Grid.Row="0" ItemsSource="{Binding ReferenceCollection, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" Visibility="{Binding ItemHasDisplayName, Converter={StaticResource VisibilityInverseConverter}}"
+                                                        Margin="0,5,0,5" HorizontalAlignment="Left" VerticalAlignment="Stretch" HorizontalContentAlignment="Stretch" Background="Transparent"
                                                         Width="200" Style="{DynamicResource ListBoxStyle1}" ItemContainerStyle="{DynamicResource SquintAliasesListBoxItemStyle}"
                                                         BorderThickness="0"  SelectedItem="{Binding Reference, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
                                                     <ListBox.ItemTemplate>
@@ -350,7 +310,26 @@
                                                                     <ColumnDefinition Width="Auto"/>
                                                                 </Grid.ColumnDefinitions>
                                                                 <TextBlock Grid.Column="0" Text="{Binding}" VerticalAlignment="Center" HorizontalAlignment="Stretch" Foreground="SteelBlue" Background="Transparent"/>
-
+                                                                <Button Grid.Column="1" Style="{StaticResource ButtonStyle_Small}" VerticalAlignment="Center" Height="20" Width="20" Background="Transparent" 
+                                                                 Command="{Binding DataContext.RemoveItemCommand, RelativeSource={RelativeSource AncestorType=ListBox}}" CommandParameter="{Binding}">
+                                                                    <Image Source="\Resources\x_trans.png"/>
+                                                                </Button>
+                                                            </Grid>
+                                                        </DataTemplate>
+                                                    </ListBox.ItemTemplate>
+                                                </ListBox>
+                                                <ListBox Grid.Row="0" ItemsSource="{Binding ReferenceCollection, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" Visibility="{Binding ItemHasDisplayName, Converter={StaticResource VisibilityConverter}}"
+                                                        Margin="0,5,0,5" HorizontalAlignment="Left" VerticalAlignment="Stretch" HorizontalContentAlignment="Stretch" Background="Transparent"
+                                                        Width="200" Style="{DynamicResource ListBoxStyle1}" ItemContainerStyle="{DynamicResource SquintAliasesListBoxItemStyle}"
+                                                        BorderThickness="0"  SelectedItem="{Binding Reference, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
+                                                    <ListBox.ItemTemplate>
+                                                        <DataTemplate>
+                                                            <Grid>
+                                                                <Grid.ColumnDefinitions>
+                                                                    <ColumnDefinition Width="*"/>
+                                                                    <ColumnDefinition Width="Auto"/>
+                                                                </Grid.ColumnDefinitions>
+                                                                <TextBlock Grid.Column="0" Text="{Binding DisplayName}" VerticalAlignment="Center" HorizontalAlignment="Stretch" Foreground="SteelBlue" Background="Transparent"/>
                                                                 <Button Grid.Column="1" Style="{StaticResource ButtonStyle_Small}" VerticalAlignment="Center" Height="20" Width="20" Background="Transparent" 
                                                                  Command="{Binding DataContext.RemoveItemCommand, RelativeSource={RelativeSource AncestorType=ListBox}}" CommandParameter="{Binding}">
                                                                     <Image Source="\Resources\x_trans.png"/>
@@ -364,6 +343,9 @@
                                                         <ColumnDefinition Width="*"/>
                                                         <ColumnDefinition Width="Auto"/>
                                                     </Grid.ColumnDefinitions>
+                                                    <TextBox Grid.Column="0" Text="{Binding SetReference, Mode=TwoWay}" Visibility="{Binding Check, Converter={StaticResource VisibilityTextBoxModeConverter}}"
+                                                         local:TextBoxExtensions.UpdateSourceOnKey="Return" Margin="10,0,10,0"
+                                                        HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Style="{StaticResource ChecklistTextBoxStyle}"/>
                                                     <ComboBox Grid.Column="0" Style="{DynamicResource ChecklistComboBoxStyle}" ItemsSource="{Binding EnumOptions}" Height="25" 
                                                           SelectedItem="{Binding SetReference, Mode=TwoWay}" Visibility="{Binding Check, Converter={StaticResource VisibilitySelectionModeConverter}}"/>
                                                     <Button Grid.Column="1" Style="{StaticResource ButtonStyle_Small}" Width="20" Height="20" HorizontalAlignment="Center"

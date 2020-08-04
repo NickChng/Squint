@@ -24,6 +24,7 @@ namespace SquintScript.ViewModels
         public Controls.TestList_ViewModel Targets_ViewModel { get; set; } = new Controls.TestList_ViewModel();
         public Controls.TestList_ViewModel Calculation_ViewModel { get; set; } = new Controls.TestList_ViewModel();
         public Controls.TestList_ViewModel Prescription_ViewModel { get; set; } = new Controls.TestList_ViewModel();
+        public Controls.TestList_ViewModel DiagnosisIntent_ViewModel { get; set; } = new Controls.TestList_ViewModel();
 
         public ProtocolView ParentView { get; private set; }
         public bool IsDirty { get; set; } = false;
@@ -31,64 +32,66 @@ namespace SquintScript.ViewModels
         public bool AddStructureCheckVisibility { get; set; }
 
         public bool EditBeamChecksVisibility { get; set; }
-        public ObservableCollection<ComponentSelector> Components { get; set; } = new ObservableCollection<ComponentSelector>();
-        public ObservableCollection<StructureSelector> Structures { get; set; } = new ObservableCollection<StructureSelector>();
-
-        private StructureSelector _SelectedStructure;
-        public StructureSelector SelectedStructure
-        {
-            get { return _SelectedStructure; }
-            set { _SelectedStructure = value; PopulateViewFromSelectedComponent(); }
-        }
-
+        
+        public SquintScript.Controls.BeamListItem SelectedBeam { get; set; }
+        
         private ComponentSelector _SelectedComponent;
         public ComponentSelector SelectedComponent
         {
             get { return _SelectedComponent; }
             set { _SelectedComponent = value; PopulateViewFromSelectedComponent(); }
         }
+        private StructureSelector _SelectedStructure;
+        public StructureSelector SelectedStructure
+        {
+            get { return _SelectedStructure; }
+            set { _SelectedStructure = value; }
+        }
 
         public Checklist_ViewModel(ProtocolView parentView)
         {
             ParentView = parentView;
             Ctr.ProtocolUpdated += Ctr_ProtocolUpdated;
-            ViewActiveProtocol();
+            Ctr.ProtocolOpened += Ctr_ProtocolUpdated;
         }
 
         public void Unsubscribe()
         {
             Ctr.ProtocolUpdated -= Ctr_ProtocolUpdated;
+            Ctr.ProtocolOpened -= Ctr_ProtocolUpdated;
         }
 
         private void Ctr_ProtocolUpdated(object sender, EventArgs e)
         {
-            ViewActiveProtocol();
-            PopulateViewFromSelectedComponent();
+            PopulateViewFromProtocol();
+            if (_SelectedComponent != null)
+                SelectedComponent = ParentView.Components.FirstOrDefault(x => x.Id == _SelectedComponent.Id);
+            if (SelectedComponent != null)
+                PopulateViewFromSelectedComponent();
         }
-
-        private void ViewActiveProtocol()
-        {
-            foreach (var C in Ctr.GetComponentList())
-                Components.Add(new ComponentSelector(C));
-            foreach (var S in Ctr.GetStructureList().OrderBy(x => x.DisplayOrder))
-                Structures.Add(new StructureSelector(S));
-        }
-        private void PopulateViewFromSelectedComponent()
+        
+        private void PopulateViewFromProtocol()
         {
             // No pre-population of the Objectives of imaging checks yet, as these aren't editable
 
             // Populate Simulation ViewModel
-            if (_SelectedComponent == null)
-                return;
             var P = Ctr.GetActiveProtocol();
-            Ctr.Component Comp = Ctr.GetComponent(_SelectedComponent.Id);
+
+            Simulation_ViewModel.Tests.Clear();
             CheckValueItem<double?> SliceSpacing = new CheckValueItem<double?>(CheckTypes.SliceSpacing, null, P.Checklist.SliceSpacing, new TrackedValue<double?>(1E-5), "Slice spacing does not match protocol");
             CheckValueItem<string> Series = new CheckValueItem<string>(CheckTypes.SeriesId, null, null) { ParameterOption = ParameterOptions.Optional };
             CheckValueItem<string> Study = new CheckValueItem<string>(CheckTypes.StudyId, null, null) { ParameterOption = ParameterOptions.Optional };
             CheckValueItem<string> SeriesComment = new CheckValueItem<string>(CheckTypes.SeriesComment, null, null) { ParameterOption = ParameterOptions.Optional };
             CheckValueItem<string> ImageComment = new CheckValueItem<string>(CheckTypes.ImageComment, null, null) { ParameterOption = ParameterOptions.Optional };
             CheckValueItem<int?> NumSlices = new CheckValueItem<int?>(CheckTypes.NumSlices, null, null) { ParameterOption = ParameterOptions.Optional };
-            Simulation_ViewModel.Tests = new ObservableCollection<ITestListItem>() { Study, Series, NumSlices, SliceSpacing, SeriesComment, ImageComment };
+            Simulation_ViewModel.Tests.Add(Study);
+            Simulation_ViewModel.Tests.Add(Series);
+            Simulation_ViewModel.Tests.Add(NumSlices);
+            Simulation_ViewModel.Tests.Add(SliceSpacing);
+            Simulation_ViewModel.Tests.Add(SeriesComment);
+            Simulation_ViewModel.Tests.Add(ImageComment);
+            
+            
 
             // Populate Calculation ViewModel
             Calculation_ViewModel.Tests.Clear(); // = new ObservableCollection<Controls.TestListItem<string>>();
@@ -144,13 +147,40 @@ namespace SquintScript.ViewModels
             var RefCourseIntent = Ctr.GetActiveProtocol()._TreatmentIntent;
             var CourseIntentWarningString = "";
             CheckValueItem<TreatmentIntents> CourseIntentTest = new CheckValueItem<TreatmentIntents>(CheckTypes.CourseIntent, TreatmentIntents.Unset, RefCourseIntent, null, CourseIntentWarningString);
+            DiagnosisIntent_ViewModel.Tests = new ObservableCollection<ITestListItem>() { CourseIntentTest };
 
-            // Plan normalization
+            // Structures
+            Targets_ViewModel.Tests.Clear();
+            foreach (Ctr.ProtocolStructure E in Ctr.GetStructureList())
+            {
+                if (E.CheckList != null)
+                {
+                    var C = E.CheckList;
+                    if ((bool)C.isPointContourChecked.Value)
+                    {
+                        string WarningString = "Subvolume less than threshold";
+                        var TL = new CheckValueItem<double?>(CheckTypes.MinSubvolume, null, C.PointContourVolumeThreshold, null, WarningString, "Not found", "Not specified");
+                        TL.OptionalNameSuffix = string.Format(@" ({0})", E.ProtocolStructureName);
+                        TL.Test = TestType.GreaterThan;
+                        Targets_ViewModel.Tests.Add(TL);
+                    }
+
+                }
+            }
+        }
+        private void PopulateViewFromSelectedComponent()
+        {
+
+            if (_SelectedComponent == null)
+                return;
+            var P = Ctr.GetActiveProtocol();
+            Ctr.Component Comp = Ctr.GetComponent(_SelectedComponent.Id);
+
             var PNVWarning = "Out of range";
-            CheckRangeItem<double?> PNVCheck = new CheckRangeItem<double?>(CheckTypes.PlanNormalization, null, P.Checklist.PNVMin, P.Checklist.PNVMax, PNVWarning);
+            CheckRangeItem<double?> PNVCheck = new CheckRangeItem<double?>(CheckTypes.PlanNormalization, null, Comp.PNVMin, Comp.PNVMax, PNVWarning);
 
             // Prescription percentage
-            CheckValueItem<double?> PlanRxPc = new CheckValueItem<double?>(CheckTypes.PrescribedPercentage, null, P.Checklist.PrescribedPercentage, new TrackedValue<double?>(1E-5), "Not set to 100");
+            CheckValueItem<double?> PlanRxPc = new CheckValueItem<double?>(CheckTypes.PrescribedPercentage, null, Comp.PrescribedPercentage, new TrackedValue<double?>(1E-5), "Not set to 100");
 
             // Check Rx and fractions
 
@@ -165,7 +195,7 @@ namespace SquintScript.ViewModels
             var CheckFractionWarningString = "Plan fractions different from protocol";
             CheckValueItem<int?> FxCheck = new CheckValueItem<int?>(CheckTypes.NumFractions, null, TrackedRefFractions, null, CheckFractionWarningString);
             FxCheck.EditEnabled = false;
-            Prescription_ViewModel.Tests = new ObservableCollection<ITestListItem>() { RxCheck, FxCheck, CourseIntentTest, PNVCheck, PlanRxPc };
+            Prescription_ViewModel.Tests = new ObservableCollection<ITestListItem>() { RxCheck, FxCheck, PNVCheck, PlanRxPc };
 
             // Beam checks
             Beam_ViewModel.Beams.Clear();
@@ -193,58 +223,6 @@ namespace SquintScript.ViewModels
             MinColOffsetCheck.Test = TestType.GreaterThan;
             Beam_ViewModel.GroupTests.Tests.Add(MinColOffsetCheck);
 
-
-            Targets_ViewModel.Tests.Clear();
-            foreach (Ctr.ProtocolStructure E in Ctr.GetStructureList())
-            {
-                if (E.CheckList != null)
-                {
-                    var C = E.CheckList;
-                    if ((bool)C.isPointContourChecked.Value)
-                    {
-                        string WarningString = "Subvolume less than threshold";
-                        var TL = new CheckValueItem<double?>(CheckTypes.MinSubvolume, null, C.PointContourVolumeThreshold, null, WarningString, "Not found", "Not specified");
-                        TL.OptionalNameSuffix = string.Format(@" ({0})", E.ProtocolStructureName);
-                        TL.Test = TestType.GreaterThan;
-                        Targets_ViewModel.Tests.Add(TL);
-                    }
-
-                }
-            }
-
-            //RaisePropertyChangedEvent(nameof(Beam_ViewModel))
-
-            //// Target Structure Checks
-            //Targets_ViewModel.Tests.Clear();
-            //foreach (Ctr.ProtocolStructure E in Ctr.GetStructureList())
-            //{
-            //    if (E.CheckList != null)
-            //    {
-            //        var C = E.CheckList;
-            //        if (C.isPointContourChecked.Value)
-            //        {
-            //            var VolParts = await E.PartVolumes(p.StructureSetUID);
-            //            double MinVol = double.NaN;
-            //            if (VolParts != null)
-            //                MinVol = VolParts.Min();
-            //            string WarningString = "Subvolume less than threshold";
-            //            if (!double.IsNaN(MinVol))
-            //            {
-            //                var NumDetectedParts = await E.NumParts(p.StructureSetUID);
-            //                var VMS_NumParts = await E.VMS_NumParts(p.StructureSetUID);
-            //                if (VMS_NumParts > NumDetectedParts)
-            //                {
-            //                    MinVol = 0.01;
-            //                }
-            //            }
-            //            var TL = new CheckValueItem<double>(CheckTypes.MinSubvolume, MinVol, C.PointContourVolumeThreshold, null, WarningString, "Not found", "Not specified");
-            //            TL.OptionalNameSuffix = string.Format(@" of {1} (""{0}"") [cc]", E.AssignedStructureId, E.ProtocolStructureName);
-            //            TL.Test = TestType.GreaterThan;
-            //            Targets_ViewModel.Tests.Add(TL);
-            //        }
-
-            //    }
-            //}
         }
         public async Task DisplayChecksForPlan(PlanSelector p)
         {
@@ -375,11 +353,12 @@ namespace SquintScript.ViewModels
             Enum.TryParse<TreatmentIntents>(await Ctr.GetCourseIntent(p.CourseId, p.PlanId), out CourseTxIntent);
             var CourseIntentWarningString = "";
             CheckValueItem<TreatmentIntents> CourseIntentTest = new CheckValueItem<TreatmentIntents>(CheckTypes.CourseIntent, CourseTxIntent, RefCourseIntent, null, CourseIntentWarningString);
+            DiagnosisIntent_ViewModel.Tests = new ObservableCollection<ITestListItem>() { CourseIntentTest };
 
             // Plan normalization
             var PNVWarning = "Out of range";
             var PlanPNV = await Ctr.GetPNV(p.CourseId, p.PlanId);
-            CheckRangeItem<double?> PNVCheck = new CheckRangeItem<double?>(CheckTypes.PlanNormalization, PlanPNV, P.Checklist.PNVMin, P.Checklist.PNVMax, PNVWarning);
+            CheckRangeItem<double?> PNVCheck = new CheckRangeItem<double?>(CheckTypes.PlanNormalization, PlanPNV, Comp.PNVMin, Comp.PNVMax, PNVWarning);
 
             // Prescription percentage
             var PlanRxPercentage = await Ctr.GetPrescribedPercentage(p.CourseId, p.PlanId);
@@ -397,7 +376,7 @@ namespace SquintScript.ViewModels
             var TrackedRefFractions = new TrackedValue<int?>(Comp.NumFractions);
             var CheckFractionWarningString = "Plan fractions different from protocol";
             CheckValueItem<int?> FxCheck = new CheckValueItem<int?>(CheckTypes.NumFractions, CheckFractions, TrackedRefFractions, null, CheckFractionWarningString);
-            Prescription_ViewModel.Tests = new ObservableCollection<ITestListItem>() { RxCheck, FxCheck, CourseIntentTest, PNVCheck, PlanRxPc };
+            Prescription_ViewModel.Tests = new ObservableCollection<ITestListItem>() { RxCheck, FxCheck, PNVCheck, PlanRxPc };
 
             // Beam checks
             Beam_ViewModel.Beams.Clear();
@@ -556,7 +535,7 @@ namespace SquintScript.ViewModels
             if (SS != null)
             {
                 Ctr.AddNewContourCheck(Ctr.GetStructure(SS.Id));
-                PopulateViewFromSelectedComponent();
+                PopulateViewFromProtocol();
             }
         }
         public ICommand RemoveContourCheckCommand
@@ -569,7 +548,7 @@ namespace SquintScript.ViewModels
             if (SS != null)
             {
                 Ctr.RemoveNewContourCheck(Ctr.GetStructure(SS.Id));
-                PopulateViewFromSelectedComponent();
+                PopulateViewFromProtocol();
             }
         }
 
@@ -606,10 +585,11 @@ namespace SquintScript.ViewModels
 
         public void RemoveSelectedBeam(object param = null)
         {
-            Ctr.Beam B = param as Ctr.Beam;
+            SquintScript.Controls.BeamListItem B = param as SquintScript.Controls.BeamListItem;
             if (B != null)
             {
-                B.ToRetire = true;
+                B.RetireCheck();
+                Beam_ViewModel.Beams.Remove(B);
             }
         }
     }

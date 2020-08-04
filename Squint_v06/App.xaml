@@ -7,6 +7,7 @@
              DispatcherUnhandledException="App_DispatcherUnhandledException"
              StartupUri="MainWindow.xaml">
     <Application.Resources>
+        <converters:ConstraintStatusColourConverter x:Key="ConstraintStatusColourConverter"/>
         <converters:UnsetComboColourConverter x:Key="UnsetComboColourConverter"/>
         <converters:BusyToCursorConverter x:Key="BusyToCursorConverter"/>
         <converters:ResultFlagColorConverter x:Key="ResultFlagColorConverter"/>
@@ -16,6 +17,9 @@
         <converters:ColumnHeaderConverter x:Key="ColumnHeaderConverter"/>
         <converters:VisibilityInverseConverter x:Key="VisibilityInverseConverter"/>
         <converters:VisibilityEditModeConverter x:Key="VisibilityEditModeConverter"/>
+        <converters:AdminColorModeConverter x:Key="AdminColorModeConverter"/>
+        <converters:AdminColorModeTestListConverter x:Key="AdminColorModeTestListConverter"/>
+        <converters:AdminColorModeHeaderConverter x:Key="AdminColorModeHeaderConverter"/>
         <converters:VisibilityMultiConverter x:Key="VisibilityMultiConverter"/>
         <converters:EditModeIconConverter x:Key="EditModeIconConverter"/>
         <converters:ResultFlagColorConverter2 x:Key="ResultFlagColorConverter2"/>
@@ -181,7 +185,7 @@
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
-                <Border Grid.Column="0" Name="PatientAssessmentBorder" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Background="CornflowerBlue" Width="Auto" CornerRadius="5,5,5,5" Margin="10,5,0,5">
+                <Border Grid.Column="0" Name="PatientAssessmentBorder" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"  Background="{Binding DataContext.AdminOptionsToggle, ElementName=SquintWindow, Converter={StaticResource AdminColorModeConverter}, UpdateSourceTrigger=PropertyChanged}" Width="Auto" CornerRadius="5,5,5,5" Margin="10,5,0,5">
                     <DockPanel>
                         <TextBlock DockPanel.Dock="Left" Text="Patient Assessments" Foreground="White" FontSize="20" FontWeight="Bold" FontFamily="Arial" VerticalAlignment="Center" Margin="10,0,0,0" Padding="0,3,0,0"></TextBlock>
                         <TextBlock DockPanel.Dock="Right" Text="{Binding DataContext.PatientPresenter.FullPatientName, UpdateSourceTrigger=PropertyChanged, ElementName=SquintWindow}" 
@@ -343,7 +347,7 @@
             </Setter>
         </Style>
         <Style x:Key="SquintDataGridStyle" TargetType="{x:Type DataGrid}">
-            <Setter Property="AlternatingRowBackground" Value="AliceBlue"/>
+            <Setter Property="AlternatingRowBackground" Value="{Binding DataContext.AdminOptionsToggle, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource AdminColorModeTestListConverter}, ConverterParameter=AliceBlue}"/>
             <Setter Property="Background" Value="{DynamicResource {x:Static SystemColors.ControlBrushKey}}"/>
             <Setter Property="Foreground" Value="{DynamicResource {x:Static SystemColors.ControlTextBrushKey}}"/>
             <Setter Property="BorderBrush" Value="#FF688CAF"/>
@@ -440,7 +444,7 @@
         </Style>
         <Style x:Key="SquintAliasesListBoxItemStyle" TargetType="{x:Type ListBoxItem}">
             <Setter Property="Foreground" Value="Black" />
-            <Setter Property="Background" Value="White"/>
+            <Setter Property="Background" Value="Transparent"/>
             <Setter Property="HorizontalContentAlignment" Value="{Binding HorizontalContentAlignment, RelativeSource={RelativeSource AncestorType={x:Type ItemsControl}}}"/>
             <Setter Property="VerticalContentAlignment" Value="{Binding VerticalContentAlignment, RelativeSource={RelativeSource AncestorType={x:Type ItemsControl}}}"/>
             <Setter Property="Padding" Value="2,3,0,3"/>
@@ -574,10 +578,12 @@
                             <Grid Margin="5,0,0,0">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="Auto"/>
                                     <ColumnDefinition Width="*"/>
                                 </Grid.ColumnDefinitions>
                                 <TextBlock Grid.Column="0" HorizontalAlignment="Left" Text="{Binding Component.ComponentName}" Margin="0,5,10,0" FontSize="{Binding ElementName=SquintWindow, UpdateSourceTrigger=PropertyChanged, Path=DataContext.Protocol.AssessmentPresenter.FontSize}"/>
-                                <TextBlock Grid.Column="1" HorizontalAlignment="Left" Margin="5,5,5,5" FontWeight="Medium" VerticalAlignment="Center" FontSize="{Binding ElementName=SquintWindow, UpdateSourceTrigger=PropertyChanged, Path=DataContext.Protocol.AssessmentPresenter.FontSize}">
+                                <TextBlock Grid.Column="1" HorizontalAlignment="Left" Text="{Binding ChangeStatusString}" FontStyle="Italic" VerticalAlignment="Center" Foreground="OrangeRed"/>
+                                <TextBlock Grid.Column="2" HorizontalAlignment="Left" Margin="5,5,5,5" FontWeight="Medium" VerticalAlignment="Center" FontSize="{Binding ElementName=SquintWindow, UpdateSourceTrigger=PropertyChanged, Path=DataContext.Protocol.AssessmentPresenter.FontSize}">
                                     <TextBlock.Foreground>
                                         <MultiBinding Converter="{StaticResource ConstraintSelectedHighlight}" UpdateSourceTrigger="PropertyChanged">
                                             <Binding Path="DataContext.Protocol.SelectedConstraint" ElementName="SquintWindow" UpdateSourceTrigger="PropertyChanged"/>
@@ -649,25 +655,26 @@
             </Style.Triggers>
         </Style>
         <Style x:Key="ConstraintComboBoxStyle" TargetType="ComboBox">
-            <Setter Property="Background" Value="AliceBlue"></Setter>
+            <Setter Property="Background" Value="{Binding DataContext.AdminOptionsToggle, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource AdminColorModeTestListConverter}, ConverterParameter=AliceBlue, UpdateSourceTrigger=PropertyChanged}"></Setter>
             <Setter Property="BorderBrush" Value="LightSteelBlue"></Setter>
             <Setter Property="HorizontalContentAlignment" Value="Center"></Setter>
             <Setter Property="Margin" Value="5,5,5,5"></Setter>
         </Style>
         <Style x:Key="ConstraintTextBoxStyle" TargetType="TextBox">
-            <Setter Property="Background" Value="AliceBlue"></Setter>
+            <Setter Property="Background" Value="{Binding DataContext.AdminOptionsToggle, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource AdminColorModeTestListConverter}, ConverterParameter=AliceBlue, UpdateSourceTrigger=PropertyChanged}"></Setter>
             <Setter Property="Margin" Value="5,5,5,5"/>
             <Setter Property="HorizontalContentAlignment" Value="Center"/>
         </Style>
         <Style x:Key="ChecklistTextBoxStyle" TargetType="TextBox">
-            <Setter Property="Background" Value="AliceBlue"></Setter>
+            <!--<Setter Property="Background" Value="AliceBlue"></Setter>-->
+            <Setter Property="Background" Value="{Binding DataContext.AdminOptionsToggle, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource AdminColorModeTestListConverter}, ConverterParameter=AliceBlue, UpdateSourceTrigger=PropertyChanged}"></Setter>
             <Setter Property="Margin" Value="0,2,5,2"/>
             <Setter Property="Width" Value="150"/>
             <Setter Property="HorizontalAlignment" Value="Left"/>
             <Setter Property="HorizontalContentAlignment" Value="Center"/>
         </Style>
         <Style x:Key="ChecklistComboBoxStyle" TargetType="ComboBox">
-            <Setter Property="Background" Value="AliceBlue"></Setter>
+            <Setter Property="Background" Value="{Binding DataContext.AdminOptionsToggle, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource AdminColorModeTestListConverter}, ConverterParameter=AliceBlue, UpdateSourceTrigger=PropertyChanged}"></Setter>
             <Setter Property="BorderBrush" Value="LightSteelBlue"></Setter>
             <Setter Property="Width" Value="150"/>
             <Setter Property="HorizontalContentAlignment" Value="Center"></Setter>
@@ -1206,9 +1213,6 @@
                     <Setter Property="Background" Value="White" />
                     <Setter Property="BorderBrush" Value="{x:Null}" />
                 </Trigger>
-                <!--<DataTrigger Binding="{Binding Path=flag, UpdateSourceTrigger =PropertyChanged}" Value="true">
-                        <Setter Property="Background" Value="Red"></Setter>
-                    </DataTrigger>-->
             </Style.Triggers>
 
         </Style>

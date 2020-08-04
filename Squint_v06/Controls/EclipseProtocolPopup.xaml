@@ -7,7 +7,7 @@
              xmlns:local="clr-namespace:SquintScript.Controls"
              mc:Ignorable="d" 
              x:Name="EclipseProtocol_Popup"
-             Height="Auto" Width="AUto">
+             Height="Auto" Width="Auto">
     <UserControl.Resources>
         <Style x:Key="RoundedButton" TargetType="{x:Type Button}">
             <Setter Property="HorizontalContentAlignment" Value="Center"/>
@@ -112,6 +112,41 @@
                 </Trigger>
             </Style.Triggers>
         </Style>
+        <Style x:Key="EclipsePopupListViewStyle" TargetType="{x:Type ListView}">
+            <Setter Property="Background" Value="{DynamicResource {x:Static SystemColors.WindowBrushKey}}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource ListBorder}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Foreground" Value="{DynamicResource {x:Static SystemColors.ControlTextBrushKey}}"/>
+            <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Auto"/>
+            <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Auto"/>
+            <Setter Property="ScrollViewer.CanContentScroll" Value="true"/>
+            <Setter Property="ScrollViewer.PanningMode" Value="Both"/>
+            <Setter Property="Stylus.IsFlicksEnabled" Value="False"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type ListView}">
+                        <Border x:Name="Bd" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Background="{TemplateBinding Background}" Padding="1" SnapsToDevicePixels="true">
+                            <ScrollViewer Focusable="false" Padding="{TemplateBinding Padding}" Template="{DynamicResource ScrollViewerControlTemplatePopup}">
+                                <ItemsPresenter SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"/>
+                            </ScrollViewer>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsEnabled" Value="false">
+                                <Setter Property="Background" TargetName="Bd" Value="{DynamicResource {x:Static SystemColors.ControlBrushKey}}"/>
+                            </Trigger>
+                            <MultiTrigger>
+                                <MultiTrigger.Conditions>
+                                    <Condition Property="IsGrouping" Value="true"/>
+                                    <Condition Property="VirtualizingPanel.IsVirtualizingWhenGrouping" Value="false"/>
+                                </MultiTrigger.Conditions>
+                                <Setter Property="ScrollViewer.CanContentScroll" Value="false"/>
+                            </MultiTrigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
     </UserControl.Resources>
     <Grid Panel.ZIndex="2" MinHeight="30" MinWidth="100" MaxHeight="200">
         <Grid.ColumnDefinitions>
@@ -122,15 +157,14 @@
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto"/>
-                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
-                    <TextBlock Grid.Column="0" Text="Select protocol to import: " FontSize="13" FontFamily="Arial" VerticalAlignment="Center" TextAlignment="Center" Margin="10,2,0,0" />
-                <!--<ScrollViewer Grid.Column="1">-->
-                    <ScrollViewer Grid.Column="1" Focusable="true" VerticalAlignment="Stretch" PreviewMouseWheel="ScrollViewer_PreviewMouseWheel"
-                                  VerticalScrollBarVisibility="Auto" Template="{DynamicResource ScrollViewerControlTemplatePopup}" CanContentScroll="True" Margin="0,0,10,0">
-                    <ListView Background="PapayaWhip" BorderThickness="0" Margin="5,5,10,5" HorizontalContentAlignment="Stretch"
+                <TextBlock Grid.Column="0" Text="Select protocol to import: " FontSize="13" FontFamily="Arial" VerticalAlignment="Center" TextAlignment="Center" Margin="10,2,0,0" />
+                <!--<ScrollViewer Grid.Column="1" VerticalAlignment="Stretch" PreviewMouseWheel="ScrollViewer_PreviewMouseWheel" MinHeight="10" MinWidth="20"
+                                  VerticalScrollBarVisibility="Auto" Template="{DynamicResource ScrollViewerControlTemplatePopup}"  Margin="0,0,10,0">-->
+                    <ListView Grid.Column="1" Background="PapayaWhip" BorderThickness="0" Margin="5,5,10,5" HorizontalContentAlignment="Stretch" Focusable="False" VerticalAlignment="Stretch" 
                           ItemsSource="{Binding EclipseProtocols, UpdateSourceTrigger=PropertyChanged}" 
-                          ItemContainerStyle="{DynamicResource ListViewItemStyle}" MinWidth="50">
+                          ItemContainerStyle="{DynamicResource ListViewItemStyle}" Style="{DynamicResource EclipsePopupListViewStyle}">
                         <ListView.ItemsPanel>
                             <ItemsPanelTemplate>
                                 <StackPanel Orientation="Vertical"/>
@@ -139,11 +173,7 @@
                         <ListView.ItemTemplate>
                             <DataTemplate>
                                 <Grid>
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="Auto"/>
-                                    </Grid.ColumnDefinitions>
-                                    <Button Grid.Column="0" Background="Transparent" BorderThickness="0" Style="{DynamicResource RoundedButton}" ToolTip="{Binding SessionComment}"
+                                    <Button Background="Transparent" BorderThickness="0" Style="{DynamicResource RoundedButton}" ToolTip="{Binding SessionComment}" 
                                         Command="{Binding DataContext.ImportSelectedProtocolCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}">
                                         <TextBlock Text="{Binding Preview.ID}" FontSize="13" VerticalAlignment="Center" Margin="5,3,5,3" HorizontalAlignment="Left" Foreground="White"/>
                                     </Button>
@@ -151,7 +181,7 @@
                             </DataTemplate>
                         </ListView.ItemTemplate>
                     </ListView>
-                </ScrollViewer>
+                <!--</ScrollViewer>-->
             </Grid>
         </Border>
         <Grid Grid.Column="1" VerticalAlignment="Top" Margin="0,10,0,0" Height="10">

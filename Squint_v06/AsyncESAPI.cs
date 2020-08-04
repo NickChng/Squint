@@ -388,12 +388,12 @@ namespace SquintScript
             double totalplans = 1;
             if (progress != null)
                 totalplans = c.PlanSetups.Count() + c.PlanSums.Count();
-            foreach (var PD in c.PlanSetups.Select(x=> new Ctr.PlanDescriptor(x.Id, x.UID, x.StructureSet.UID)))
+            foreach (var PD in c.PlanSetups.Select(x=> new Ctr.PlanDescriptor(ComponentTypes.Phase, x.Id, x.UID, x.StructureSet.UID)))
             {
                 PlanDescriptors.Add(PD);
                 isPlanASum.Add(PD.PlanId, false);
             }
-            foreach (var PD in c.PlanSums.Select(x => new Ctr.PlanDescriptor(x.Id, null, x.StructureSet.UID)))
+            foreach (var PD in c.PlanSums.Select(x => new Ctr.PlanDescriptor(ComponentTypes.Sum, x.Id, null, x.StructureSet.UID)))
             {
                 PlanDescriptors.Add(PD);
                 isPlanASum.Add(PD.PlanId, true);
@@ -418,7 +418,7 @@ namespace SquintScript
         public int? NumFractions { get; private set; }
         public double? Dose { get; private set; }
         public DateTime HistoryDateTime { get; private set; }
-        public ComponentTypes PlanType { get; private set; }
+        public ComponentTypes ComponentType { get; private set; }
         public List<string> StructureIds { get; private set; } = new List<string>();
         public List<AsyncPlan> ConstituentPlans { get; private set; } = new List<AsyncPlan>();
         private Dictionary<string, Structure> _Structures = new Dictionary<string, Structure>();
@@ -450,7 +450,7 @@ namespace SquintScript
                     Structures.Add(s.Id, AS);
                 }
             }
-            PlanType = ComponentTypes.Plan;
+            ComponentType = ComponentTypes.Phase;
         }
         public AsyncPlan(AsyncESAPI ACurrent, PlanSum psIn, Patient ptIn, AsyncCourse cIn)
         {
@@ -461,7 +461,7 @@ namespace SquintScript
             Id = ps.Id;
             var dates = ps.PlanSetups.Select(x => x.HistoryDateTime).OrderByDescending(x => x);
             HistoryDateTime = ps.PlanSetups.Select(x => x.HistoryDateTime).OrderByDescending(x => x).FirstOrDefault();
-            PlanType = ComponentTypes.Sum;
+            ComponentType = ComponentTypes.Sum;
             NumFractions = 0;
             Dose = 0;
             if (ps.StructureSet == null)
@@ -878,9 +878,9 @@ namespace SquintScript
         }
         public Task<double> GetDoseAtVolume(string StructureId, double ConstraintValue, VolumePresentation VP, DoseValuePresentation DVP)
         {
-            switch (PlanType)
+            switch (ComponentType)
             {
-                case ComponentTypes.Plan:
+                case ComponentTypes.Phase:
                     return A.ExecuteAsync(new Func<PlanSetup, double>((p) =>
                     {
 
@@ -897,9 +897,9 @@ namespace SquintScript
         }
         public Task<double> GetVolumeAtDose(string StructureId, DoseValue Dose, VolumePresentation VP)
         {
-            switch (PlanType)
+            switch (ComponentType)
             {
-                case ComponentTypes.Plan:
+                case ComponentTypes.Phase:
                     return A.ExecuteAsync(new Func<PlanSetup, double>((p) =>
                     {
                         return (p.GetVolumeAtDose(_Structures[StructureId], Dose, VP));
@@ -915,9 +915,9 @@ namespace SquintScript
         }
         public Task<double> GetMeanDose(string StructureId, VolumePresentation VP, DoseValuePresentation DVP, double binwidth)
         {
-            switch (PlanType)
+            switch (ComponentType)
             {
-                case ComponentTypes.Plan:
+                case ComponentTypes.Phase:
                     return A.ExecuteAsync(new Func<PlanSetup, double>((p) =>
                     {
                         DVHData dvh = p.GetDVHCumulativeData(_Structures[StructureId], DVP, VP, binwidth);

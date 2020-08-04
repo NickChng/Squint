@@ -16,7 +16,7 @@
         xmlns:SC ="clr-namespace:SquintScript.Controls"
         x:Name="SquintWindow"
         Icon="/Resources/squint_icon.ico"
-        Title="Squint v0.6" Height="900" Width="1450" Closing="OnClosing" MinWidth="1250">
+        Title="Squint v0.7" Height="900" Width="1450" Closing="OnClosing" MinWidth="1250">
     <Window.DataContext>
         <local:Presenter/>
     </Window.DataContext>
@@ -33,7 +33,7 @@
             <RowDefinition Height="288*"/>
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="570"/>
+            <ColumnDefinition Width="590"/>
             <ColumnDefinition Width="*"/>
             <ColumnDefinition Width="Auto"/>
         </Grid.ColumnDefinitions>
@@ -42,7 +42,7 @@
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition></ColumnDefinition>
                 </Grid.ColumnDefinitions>
-                <Border Grid.Column="0" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Background="CornflowerBlue" CornerRadius="5,5,5,5" Margin="5,5,0,5">
+                <Border Grid.Column="0" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Background="{Binding AdminOptionsToggle, Converter={StaticResource AdminColorModeConverter}, UpdateSourceTrigger=PropertyChanged}" CornerRadius="5,5,5,5" Margin="5,5,0,5">
                     <TextBlock Text="Protocol" Foreground="White" FontSize="20" FontFamily="Arial"  FontWeight="Bold" VerticalAlignment="Center" Margin="10,0,0,0" Padding="0,3,0,0"></TextBlock>
                 </Border>
             </Grid>
@@ -120,6 +120,7 @@
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
                         </Grid.RowDefinitions>
                         <Button Grid.Row="0" Margin="0,0,0,0" Background="Transparent"  ToolTip="Edit plan check references" Style="{StaticResource ButtonStyle}" HorizontalAlignment="Left" VerticalAlignment="Center"
                                Command="{Binding DataContext.ToggleChecklistViewCommand, ElementName=SquintWindow}" CommandParameter="{Binding SelectedPlan}">
@@ -139,16 +140,20 @@
                             <Image Source="/Resources/duplicate_large.png" Stretch="Uniform" Height="36" VerticalAlignment="Center" Margin="2,0,2,0"></Image>
                         </Button>
                         <Button Grid.Row="4" Name="ImportEclipseProtocolButton" Style="{StaticResource ButtonStyle}" ToolTip="Import clinical protocol from Eclipse"
-                                    Command="{Binding ImportEclipseCommand}" Margin="0,0,0,10">
+                                    Command="{Binding ImportEclipseCommand}" Margin="0,0,0,0">
                             <Image Source="/Resources/Eclipse_Import.png" Stretch="Fill" Margin="0,0,0,0" Height="36" VerticalAlignment="Bottom"></Image>
                         </Button>
                         <Button Grid.Row="5" Style="{StaticResource ButtonStyle}" ToolTip="Batch import of XML protocols" Height="45"
-                                        Command="{Binding ImportProtocolDirectoryCommand}" Margin="0,0,0,10">
+                                        Command="{Binding ImportProtocolDirectoryCommand}" Margin="0,0,0,0">
                             <Image Source="/Resources/import_batch_xml2.png" Stretch="Fill"></Image>
                         </Button>
                         <Button Grid.Row="6" Style="{StaticResource ButtonStyle}" ToolTip="Import single XML protocol"
-                                    Command="{Binding ImportProtocolCommand}" Margin="0,0,0,10">
+                                    Command="{Binding ImportProtocolCommand}" Margin="0,0,0,0">
                             <Image Source="/Resources/import_xml2.png" Stretch="Fill" Margin="0,0,0,0" Height="36" VerticalAlignment="Bottom"></Image>
+                        </Button>
+                        <Button Grid.Row="7" Style="{StaticResource ButtonStyle}" ToolTip="Export current protocol as XML"
+                                    Command="{Binding ExportProtocolCommand}" Margin="0,0,0,0">
+                            <Image Source="/Resources/export_xml2.png" Stretch="Fill" Margin="0,0,0,0" Height="36" VerticalAlignment="Bottom"></Image>
                         </Button>
                         <Popup Name="ImportEclipseProtocolsPopup" PlacementTarget="{Binding ElementName=ImportEclipseProtocolButton}" 
                                Placement="Left" StaysOpen="False" AllowsTransparency="True" PopupAnimation="Fade" 
@@ -158,7 +163,7 @@
                     </Grid>
                     <Grid Grid.Row="1">
                         <Button Style="{StaticResource ButtonStyle}" ToolTip="Show/hide additional settings"
-                                Margin="0,0,0,0" Command="{Binding LaunchAdminViewCommand, UpdateSourceTrigger=PropertyChanged}">
+                                Margin="0,15,0,0" Command="{Binding LaunchAdminViewCommand, UpdateSourceTrigger=PropertyChanged}">
                             <Image Source="/Resources/settings.png" Stretch="Fill" Margin="0,0,0,0" Height="36" VerticalAlignment="Bottom"></Image>
                         </Button>
                     </Grid>
@@ -193,7 +198,7 @@
                                         <ColumnDefinition Width="Auto"/>
                                         <ColumnDefinition Width="*"/>
                                     </Grid.ColumnDefinitions>
-                                    <TextBlock Grid.Column="0" Text="Manage Assessments" VerticalAlignment="Center" Margin="10,10,10,10" FontSize="13" FontWeight="Bold"/>
+                                    <TextBlock Grid.Column="0" Text="Manage Assessments" VerticalAlignment="Center" Margin="10,10,10,10" FontSize="14" FontWeight="Bold"/>
                                     <Button Grid.Column="1" Style="{StaticResource ButtonStyle_Small}" Command="{Binding Protocol.AssessmentPresenter.ChangeLinkVisibilityCommand}" HorizontalAlignment="Right" Margin="0,0,10,0">
                                         <Image>
                                             <Image.Style>
@@ -346,7 +351,8 @@
                                                                            IsEnabled="{Binding EnableCourseSelection, UpdateSourceTrigger=PropertyChanged}"
                                                                           MinWidth="100" SelectedItem="{Binding SelectedPlan, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" DisplayMemberPath="PlanId" ItemsSource="{Binding Plans, UpdateSourceTrigger=PropertyChanged}"></ComboBox>
                                                                 <Button Grid.Column="3" Grid.Row="1" Margin="0,0,0,0" Background="Transparent"  ToolTip="Check plan" Style="{StaticResource ButtonStyle_Medium}" HorizontalAlignment="Left" VerticalAlignment="Center"
-                                                                     Command="{Binding DataContext.ViewPlanCheckCommand, ElementName=SquintWindow}" CommandParameter="{Binding SelectedPlan}">
+                                                                     Command="{Binding DataContext.ViewPlanCheckCommand, ElementName=SquintWindow}" CommandParameter="{Binding SelectedPlan}"
+                                                                        Visibility="{Binding IsSum, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource VisibilityInverseConverter}}">
                                                                     <ContentControl>
                                                                         <Image Source="/Resources/check_plan.png"></Image>
                                                                     </ContentControl>
@@ -376,7 +382,7 @@
                                     <ColumnDefinition Width="Auto"/>
                                     <ColumnDefinition Width="*"/>
                                 </Grid.ColumnDefinitions>
-                                <TextBlock Grid.Column="0" Text="Load Protocol" VerticalAlignment="Center" FontSize="13" Margin="10,10,0,10" FontWeight="Bold"/>
+                                <TextBlock Grid.Column="0" Text="Load Protocol" VerticalAlignment="Center" FontSize="14" Margin="10,10,0,10" FontWeight="Bold"/>
                                 <Button Grid.Column="1" Style="{StaticResource ButtonStyle_Small}" Command="{Binding ExpandLoadProtocolCommand}" HorizontalAlignment="Right" Margin="0,0,10,0">
                                     <Image>
                                         <Image.Style>
@@ -472,7 +478,7 @@
                                         <TextBlock Grid.Column="0" Grid.Row="4" Margin ="10,5,0,10" Text="Last modified by:" VerticalAlignment="Center"></TextBlock>
                                         <TextBlock Grid.Column="1" Grid.Row="4" Margin ="10,5,0,10" Text="{Binding Protocol.SelectedProtocol.LastModifiedBy}" Foreground="Steelblue" FontWeight="Bold" HorizontalAlignment="Center"></TextBlock>
                                         <GroupBox  Grid.RowSpan="6" Grid.Column="2" Header="Comments" Margin="10,0,5,10">
-                                            <TextBox HorizontalAlignment="Stretch" VerticalAlignment="Stretch" BorderThickness="0"/>
+                                            <TextBox HorizontalAlignment="Stretch" VerticalAlignment="Stretch" BorderThickness="0" Text="{Binding Protocol.Comments, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"/>
                                         </GroupBox>
                                     </Grid>
                                 </GroupBox>
@@ -510,11 +516,11 @@
                                         <ColumnDefinition Width="*"/>
                                         <ColumnDefinition Width="*"/>
                                     </Grid.ColumnDefinitions>
-                                    <TextBlock Grid.Row="0" Text="Current Protocol" FontSize="13" VerticalAlignment="Center" Margin="10,10,0,10" FontWeight="Bold"/>
+                                    <TextBlock Grid.Row="0" Text="Current Protocol" FontSize="14" VerticalAlignment="Center" Margin="10,10,0,10" FontWeight="Bold" />
                                     <TextBlock Grid.Column="1" Text="{Binding Protocol.ProtocolName, UpdateSourceTrigger=PropertyChanged}" TextAlignment="Left" HorizontalAlignment="Right"
                                                Visibility="{Binding AdminOptionsToggle, Converter={StaticResource VisibilityInverseConverter},Mode=OneWay, UpdateSourceTrigger=PropertyChanged}"
                                                VerticalAlignment="Center" Foreground="SteelBlue" FontSize ="13" Margin="10,5,20,5" Padding="10,0,0,0" FontWeight="Bold"/>
-                                    <TextBox Grid.Column="1" Text="{Binding Protocol.ProtocolName}" TextAlignment="Center" HorizontalAlignment="Right"
+                                    <TextBox Grid.Column="1" Text="{Binding Protocol.ProtocolName}" TextAlignment="Center" HorizontalAlignment="Right" Style="{StaticResource ConstraintTextBoxStyle}"
                                                Visibility="{Binding AdminOptionsToggle, Converter={StaticResource VisibilityConverter}}"
                                              SC:TextBoxExtensions.UpdateSourceOnKey="Return" 
                                                VerticalAlignment="Center" Foreground="SteelBlue" FontSize ="13" Margin="10,5,20,5" Padding="10,0,10,0" FontWeight="Bold"/>
@@ -579,11 +585,11 @@
                                     <ColumnDefinition Width="*"/>
                                     <ColumnDefinition Width="Auto"/>
                                 </Grid.ColumnDefinitions>
-                                <Border Grid.Column="0" Background="PeachPuff" MinHeight="30" CornerRadius="5,5,5,5" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="10,5,5,5">
-                                    <TextBlock Text="Components" VerticalAlignment="Center" Margin="10,0,0,0" FontWeight="Bold">
+                                <Border Grid.Column="0" Background="PeachPuff" MinHeight="35" CornerRadius="5,5,5,5" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="10,5,5,5">
+                                    <TextBlock Text="Components" VerticalAlignment="Center" Margin="10,0,0,0" FontWeight="Bold" FontSize="13">
                                     </TextBlock>
                                 </Border>
-                                <Button Grid.Column="1" Style="{DynamicResource ButtonStyle_Small}">
+                                <Button Grid.Column="1" Style="{DynamicResource ButtonStyle_Small}" Command="{Binding Protocol.AddComponentCommand}">
                                     <Image Source="/Resources/plus.png"></Image>
                                 </Button>
                             </Grid>
@@ -598,10 +604,15 @@
                                             <Grid Grid.Row="0">
                                                 <Grid.ColumnDefinitions>
                                                     <ColumnDefinition Width="Auto"/>
-                                                    <ColumnDefinition Width="Auto"/>
                                                     <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                    <ColumnDefinition Width="Auto"/>
                                                 </Grid.ColumnDefinitions>
-                                                <TextBlock Grid.Column="0" Text="{Binding ComponentName, UpdateSourceTrigger=PropertyChanged}" FontSize="13" Background="Transparent" Margin="10,0,0,0" VerticalAlignment="Center"/>
+                                                <TextBox Grid.Column="0" Text="{Binding ComponentName, Mode=TwoWay}" Visibility="{Binding DataContext.AdminOptionsToggle,  ElementName=SquintWindow,Converter={StaticResource VisibilityConverter}}" 
+                                                         FontSize="13" Margin="10,0,0,0" TextAlignment="Left" Width="150"                                                      
+                                                         Style="{StaticResource ConstraintTextBoxStyle}"/>
+                                                <TextBlock Grid.Column="0" Text="{Binding ComponentName, UpdateSourceTrigger=PropertyChanged}" Visibility="{Binding DataContext.AdminOptionsToggle, ElementName=SquintWindow, Converter={StaticResource VisibilityInverseConverter}}"
+                                                           FontSize="13" Background="Transparent" Margin="10,0,0,0" VerticalAlignment="Center"/>
                                                 <TextBlock Grid.Column="1" Text="{Binding ComponentTDFDescription, UpdateSourceTrigger=PropertyChanged}" FontSize="13" Foreground="SteelBlue" Background="Transparent" Margin="10,0,0,0" VerticalAlignment="Center"/>
                                                 <Button Grid.Column="2" Name="button_ShowComponent" ToolTip="Pin component details"
                                                         Style="{DynamicResource ButtonStyle_Small}" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="5,0,5,0" 
@@ -620,6 +631,11 @@
                                                             </Style>
                                                         </Image.Style>
                                                     </Image>
+                                                </Button>
+                                                <Button Grid.Column="3" Name="button_DeleteComonent" ToolTip="Delete component" Visibility="{Binding DataContext.AdminOptionsToggle, ElementName=SquintWindow, Converter={StaticResource VisibilityConverter}}"
+                                                        Style="{DynamicResource ButtonStyle_Small}" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="5,0,5,0" 
+                                                            Command="{Binding DataContext.Protocol.DeleteComponentCommand, RelativeSource={RelativeSource AncestorLevel=1, AncestorType=ListView}}" CommandParameter="{Binding}">
+                                                    <Image Source="/Resources/appbar.delete.png"/>
                                                 </Button>
                                             </Grid>
                                             <Grid Grid.Row="1">
@@ -686,14 +702,18 @@
                                     <ColumnDefinition Width="*"/>
                                     <ColumnDefinition Width="Auto"/>
                                 </Grid.ColumnDefinitions>
-                                <Border Grid.Column="0"  Background="PeachPuff" MinHeight="30" CornerRadius="5,5,5,5" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="10,5,5,5">
+                                <Border Grid.Column="0"  Background="PeachPuff" MinHeight="35" CornerRadius="5,5,5,5" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="10,5,5,5">
                                     <Grid>
                                         <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="Auto"/>
                                             <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="Auto"/>
                                         </Grid.ColumnDefinitions>
-                                        <TextBlock Grid.Column="0" Text="Structures" VerticalAlignment="Center" Margin="10,0,0,0" FontWeight="Bold"/>
-                                        <Button Grid.Column="1" Style="{StaticResource ButtonStyle_Small}" Command="{Binding ExpandStructuresCommand}" HorizontalAlignment="Right" Margin="0,0,10,0" Padding="10,10,10,10">
+                                        <TextBlock Grid.Column="0" Text="Structures" VerticalAlignment="Center" Margin="10,0,0,0" FontWeight="Bold" FontSize="14"/>
+                                        <TextBlock Grid.Column="1" Text="Current structure set:" VerticalAlignment="Center" Margin="10,0,0,0" FontWeight="Bold"/>
+                                        <ComboBox Grid.Column="2" Style="{StaticResource ConstraintComboBoxStyle}" ItemsSource="{Binding PatientPresenter.StructureSets}" VerticalContentAlignment="Center" VerticalAlignment="Center" SelectedItem="{Binding PatientPresenter.CurrentStructureSet, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"  DisplayMemberPath="ComboBoxDisplay" Margin="5,3,10,3"/>
+                                        <Button Grid.Column="3" Style="{StaticResource ButtonStyle_Small}" Command="{Binding ExpandStructuresCommand}" HorizontalAlignment="Right" Margin="0,0,10,0" Padding="10,10,10,10">
                                             <Image>
                                                 <Image.Style>
                                                     <Style TargetType="Image">
@@ -720,7 +740,7 @@
                                     <sys:Double>0.0</sys:Double>
                                 </Grid.Tag>
                                 <Grid.MaxHeight>
-                                    <MultiBinding Converter="{StaticResource ExpanderConverter}" ConverterParameter="500">
+                                    <MultiBinding Converter="{StaticResource ExpanderConverter}" ConverterParameter="600">
                                         <Binding Path="Tag" RelativeSource="{RelativeSource Self}"/>
                                     </MultiBinding>
                                 </Grid.MaxHeight>
@@ -747,19 +767,11 @@
                                     <RowDefinition Height="Auto"/>
                                     <RowDefinition Height="*"/>
                                 </Grid.RowDefinitions>
-                                <Border DockPanel.Dock="Top" Grid.Column="0" Grid.Row="1" Background="AntiqueWhite" MinHeight="30" CornerRadius="5,5,5,5" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="15,5,10,5">
-                                    <TextBlock Grid.Row="0" Text="Protocol Definition" VerticalAlignment="Center" Margin="10,0,0,0" FontWeight="Bold"/>
+                                <Border Grid.Column="0" Grid.Row="1" Background="AntiqueWhite" MinHeight="30" CornerRadius="5,5,5,5" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="15,5,10,5">
+                                    <TextBlock Text="Protocol Structure" VerticalAlignment="Center" Margin="15,0,0,0" FontWeight="Bold"/>
                                 </Border>
-                                <Border DockPanel.Dock="Top" Grid.Column="1" Grid.Row="1" Background="AntiqueWhite" MinHeight="30" CornerRadius="5,5,5,5" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="0,5,15,5">
-                                    <Grid>
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="Auto"/>
-                                            <ColumnDefinition Width="*"/>
-                                        </Grid.ColumnDefinitions>
-                                        <TextBlock Grid.Column="0" Text="Current structure set:" VerticalAlignment="Center" Margin="10,0,0,0" FontWeight="Bold"/>
-                                        <ComboBox Grid.Column="1" Style="{StaticResource ConstraintComboBoxStyle}" ItemsSource="{Binding PatientPresenter.StructureSets}" SelectedItem="{Binding PatientPresenter.CurrentStructureSet, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"  DisplayMemberPath="ComboBoxDisplay" Margin="5,3,10,3"/>
-                                    </Grid>
-
+                                <Border Grid.Column="1" Grid.Row="1" Background="AntiqueWhite" MinHeight="30" CornerRadius="5,5,5,5" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="0,5,30,5">
+                                    <TextBlock Text="Assigned Eclipse Structures" VerticalAlignment="Center" HorizontalAlignment="Left" Margin="15,0,0,0" FontWeight="Bold"/>
                                 </Border>
                                 <ListView Grid.Row="2" Grid.ColumnSpan="2" Margin="0,0,10,0" Name="StructuresTree" Style="{StaticResource ListViewStyle1}" ItemsSource="{Binding Protocol.Structures, UpdateSourceTrigger=PropertyChanged, Mode=OneWay}" BorderThickness="0" ItemContainerStyle="{StaticResource ListViewItemStyle}" HorizontalContentAlignment="Stretch">
                                     <ListView.ItemTemplate>
@@ -775,12 +787,12 @@
                                                         <ColumnDefinition Width="1.5*"/>
                                                         <ColumnDefinition Width="Auto"/>
                                                     </Grid.ColumnDefinitions>
-                                                    <TextBlock Grid.Column="0" Text="{Binding ProtocolStructureName, UpdateSourceTrigger=PropertyChanged, Mode=OneWay}" 
+                                                    <TextBlock Grid.Column="0" Text="{Binding ProtocolStructureName, UpdateSourceTrigger=PropertyChanged, Mode=OneWay}" VerticalAlignment="Center"
                                                                Visibility="{Binding DataContext.AdminOptionsToggle, ElementName=SquintWindow, UpdateSourceTrigger=PropertyChanged,Converter={StaticResource VisibilityInverseConverter}}"
                                                                FontSize="13" Background="Transparent" Margin="10,3,0,0"></TextBlock>
                                                     <TextBox Grid.Column="0" Text="{Binding ProtocolStructureName, Mode=TwoWay}" Width="150" HorizontalAlignment="Left" 
                                                              Visibility="{Binding DataContext.AdminOptionsToggle, ElementName=SquintWindow, UpdateSourceTrigger=PropertyChanged,Converter={StaticResource VisibilityConverter}}"
-                                                             FontSize="13" Background="AliceBlue" Margin="10,3,0,0" VerticalAlignment="Center" SC:TextBoxExtensions.UpdateSourceOnKey="Return" Height="25"></TextBox>
+                                                             FontSize="13" Style="{StaticResource ConstraintTextBoxStyle}" Margin="10,3,0,0" VerticalAlignment="Center" SC:TextBoxExtensions.UpdateSourceOnKey="Return" Height="25"></TextBox>
                                                     <Grid Grid.Column="1" Margin="20,0,0,0">
                                                         <Grid.ColumnDefinitions>
                                                             <ColumnDefinition Width="Auto"/>
@@ -788,15 +800,26 @@
                                                             <ColumnDefinition Width="*"/>
                                                         </Grid.ColumnDefinitions>
                                                         <Ellipse Grid.Column="0" Width="12" Height="12" Margin="10,0,10,0" Fill="{Binding StructureColor, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource Color2Brush}}"/>
-                                                        <TextBlock  Visibility="{Binding AdminOptionsToggle, UpdateSourceTrigger=PropertyChanged,Converter={StaticResource VisibilityInverseConverter}}"
-                                                            Grid.Column="1" Text="{Binding Path=AssignedStructureId, Mode=OneWay}" HorizontalAlignment="Left" Foreground="SteelBlue" FontSize="13" Background="Transparent" ></TextBlock>
+                                                        <ComboBox Grid.Column="1"  Visibility="{Binding DataContext.AdminOptionsToggle, ElementName=SquintWindow, UpdateSourceTrigger=PropertyChanged,Converter={StaticResource VisibilityInverseConverter}}"
+                                                                      HorizontalAlignment="Center" MinWidth="150" MaxWidth="200" HorizontalContentAlignment="Center" Width="Auto" Style="{StaticResource ConstraintComboBoxStyle}" MaxDropDownHeight="150"
+                                                                  SelectedItem="{Binding AssignedStructureId, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
+                                                                      Background="AliceBlue">
+                                                            <ComboBox.ItemsSource>
+                                                                <MultiBinding Converter="{StaticResource SortStructuresConverter}" Mode="OneWay">
+                                                                    <Binding RelativeSource="{RelativeSource FindAncestor, AncestorType={x:Type ListViewItem}}" Path="DataContext"  Mode="OneWay"/>
+                                                                    <Binding ElementName="SquintWindow" Path="DataContext.Protocol.AvailableStructureIds" UpdateSourceTrigger="PropertyChanged" Mode="OneWay"/>
+                                                                </MultiBinding>
+                                                            </ComboBox.ItemsSource>
+                                                        </ComboBox>
+                                                        <!--<TextBlock  Visibility="{Binding AdminOptionsToggle, UpdateSourceTrigger=PropertyChanged,Converter={StaticResource VisibilityInverseConverter}}"
+                                                            Grid.Column="1" Text="{Binding Path=AssignedStructureId, Mode=OneWay}" Margin="0,3,0,0" HorizontalAlignment="Left" Foreground="SteelBlue" FontSize="13" Background="Transparent" ></TextBlock>-->
                                                         <Grid Grid.Column="2" HorizontalAlignment="Right" Visibility="{Binding LabelIsConsistent, Converter={StaticResource VisibilityConverter}, UpdateSourceTrigger=PropertyChanged}">
                                                             <Polygon Points="0,17 8,0 17,17" Fill="Transparent"  Grid.Column="1" Width="17" Height="17" Stroke="DarkOrange" StrokeThickness="2" ToolTip="{Binding LabelMismatchTooltip, UpdateSourceTrigger=PropertyChanged}" Margin="0,-2,0,0"/>
                                                             <TextBlock Grid.Column="1" IsHitTestVisible="false" Text="!" FontWeight="Bold" HorizontalAlignment="Center" Padding="0,1,0,0" VerticalAlignment="Center" Foreground="Black"/>
                                                         </Grid>
                                                     </Grid>
-                                                    <Button Grid.Column="2" ToolTip="Pin structure details"
-                                                            Style="{DynamicResource ButtonStyle_Small}" VerticalAlignment="Top" HorizontalAlignment="Right" Margin="0,0,5,0" 
+                                                    <Button Grid.Column="4" ToolTip="Pin structure details"
+                                                            Style="{DynamicResource ButtonStyle_Small}" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="5,0,5,0" 
                                                             Command="{Binding PinOptionsCommand}">
                                                         <Image>
                                                             <Image.Style>
@@ -844,9 +867,11 @@
                                                             </Style.Triggers>
                                                         </Style>
                                                     </Grid.Style>
-                                                    <GroupBox Header="Structure Properties" Margin="0,0,0,0" HorizontalContentAlignment="Stretch" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+                                                    <GroupBox Header="Properties" Margin="10,0,0,0" HorizontalContentAlignment="Stretch" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
                                                         <Grid>
                                                             <Grid.RowDefinitions>
+                                                                <RowDefinition Height="Auto"/>
+                                                                <RowDefinition Height="Auto"/>
                                                                 <RowDefinition Height="Auto"/>
                                                                 <RowDefinition Height="Auto"/>
                                                                 <RowDefinition Height="*"/>
@@ -857,20 +882,8 @@
                                                             </Grid.ColumnDefinitions>
                                                             <TextBlock Grid.Row="0" Grid.Column="0" Text="Structure Name:" Margin="7,5,7,5" HorizontalAlignment="Left" Visibility="{Binding isUserAdded, Converter={StaticResource VisibilityConverter}, UpdateSourceTrigger=PropertyChanged}"/>
                                                             <TextBox Grid.Row="0" Grid.Column="1" HorizontalAlignment="Center" Width="150" MaxLength="50" Text="{Binding ProtocolStructureName, Mode=TwoWay}" KeyUp="TextBox_KeyEnterUpdate" Visibility="{Binding isUserAdded, Converter={StaticResource VisibilityConverter}, UpdateSourceTrigger=PropertyChanged}"/>
-                                                            <TextBlock Grid.Row="1" Grid.Column="0" Text="Structure Id:" Margin="7,5,7,5" HorizontalAlignment="Left" Visibility="{Binding DataContext.AdminOptionsToggle, ElementName=SquintWindow, UpdateSourceTrigger=PropertyChanged,Converter={StaticResource VisibilityInverseConverter}}" ></TextBlock>
                                                             <TextBlock Grid.Row="1" Grid.Column="0" Text="Structure Aliases:" Margin="7,5,7,5" HorizontalAlignment="Left" Visibility="{Binding DataContext.AdminOptionsToggle, ElementName=SquintWindow, UpdateSourceTrigger=PropertyChanged,Converter={StaticResource VisibilityConverter}}"></TextBlock>
-                                                            <ComboBox Grid.Row="1" Grid.Column="1"  Visibility="{Binding DataContext.AdminOptionsToggle, ElementName=SquintWindow, UpdateSourceTrigger=PropertyChanged,Converter={StaticResource VisibilityInverseConverter}}"
-                                                                      HorizontalAlignment="Stretch" MaxWidth="150" HorizontalContentAlignment="Center" Width="Auto" Margin="10,5,10,5" Style="{StaticResource ConstraintComboBoxStyle}"
-                                                                  MaxDropDownHeight="150" 
-                                                                  SelectedItem="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type ListViewItem}}, Path=DataContext.AssignedStructureId, Mode=OneWayToSource}"
-                                                                      Background="AliceBlue">
-                                                                <ComboBox.ItemsSource>
-                                                                    <MultiBinding Converter="{StaticResource SortStructuresConverter}" Mode="OneWay">
-                                                                        <Binding RelativeSource="{RelativeSource FindAncestor, AncestorType={x:Type ListViewItem}}" Path="DataContext"  Mode="OneWay"/>
-                                                                        <Binding ElementName="SquintWindow" Path="DataContext.Protocol.AvailableStructureIds" UpdateSourceTrigger="PropertyChanged" Mode="OneWay"/>
-                                                                    </MultiBinding>
-                                                                </ComboBox.ItemsSource>
-                                                            </ComboBox>
+
                                                             <Grid Grid.Row="1" Grid.Column="1"  HorizontalAlignment="Center" VerticalAlignment="Center" Background="White"
                                                                   Visibility="{Binding DataContext.AdminOptionsToggle, ElementName=SquintWindow, UpdateSourceTrigger=PropertyChanged,Converter={StaticResource VisibilityConverter}}">
                                                                 <Grid.RowDefinitions>
@@ -890,7 +903,7 @@
                                                                                 <Image Name ="DragImage"  Grid.Column="0" Height="20" Width="18" Stretch="Fill" RenderOptions.BitmapScalingMode="HighQuality" Source="\Resources\align.png" ToolTip="Drag to re-order" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="5,2,5,2" MouseDown="AliasList_MouseDown"/>
                                                                                 <TextBlock Grid.Column="1" Text="{Binding}" VerticalAlignment="Center" HorizontalAlignment="Stretch" Background="Transparent"/>
                                                                                 <Button Grid.Column="2" Style="{StaticResource ButtonStyle_Small}" VerticalAlignment="Center" Height="20" Width="20" Background="Transparent" 
-                                                        Command="{Binding DataContext.RemoveStructureAliasCommand, RelativeSource={RelativeSource AncestorType=ListBox}}" CommandParameter="{Binding}">
+                                                                                    Command="{Binding DataContext.RemoveStructureAliasCommand, RelativeSource={RelativeSource AncestorType=ListBox}}" CommandParameter="{Binding}">
                                                                                     <Image Source="\Resources\x_trans.png"/>
                                                                                 </Button>
                                                                             </Grid>
@@ -903,10 +916,10 @@
                                                                         <ColumnDefinition Width="*"/>
                                                                         <ColumnDefinition Width="Auto"/>
                                                                     </Grid.ColumnDefinitions>
-                                                                    <TextBox Grid.Column="0" Text="{Binding NewAlias, Mode=TwoWay}" SC:TextBoxExtensions.UpdateSourceOnKey="Return" Margin="0,0,10,0" Height="25"
-                                                 HorizontalContentAlignment="Center" VerticalContentAlignment="Center"/>
+                                                                    <TextBox Grid.Column="0" Text="{Binding NewAlias, Mode=TwoWay}" SC:TextBoxExtensions.UpdateSourceOnKey="Return" Margin="0,0,10,0" Height="23"
+                                                                         HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Style="{StaticResource ConstraintTextBoxStyle}"/>
                                                                     <Button Grid.Column="1" Style="{StaticResource ButtonStyle_Small}" Width="20" Height="20" HorizontalAlignment="Center"
-                                                VerticalAlignment="Center" Command="{Binding AddStructureAliasCommand}" Margin="0,0,1,0">
+                                                                         VerticalAlignment="Center" Command="{Binding AddStructureAliasCommand}" Margin="0,0,1,0">
                                                                         <Image Source="\Resources\plus_trans.png"/>
                                                                     </Button>
                                                                 </Grid>
@@ -914,21 +927,92 @@
                                                             <Grid Grid.Row="2" Grid.ColumnSpan="2">
                                                                 <Grid.ColumnDefinitions>
                                                                     <ColumnDefinition Width="Auto"/>
+                                                                    <ColumnDefinition Width="Auto"/>
                                                                     <ColumnDefinition Width="*"/>
                                                                     <ColumnDefinition Width="Auto"/>
                                                                 </Grid.ColumnDefinitions>
-                                                                <TextBlock Grid.Column="0" Text="Structure Label:" HorizontalAlignment="Left" Margin="7,5,7,5"/>
-                                                                <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Center">
-                                                                    <TextBlock  Text="{Binding DataContext.LabelName, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type ListViewItem}}, UpdateSourceTrigger=PropertyChanged, Mode=OneWay}"
+                                                                <TextBlock Grid.Column="0" Text="Structure label:" HorizontalAlignment="Left" Margin="7,5,7,5"/>
+                                                                <TextBlock Grid.Column="1"  Text="{Binding DataContext.StructureLabel.LabelName, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type ListViewItem}}, UpdateSourceTrigger=PropertyChanged, Mode=OneWay}"
                                                                        Margin="7,5,7,5" HorizontalAlignment="Center" Foreground="SteelBlue"/>
-                                                                    <TextBlock  Text="{Binding DataContext.AlphaBetaRatio, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type ListViewItem}}, UpdateSourceTrigger=PropertyChanged, Mode=OneWay}"
+                                                                <TextBlock Grid.Column="2" Text="Linked Label:" HorizontalAlignment="Left" Margin="7,5,7,5"/>
+                                                                <TextBlock Grid.Column="3"  Text="{Binding DataContext.LabelName, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type ListViewItem}}, UpdateSourceTrigger=PropertyChanged, Mode=OneWay}"
                                                                        Margin="7,5,7,5" HorizontalAlignment="Left" Foreground="SteelBlue"/>
-                                                                </StackPanel>
-                                                                <Button Grid.Column="2" Style="{StaticResource ButtonStyle_Small}" HorizontalAlignment="Right" Margin="0,0,5,0">
-                                                                    <Image Source="/Resources/edit.png"></Image>
-                                                                </Button>
+                                                                <Grid Grid.Column="3">
+                                                                    <Button Style="{StaticResource ButtonStyle_Small}" Width="20" Height="20" HorizontalAlignment="Right" Margin="0,0,5,0" 
+                                                                            Visibility="{Binding DataContext.AdminOptionsToggle, ElementName=SquintWindow, Converter={StaticResource VisibilityConverter}}"
+                                                                            Command="{Binding EditStructureCommand}" ToolTip="Change protocol structure label">
+                                                                        <Image>
+                                                                            <Image.Style>
+                                                                                <Style TargetType="Image">
+                                                                                    <Style.Triggers>
+                                                                                        <DataTrigger Binding="{Binding EditStructureVisibility, UpdateSourceTrigger=PropertyChanged}" Value="false">
+                                                                                            <Setter Property="Source" Value="/Resources/edit.png"/>
+                                                                                        </DataTrigger>
+                                                                                        <DataTrigger Binding="{Binding EditStructureVisibility, UpdateSourceTrigger=PropertyChanged}" Value="true">
+                                                                                            <Setter Property="Source" Value="/Resources/appbar.edit.slash.png"/>
+                                                                                        </DataTrigger>
+                                                                                    </Style.Triggers>
+                                                                                </Style>
+                                                                            </Image.Style>
+                                                                        </Image>
+                                                                    </Button>
+                                                                </Grid>
                                                             </Grid>
-
+                                                            <Grid Grid.Row="3" Grid.ColumnSpan="2">
+                                                                <Grid.Tag>
+                                                                    <sys:Double>0.0</sys:Double>
+                                                                </Grid.Tag>
+                                                                <Grid.MaxHeight>
+                                                                    <MultiBinding Converter="{StaticResource ExpanderConverter}" ConverterParameter="200">
+                                                                        <Binding Path="Tag" RelativeSource="{RelativeSource Self}"/>
+                                                                    </MultiBinding>
+                                                                </Grid.MaxHeight>
+                                                                <Grid.Style>
+                                                                    <Style TargetType="Grid">
+                                                                        <Style.Triggers>
+                                                                            <DataTrigger Value="True">
+                                                                                <DataTrigger.Binding>
+                                                                                    <MultiBinding Converter="{StaticResource SelectionConverter}" UpdateSourceTrigger="PropertyChanged">
+                                                                                        <Binding RelativeSource="{RelativeSource AncestorLevel=1, AncestorType=ListViewItem}" UpdateSourceTrigger="PropertyChanged" Path="DataContext.EditStructureVisibility" />
+                                                                                        <Binding ElementName="SquintWindow" Path="DataContext.Protocol.DragSelected" />
+                                                                                    </MultiBinding>
+                                                                                </DataTrigger.Binding>
+                                                                                <DataTrigger.EnterActions>
+                                                                                    <BeginStoryboard Storyboard="{StaticResource ExpandPanel}"/>
+                                                                                </DataTrigger.EnterActions>
+                                                                                <DataTrigger.ExitActions>
+                                                                                    <BeginStoryboard Storyboard="{StaticResource CollapsePanel}"/>
+                                                                                </DataTrigger.ExitActions>
+                                                                            </DataTrigger>
+                                                                        </Style.Triggers>
+                                                                    </Style>
+                                                                </Grid.Style>
+                                                                <Grid.RowDefinitions>
+                                                                    <RowDefinition Height="Auto"/>
+                                                                    <RowDefinition Height="*"/>
+                                                                </Grid.RowDefinitions>
+                                                                <Grid Grid.Row="0" Margin="0,10,0,10">
+                                                                    <Grid.ColumnDefinitions>
+                                                                        <ColumnDefinition Width="Auto"/>
+                                                                        <ColumnDefinition Width="*"/>
+                                                                    </Grid.ColumnDefinitions>
+                                                                    <TextBlock Grid.Column="0" Text="Search:" FontFamily="Arial" VerticalAlignment="Center" TextAlignment="Center" Margin="10,0,0,0"  HorizontalAlignment="Left" />
+                                                                    <TextBox Grid.Column="1" Text="{Binding DataContext.LabelFilterText, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type ListViewItem}}, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
+                                                                             Margin="10,0,0,0" VerticalAlignment="Center" Width="200" HorizontalAlignment="Left" Height="23"/>
+                                                                </Grid>
+                                                                <ListBox Grid.Row="1" Style="{StaticResource ListBoxStyle1}" ItemsSource="{Binding DataContext.LimitedSource, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type ListViewItem}}, UpdateSourceTrigger=PropertyChanged, Mode=OneWay}" 
+                                                                        Margin="20,5,0,10" DisplayMemberPath="LabelName" BorderThickness="0" MinWidth="150" SelectedItem="{Binding DataContext.StructureLabel, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type ListViewItem}}, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                                        VerticalAlignment="Stretch"/>
+                                                            </Grid>
+                                                            <Grid Grid.Row="4" Grid.ColumnSpan="2">
+                                                                <Grid.ColumnDefinitions>
+                                                                    <ColumnDefinition Width="Auto"/>
+                                                                    <ColumnDefinition Width="*"/>
+                                                                </Grid.ColumnDefinitions>
+                                                                <TextBlock Grid.Column="0" Text="Alpha/Beta ratio:" HorizontalAlignment="Left" Margin="7,5,7,5"/>
+                                                                <TextBlock Grid.Column="1" Text="{Binding DataContext.AlphaBetaRatio, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type ListViewItem}}, UpdateSourceTrigger=PropertyChanged, Mode=OneWay}"
+                                                                       Margin="7,5,7,5" HorizontalAlignment="Center" Foreground="SteelBlue"/>
+                                                            </Grid>
                                                         </Grid>
                                                     </GroupBox>
                                                 </Grid>
@@ -978,8 +1062,8 @@
                                                     <!--<TextBlock  Grid.Column="2" VerticalAlignment="Center" Text="{Binding ShortConstraintDefinition, UpdateSourceTrigger=PropertyChanged, Mode=OneWay}" Margin="5,0,10,0"></TextBlock>-->
                                                     <StackPanel Grid.Column="2" Orientation="Horizontal">
                                                         <TextBlock VerticalAlignment="Center" Text="{Binding ShortConstraintDefinition, UpdateSourceTrigger=PropertyChanged, Mode=OneWay}" Margin="5,0,0,0"></TextBlock>
-                                                        <TextBlock VerticalAlignment="Center" Text="{Binding IsAddedStatus, UpdateSourceTrigger=PropertyChanged, Mode=OneWay}" Foreground="ForestGreen" FontStyle="Italic" Margin="5,0,0,0"></TextBlock>
-                                                        <TextBlock VerticalAlignment="Center" Text="{Binding ChangeStatusString, UpdateSourceTrigger=PropertyChanged, Mode=OneWay}" Foreground="DarkOrange" FontStyle="Italic" Margin="5,0,0,0"></TextBlock>
+                                                        <TextBlock VerticalAlignment="Center" Text="{Binding ChangeStatusString, UpdateSourceTrigger=PropertyChanged, Mode=OneWay}" 
+                                                                   Foreground="{Binding ChangeStatusString, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource ConstraintStatusColourConverter}}" FontStyle="Italic" Margin="5,0,0,0"></TextBlock>
                                                     </StackPanel>
                                                     <ComboBox  Grid.Column="3" HorizontalAlignment="Right" MinWidth="50" Margin="0,0,0,0" VerticalAlignment="Center" ItemsSource="{Binding Components}" SelectedItem="{Binding Component}" Style="{StaticResource ConstraintComboBoxStyle}">
                                                         <ComboBox.ItemTemplate>
@@ -1068,8 +1152,8 @@
                                                                         </DataTemplate>
                                                                     </ComboBox.ItemTemplate>
                                                                 </ComboBox>
-                                                                <TextBox Text ="{Binding ReferenceValue, Mode=TwoWay}" Style="{StaticResource ConstraintTextBoxStyle}" Foreground="{Binding ReferenceValueColor, UpdateSourceTrigger=PropertyChanged}"
-                                                                     Width="50" SC:TextBoxExtensions.UpdateSourceOnKey="Return"></TextBox>
+                                                                <TextBlock Text ="{Binding ReferenceValue, Mode=OneWay}" VerticalAlignment="Center" HorizontalAlignment="Center" TextAlignment="Center" Foreground="{Binding ReferenceValueColor, UpdateSourceTrigger=PropertyChanged}" Width="50"/>
+
                                                                 <ComboBox ItemsSource ="{Binding Path=AvailableReferenceUnitTypes, UpdateSourceTrigger=PropertyChanged}" SelectedItem="{Binding ReferenceUnit}" Width="50" HorizontalAlignment="Left" Style="{StaticResource ConstraintComboBoxStyle}">
                                                                     <ComboBox.ItemTemplate>
                                                                         <DataTemplate>
@@ -1082,31 +1166,35 @@
                                                                 <Border CornerRadius="5,5,5,5" Margin ="5,0,0,0" Background="MediumSeaGreen" Height="25" Width="80">
                                                                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
                                                                         <TextBlock Text="{Binding ReferenceType, Mode=OneWay, Converter={StaticResource EnumDisplayTypesConverter}, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,2,0" Foreground="White" Background="Transparent" HorizontalAlignment="Center"  VerticalAlignment="Center"/>
-                                                                        <TextBox Text="{Binding StopValue, Converter={StaticResource DoubleToDisplay}, Mode=TwoWay}" Foreground="White" Background="Transparent" BorderBrush="Transparent" HorizontalAlignment="Center" VerticalAlignment="Center" SC:TextBoxExtensions.UpdateSourceOnKey="Return"/>
+                                                                        <TextBox Text="{Binding StopValue, Converter={StaticResource DoubleToDisplay}}" IsReadOnly="{Binding ThresholdIsInterpolated}" Foreground="White" Background="Transparent" BorderBrush="Transparent" HorizontalAlignment="Center" VerticalAlignment="Center" SC:TextBoxExtensions.UpdateSourceOnKey="Return"/>
                                                                         <TextBlock Text="{Binding ReferenceUnit, Mode=OneWay, Converter={StaticResource EnumDisplayTypesConverter}, UpdateSourceTrigger=PropertyChanged}" Margin="2,0,0,0" Foreground="White" Background="Transparent" HorizontalAlignment="Center"  VerticalAlignment="Center"/>
                                                                     </StackPanel>
                                                                 </Border>
                                                                 <Border CornerRadius="5,5,5,5" Margin ="10,0,0,0" Background="PaleGreen" Height="25" Width="80">
                                                                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
                                                                         <TextBlock Text="{Binding ReferenceType, Mode=OneWay, Converter={StaticResource EnumDisplayTypesConverter}, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,2,0" Foreground="Black" Background="Transparent" HorizontalAlignment="Center"  VerticalAlignment="Center"/>
-                                                                        <TextBlock Text="{Binding ReferenceValue, Mode=TwoWay, Converter={StaticResource DoubleToDisplay}}" Background="Transparent" HorizontalAlignment="Center"  VerticalAlignment="Center" SC:TextBoxExtensions.UpdateSourceOnKey="Return"/>
+                                                                        <TextBlock Text="{Binding ReferenceValue, Mode=OneWay, Converter={StaticResource DoubleToDisplay}}" Background="Transparent" HorizontalAlignment="Center"  VerticalAlignment="Center" SC:TextBoxExtensions.UpdateSourceOnKey="Return"/>
                                                                         <TextBlock Text="{Binding ReferenceUnit, Mode=OneWay, Converter={StaticResource EnumDisplayTypesConverter}, UpdateSourceTrigger=PropertyChanged}" Background="Transparent" Margin="2,0,0,0" HorizontalAlignment="Center"  VerticalAlignment="Center"/>
                                                                     </StackPanel>
                                                                 </Border>
                                                                 <Border CornerRadius="5,5,5,5" Margin ="10,0,0,0" Background="DarkOrange" Height="25" Width="80">
                                                                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
                                                                         <TextBlock Text="{Binding OppositeReferenceTypeString, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,2,0" Foreground="Black" Background="Transparent" HorizontalAlignment="Center"  VerticalAlignment="Center"/>
-                                                                        <TextBox Text="{Binding MinorViolation, Converter={StaticResource DoubleToDisplay}, Mode=TwoWay}" Background="Transparent" HorizontalAlignment="Center" BorderBrush="Transparent" VerticalAlignment="Center" SC:TextBoxExtensions.UpdateSourceOnKey="Return"/>
+                                                                        <TextBox Text="{Binding MinorViolation, Converter={StaticResource DoubleToDisplay}}" IsReadOnly="{Binding ThresholdIsInterpolated}" Background="Transparent" HorizontalAlignment="Center" BorderBrush="Transparent" VerticalAlignment="Center" SC:TextBoxExtensions.UpdateSourceOnKey="Return"/>
                                                                         <TextBlock Text="{Binding ReferenceUnit, Mode=OneWay, Converter={StaticResource EnumDisplayTypesConverter}, UpdateSourceTrigger=PropertyChanged}" Background="Transparent" Margin="2,0,0,0" HorizontalAlignment="Center"  VerticalAlignment="Center"/>
                                                                     </StackPanel>
                                                                 </Border>
                                                                 <Border CornerRadius="5,5,5,5"  Margin ="10,0,0,0" Background="Tomato" Height="25" Width="80">
                                                                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
                                                                         <TextBlock Text="{Binding OppositeReferenceTypeString, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,2,0" Foreground="Black" Background="Transparent" HorizontalAlignment="Center"  VerticalAlignment="Center"/>
-                                                                        <TextBox Text="{Binding MajorViolation, Converter={StaticResource DoubleToDisplay}, Mode=TwoWay}" Background="Transparent" HorizontalAlignment="Center" BorderBrush="Transparent" VerticalAlignment="Center" SC:TextBoxExtensions.UpdateSourceOnKey="Return"/>
+                                                                        <TextBox Text="{Binding MajorViolation, Converter={StaticResource DoubleToDisplay}}" IsReadOnly="{Binding ThresholdIsInterpolated}" Background="Transparent" HorizontalAlignment="Center" BorderBrush="Transparent" VerticalAlignment="Center" SC:TextBoxExtensions.UpdateSourceOnKey="Return"/>
                                                                         <TextBlock Text="{Binding ReferenceUnit, Mode=OneWay, Converter={StaticResource EnumDisplayTypesConverter}, UpdateSourceTrigger=PropertyChanged}" Background="Transparent"  Margin="2,0,0,0" HorizontalAlignment="Center"  VerticalAlignment="Center"/>
                                                                     </StackPanel>
                                                                 </Border>
+                                                                <Button Margin="10,0,0,0"  VerticalAlignment="Center" HorizontalAlignment="Center" 
+                                                                            Style="{StaticResource ButtonStyle_Small}" ToolTip="Interpolate thresholds from data file" >
+                                                                    <Image Source="/Resources/edit.png"/>
+                                                                </Button>
                                                             </StackPanel>
                                                         </Grid>
                                                     </GroupBox>

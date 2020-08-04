@@ -15,6 +15,7 @@ namespace SquintScript
     using Npgsql;
     using NpgsqlTypes;
     using Extensions;
+    using System.Reflection;
 
     public class SquintdBModel : DbContext
     {
@@ -47,6 +48,10 @@ namespace SquintScript
                 .HasRequired(d => d.DbAssessment)
                 .WithMany(t => t.ConstraintResults)
                 .HasForeignKey(m => m.AssessmentID)
+                .WillCascadeOnDelete(true);
+            modelBuilder.Entity<DbProtocolStructure>()
+                .HasRequired(d => d.DbStructureChecklist)
+                .WithRequiredPrincipal(p => p.DbProtocolStructure)
                 .WillCascadeOnDelete(true);
             modelBuilder.Entity<DbConstraintChangelog>()
                 .HasRequired(p => p.DbConstraintChangelog_Parent)
@@ -185,73 +190,6 @@ namespace SquintScript
                             break;
                     }
                 }
-                //foreach (ConstraintThresholdNames item in Enum.GetValues(typeof(ConstraintThresholdNames)))
-                //{
-                //    DbConThresholdDef DbCTdef;
-                //    switch (item)
-                //    {
-                //        case ConstraintThresholdNames.MajorViolation:
-                //            {
-                //                DbCTdef = new DbConThresholdDef()
-                //                {
-                //                    ID = (int)ConstraintThresholdNames.MajorViolation,
-                //                    Threshold = (int)ConstraintThresholdNames.MajorViolation,
-                //                    ThresholdType = (int)ConstraintThresholdTypes.Violation,
-                //                    ThresholdName = ConstraintThresholdNames.MajorViolation.Display()
-                //                };
-                //                context.DbConThresholdDefs.Add(DbCTdef);
-                //                break;
-                //            }
-                //        case ConstraintThresholdNames.MinorViolation:
-                //            {
-                //                DbCTdef = new DbConThresholdDef()
-                //                {
-                //                    ID = (int)ConstraintThresholdNames.MinorViolation,
-                //                    Threshold = (int)ConstraintThresholdNames.MinorViolation,
-                //                    ThresholdType = (int)ConstraintThresholdTypes.Violation,
-                //                    ThresholdName = ConstraintThresholdNames.MinorViolation.Display()
-                //                };
-                //                context.DbConThresholdDefs.Add(DbCTdef);
-                //                break;
-                //            }
-                //        case ConstraintThresholdNames.Unset:
-                //            {
-                //                DbCTdef = new DbConThresholdDef()
-                //                {
-                //                    ID = (int)ConstraintThresholdNames.Unset,
-                //                    Threshold = (int)ConstraintThresholdNames.Unset,
-                //                    ThresholdType = (int)ConstraintThresholdTypes.Unset,
-                //                    ThresholdName = ConstraintThresholdNames.Unset.Display()
-                //                };
-                //                context.DbConThresholdDefs.Add(DbCTdef);
-                //                break;
-                //            }
-                //        case ConstraintThresholdNames.None:
-                //            {
-                //                DbCTdef = new DbConThresholdDef()
-                //                {
-                //                    ID = (int)ConstraintThresholdNames.None,
-                //                    Threshold = (int)ConstraintThresholdNames.None,
-                //                    ThresholdType = (int)ConstraintThresholdTypes.Unset,
-                //                    ThresholdName = ConstraintThresholdNames.None.Display()
-                //                };
-                //                context.DbConThresholdDefs.Add(DbCTdef);
-                //                break;
-                //            }
-                //        case ConstraintThresholdNames.Stop:
-                //            {
-                //                DbCTdef = new DbConThresholdDef()
-                //                {
-                //                    ID = (int)ConstraintThresholdNames.Stop,
-                //                    Threshold = (int)ConstraintThresholdNames.Stop,
-                //                    ThresholdType = (int)ConstraintThresholdTypes.Goal,
-                //                    ThresholdName = ConstraintThresholdNames.Stop.Display()
-                //                };
-                //                context.DbConThresholdDefs.Add(DbCTdef);
-                //                break;
-                //            }
-                //    }
-                //}
                 context.SaveChanges();
                 foreach (ProtocolTypes item in Enum.GetValues(typeof(ProtocolTypes)))
                 {
@@ -288,7 +226,7 @@ namespace SquintScript
                 };
                 context.DbStructureLabelGroups.Add(SLG);
                 context.SaveChanges();
-                string StructureXMLFile = File.ReadAllText(Directory.GetCurrentDirectory() + @"\StructureLabels.xml");
+                string StructureXMLFile = File.ReadAllText(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + @"\StructureLabels.xml");
                 context.Configuration.AutoDetectChangesEnabled = false;
                 context.Configuration.ValidateOnSaveEnabled = false;
                 Serializer ser = new Serializer();
@@ -366,10 +304,7 @@ namespace SquintScript
                 };
                 context.DbLibraryProtocols.Add(RootProtocol);
                 context.SaveChanges();
-                DbStructureChecklist DbStructureChecklistDefault = new DbStructureChecklist
-                {
-                    ID = 1,
-                };
+                DbStructureChecklist DbStructureChecklistDefault = new DbStructureChecklist();
                 context.DbStructureChecklists.Add(DbStructureChecklistDefault);
                 DbProtocolStructure RootStructureID = new DbProtocolStructure
                 {
@@ -381,14 +316,14 @@ namespace SquintScript
                 context.SaveChanges();
                 DbComponent RootComponent = new DbComponent
                 {
-                    ProtocolID = 1,
+                    ProtocolID = 1
                 };
                 context.DbComponents.Add(RootComponent);
                 context.SaveChanges();
                 DbConstraint RootConstraint = new DbConstraint
                 {
                     PrimaryStructureID = 1,
-                    SecondaryStructureID = 1,
+                    ReferenceStructureId = 1,
                     ComponentID = 1,
                 };
                 context.DbConstraints.Add(RootConstraint);
@@ -402,6 +337,8 @@ namespace SquintScript
                 };
                 context.DbConstraintChangelogs.Add(RootConstraintLog);
                 context.SaveChanges();
+
+
                 DbComponentImaging DbPI = new DbComponentImaging()
                 {
                     ID = 1,
@@ -425,6 +362,7 @@ namespace SquintScript
             }
         }
         // Types
+        
         public DbSet<DbEnergy> DbEnergies { get; set; }
         // Structures
         public DbSet<DbStructureLabelGroup> DbStructureLabelGroups { get; set; }
@@ -452,7 +390,7 @@ namespace SquintScript
         public DbSet<DbSessionConstraint> DbSessionConstraints { get; set; }
         public DbSet<DbSessionComponent> DbSessionComponents { get; set; }
         public DbSet<DbSessionProtocolStructure> DbSessionProtocolStructures { get; set; }
-        
+
         //Component
         public DbSet<DbComponent> DbComponents { get; set; }
         //Beams
@@ -469,12 +407,19 @@ namespace SquintScript
         public DbSet<DbPermission> DbPermissions { get; set; }
         public DbSet<DbPermissionGroup> DbPermissionGroups { get; set; }
         //Plans
-        public DbSet<DbPlan> DbPlans { get; set; }
-
+        public DbSet<DbPlanAssociation> DbPlans { get; set; }
+        // Confiug
+        
         // Add a DbSet for each entity type that you want to include in your model. For more information 
         // on configuring and using a Code First model, see http://go.microsoft.com/fwlink/?LinkId=390109.
     }
 
+    //public class DbSiteConfiguration
+    //{
+    //    [Key]
+    //    public int ID { get; set; }
+    //    public string Site { get; set; }
+    //}
     public class DbStructureLabelGroup // 
     {
         [Key]
@@ -628,7 +573,7 @@ namespace SquintScript
     {
         [Key]
         public int ID { get; set; }
-        
+
         [ForeignKey("DbBeam")]
         public int BeamId { get; set; }
 
@@ -636,13 +581,13 @@ namespace SquintScript
 
 
         [XmlAttribute]
-        public double HU { get; set; } 
+        public double HU { get; set; }
         [XmlAttribute]
-        public double Thickness { get; set; } 
+        public double Thickness { get; set; }
         [XmlAttribute]
         public double ToleranceHU { get; set; }
         [XmlAttribute]
-        public double ToleranceThickness { get; set; } 
+        public double ToleranceThickness { get; set; }
         [XmlAttribute]
         public int Indication { get; set; }
     }
@@ -656,15 +601,15 @@ namespace SquintScript
         public string ProtocolBeamName { get; set; }
         public int Technique { get; set; }
         public string ToleranceTable { get; set; }
-        public double MinMUWarning { get; set; }
-        public double MaxMUWarning { get; set; }
-        public double MinColRotation { get; set; }
-        public double MaxColRotation { get; set; }
-        public double CouchRotation { get; set; }
-        public double MinX { get; set; }
-        public double MaxX { get; set; }
-        public double MinY { get; set; }
-        public double MaxY { get; set; }
+        public double? MinMUWarning { get; set; }
+        public double? MaxMUWarning { get; set; }
+        public double? MinColRotation { get; set; }
+        public double? MaxColRotation { get; set; }
+        public double? CouchRotation { get; set; }
+        public double? MinX { get; set; }
+        public double? MaxX { get; set; }
+        public double? MinY { get; set; }
+        public double? MaxY { get; set; }
         //public int BolusClinicalIndication { get; set; }
         //public double BolusClinicalHU { get; set; }
         //public double BolusClinicalToleranceHU { get; set; }
@@ -716,8 +661,8 @@ namespace SquintScript
     {
         [Key]
         public int ID { get; set; }
-        public double HU { get; set; }
-        public double ToleranceHU { get; set; }
+        public double? HU { get; set; }
+        public double? ToleranceHU { get; set; }
         [ForeignKey("DbProtocolStructure")]
         public int ProtocolStructure_ID { get; set; }
         public virtual DbProtocolStructure DbProtocolStructure { get; set; }
@@ -729,8 +674,9 @@ namespace SquintScript
     public class DbStructureChecklist
     {
         [Key]
-        public int ID { get; set; }
-        public virtual ICollection<DbProtocolStructure> DbProtocolStructures { get; set; }
+        [ForeignKey("DbProtocolStructure")]
+        public int ProtocolStructureID { get; set; }
+        public virtual DbProtocolStructure DbProtocolStructure { get; set; }
         public bool isPointContourChecked { get; set; } = false;
         public double PointContourThreshold { get; set; }
     }
@@ -749,10 +695,6 @@ namespace SquintScript
         public double? AlgorithmResolution { get; set; }
         public bool? HeterogeneityOn { get; set; }
         public double? SliceSpacing { get; set; }
-        //Prescription
-        public double? PrescribedPercentage { get; set; }
-        public double? PNVMin { get; set; }
-        public double? PNVMax { get; set; }
         //Supports
         public int SupportIndication { get; set; }
         public double? CouchSurface { get; set; }
@@ -813,6 +755,7 @@ namespace SquintScript
         public string LastModifiedBy { get; set; }
         public string ApprovalDate { get; set; }
         public bool isRetired { get; set; }
+        public string Comments { get; set; }
         public int TreatmentIntent { get; set; }
     }
 
@@ -839,7 +782,7 @@ namespace SquintScript
         public string Comments { get; set; }
     }
 
-    public class DbPlan
+    public class DbPlanAssociation
     {
         [Key]
         public int ID { get; set; }
@@ -874,7 +817,7 @@ namespace SquintScript
         public virtual ICollection<DbSessionComponent> DbSessionComponents { get; set; }
         public virtual ICollection<DbConstraint> Constraints { get; set; }
         public virtual ICollection<DbComponentImaging> ImagingProtocols { get; set; }
-        
+
         //Properties
         public bool isException { get; set; }
         public int DisplayOrder { get; set; } // the order to display in Squint
@@ -885,10 +828,15 @@ namespace SquintScript
         public string ComponentName { get; set; }
 
         // Beam Group Parameters
-        public int? MinBeams { get; set; } 
-        public int? MaxBeams { get; set; } 
-        public int? NumIso { get; set; } 
-        public int? MinColOffset { get; set; } 
+        public int? MinBeams { get; set; }
+        public int? MaxBeams { get; set; }
+        public int? NumIso { get; set; }
+        public int? MinColOffset { get; set; }
+
+        // Prescription
+        public double? PrescribedPercentage { get; set; }
+        public double? PNVMin { get; set; }
+        public double? PNVMax { get; set; }
     }
 
     public class DbSessionComponent : DbComponent
@@ -941,9 +889,9 @@ namespace SquintScript
         [ForeignKey("DbProtocolStructure_Primary")]
         public int PrimaryStructureID { get; set; } // the primary structure to which this constraint applies
         public virtual DbProtocolStructure DbProtocolStructure_Primary { get; set; }
-        [ForeignKey("DbProtocolStructure_Secondary")]
-        public int SecondaryStructureID { get; set; } // the primary structure to which this constraint applies
-        public virtual DbProtocolStructure DbProtocolStructure_Secondary { get; set; }
+        [ForeignKey("DbProtocolStructure_Reference")]
+        public int ReferenceStructureId { get; set; } // the primary structure to which this constraint applies
+        public virtual DbProtocolStructure DbProtocolStructure_Reference { get; set; }
         public virtual ICollection<DbSessionConstraint> DbSessionConstraints { get; set; }
         public virtual ICollection<DbConstraintChangelog> DbConstraintChangelogs { get; set; }
         //Exception flag
@@ -955,10 +903,14 @@ namespace SquintScript
         public double ReferenceValue { get; set; }
         public int ReferenceType { get; set; } // enum code for upper/lower constraint
         public int ReferenceScale { get; set; }
-
+        // Threshold data
+        public double? Stop { get; set; }
         public double? MajorViolation { get; set; }
         public double? MinorViolation { get; set; }
-        public double? Stop { get; set; }
+        public string ThresholdDataPath { get; set; }
+        public int InterpolationParameterType { get; set; }
+        public int InterpolationParameterReference { get; set; }
+        // Checklist
     }
 
     public class DbConstraintChangelog
@@ -994,23 +946,7 @@ namespace SquintScript
         public double OriginalConstraintValue { get; set; }
     }
 
-    //public class DbConThreshold
-    //{
-    //    [Key]
-    //    public int ID { get; set; }
-    //    //FKs
-    //    [ForeignKey("DbConstraint")]
-    //    public int ConstraintID { get; set; }
-    //    public virtual DbConstraint DbConstraint { get; set; }
-    //    [ForeignKey("DbConThresholdDef")]
-    //    public int ConThreshDefID { get; set; }
-    //    public virtual DbConThresholdDef DbConThresholdDef { get; set; }
-    //    //public virtual ICollection<DbConstraintResult> ConstraintResults { get; set; }
-    //    //Properties
-    //    public double ThresholdValue { get; set; }
-    //    public string Description { get; set; }
 
-    //}
 
     //public class DbSessionConThreshold : DbConThreshold
     //{
@@ -1020,18 +956,16 @@ namespace SquintScript
     //    public int ParentConstraintThresholdID { get; set; }
     //}
 
-    //public class DbConThresholdDef
+    //public class DbConThresholdType
     //{
     //    [Key]
     //    public int ID { get; set; }
     //    //FKs
-    //    public virtual ICollection<DbConThreshold> DbConThresholds { get; set; }
+    //    public virtual ICollection<DbConThreshold> DbThresholds { get; set; }
     //    //Properties
     //    public int Threshold { get; set; } // this is the int cast of the enum
     //    public string ThresholdName { get; set; }
     //    public int ThresholdType { get; set; }
-    //    public string Color { get; set; }
-
     //}
 
     public class DbBeamAlias
@@ -1065,8 +999,6 @@ namespace SquintScript
         [ForeignKey("DbLibraryProtocol")]
         public int ProtocolID { get; set; }
         public virtual DbProtocol DbLibraryProtocol { get; set; }
-        [ForeignKey("DbStructureChecklist")]
-        public int StructureChecklistID { get; set; }
         public virtual DbStructureChecklist DbStructureChecklist { get; set; }
         //Data
         public string ProtocolStructureName { get; set; }
@@ -1101,7 +1033,7 @@ namespace SquintScript
         public virtual ICollection<DbSessionComponent> SessionComponents { get; set; }
         public virtual ICollection<DbSessionConstraint> SessionConstraints { get; set; }
         public virtual ICollection<DbAssessment> SessionAssessments { get; set; }
-        public virtual ICollection<DbPlan> SessionPlans { get; set; }
+        public virtual ICollection<DbPlanAssociation> SessionPlans { get; set; }
         // Data
         public string PID { get; set; }
         public string SessionComment { get; set; }

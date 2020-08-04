@@ -280,6 +280,87 @@ namespace SquintScript.Converters
         }
     }
 
+    public class AdminColorModeConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType,
+             object parameter, System.Globalization.CultureInfo culture)
+        {
+            bool? AdminMode = value as bool?;
+            var paramInput = parameter as string;
+            Color defaultColour = Colors.CornflowerBlue;
+            if (!string.IsNullOrEmpty(paramInput))
+                defaultColour = (Color)ColorConverter.ConvertFromString(parameter as string);
+            if (AdminMode is null)
+            {
+                return new SolidColorBrush(defaultColour);
+            }
+            else
+                if ((bool)AdminMode)
+                return new SolidColorBrush(Colors.BurlyWood);
+            else
+                return new SolidColorBrush(defaultColour);
+        }
+        public object ConvertBack(object value, Type targetTypes,
+               object parameter, System.Globalization.CultureInfo culture)
+        {
+            return "";
+        }
+    }
+
+    public class AdminColorModeTestListConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType,
+             object parameter, System.Globalization.CultureInfo culture)
+        {
+            bool? AdminMode = value as bool?;
+            var paramInput = parameter as string;
+            Color defaultColour = Colors.AliceBlue;
+            if (!string.IsNullOrEmpty(paramInput))
+                defaultColour = (Color)ColorConverter.ConvertFromString(parameter as string);
+            if (AdminMode is null)
+            {
+                return new SolidColorBrush(defaultColour);
+            }
+            else
+                if ((bool)AdminMode)
+                return new SolidColorBrush(Colors.LightGoldenrodYellow);
+            else
+                return new SolidColorBrush(defaultColour);
+        }
+        public object ConvertBack(object value, Type targetTypes,
+               object parameter, System.Globalization.CultureInfo culture)
+        {
+            return "";
+        }
+    }
+
+    public class AdminColorModeHeaderConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType,
+             object parameter, System.Globalization.CultureInfo culture)
+        {
+            bool? AdminMode = value as bool?;
+            var paramInput = parameter as string;
+            Color defaultColour = Colors.AliceBlue;
+            if (!string.IsNullOrEmpty(paramInput))
+                defaultColour = (Color)ColorConverter.ConvertFromString(parameter as string);
+            if (AdminMode is null)
+            {
+                return new SolidColorBrush(defaultColour);
+            }
+            else
+                if ((bool)AdminMode)
+                return new SolidColorBrush(Colors.DarkGoldenrod);
+            else
+                return new SolidColorBrush(defaultColour);
+        }
+        public object ConvertBack(object value, Type targetTypes,
+               object parameter, System.Globalization.CultureInfo culture)
+        {
+            return "";
+        }
+    }
+
     public class UnsetComboColourConverter : IValueConverter
     {
         public object Convert(object value, Type targetType,
@@ -585,7 +666,7 @@ namespace SquintScript.Converters
                 if (double.IsNaN(V))
                     return "-";
                 else
-                    return V.ToString();
+                    return string.Format("{0:0.##}", V);
             }
             else
                 return "-";
@@ -786,13 +867,13 @@ namespace SquintScript.Converters
                     else
                         switch (CS.GetViolationStatus(AV.AssessmentId))
                         {
-                            case ConstraintThresholdNames.MinorViolation:
+                            case ReferenceThresholdTypes.MinorViolation:
                                 return new SolidColorBrush(Colors.Orange);
-                            case ConstraintThresholdNames.MajorViolation:
+                            case ReferenceThresholdTypes.MajorViolation:
                                 return new SolidColorBrush(Colors.Red);
-                            case ConstraintThresholdNames.Stop:
+                            case ReferenceThresholdTypes.Stop:
                                 return new SolidColorBrush(Colors.MediumSeaGreen);
-                            case ConstraintThresholdNames.None:
+                            case ReferenceThresholdTypes.None:
                                 return new SolidColorBrush(Colors.PaleGreen);
                             default:
                                 return new SolidColorBrush(Colors.Transparent);
@@ -853,13 +934,13 @@ namespace SquintScript.Converters
                         else
                             switch (CS.GetViolationStatus(Col.AV.AssessmentId))
                             {
-                                case ConstraintThresholdNames.MinorViolation:
+                                case ReferenceThresholdTypes.MinorViolation:
                                     return new SolidColorBrush(Colors.Orange);
-                                case ConstraintThresholdNames.MajorViolation:
+                                case ReferenceThresholdTypes.MajorViolation:
                                     return new SolidColorBrush(Colors.Red);
-                                case ConstraintThresholdNames.Stop:
+                                case ReferenceThresholdTypes.Stop:
                                     return new SolidColorBrush(Colors.MediumSeaGreen);
-                                case ConstraintThresholdNames.None:
+                                case ReferenceThresholdTypes.None:
                                     return new SolidColorBrush(Colors.PaleGreen);
                                 default:
                                     return new SolidColorBrush(Colors.Transparent);
@@ -878,6 +959,32 @@ namespace SquintScript.Converters
         public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture)
         {
             throw new NotImplementedException();
+        }
+    }
+
+    public class ConstraintStatusColourConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType,
+              object parameter, System.Globalization.CultureInfo culture)
+        {
+            if (value != null)
+            {
+                switch ((string)value)
+                {
+                    case @"Modified":
+                        return new SolidColorBrush(Colors.DarkOrange);
+                    case @"New":
+                        return new SolidColorBrush(Colors.ForestGreen);
+                    default:
+                        return new SolidColorBrush(Colors.DarkOrange);
+                }
+            }
+            else return new SolidColorBrush(Colors.Transparent);
+        }
+        public object ConvertBack(object value, Type targetTypes,
+               object parameter, System.Globalization.CultureInfo culture)
+        {
+            return null;
         }
     }
 

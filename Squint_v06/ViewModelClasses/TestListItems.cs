@@ -147,6 +147,8 @@ namespace SquintScript.ViewModelClasses
                     return _EmptyRefValueString;
                 else
                 {
+                    if (Reference.Value == null)
+                        return _EmptyRefValueString;
                     if (Check is double || Check is int)
                     {
                         switch (Test)
@@ -339,8 +341,7 @@ namespace SquintScript.ViewModelClasses
         }
         public void CommitChanges()
         {
-            if (Reference != null)
-                Ctr.UpdateChecklistReferenceValue(CheckType, Reference.Value);
+            
         }
         public void RejectChanges()
         {
@@ -366,7 +367,7 @@ namespace SquintScript.ViewModelClasses
         {
             get
             {
-                if (Reference == null)
+                if (Reference == null || Reference2 == null)
                     return _EmptyRefValueString;
                 else
                     return
@@ -519,13 +520,24 @@ namespace SquintScript.ViewModelClasses
     public class CheckContainsItem<T> : TestListItem<T>, ITestListItem<T> 
     {
         public EditTypes EditType { get; private set; } = EditTypes.AnyOfValues;
+
+        public bool ItemHasDisplayName { get; private set; } = false;
         public void SetCheckValue(object CheckThis)
         {
             Check = (T)CheckThis;
+            if (Check is IElementOf<T>)
+            {
+                foreach (var S in ReferenceCollection)
+                {
+                    ((IElementOf<T>)Check).IsElementOf(S);
+                }
+            }
+            RaisePropertyChangedEvent(nameof(CheckPass));
             RaisePropertyChangedEvent(nameof(CheckValueString));
             RaisePropertyChangedEvent(nameof(Warning));
         }
         public ObservableCollection<T> ReferenceCollection { get; set; }
+        public ObservableCollection<string> ReferenceCollectionString { get; set; } = new ObservableCollection<string>();
         public string ReferenceValueString
         {
             get
@@ -534,6 +546,10 @@ namespace SquintScript.ViewModelClasses
                     return _EmptyRefValueString;
                 else
                 {
+                    if (Check is IDisplayable)
+                    {
+                        return string.Format("{0}", string.Join("\r\n", ReferenceCollection.Select(x => (x as IDisplayable).DisplayName)));
+                    }
                     if (Check is Enum)
                         return string.Format("{0}", string.Join(", ", ReferenceCollection.Select(x => (x as Enum).Display())));
                     else
@@ -555,6 +571,8 @@ namespace SquintScript.ViewModelClasses
                         return string.Format("{0:0.###}", Check);
                     else if (Check is Enum)
                         return (Check as Enum).Display();
+                    else if (Check is IElementOf<T>)
+                        return ((IElementOf<T>)Check).SuperSetName;
                     else
                         return Check.ToString();
                 }
@@ -594,7 +612,17 @@ namespace SquintScript.ViewModelClasses
                     if (ReferenceCollection.Contains((T)Check))
                         return true;
                     else
-                        return false;
+                    { 
+                        if (Check is Ctr.BeamGeometry)
+                        {
+                            foreach (var G in ReferenceCollection)
+                            {
+                                if ((Check as Ctr.BeamGeometry).IsElementOf((G as Ctr.BeamGeometry)))
+                                    return true;
+                            }
+                        }
+                    }
+                    return false;
                 }
             }
         }
@@ -604,6 +632,7 @@ namespace SquintScript.ViewModelClasses
         public CheckContainsItem(CheckTypes CT, T V, ObservableCollection<T> referenceCollection, string WS = "", string EmptyCheckValueString = "", string EmptyRefValueString = "")
         {
             CheckType = CT;
+            ReferenceCollection = referenceCollection;
             if (V is Enum)
             {
                 EnumOptions = new ObservableCollection<T>();
@@ -613,11 +642,16 @@ namespace SquintScript.ViewModelClasses
                 }
                 SetReference = EnumOptions.FirstOrDefault();
             }
-            ReferenceCollection = referenceCollection as ObservableCollection<T>;
+            else
+            {
+                SetReference = referenceCollection.FirstOrDefault();
+            }
             Check = V;
             WarningString = WS;
             _EmptyCheckValueString = EmptyCheckValueString;
             _EmptyRefValueString = EmptyRefValueString;
+            if (Check is IDisplayable)
+                ItemHasDisplayName = true;
         }
         public System.Windows.Input.ICommand RemoveItemCommand
         {
@@ -664,7 +698,7 @@ namespace SquintScript.ViewModelClasses
             RaisePropertyChangedEvent(nameof(CheckValueString));
             RaisePropertyChangedEvent(nameof(Warning));
         }
-        public TestType TestType { get; set; } // to implement
+        public EditTypes EditType { get; private set; } = EditTypes.AnyOfValues;
 
         public bool IsDirty { get { return false; } } // at present no way to edit beamgeometry
         public string ReferenceValueString

@@ -18,18 +18,15 @@ namespace SquintScript
             ProtocolMetaData = new ProtocolMetaDataDefinition();
             Structures = new StructuresDefinition();
             Components = new ComponentsDefinition();
-            DVHConstraints = new DVHConstraintListDefinition();
-            ConformityIndexConstraints = new ConformityIndexConstraintListDefinition();
+            Constraints = new ConstraintListDefinition();
         }
         public int ProtocolID;
         public string protocolSource;
         public int version = 1;
-        public class ConstraintDefinition
+        public class BaseConstraintDefinition
         {
             [XmlIgnore]
             public int ID;
-            [XmlAttribute]
-            public int DisplayOrder = -1;
             [XmlIgnore]
             public int ComponentID;
             [XmlAttribute]
@@ -46,8 +43,6 @@ namespace SquintScript
             public int ID;
             [XmlAttribute]
             public string ProtocolName;
-            [XmlAttribute]
-            public int NumComponents;
             [XmlAttribute]
             public string ProtocolDate;
             [XmlAttribute]
@@ -87,13 +82,13 @@ namespace SquintScript
             public List<BeamDefinition> Beam { get; set; }
 
             [XmlAttribute]
-            public int MinBeams { get; set; } = -1;
+            public string MinBeams { get; set; }
             [XmlAttribute]
-            public int MaxBeams { get; set; } = -1;
+            public string MaxBeams { get; set; }
             [XmlAttribute]
-            public int NumIso { get; set; } = 1;
+            public string NumIso { get; set; }
             [XmlAttribute]
-            public int MinColOffset { get; set; } = 20;
+            public string MinColOffset { get; set; }
         }
         public class EnergiesDefintion
         {
@@ -137,29 +132,28 @@ namespace SquintScript
             public string ProtocolBeamName { get; set; } = "unset";
             [XmlAttribute]
             public string Technique { get; set; } = "unset";
-            [XmlAttribute]
-            public string Energy { get; set; } = "6X";
+
             [XmlAttribute]
             public string ToleranceTable { get; set; } = "unset";
 
             [XmlAttribute]
-            public double MinMUWarning { get; set; } = double.NaN;
+            public string MinMUWarning { get; set; }
             [XmlAttribute]
-            public double MaxMUWarning { get; set; } = double.NaN;
+            public string MaxMUWarning { get; set; }
             [XmlAttribute]
-            public double MinColRotation { get; set; } = double.NaN;
+            public string MinColRotation { get; set; }
             [XmlAttribute]
-            public double MaxColRotation { get; set; } = double.NaN;
+            public string MaxColRotation { get; set; }
             [XmlAttribute]
-            public double CouchRotation { get; set; } = double.NaN;
+            public string CouchRotation { get; set; }
             [XmlAttribute]
-            public double MinX { get; set; } = double.NaN;
+            public string MinX { get; set; }
             [XmlAttribute]
-            public double MaxX { get; set; } = double.NaN;
+            public string MaxX { get; set; }
             [XmlAttribute]
-            public double MinY { get; set; } = double.NaN;
+            public string MinY { get; set; }
             [XmlAttribute]
-            public double MaxY { get; set; } = double.NaN;
+            public string MaxY { get; set; }
 
             [XmlAttribute]
             public string JawTracking_Indication { get; set; } = "Optional";
@@ -180,9 +174,9 @@ namespace SquintScript
         public class SupportsDefinition
         {
             [XmlAttribute]
-            public double CouchSurface { get; set; } = double.NaN;
+            public string CouchSurface { get; set; }
             [XmlAttribute]
-            public double CouchInterior { get; set; } = double.NaN;
+            public string CouchInterior { get; set; }
             [XmlAttribute]
             public string Indication { get; set; } = "Optional";
         }
@@ -191,13 +185,13 @@ namespace SquintScript
         {
 
             [XmlAttribute]
-            public double HU { get; set; } = double.NaN;
+            public string HU { get; set; }
             [XmlAttribute]
-            public double Thickness { get; set; } = double.NaN;
+            public string Thickness { get; set; }
             [XmlAttribute]
-            public double ToleranceHU { get; set; } = double.NaN;
+            public string ToleranceHU { get; set; }
             [XmlAttribute]
-            public double ToleranceThickness { get; set; } = double.NaN;
+            public string ToleranceThickness { get; set; }
             [XmlAttribute]
             public string Indication { get; set; } = "Optional";
         }
@@ -209,9 +203,9 @@ namespace SquintScript
         public class ArtifactDefinition
         {
             [XmlAttribute]
-            public double HU { get; set; }
+            public string HU { get; set; }
             [XmlAttribute]
-            public double ToleranceHU { get; set; }
+            public string ToleranceHU { get; set; }
             [XmlAttribute]
             public string ProtocolStructureName { get; set; }
         }
@@ -220,25 +214,29 @@ namespace SquintScript
             [XmlAttribute]
             public string Algorithm;
             [XmlAttribute]
-            public double AlgorithmResolution;
+            public string AlgorithmResolution;
             [XmlAttribute]
             public string FieldNormalizationMode;
             [XmlAttribute]
-            public bool HeterogeneityOn;
+            public string HeterogeneityOn;
         }
         public class SimulationDefinition
         {
             [XmlAttribute]
-            public double SliceSpacing;
+            public string SliceSpacing;
         }
         public class PrescriptionDefinition
         {
             [XmlAttribute]
-            public double PNVMin;
+            public string NumFractions;
             [XmlAttribute]
-            public double PNVMax;
+            public string ReferenceDose;
             [XmlAttribute]
-            public double PrescribedPercentage;
+            public string PNVMin;
+            [XmlAttribute]
+            public string PNVMax;
+            [XmlAttribute]
+            public string PrescribedPercentage;
         }
         public class ProtocolChecklistDefinition
         {
@@ -252,9 +250,6 @@ namespace SquintScript
             public SimulationDefinition Simulation { get; set; } = new SimulationDefinition();
             [XmlElement("Calculation")]
             public CalculationDefinition Calculation { get; set; } = new CalculationDefinition();
-            [XmlElement("Prescription")]
-            public PrescriptionDefinition Prescription { get; set; } = new PrescriptionDefinition();
-
         }
         public class StructureDefinition
         {
@@ -265,7 +260,7 @@ namespace SquintScript
             [XmlAttribute]
             public string ProtocolStructureName;
             [XmlElement("EclipseAliases")]
-            public EclipseAliases EclipseAliases { get; set; }
+            public EclipseAliases EclipseAliases { get; set; } = new EclipseAliases();
             [XmlElement("StructureChecklist")]
             public StructureChecklistDefinition StructureChecklist { get; set; }
         }
@@ -277,7 +272,7 @@ namespace SquintScript
         public class PointContourCheckDefinition
         {
             [XmlAttribute]
-            public double Threshold { get; set; } = Double.NaN;
+            public string Threshold { get; set; }
         }
         public class EclipseAliases
         {
@@ -303,100 +298,40 @@ namespace SquintScript
             [XmlElement("Structure")]
             public List<StructureDefinition> Structure { get; set; }
         }
-        public class ConformityIndexConstraintDefinition : ConstraintDefinition
+        
+        public class ConstraintListDefinition
         {
-            //Private backers
+            public ConstraintListDefinition()
+            {
+                ConstraintList = new List<ConstraintDefinition>();
+            }
+            [XmlElement("Constraint")]
+            public List<ConstraintDefinition> ConstraintList { get; set; }
+        }
+        public class ConstraintDefinition : BaseConstraintDefinition
+        {
             [XmlAttribute]
-            public string ConstraintName;
+            public string ReferenceType;
             [XmlAttribute]
-            public string PrimaryStructureName;
+            public string ConstraintValue;
             [XmlAttribute]
-            public string DoseUnit;
+            public string ConstraintUnit;
+            [XmlAttribute]
+            public string ConstraintType;
+            [XmlAttribute]
+            public string MajorViolation;
+            [XmlAttribute]
+            public string MinorViolation;
+            [XmlAttribute]
+            public string Stop;
+            [XmlAttribute]
+            public string ReferenceUnit;
+            [XmlAttribute]
+            public string DataTablePath;
+            [XmlAttribute]
+            public string ThresholdCalculationType;
             [XmlAttribute]
             public string ReferenceStructureName;
-            [XmlAttribute]
-            public string ConstraintType;
-            [XmlAttribute]
-            public string ConstraintUnit;
-            [XmlAttribute]
-            public double DoseVal;
-            [XmlAttribute]
-            public double MajorViolation = -1;
-            [XmlAttribute]
-            public double MinorViolation = -1;
-            [XmlAttribute]
-            public double Stop = -1;
-            [XmlAttribute]
-            public double ConstraintVal;
-            public string GetConstraintString()
-            {
-                return string.Join(": ", PrimaryStructureName, GetConstraintStringOnly());
-            }
-            public string GetConstraintStringOnly()
-            {
-                string ReferenceType;
-                if (ConstraintType.ToUpper() == "LOWER")
-                    ReferenceType = ReferenceTypes.Lower.Display();
-                else
-                    ReferenceType = ReferenceTypes.Upper.Display();
-                string DoseUnitString;
-                if (DoseUnit.ToUpper() == "RELATIVE")
-                    DoseUnitString = ConstraintUnits.Percent.Display();
-                else
-                    DoseUnitString = ConstraintUnits.cGy.Display();
-                if (ConstraintVal == 0) // Display exception if it's the whole volume for readability
-                    return string.Format("Total volume is {0} {1} % of {2} volume", ReferenceType, ConstraintVal, ReferenceStructureName);
-                else
-                {
-                    if (ConstraintUnit.ToUpper() == "PERCENT")
-                        return string.Format("V{0}[{1}] {2} {3}{4} of the {5} volume", DoseVal, DoseUnitString, ReferenceType, ConstraintVal, ConstraintUnits.Percent.Display(), ReferenceStructureName);
-                    else if (ConstraintUnit.ToUpper() == "MULTIPLE")
-                        return string.Format("V{0}[{1}] {2} {3} {4} the {5} volume", DoseVal, DoseUnitString, ReferenceType, ConstraintVal, ConstraintUnits.Multiple.Display(), ReferenceStructureName);
-                    else
-                        throw new Exception("Error in formatting constraint string");
-                }
-            }
-        }
-        public class DVHConstraintListDefinition
-        {
-            public DVHConstraintListDefinition()
-            {
-                DVHConstraintList = new List<DVHConstraintDefinition>();
-            }
-            [XmlElement("DVHConstraint")]
-            public List<DVHConstraintDefinition> DVHConstraintList { get; set; }
-        }
-        public class ConformityIndexConstraintListDefinition
-        {
-            public ConformityIndexConstraintListDefinition()
-            {
-                ConformityIndexConstraintList = new List<ConformityIndexConstraintDefinition>();
-            }
-            [XmlElement("ConformityIndexConstraint")]
-            public List<ConformityIndexConstraintDefinition> ConformityIndexConstraintList { get; set; }
-        }
-        public class DVHConstraintDefinition : ConstraintDefinition 
-        {
-            //[XmlAttribute]
-            //public string EclipseID;
-            [XmlAttribute]
-            public string DvhType;
-            [XmlAttribute]
-            public double DvhVal;
-            [XmlAttribute]
-            public string DvhUnit;
-            [XmlAttribute]
-            public string ConstraintType;
-            [XmlAttribute]
-            public double MajorViolation = -1;
-            [XmlAttribute]
-            public double MinorViolation = -1;
-            [XmlAttribute]
-            public double Stop = -1;
-            [XmlAttribute]
-            public double ConstraintVal;
-            [XmlAttribute]
-            public string ConstraintUnit;
             public string GetConstraintString()
             {
                 return string.Join(": ", ProtocolStructureName, GetConstraintStringOnly());
@@ -410,60 +345,76 @@ namespace SquintScript
                     ReferenceType = ReferenceTypes.Upper.Display();
                 string DvhUnitString;
                 string ConstraintUnitString;
-                switch (DvhType.ToUpper())
+                double constraintValue = double.Parse(ConstraintValue);
+                string referenceVals = string.Format("[Major] {0}, [Minor] {1}, [Stop] {2}", MajorViolation, MinorViolation, Stop);
+                switch (ConstraintType.ToUpper())
                 {
                     case "CV":
-                        if (DvhUnit.ToUpper() == "RELATIVE")
+                        if (ConstraintUnit.ToUpper() == "RELATIVE")
                             DvhUnitString = ConstraintUnits.Percent.Display();
                         else
                             DvhUnitString = ConstraintUnits.cGy.Display();
-                        if (ConstraintUnit.ToUpper() == "RELATIVE")
+                        if (ReferenceUnit.ToUpper() == "RELATIVE")
                             ConstraintUnitString = ConstraintUnits.Percent.Display();
                         else
                             ConstraintUnitString = ConstraintUnits.cc.Display();
-                        return string.Format("CV{0:0.###} [{1}] {2} {3:0.###} [{4}]", DvhVal, DvhUnitString, ReferenceType, ConstraintVal, ConstraintUnitString);
+                        return string.Format("CV{0:0.###} [{1}] {2} {3:0.###} [{4}]", ConstraintValue, DvhUnitString, ReferenceType, referenceVals, ConstraintUnitString);
                     case "V":
-                        if (DvhUnit.ToUpper() == "RELATIVE")
+                        if (ConstraintUnit.ToUpper() == "RELATIVE")
                             DvhUnitString = ConstraintUnits.Percent.Display();
                         else
                             DvhUnitString = ConstraintUnits.cGy.Display();
-                        if (ConstraintUnit.ToUpper() == "RELATIVE")
+                        if (ReferenceUnit.ToUpper() == "RELATIVE")
                             ConstraintUnitString = ConstraintUnits.Percent.Display();
                         else
                             ConstraintUnitString = ConstraintUnits.cc.Display();
-                        return string.Format("V{0:0.###} [{1}] {2} {3:0.###} [{4}]", DvhVal, DvhUnitString, ReferenceType, ConstraintVal, ConstraintUnitString);
+                        return string.Format("V{0:0.###} [{1}] {2} {3:0.###} [{4}]", ConstraintValue, DvhUnitString, ReferenceType, referenceVals, ConstraintUnitString);
                     case "D":                        //Exception for min and max dose
-                        if (DvhVal < 1E-5)
+                        if (constraintValue < 1E-5)
                         { // max dose
                             if (ConstraintUnit.ToUpper() == "RELATIVE")
-                                return string.Format("Max Dose {0} {1:0.###} [{2}]", ReferenceType, ConstraintVal, ConstraintUnits.Percent.Display());
+                                return string.Format("Max Dose {0} {1:0.###} [{2}]", ReferenceType, referenceVals, ConstraintUnits.Percent.Display());
                             else
-                                return string.Format("Max Dose {0} {1:0} [{2}]", ReferenceType, ConstraintVal, ConstraintUnits.cc.Display());
+                                return string.Format("Max Dose {0} {1:0} [{2}]", ReferenceType, referenceVals, ConstraintUnits.cc.Display());
                         }
-                        else if (Math.Abs(DvhVal - 100) < 1E-5 && ConstraintUnit.ToUpper() == "RELATIVE")
+                        else if (Math.Abs(constraintValue - 100) < 1E-5 && ConstraintUnit.ToUpper() == "RELATIVE")
                         {
                             if (ConstraintUnit.ToUpper() == "RELATIVE")
-                                return string.Format("Min Dose {0} {1:0.###} [{2}]", ReferenceType, ConstraintVal, ConstraintUnits.Percent.Display());
+                                return string.Format("Min Dose {0} {1:0.###} [{2}]", ReferenceType, referenceVals, ConstraintUnits.Percent.Display());
                             else
-                                return string.Format("Min Dose {0} {1:0} [{2}]", ReferenceType, ConstraintVal, ConstraintUnits.cGy.Display());
+                                return string.Format("Min Dose {0} {1:0} [{2}]", ReferenceType, referenceVals, ConstraintUnits.cGy.Display());
                         }
                         else
                         {
-                            if (DvhUnit.ToUpper() == "RELATIVE")
+                            if (ConstraintUnit.ToUpper() == "RELATIVE")
                                 DvhUnitString = ConstraintUnits.Percent.Display();
                             else
                                 DvhUnitString = ConstraintUnits.cc.Display();
-                            if (ConstraintUnit.ToUpper() == "RELATIVE")
+                            if (ReferenceUnit.ToUpper() == "RELATIVE")
                                 ConstraintUnitString = ConstraintUnits.Percent.Display();
                             else
                                 ConstraintUnitString = ConstraintUnits.cGy.Display();
                             if (ConstraintUnit.ToUpper() == "RELATIVE")
-                                return string.Format("D{0:0.###} [{1}] {2} {3:0.#} [{4}]", DvhVal, DvhUnitString, ReferenceType, ConstraintVal, ConstraintUnitString);
+                                return string.Format("D{0:0.###} [{1}] {2} {3:0.#} [{4}]", ConstraintValue, DvhUnitString, ReferenceType, referenceVals, ConstraintUnitString);
                             else
-                                return string.Format("D{0:0.###} [{1}] {2} {3:0} [{4}]", DvhVal, DvhUnitString, ReferenceType, ConstraintVal, ConstraintUnitString);
+                                return string.Format("D{0:0.###} [{1}] {2} {3:0} [{4}]", ConstraintValue, DvhUnitString, ReferenceType, referenceVals, ConstraintUnitString);
                         }
                     case "M":
-                        return string.Format("Mean Dose {0} {1:0} [{2}]", ReferenceType, ConstraintVal, ConstraintUnits.cGy.Display());
+                        return string.Format("Mean Dose {0} {1:0} [{2}]", ReferenceType, ConstraintValue, ConstraintUnits.cGy.Display());
+                    case "CI":
+                        if (constraintValue.CloseEnough(0)) // Display exception if it's the whole volume for readability
+                            return  string.Format("Total volume is {0} {1} % of {2} volume", ReferenceType, referenceVals, ReferenceStructureName);
+                        else
+                        {
+                            if (ConstraintUnit.ToUpper() == "RELATIVE")
+                                DvhUnitString = ConstraintUnits.Percent.Display();
+                            else
+                                DvhUnitString = ConstraintUnits.cc.Display();
+                            if (ReferenceUnit.ToUpper() == "RELATIVE")
+                                return string.Format("V{0}[{1}] {2} {3}{4} of the {5} volume", ConstraintValue, DvhUnitString, ReferenceType, referenceVals, ConstraintUnits.Percent.Display(), ReferenceStructureName);
+                            else 
+                                return string.Format("V{0}[{1}] {2} {3} {4} the {5} volume", ConstraintValue, DvhUnitString, ReferenceType, referenceVals, ConstraintUnits.Multiple.Display(), ReferenceStructureName);
+                        }
                     default:
                         throw new Exception("Error in formatting constraint string");
                 }
@@ -482,7 +433,7 @@ namespace SquintScript
         public class ComponentDefinition
         {
             //public event EventHandler ComponentBeingDisposed;
-            public event EventHandler<ComponentChangedEventArgs> ComponentChanged;
+            //public event EventHandler<ComponentChangedEventArgs> ComponentChanged;
             public class ComponentChangedEventArgs : EventArgs
             {
                 public int ComponentID;
@@ -501,65 +452,54 @@ namespace SquintScript
             public string ComponentName;
             [XmlAttribute]
             public string Type;
-            [XmlAttribute]
-            public int NumFractions;
-            [XmlAttribute]
-            public int ReferenceDose;
+        
+            public class ComponentConstraintsDefinition
+            {
+                public ComponentConstraintsDefinition()
+                {
+                    Constraint = new List<ConstraintDefinition>();
+                }
+                [XmlElement("Constraint")]
+                public List<ConstraintDefinition> Constraint { get; set; }
+            }
+            [XmlElement("Prescription")]
+            public PrescriptionDefinition Prescription { get; set; } = new PrescriptionDefinition();
 
-            public class ComponentDVHConstraintsDefinition
-            {
-                public ComponentDVHConstraintsDefinition()
-                {
-                    DVHConstraint = new List<DVHConstraintDefinition>();
-                }
-                [XmlElement("DVHConstraint")]
-                public List<DVHConstraintDefinition> DVHConstraint { get; set; }
-            }
-            public class ComponentConformityIndexConstraintsDefinition
-            {
-                public ComponentConformityIndexConstraintsDefinition()
-                {
-                    ConformityIndexConstraint = new List<ConformityIndexConstraintDefinition>();
-                }
-                [XmlElement("ConformityIndexConstraint")]
-                public List<ConformityIndexConstraintDefinition> ConformityIndexConstraint;
-            }
-            [XmlElement("DVHConstraints")]
-            public ComponentDVHConstraintsDefinition DVHConstraints { get; set; }
-            [XmlElement("ConformityIndexConstraints")]
-            public ComponentConformityIndexConstraintsDefinition ConformityIndexConstraints { get; set; }
+            [XmlElement("Constraints")]
+            public ComponentConstraintsDefinition Constraints { get; set; }
+            
             [XmlElement("ImagingProtocols")]
             public ImagingProtocolsDefinition ImagingProtocols { get; set; }
             [XmlElement("Beams")]
             public BeamsDefinition Beams { get; set; }
 
         }
-        public class ConException
-        {
-            //Properties
-            [XmlAttribute]
-            public string Property { get; set; }
-            [XmlAttribute]
-            public double PropertyValue { get; set; }
-            [XmlAttribute]
-            public string PropertyString { get; set; }
-            [XmlAttribute]
-            public string Description { get; set; }
-        }
+        
+        //public class ConException
+        //{
+        //    //Properties
+        //    [XmlAttribute]
+        //    public string Property { get; set; }
+        //    [XmlAttribute]
+        //    public double PropertyValue { get; set; }
+        //    [XmlAttribute]
+        //    public string PropertyString { get; set; }
+        //    [XmlAttribute]
+        //    public string Description { get; set; }
+        //}
 
         [XmlElement("ProtocolMetaData")]
-        public ProtocolMetaDataDefinition ProtocolMetaData { get; set; }
+        public ProtocolMetaDataDefinition ProtocolMetaData { get; set; } = new ProtocolMetaDataDefinition();
         [XmlElement("ImagingProtocols")]
-        public ImagingProtocolsDefinition ImagingProtocols { get; set; }
+        public ImagingProtocolsDefinition ImagingProtocols { get; set; } = new ImagingProtocolsDefinition();
         [XmlElement("Structures")]
-        public StructuresDefinition Structures { get; set; }
+        public StructuresDefinition Structures { get; set; } = new StructuresDefinition();
         [XmlElement("ProtocolChecklist")]
-        public ProtocolChecklistDefinition ProtocolChecklist { get; set; }
+        public ProtocolChecklistDefinition ProtocolChecklist { get; set; } = new ProtocolChecklistDefinition();
         [XmlElement("Components")]
-        public ComponentsDefinition Components { get; set; }
-        [XmlElement("DVHConstraints")]
-        public DVHConstraintListDefinition DVHConstraints { get; set; }
-        [XmlElement("ConformityIndexConstraints")]
-        public ConformityIndexConstraintListDefinition ConformityIndexConstraints { get; set; }
+        public ComponentsDefinition Components { get; set; } = new ComponentsDefinition();
+        [XmlElement("Constraints")]
+        public ConstraintListDefinition Constraints { get; set; } = new ConstraintListDefinition();
+        
     }
 }

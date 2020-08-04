@@ -20,7 +20,7 @@ namespace SquintScript.ViewModels
     {
 
         public Presenter ParentView { get; private set; }
-        public string ProtocolPath = @"\\spappvacn001\va_data$\ProgramData\Vision\Templates\protocol\";
+        public string ProtocolPath = Ctr.Config.ClinicalProtocols.FirstOrDefault(x => x.Site == Ctr.Config.Database.Site).Path;
         public ObservableCollection<VMSTemplates.Protocol> EclipseProtocols { get; set; } = new ObservableCollection<VMSTemplates.Protocol>();
 
         public EclipseProtocolPopupViewModel(Presenter parentView)
@@ -34,7 +34,10 @@ namespace SquintScript.ViewModels
                 {
                     var EP = (VMSTemplates.Protocol)ser.Deserialize(data);
                     if (EP != null)
-                        EclipseProtocols.Add(EP);
+                    {
+                        if (EP.Preview.ApprovalStatus.ToLower().Equals(@"approved"))
+                            EclipseProtocols.Add(EP);
+                    }
 
                 }
             }
