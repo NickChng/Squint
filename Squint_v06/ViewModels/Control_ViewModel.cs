@@ -169,7 +169,7 @@ namespace SquintScript.Controls
     [AddINotifyPropertyChangedInterface]
     public class Imaging_ViewModel
     {
-        public ObservableCollection<Ctr.ImagingFieldItem> ImagingFields { get; set; } = new ObservableCollection<Ctr.ImagingFieldItem>() { new Ctr.ImagingFieldItem(), new Ctr.ImagingFieldItem() };
+        public ObservableCollection<ImagingFieldItem> ImagingFields { get; set; } = new ObservableCollection<ImagingFieldItem>() { new ImagingFieldItem(), new ImagingFieldItem() };
         public ObservableCollection<string> GeneralErrors { get; set; } = new ObservableCollection<string>();
         public bool isGeneralErrors { get { if (GeneralErrors.Count() > 0) return true; else return false; } }
         public bool isProtocolAttached { get { if (ImagingProtocols.Count() > 0) return true; else return false; } }
@@ -212,8 +212,8 @@ namespace SquintScript.Controls
     {
         public event EventHandler FieldChanged;
 
-        private Ctr.TxFieldItem _Field;
-        public Ctr.TxFieldItem Field
+        private TxFieldItem _Field;
+        public TxFieldItem Field
         {
             get { return _Field; }
             set
@@ -227,8 +227,8 @@ namespace SquintScript.Controls
                 }
             }
         }
-        public List<Ctr.TxFieldItem> Fields { get; set; }
-        private Ctr.Beam RefBeam;
+        public List<TxFieldItem> Fields { get; set; }
+        private Beam RefBeam;
 
         public void RetireCheck()
         {
@@ -272,7 +272,7 @@ namespace SquintScript.Controls
         public string SelectedAlias { get; set; }
         public string NewAlias { get; set; }
      
-        public BeamListItem(Ctr.Beam RefBeam_in, List<Ctr.TxFieldItem> TxFields)
+        public BeamListItem(Beam RefBeam_in, List<TxFieldItem> TxFields)
         {
             RefBeam = RefBeam_in;
             Aliases = RefBeam_in.EclipseAliases;
@@ -284,7 +284,7 @@ namespace SquintScript.Controls
             BeamTests.Tests.Clear();
             if (Fields != null)
                 foreach (string alias in RefBeam.EclipseAliases)
-                    foreach (Ctr.TxFieldItem F in Fields)
+                    foreach (TxFieldItem F in Fields)
                         if (F.Id == alias)
                         {
                             Field = F;
@@ -294,9 +294,8 @@ namespace SquintScript.Controls
 
             // Populate Tests
             BeamTests.Tests.Add(new CheckRangeItem<double?>(CheckTypes.MURange, double.NaN, RefBeam.MinMUWarning, RefBeam.MaxMUWarning, "MU outside normal range"));
-            BeamTests.Tests.Add(new CheckContainsItem<Energies>(CheckTypes.ValidEnergies, Energies.Unset, RefBeam.ValidEnergies, "Not a valid energy"));
-            //BeamTests.Tests.Add(new TestListBeamStartStopItem(CheckTypes.BeamGeometry, null, RefBeam.ValidGeometries, "No valid geometry found"));
-            BeamTests.Tests.Add(new CheckContainsItem<Ctr.BeamGeometry>(CheckTypes.BeamGeometry, new Ctr.BeamGeometry(), RefBeam.ValidGeometries, "No valid geometry found"));
+            BeamTests.Tests.Add(new CheckContainsItem<Energies>(CheckTypes.ValidEnergies, Energies.Unset, RefBeam.ValidEnergies, "Not a valid energy") { ParameterOption = ParameterOptions.Required});
+            BeamTests.Tests.Add(new CheckContainsItem<BeamGeometry>(CheckTypes.BeamGeometry, new BeamGeometry(), RefBeam.ValidGeometries, "No valid geometry found") { ParameterOption = ParameterOptions.Required });
             BeamTests.Tests.Add(new CheckValueItem<double?>(CheckTypes.CouchRotation, -1, RefBeam.CouchRotation, new TrackedValue<double?>(1E-2), "Non-standard couch rotation"));
             switch (RefBeam.JawTracking_Indication.Value)
             {
@@ -356,7 +355,7 @@ namespace SquintScript.Controls
                             default:
                                 break;
                         }
-                        var CheckBeam = new Ctr.BeamGeometry() { StartAngle = Field.GantryStart, EndAngle = Field.GantryEnd, Trajectory = BeamTrajectory };
+                        var CheckBeam = new BeamGeometry() { StartAngle = Field.GantryStart, EndAngle = Field.GantryEnd, GeometryName="Off protocol", Trajectory = BeamTrajectory };
                         Test.SetCheckValue(CheckBeam);
                         break;
                     case CheckTypes.CouchRotation:
@@ -406,10 +405,10 @@ namespace SquintScript.Controls
                 BeamTests.Tests.Remove(bolustest);
             foreach (var bolustest in BeamTests.Tests.Where(x => x.CheckType == CheckTypes.BolusThickness).ToList())
                 BeamTests.Tests.Remove(bolustest);
-            foreach (Ctr.BolusDefinition B in RefBeam.Boluses)
+            foreach (BolusDefinition B in RefBeam.Boluses)
             {
                 int numBoluses = 0;
-                foreach (Ctr.TxFieldItem.BolusInfo BI in Field.BolusInfos)
+                foreach (TxFieldItem.BolusInfo BI in Field.BolusInfos)
                 {
                     numBoluses++;
                     BolusTest = new CheckValueItem<double>(CheckTypes.BolusHU, BI.HU, B.HU, B.ToleranceHU, @"HU deviation", "Bolus required", "No bolus in protocol");

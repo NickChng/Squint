@@ -19,11 +19,11 @@ namespace SquintScript.ViewModels
     public class EclipseProtocolPopupViewModel
     {
 
-        public Presenter ParentView { get; private set; }
-        public string ProtocolPath = Ctr.Config.ClinicalProtocols.FirstOrDefault(x => x.Site == Ctr.Config.Database.Site).Path;
+        public MainViewModel ParentView { get; private set; }
+        public string ProtocolPath = Ctr.Config.ClinicalProtocols.FirstOrDefault(x => x.Site == Ctr.Config.Site.CurrentSite).Path;
         public ObservableCollection<VMSTemplates.Protocol> EclipseProtocols { get; set; } = new ObservableCollection<VMSTemplates.Protocol>();
 
-        public EclipseProtocolPopupViewModel(Presenter parentView)
+        public EclipseProtocolPopupViewModel(MainViewModel parentView)
         {
             ParentView = parentView;
             var filenames = Directory.GetFiles(ProtocolPath, @"*.xml");
@@ -56,14 +56,13 @@ namespace SquintScript.ViewModels
             ParentView.SquintIsBusy = true;
             ParentView.LoadingString = "Loading protocol";
             ParentView.isLoading = true;
+            bool Success = false;
             if (P != null)
             {
-                await Task.Run(() =>
-                   {
-                       Ctr.ImportEclipseProtocol(P);
-                   });
+                Success = await Ctr.ImportEclipseProtocol(P);
             }
-            ParentView.Protocol.ViewLoadedProtocol();
+            if (Success)
+                ParentView.ProtocolVM.ViewLoadedProtocol();
             ParentView.SquintIsBusy = false;
             ParentView.LoadingString = "";
             ParentView.isLoading = false;

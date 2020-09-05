@@ -175,7 +175,7 @@
                 <Grid.Style>
                     <Style TargetType="Grid">
                         <Style.Triggers>
-                            <DataTrigger Binding="{Binding DataContext.isPIDVisible, ElementName=SquintWindow}" Value="True">
+                            <DataTrigger Binding="{Binding DataContext.PatientVM.isPIDVisible, ElementName=SquintWindow}" Value="True">
                                 <Setter Property="FocusManager.FocusedElement" Value="{Binding ElementName=textBox_PID}"/>
                             </DataTrigger>
                         </Style.Triggers>
@@ -188,14 +188,14 @@
                 <Border Grid.Column="0" Name="PatientAssessmentBorder" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"  Background="{Binding DataContext.AdminOptionsToggle, ElementName=SquintWindow, Converter={StaticResource AdminColorModeConverter}, UpdateSourceTrigger=PropertyChanged}" Width="Auto" CornerRadius="5,5,5,5" Margin="10,5,0,5">
                     <DockPanel>
                         <TextBlock DockPanel.Dock="Left" Text="Patient Assessments" Foreground="White" FontSize="20" FontWeight="Bold" FontFamily="Arial" VerticalAlignment="Center" Margin="10,0,0,0" Padding="0,3,0,0"></TextBlock>
-                        <TextBlock DockPanel.Dock="Right" Text="{Binding DataContext.PatientPresenter.FullPatientName, UpdateSourceTrigger=PropertyChanged, ElementName=SquintWindow}" 
-                                    Visibility="{Binding DataContext.isPIDVisible, ElementName=SquintWindow, Converter={StaticResource VisibilityConverter}, UpdateSourceTrigger=PropertyChanged}" 
+                        <TextBlock DockPanel.Dock="Right" Text="{Binding DataContext.PatientVM.FullPatientName, UpdateSourceTrigger=PropertyChanged, ElementName=SquintWindow}" 
+                                    Visibility="{Binding DataContext.PatientVM.isPIDVisible, ElementName=SquintWindow, Converter={StaticResource VisibilityConverter}, UpdateSourceTrigger=PropertyChanged}" 
                                    HorizontalAlignment="Right" Foreground="LightGoldenrodYellow" FontSize="20" FontWeight="Bold" FontFamily="Arial" VerticalAlignment="Center" Margin="0,0,20,0" Padding="0,3,0,0"></TextBlock>
                     </DockPanel>
                 </Border>
-                <Border Grid.Column="1" Name="border_textBox_PID" Background="{Binding DataContext.PatientPresenter.TextBox_Background_Color,ElementName=SquintWindow, UpdateSourceTrigger=PropertyChanged}" CornerRadius="5,5,5,5" Margin="5,5,0,5" Width="0" HorizontalAlignment="Right">
-                    <TextBox Name="textBox_PID" Text="{Binding DataContext.PatientPresenter.PatientId, ElementName=SquintWindow, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" AcceptsReturn="False"
-                                 FontSize="16" BorderThickness="0" TextAlignment="Center"  Width="0" HorizontalAlignment="Stretch" Height="30" Background="{Binding DataContext.PatientPresenter.TextBox_Background_Color,ElementName=SquintWindow, UpdateSourceTrigger=PropertyChanged}"
+                <Border Grid.Column="1" Name="border_textBox_PID" Background="{Binding DataContext.PatientVM.TextBox_Background_Color,ElementName=SquintWindow, UpdateSourceTrigger=PropertyChanged}" CornerRadius="5,5,5,5" Margin="5,5,0,5" Width="0" HorizontalAlignment="Right">
+                    <TextBox Name="textBox_PID" Text="{Binding DataContext.PatientVM.PatientId, ElementName=SquintWindow, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" AcceptsReturn="False"
+                                 FontSize="16" BorderThickness="0" TextAlignment="Center"  Width="0" HorizontalAlignment="Stretch" Height="30" Background="{Binding DataContext.PatientVM.TextBox_Background_Color,ElementName=SquintWindow, UpdateSourceTrigger=PropertyChanged}"
                                  VerticalAlignment="Stretch" Padding="0,3,0,0" Margin="3,3,3,3">
                         <TextBox.InputBindings>
                             <KeyBinding Key="Enter" Command="{Binding DataContext.EnterKeyCommand_PID, ElementName=SquintWindow}"/>
@@ -204,7 +204,7 @@
                 </Border>
             </Grid>
             <DataTemplate.Triggers>
-                <DataTrigger Binding="{Binding DataContext.isPIDVisible, ElementName=SquintWindow, UpdateSourceTrigger=PropertyChanged, Mode=OneWay}" Value="True">
+                <DataTrigger Binding="{Binding DataContext.PatientVM.isPIDVisible, ElementName=SquintWindow, UpdateSourceTrigger=PropertyChanged, Mode=OneWay}" Value="True">
                     <DataTrigger.EnterActions>
                         <BeginStoryboard Storyboard="{StaticResource Shrink}"/>
                     </DataTrigger.EnterActions>

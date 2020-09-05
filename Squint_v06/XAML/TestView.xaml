@@ -1,0 +1,376 @@
+﻿<UserControl x:Class="SquintScript.Controls.TestView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:SquintScript.Controls"
+             xmlns:converters="clr-namespace:SquintScript.Converters"
+             xmlns:global="clr-namespace:SquintScript"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="800">
+    <UserControl.Resources>
+        <converters:ReferenceEditConverter x:Key="ReferenceEditConverter"/>
+        <converters:VisibilityTextBoxModeConverter x:Key="VisibilityTextBoxModeConverter"/>
+        <converters:VisibilitySelectionModeConverter x:Key="VisibilitySelectionModeConverter"/>
+        <converters:CollimatorAngleCheckConverter x:Key="CollimatorAngleCheckConverter"/>
+        <converters:TypeToBooleanConverter x:Key="TypeToBooleanConverter"/>
+        <converters:TypeToStringConverter x:Key="TypeToStringConverter"/>
+        <converters:TypeToColorConverter x:Key="TypeToColorConverter"/>
+        <Style x:Key="TestListViewStyle" TargetType="{x:Type ListView}">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderBrush" Value="{StaticResource ListBorder}"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Foreground" Value="{DynamicResource {x:Static SystemColors.ControlTextBrushKey}}"/>
+            <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Auto"/>
+            <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Auto"/>
+            <Setter Property="ScrollViewer.CanContentScroll" Value="true"/>
+            <Setter Property="ScrollViewer.PanningMode" Value="Both"/>
+            <Setter Property="Stylus.IsFlicksEnabled" Value="False"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type ListView}">
+                        <Border x:Name="Bd" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Background="{TemplateBinding Background}" Padding="1" SnapsToDevicePixels="true">
+                            <ScrollViewer Focusable="false" Padding="{TemplateBinding Padding}">
+                                <ScrollViewer.Template>
+                                    <ControlTemplate TargetType="{x:Type ScrollViewer}">
+                                        <Grid>
+                                            <Grid.RowDefinitions>
+                                                <RowDefinition Height="*"/>
+                                                <RowDefinition Height="Auto"/>
+                                            </Grid.RowDefinitions>
+                                            <ScrollContentPresenter x:Name="PART_ScrollContentPresenter" CanContentScroll="{TemplateBinding CanContentScroll}" Grid.Row="0"/>
+                                            <ScrollBar x:Name="PART_HorizontalScrollBar" Grid.Row="1" Maximum="{TemplateBinding ScrollableWidth}" Orientation="Horizontal" Style="{DynamicResource ScrollBarStyleHorizontal}"
+                                                           Visibility="{TemplateBinding ComputedHorizontalScrollBarVisibility}" Value="{Binding HorizontalOffset, Mode=OneWay, RelativeSource={RelativeSource TemplatedParent}}" ViewportSize="{TemplateBinding ViewportWidth}"/>
+                                        </Grid>
+                                    </ControlTemplate>
+                                </ScrollViewer.Template>
+                                <ItemsPresenter SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"/>
+                            </ScrollViewer>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsEnabled" Value="false">
+                                <Setter Property="Background" TargetName="Bd" Value="{DynamicResource {x:Static SystemColors.ControlBrushKey}}"/>
+                            </Trigger>
+                            <MultiTrigger>
+                                <MultiTrigger.Conditions>
+                                    <Condition Property="IsGrouping" Value="true"/>
+                                    <Condition Property="VirtualizingPanel.IsVirtualizingWhenGrouping" Value="false"/>
+                                </MultiTrigger.Conditions>
+                                <Setter Property="ScrollViewer.CanContentScroll" Value="false"/>
+                            </MultiTrigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <ControlTemplate x:Key="ScrollViewerTestViewControlTemplate" TargetType="{x:Type ScrollViewer}">
+            <Grid x:Name="Grid" Background="{TemplateBinding Background}">
+                <!--<Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>-->
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                <!--<Rectangle x:Name="Corner" Grid.Column="1" Fill="{DynamicResource {x:Static SystemColors.ControlBrushKey}}" Grid.Row="1"/>-->
+                <ScrollContentPresenter x:Name="PART_ScrollContentPresenter" CanContentScroll="{TemplateBinding CanContentScroll}" CanHorizontallyScroll="False" CanVerticallyScroll="False" ContentTemplate="{TemplateBinding ContentTemplate}" Content="{TemplateBinding Content}" Grid.Column="0" Margin="{TemplateBinding Padding}" Grid.Row="0"/>
+                <!--<ScrollBar x:Name="PART_VerticalScrollBar" AutomationProperties.AutomationId="VerticalScrollBar" Cursor="Arrow" Grid.Column="1" Maximum="{TemplateBinding ScrollableHeight}" Minimum="0" Grid.Row="0" Visibility="{TemplateBinding ComputedVerticalScrollBarVisibility}" Value="{Binding VerticalOffset, Mode=OneWay, RelativeSource={RelativeSource TemplatedParent}}" ViewportSize="{TemplateBinding ViewportHeight}"/>-->
+                <ScrollBar x:Name="PART_HorizontalScrollBar" Style="{DynamicResource ScrollBarStyleHorizontal}" Margin="10,5,0,0"
+                           AutomationProperties.AutomationId="HorizontalScrollBar" Cursor="Arrow" Grid.Column="0" Maximum="{TemplateBinding ScrollableWidth}" Minimum="0" Orientation="Horizontal" Grid.Row="1" Visibility="{TemplateBinding ComputedHorizontalScrollBarVisibility}" Value="{Binding HorizontalOffset, Mode=OneWay, RelativeSource={RelativeSource TemplatedParent}}" ViewportSize="{TemplateBinding ViewportWidth}"/>
+            </Grid>
+        </ControlTemplate>
+        <LinearGradientBrush x:Key="WarningBackground" EndPoint="1,0" StartPoint="0,0">
+            <GradientStop Color="White" Offset="0"/>
+            <!--<GradientStop Color="#EDEDED" Offset="0.20"/>
+            <GradientStop Color="#EDEDED" Offset="0.80"/>-->
+            <GradientStop Color="OrangeRed" Offset="1.5"/>
+        </LinearGradientBrush>
+    </UserControl.Resources>
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="40"/>
+        </Grid.ColumnDefinitions>
+        <ScrollViewer Grid.Column="0" ScrollViewer.HorizontalScrollBarVisibility="Auto" Template="{DynamicResource ScrollViewerTestViewControlTemplate}" Name="sv">
+            <Grid>
+                <Grid Background="White" VerticalAlignment="Top" HorizontalAlignment="Stretch"  x:Name="TestGrid" Visibility="{Binding DataContext.AdminOptionsToggle, RelativeSource={RelativeSource AncestorType=Window}, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource VisibilityInverseConverter}}">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+                    <Grid Grid.Row="0" Margin="10,5,3,0" HorizontalAlignment="Left" Background="Transparent" >
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="275"/>
+                            <ColumnDefinition Width="150"/>
+                            <ColumnDefinition Width="150"/>
+                            <ColumnDefinition Width="150"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="0" Text="Property" FontWeight="Bold" FontSize="13" HorizontalAlignment="Left"/>
+                        <TextBlock Grid.Column="1" Text="Check Value"  FontWeight="Bold" FontSize="13" HorizontalAlignment="Left" Margin="0,0,0,0"/>
+                        <TextBlock Grid.Column="2" Name="ReferenceHeader" Text="Reference" FontWeight="Bold" FontSize="13" HorizontalAlignment="Left" Margin="0,0,0,0"/>
+                        <TextBlock Grid.Column="3" Text="Result" FontWeight="Bold" FontSize="13" HorizontalAlignment="Left" Margin="0,0,0,0"/>
+                    </Grid>
+                    <ListView Grid.Row="1" Margin ="10,5,0,0" Name="MainTestListView" ItemsSource="{Binding Tests}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch" AlternationCount="2"
+                     ScrollViewer.HorizontalScrollBarVisibility="Disabled" Background="Transparent" BorderThickness="0">
+                        <ListView.ItemContainerStyle>
+                            <Style TargetType="ListViewItem">
+                                <Setter Property="Template">
+                                    <Setter.Value>
+                                        <ControlTemplate TargetType="{x:Type ListViewItem}">
+                                            <Grid>
+                                                <Grid.Style>
+                                                    <Style TargetType="Grid">
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding RelativeSource={RelativeSource AncestorType={x:Type ListViewItem}}, Path=(ItemsControl.AlternationIndex), UpdateSourceTrigger=PropertyChanged, Converter={StaticResource TestConverter}}" Value="0">
+                                                                <Setter Property="Background" Value="{Binding DataContext.AdminOptionsToggle, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource AdminColorModeTestListConverter}, UpdateSourceTrigger=PropertyChanged, ConverterParameter=AliceBlue}"/>
+                                                            </DataTrigger>
+                                                            <DataTrigger Binding="{Binding RelativeSource={RelativeSource AncestorType={x:Type ListViewItem}}, Path=(ItemsControl.AlternationIndex), UpdateSourceTrigger=PropertyChanged, Converter={StaticResource TestConverter}}" Value="1">
+                                                                <Setter Property="Background" Value="Transparent"/>
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </Grid.Style>
+                                                <ContentPresenter Name="CP" Margin="0,8,0,8" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
+                                            </Grid>
+                                        </ControlTemplate>
+                                    </Setter.Value>
+                                </Setter>
+                            </Style>
+                        </ListView.ItemContainerStyle>
+                        <ListView.ItemTemplate>
+                            <DataTemplate>
+                                <Grid HorizontalAlignment="Stretch">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="275"/>
+                                        <ColumnDefinition Width="150"/>
+                                        <ColumnDefinition Width="150"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Grid.Column="0" Text="{Binding CheckTypeString, Mode=OneTime, UpdateSourceTrigger=PropertyChanged}" FontWeight="Bold" VerticalAlignment="Center"/>
+                                    <TextBlock Grid.Column="1" Text="{Binding CheckValueString, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Center"/>
+                                    <Grid Grid.Column="2">
+                                        <TextBlock Text="{Binding ReferenceValueString, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Center"/>
+                                    </Grid>
+                                    <StackPanel Grid.Column="3" Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Center" Visibility="{Binding DataContext.CheckVisibility, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}">
+                                        <local:CircleCheck Pass="{Binding Warning, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" CheckHeight="20" CheckWidth="20" HorizontalAlignment="Right"/>
+                                        <TextBlock Text="{Binding WarningString, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" Foreground="Tomato" HorizontalAlignment="Right" Margin="10,0,0,0" VerticalAlignment="Center" 
+                                        Visibility="{Binding Warning, Converter={StaticResource VisibilityConverter}, UpdateSourceTrigger=PropertyChanged}"/>
+                                    </StackPanel>
+                                </Grid>
+
+                            </DataTemplate>
+                        </ListView.ItemTemplate>
+                    </ListView>
+                </Grid>
+                <Grid Background="White" VerticalAlignment="Top" HorizontalAlignment="Stretch"  x:Name="EditTestGrid" 
+                                          Visibility="{Binding DataContext.AdminOptionsToggle, RelativeSource={RelativeSource AncestorType=Window}, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource VisibilityConverter}}">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+                    <Grid Grid.Row="0" Margin="10,5,3,0" HorizontalAlignment="Left" Background="Transparent" >
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="275"/>
+                            <ColumnDefinition Width="150"/>
+                            <ColumnDefinition Width="150"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="0" Text="Property" FontWeight="Bold" FontSize="13" HorizontalAlignment="Left"/>
+                        <TextBlock Grid.Column="1" Text="Current Reference" FontWeight="Bold" FontSize="13" HorizontalAlignment="Left" Margin="0,0,0,0"/>
+                        <TextBlock Grid.Column="2" Text="New Reference" FontWeight="Bold" FontSize="13" HorizontalAlignment="Left" Margin="0,0,0,0"/>
+                    </Grid>
+                    <ListView Grid.Row="1" Margin ="10,5,0,0" Name="EditTestListView" ItemsSource="{Binding Tests, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
+                              HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch" AlternationCount="2" 
+                     ScrollViewer.HorizontalScrollBarVisibility="Disabled" Background="Transparent" BorderThickness="0">
+                        <ListView.ItemContainerStyle>
+                            <Style TargetType="ListViewItem">
+                                <Setter Property="Template">
+                                    <Setter.Value>
+                                        <ControlTemplate TargetType="{x:Type ListViewItem}">
+                                            <Grid>
+                                                <Grid.Style>
+                                                    <Style TargetType="Grid">
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding RelativeSource={RelativeSource AncestorType={x:Type ListViewItem}}, Path=(ItemsControl.AlternationIndex), UpdateSourceTrigger=PropertyChanged, Converter={StaticResource TestConverter}}" Value="0">
+                                                                <Setter Property="Background" Value="{Binding DataContext.AdminOptionsToggle, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource AdminColorModeTestListConverter}, UpdateSourceTrigger=PropertyChanged, ConverterParameter=AliceBlue}"/>
+                                                            </DataTrigger>
+                                                            <DataTrigger Binding="{Binding RelativeSource={RelativeSource AncestorType={x:Type ListViewItem}}, Path=(ItemsControl.AlternationIndex), UpdateSourceTrigger=PropertyChanged, Converter={StaticResource TestConverter}}" Value="1">
+                                                                <Setter Property="Background" Value="Transparent"/>
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </Grid.Style>
+                                                <ContentPresenter Name="CP" Margin="0,2,0,2" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
+                                            </Grid>
+                                        </ControlTemplate>
+                                    </Setter.Value>
+                                </Setter>
+                            </Style>
+                        </ListView.ItemContainerStyle>
+                        <ListView.ItemTemplate>
+                            <DataTemplate>
+                                <Grid HorizontalAlignment="Stretch">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="275"/>
+                                        <ColumnDefinition Width="150"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Grid.Column="0" Text="{Binding CheckTypeString, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" FontWeight="Bold" VerticalAlignment="Center" Margin="0,5,0,5"/>
+                                    <TextBlock Grid.Column="1" Text="{Binding ReferenceValueString, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Center"
+                                               Foreground="{Binding Reference.IsChanged, Converter={StaticResource ReferenceEditConverter}, UpdateSourceTrigger=PropertyChanged}"/>
+                                    <Grid Grid.Column="2">
+                                        <Grid x:Name="SingleSelection">
+                                            <Grid.Visibility>
+                                                <MultiBinding Converter="{StaticResource VisibilityEditModeConverter}">
+                                                    <Binding Path="EditType"/>
+                                                    <Binding Path="Name" RelativeSource="{RelativeSource Self}"/>
+                                                    <Binding Path="EditEnabled"/>
+                                                </MultiBinding>
+                                            </Grid.Visibility>
+                                            <ComboBox ItemsSource="{Binding ReferenceCollection, UpdateSourceTrigger=PropertyChanged}" SelectedItem="{Binding SetReference, Mode=TwoWay}"
+                                                   VerticalAlignment="Center" Style="{DynamicResource ChecklistComboBoxStyle}"/>
+                                        </Grid>
+                                        <Grid x:Name="SingleValue">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+                                            <Grid.Visibility>
+                                                <MultiBinding Converter="{StaticResource VisibilityEditModeConverter}">
+                                                    <Binding Path="EditType"/>
+                                                    <Binding Path="Name" RelativeSource="{RelativeSource Self}"/>
+                                                    <Binding Path="EditEnabled"/>
+                                                </MultiBinding>
+                                            </Grid.Visibility>
+                                            <TextBox Grid.Column="0" Text="{Binding SetReference, Mode=TwoWay}" 
+                                                     Style="{StaticResource ChecklistTextBoxStyle}" local:TextBoxExtensions.UpdateSourceOnKey="Return"/>
+                                        </Grid>
+                                        <Grid x:Name="SingleValueWithTolerance">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+                                            <Grid.Visibility>
+                                                <MultiBinding Converter="{StaticResource VisibilityEditModeConverter}">
+                                                    <Binding Path="EditType"/>
+                                                    <Binding Path="Name" RelativeSource="{RelativeSource Self}"/>
+                                                    <Binding Path="EditEnabled"/>
+                                                </MultiBinding>
+                                            </Grid.Visibility>
+                                            <TextBox Grid.Column="0" Text="{Binding SetReference, Mode=TwoWay}" 
+                                                     Style="{StaticResource ChecklistTextBoxStyle}" local:TextBoxExtensions.UpdateSourceOnKey="Return"/>
+                                            <StackPanel Grid.Column="1" Orientation="Horizontal">
+                                                <TextBlock Text="&#x00B1;" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="2,0,5,0"/>
+                                                <TextBox Text="{Binding SetTolerance, Mode=TwoWay}"  
+                                                         local:TextBoxExtensions.UpdateSourceOnKey="Return" 
+                                                         Style="{StaticResource ChecklistTextBoxStyle}" Width="50"/>
+                                            </StackPanel>
+                                        </Grid>
+                                        <Grid x:Name="RangeValues">
+                                            <Grid.Visibility>
+                                                <MultiBinding Converter="{StaticResource VisibilityEditModeConverter}">
+                                                    <Binding Path="EditType"/>
+                                                    <Binding Path="Name" RelativeSource="{RelativeSource Self}"/>
+                                                    <Binding Path="EditEnabled"/>
+                                                </MultiBinding>
+                                            </Grid.Visibility>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="100"/>
+                                                <ColumnDefinition Width="auto"/>
+                                                <ColumnDefinition Width="100"/>
+                                            </Grid.ColumnDefinitions>
+                                            <TextBox Grid.Column="0" Text="{Binding SetReference, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" HorizontalContentAlignment="Center" Width="80"
+                                                     Style="{StaticResource ChecklistTextBoxStyle}"/>
+                                            <TextBlock Grid.Column="1" Text="to" Margin="5,0,5,0" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                                            <TextBox Grid.Column="2" Text="{Binding SetReference2, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" HorizontalContentAlignment="Center" Width="80"
+                                                      Style="{StaticResource ChecklistTextBoxStyle}"/>
+                                        </Grid>
+                                        <Grid x:Name="AnyOfValues">
+                                            <Grid.Visibility>
+                                            <MultiBinding Converter="{StaticResource VisibilityEditModeConverter}">
+                                                <Binding Path="EditType"/>
+                                                <Binding Path="Name" RelativeSource="{RelativeSource Self}"/>
+                                                <Binding Path="EditEnabled"/>
+                                            </MultiBinding>
+                                            </Grid.Visibility>
+                                            <Grid>
+                                                <Grid.RowDefinitions>
+                                                    <RowDefinition Height="*"/>
+                                                    <RowDefinition Height="Auto"/>
+                                                </Grid.RowDefinitions>
+                                                <ListBox Grid.Row="0" ItemsSource="{Binding ReferenceCollection, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" Visibility="{Binding ItemHasDisplayName, Converter={StaticResource VisibilityInverseConverter}}"
+                                                        Margin="0,5,0,5" HorizontalAlignment="Left" VerticalAlignment="Stretch" HorizontalContentAlignment="Stretch" Background="Transparent"
+                                                        Width="200" Style="{DynamicResource ListBoxStyle1}" ItemContainerStyle="{DynamicResource SquintAliasesListBoxItemStyle}"
+                                                        BorderThickness="0"  SelectedItem="{Binding Reference, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
+                                                    <ListBox.ItemTemplate>
+                                                        <DataTemplate>
+                                                            <Grid >
+                                                                <Grid.ColumnDefinitions>
+                                                                    <ColumnDefinition Width="*"/>
+                                                                    <ColumnDefinition Width="Auto"/>
+                                                                </Grid.ColumnDefinitions>
+                                                                <TextBlock Grid.Column="0" Text="{Binding}" VerticalAlignment="Center" HorizontalAlignment="Stretch" Foreground="SteelBlue" Background="Transparent"/>
+                                                                <Button Grid.Column="1" Style="{StaticResource ButtonStyle_Small}" VerticalAlignment="Center" Height="20" Width="20" Background="Transparent" 
+                                                                 Command="{Binding DataContext.RemoveItemCommand, RelativeSource={RelativeSource AncestorType=ListBox}}" CommandParameter="{Binding}">
+                                                                    <Image Source="\Resources\x_trans.png"/>
+                                                                </Button>
+                                                            </Grid>
+                                                        </DataTemplate>
+                                                    </ListBox.ItemTemplate>
+                                                </ListBox>
+                                                <ListBox Grid.Row="0" ItemsSource="{Binding ReferenceCollection, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" Visibility="{Binding ItemHasDisplayName, Converter={StaticResource VisibilityConverter}}"
+                                                        Margin="0,5,0,5" HorizontalAlignment="Left" VerticalAlignment="Stretch" HorizontalContentAlignment="Stretch" Background="Transparent"
+                                                        Width="200" Style="{DynamicResource ListBoxStyle1}" ItemContainerStyle="{DynamicResource SquintAliasesListBoxItemStyle}"
+                                                        BorderThickness="0"  SelectedItem="{Binding Reference, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
+                                                    <ListBox.ItemTemplate>
+                                                        <DataTemplate>
+                                                            <Grid>
+                                                                <Grid.ColumnDefinitions>
+                                                                    <ColumnDefinition Width="*"/>
+                                                                    <ColumnDefinition Width="Auto"/>
+                                                                </Grid.ColumnDefinitions>
+                                                                <TextBlock Grid.Column="0" Text="{Binding DisplayName}" VerticalAlignment="Center" HorizontalAlignment="Stretch" Foreground="SteelBlue" Background="Transparent"/>
+                                                                <Button Grid.Column="1" Style="{StaticResource ButtonStyle_Small}" VerticalAlignment="Center" Height="20" Width="20" Background="Transparent" 
+                                                                 Command="{Binding DataContext.RemoveItemCommand, RelativeSource={RelativeSource AncestorType=ListBox}}" CommandParameter="{Binding}">
+                                                                    <Image Source="\Resources\x_trans.png"/>
+                                                                </Button>
+                                                            </Grid>
+                                                        </DataTemplate>
+                                                    </ListBox.ItemTemplate>
+                                                </ListBox>
+                                                <Grid Grid.Row="1" Height="30" Width="200" HorizontalAlignment="Left" Margin="0,5,0,5">
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="*"/>
+                                                        <ColumnDefinition Width="Auto"/>
+                                                    </Grid.ColumnDefinitions>
+                                                    <TextBox Grid.Column="0" Text="{Binding SetReference, Mode=TwoWay}" Visibility="{Binding Check, Converter={StaticResource VisibilityTextBoxModeConverter}}"
+                                                         local:TextBoxExtensions.UpdateSourceOnKey="Return" Margin="10,0,10,0"
+                                                        HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Style="{StaticResource ChecklistTextBoxStyle}"/>
+                                                    <ComboBox Grid.Column="0" Style="{DynamicResource ChecklistComboBoxStyle}" ItemsSource="{Binding EnumOptions}" Height="25" 
+                                                          SelectedItem="{Binding SetReference, Mode=TwoWay}" Visibility="{Binding Check, Converter={StaticResource VisibilitySelectionModeConverter}}"/>
+                                                    <Button Grid.Column="1" Style="{StaticResource ButtonStyle_Small}" Width="20" Height="20" HorizontalAlignment="Center"
+                                                VerticalAlignment="Center" Command="{Binding AddItemCommand}" CommandParameter="{Binding SetReference}" Margin="0,0,1,0">
+                                                        <Image Source="\Resources\plus_trans.png"/>
+                                                    </Button>
+                                                </Grid>
+                                            </Grid>
+                                        </Grid>
+                                    </Grid>
+
+                                </Grid>
+                            </DataTemplate>
+                        </ListView.ItemTemplate>
+                    </ListView>
+                </Grid>
+            </Grid>
+        </ScrollViewer>
+        <Rectangle Grid.Column="1" Grid.RowSpan="2" Opacity="0.5" Fill="{DynamicResource WarningBackground}" Width="Auto" Visibility="{Binding ComputedHorizontalScrollBarVisibility, ElementName=sv}" Margin="0,30,5,20">
+            <Rectangle.Effect>
+                <BlurEffect Radius="5"/>
+            </Rectangle.Effect>
+        </Rectangle>
+    </Grid>
+
+</UserControl>
+

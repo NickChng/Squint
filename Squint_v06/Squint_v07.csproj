@@ -136,195 +136,216 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
-    <Compile Include="AdminWindow.xaml.cs" />
-    <Compile Include="AsyncESAPI.cs" />
-    <Compile Include="ConfigXML.cs" />
-    <Compile Include="Controls\EditStructurePopup.xaml.cs">
+    <Compile Include="AsyncESAPI\AsyncESAPI.cs" />
+    <Compile Include="ControllerClasses\IDGenerator.cs" />
+    <Compile Include="PersistenceLayer\VersionContextConnection.cs" />
+    <Compile Include="Helpers and Functions\BolusTools.cs" />
+    <Compile Include="ProtocolClasses\ImagingFieldItem.cs" />
+    <Compile Include="ProtocolClasses\ProtocolPreview.cs" />
+    <Compile Include="ProtocolClasses\StructureSetHeader.cs" />
+    <Compile Include="ProtocolClasses\TxFieldItem.cs" />
+    <Compile Include="ProtocolClasses\PlanDescriptor.cs" />
+    <Compile Include="ProtocolClasses\Beam.cs" />
+    <Compile Include="ViewModels\AssessmentComponentView.cs" />
+    <Compile Include="ViewModels\AssessmentsView.cs" />
+    <Compile Include="ViewModels\AssessmentView.cs" />
+    <Compile Include="ViewModels\PatientViewModel.cs" />
+    <Compile Include="ViewModels\SessionsView.cs" />
+    <Compile Include="WPF Extensions\TextBoxExtensions.cs" />
+    <Compile Include="ViewModels\AssessmentPreviewView.cs" />
+    <Compile Include="ViewModels\ConstraintResultView.cs" />
+    <Compile Include="ViewModels\SessionView.cs" />
+    <Compile Include="XML Definitions\ConfigXML.cs" />
+    <Compile Include="XAML\EditStructurePopup.xaml.cs">
       <DependentUpon>EditStructurePopup.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Controls\EditBeamChecksPopup.xaml.cs">
+    <Compile Include="XAML\EditBeamChecksPopup.xaml.cs">
       <DependentUpon>EditBeamChecksPopup.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Controls\ChecklistControl.xaml.cs">
+    <Compile Include="XAML\ChecklistControl.xaml.cs">
       <DependentUpon>ChecklistControl.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Controls\EclipseProtocolPopup.xaml.cs">
+    <Compile Include="XAML\EclipseProtocolPopup.xaml.cs">
       <DependentUpon>EclipseProtocolPopup.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Controls\AddStructureCheckPopup.xaml.cs">
+    <Compile Include="XAML\AddStructureCheckPopup.xaml.cs">
       <DependentUpon>AddStructureCheckPopup.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Controls\SquintProgressBar.xaml.cs">
+    <Compile Include="XAML\SquintProgressBar.xaml.cs">
       <DependentUpon>SquintProgressBar.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Controls\TestEditView.xaml.cs">
+    <Compile Include="XAML\TestEditView.xaml.cs">
       <DependentUpon>TestEditView.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Helpers\Logger.cs" />
+    <Compile Include="Helpers and Functions\Logger.cs" />
     <Compile Include="Interfaces\ITestListItem.cs" />
-    <Compile Include="PlanCheckController.cs" />
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
+    <Compile Include="ProtocolClasses\Artifact.cs" />
     <Compile Include="ProtocolClasses\Assessment.cs" />
+    <Compile Include="ProtocolClasses\BolusDefinition.cs" />
     <Compile Include="ProtocolClasses\Component.cs" />
     <Compile Include="ProtocolClasses\Constraint.cs" />
+    <Compile Include="ProtocolClasses\ConstraintChangelog.cs" />
+    <Compile Include="ProtocolClasses\ConstraintResult.cs" />
+    <Compile Include="Interfaces\IReferenceThreshold.cs" />
+    <Compile Include="ProtocolClasses\FixedThreshold.cs" />
+    <Compile Include="ProtocolClasses\Constraint.InterpolatedThreshold.cs" />
     <Compile Include="ProtocolClasses\PlanAssociation.cs" />
     <Compile Include="ProtocolClasses\Protocol.cs" />
     <Compile Include="ProtocolClasses\ProtocolChecklist.cs" />
     <Compile Include="ProtocolClasses\ProtocolStructure.cs" />
-    <Compile Include="SquintExtensions.cs" />
-    <Compile Include="TrackedValue.cs" />
-    <Compile Include="DoseFunctions.cs" />
-    <Compile Include="CacheManagement.cs" />
-    <Compile Include="Controls\BeamCheckView.xaml.cs">
+    <Compile Include="ProtocolClasses\Session.cs" />
+    <Compile Include="ProtocolClasses\StructureCheckList.cs" />
+    <Compile Include="ProtocolClasses\StructureLabel.cs" />
+    <Compile Include="Extensions and Behaviour\SquintExtensions.cs" />
+    <Compile Include="Helpers and Functions\TrackedValue.cs" />
+    <Compile Include="Helpers and Functions\DoseFunctions.cs" />
+    <Compile Include="PersistenceLayer\DbController.cs" />
+    <Compile Include="XAML\BeamCheckView.xaml.cs">
       <DependentUpon>BeamCheckView.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Controls\CircleCheck.xaml.cs">
+    <Compile Include="XAML\CircleCheck.xaml.cs">
       <DependentUpon>CircleCheck.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Controls\LoadingControl.xaml.cs">
+    <Compile Include="XAML\LoadingControl.xaml.cs">
       <DependentUpon>LoadingControl.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Controls\ConstraintInformation.xaml.cs">
+    <Compile Include="XAML\ConstraintInformation.xaml.cs">
       <DependentUpon>ConstraintInformation.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Controls\StructureCheckView.xaml.cs">
+    <Compile Include="XAML\StructureCheckView.xaml.cs">
       <DependentUpon>StructureCheckView.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Controls\TestViewGrid.xaml.cs">
+    <Compile Include="XAML\TestViewGrid.xaml.cs">
       <DependentUpon>TestViewGrid.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Controls\TestView.xaml.cs">
+    <Compile Include="XAML\TestView.xaml.cs">
       <DependentUpon>TestView.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Controls\ImagingControl.xaml.cs">
+    <Compile Include="XAML\ImagingControl.xaml.cs">
       <DependentUpon>ImagingControl.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Controls\ObjectiveControl.xaml.cs">
+    <Compile Include="XAML\ObjectiveControl.xaml.cs">
       <DependentUpon>ObjectiveControl.xaml</DependentUpon>
     </Compile>
     <Compile Include="ViewModelClasses\TestListItems.cs" />
     <Compile Include="ViewModels\EclipseProtocolPopupViewModel.cs" />
     <Compile Include="ViewModels\Checklist_ViewModel.cs" />
     <Compile Include="ViewModels\Control_ViewModel.cs" />
-    <Compile Include="Controls\SavePopup.xaml.cs">
+    <Compile Include="XAML\SavePopup.xaml.cs">
       <DependentUpon>SavePopup.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Controls\HorizontalPopup.xaml.cs">
-      <DependentUpon>HorizontalPopup.xaml</DependentUpon>
+    <Compile Include="XAML\SelectSessionPopup.xaml.cs">
+      <DependentUpon>SelectSessionPopup.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Controls\SessionsPopupButton.xaml.cs">
+    <Compile Include="XAML\SessionsPopupButton.xaml.cs">
       <DependentUpon>SessionsPopupButton.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Controls\SimulationView.xaml.cs">
+    <Compile Include="XAML\SimulationView.xaml.cs">
       <DependentUpon>SimulationView.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Converters.cs" />
-    <Compile Include="CustomControls.cs" />
-    <Compile Include="Helpers\ConnectivityHelper.cs" />
-    <Compile Include="Helpers\g3helpers.cs" />
-    <Compile Include="Levenshtein.cs" />
-    <Compile Include="Serializer.cs" />
+    <Compile Include="ValueConverters\Converters.cs" />
+    <Compile Include="Extensions and Behaviour\DataGridCustom.cs" />
+    <Compile Include="Helpers and Functions\ConnectivityHelper.cs" />
+    <Compile Include="Helpers and Functions\g3helpers.cs" />
+    <Compile Include="Helpers and Functions\Levenshtein.cs" />
+    <Compile Include="Helpers and Functions\Serializer.cs" />
     <Compile Include="ControllerClasses\SquintController.cs" />
-    <Compile Include="SquintdBModel.cs" />
-    <Compile Include="SquintEclipseProtocol.cs" />
-    <Compile Include="SquintEnums.cs" />
-    <Compile Include="SquintPlanChecks.cs" />
-    <Compile Include="ProtocolClasses\SquintProtocol.cs" />
-    <Compile Include="SquintProtocolXML.cs" />
-    <Compile Include="StructureLabelXML.cs">
+    <Compile Include="PersistenceLayer\SquintdBModel.cs" />
+    <Compile Include="Enums\SquintEnums.cs" />
+    <Compile Include="ProtocolClasses\BeamGeometry.cs" />
+    <Compile Include="XML Definitions\GeometryDefintionsXML.cs" />
+    <Compile Include="XML Definitions\SquintProtocolXML.cs" />
+    <Compile Include="XML Definitions\StructureLabelXML.cs">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Compile>
     <Compile Include="ViewModels\ProtocolViewModel.cs" />
     <Compile Include="ViewModels\ViewModel.cs" />
-    <Compile Include="VMS Templates\VMSProtocol.cs" />
+    <Compile Include="XML Definitions\EclipseClinicalProtocolXML.cs" />
     <Compile Include="WaitWindow.xaml.cs">
       <DependentUpon>WaitWindow.xaml</DependentUpon>
     </Compile>
-    <Page Include="AdminWindow.xaml">
+    <Page Include="XAML\EditStructurePopup.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="Controls\EditStructurePopup.xaml">
+    <Page Include="XAML\EditBeamChecksPopup.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="Controls\EditBeamChecksPopup.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
-    <Page Include="Controls\BeamCheckView.xaml">
+    <Page Include="XAML\BeamCheckView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="Controls\ChecklistControl.xaml">
+    <Page Include="XAML\ChecklistControl.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="Controls\CircleCheck.xaml">
+    <Page Include="XAML\CircleCheck.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="Controls\EclipseProtocolPopup.xaml">
+    <Page Include="XAML\EclipseProtocolPopup.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="Controls\AddStructureCheckPopup.xaml">
+    <Page Include="XAML\AddStructureCheckPopup.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="Controls\LoadingControl.xaml">
+    <Page Include="XAML\LoadingControl.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="Controls\ConstraintInformation.xaml">
+    <Page Include="XAML\ConstraintInformation.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="Controls\SquintProgressBar.xaml">
+    <Page Include="XAML\SquintProgressBar.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="Controls\StructureCheckView.xaml">
+    <Page Include="XAML\StructureCheckView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="Controls\TestEditView.xaml">
+    <Page Include="XAML\TestEditView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="Controls\TestViewGrid.xaml">
+    <Page Include="XAML\TestViewGrid.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="Controls\TestView.xaml">
+    <Page Include="XAML\TestView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="Controls\ImagingControl.xaml">
+    <Page Include="XAML\ImagingControl.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="Controls\ObjectiveControl.xaml">
+    <Page Include="XAML\ObjectiveControl.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="Controls\SavePopup.xaml">
+    <Page Include="XAML\SavePopup.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="Controls\HorizontalPopup.xaml">
+    <Page Include="XAML\SelectSessionPopup.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="Controls\SessionsPopupButton.xaml">
+    <Page Include="XAML\SessionsPopupButton.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="Controls\SimulationView.xaml">
+    <Page Include="XAML\SimulationView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -519,11 +540,6 @@
     </Resource>
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="StructureLabels.xml">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Resource>
-  </ItemGroup>
-  <ItemGroup>
     <Resource Include="Resources\pin.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Resource>
@@ -608,12 +624,6 @@
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Resources\exclamation_dark.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\SquintStructure\SquintStructure.csproj">
-      <Project>{63249039-e46f-4567-ab56-9fcd394ff15a}</Project>
-      <Name>SquintStructure</Name>
-    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Resources\appbar.question.png" />

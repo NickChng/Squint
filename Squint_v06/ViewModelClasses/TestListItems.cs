@@ -36,20 +36,20 @@ namespace SquintScript.ViewModelClasses
         {
             get
             {
-                if (Reference == null)
-                    return _EmptyRefValueString;
-                if (!Reference.isDefined)
-                    return _EmptyRefValueString;
-                if (Check == null)
-                    return _EmptyCheckValueString;
-                if (Check is double)
-                {
-                    if (double.IsNaN(Convert.ToDouble(Check)))
-                        return _EmptyCheckValueString;
-                    else
-                        return _WarningString;
-                }
-                else
+                //if (Reference == null)
+                //    return _EmptyRefValueString;
+                //if (!Reference.isDefined)
+                //    return _EmptyRefValueString;
+                //if (Check == null)
+                //    return _EmptyCheckValueString;
+                //if (Check is double)
+                //{
+                //    if (double.IsNaN(Convert.ToDouble(Check)))
+                //        return _EmptyCheckValueString;
+                //    else
+                //        return _WarningString;
+                //}
+                //else
                     return _WarningString;
             }
             set
@@ -535,6 +535,7 @@ namespace SquintScript.ViewModelClasses
             RaisePropertyChangedEvent(nameof(CheckPass));
             RaisePropertyChangedEvent(nameof(CheckValueString));
             RaisePropertyChangedEvent(nameof(Warning));
+            RaisePropertyChangedEvent(nameof(WarningString));
         }
         public ObservableCollection<T> ReferenceCollection { get; set; }
         public ObservableCollection<string> ReferenceCollectionString { get; set; } = new ObservableCollection<string>();
@@ -558,7 +559,6 @@ namespace SquintScript.ViewModelClasses
             }
         }
         public bool IsDirty { get { return false; } } // at present no way to manually change ReferenceCollection
-        //public TrackedValue<T> Reference2 { get; set; }
         public string CheckValueString
         {
             get
@@ -567,6 +567,9 @@ namespace SquintScript.ViewModelClasses
                     return _EmptyCheckValueString;
                 else
                 {
+                    //if (Check is IDisplayable)
+                    //    return string.Format("{0}", (Check as IDisplayable).DisplayName);
+                    //else
                     if (Check is double || Check is int)
                         return string.Format("{0:0.###}", Check);
                     else if (Check is Enum)
@@ -613,11 +616,11 @@ namespace SquintScript.ViewModelClasses
                         return true;
                     else
                     { 
-                        if (Check is Ctr.BeamGeometry)
+                        if (Check is BeamGeometry)
                         {
                             foreach (var G in ReferenceCollection)
                             {
-                                if ((Check as Ctr.BeamGeometry).IsElementOf((G as Ctr.BeamGeometry)))
+                                if ((Check as BeamGeometry).IsElementOf((G as BeamGeometry)))
                                     return true;
                             }
                         }
@@ -690,11 +693,11 @@ namespace SquintScript.ViewModelClasses
     }
 
     [AddINotifyPropertyChangedInterface]
-    public class TestListBeamStartStopItem : TestListClassItem<Ctr.BeamGeometry>, ITestListClassItem<Ctr.BeamGeometry> 
+    public class TestListBeamStartStopItem : TestListClassItem<BeamGeometry>, ITestListClassItem<BeamGeometry> 
     {
         public void SetCheckValue(object CheckThis)
         {
-            Check = (Ctr.BeamGeometry)CheckThis;
+            Check = (BeamGeometry)CheckThis;
             RaisePropertyChangedEvent(nameof(CheckValueString));
             RaisePropertyChangedEvent(nameof(Warning));
         }
@@ -747,14 +750,14 @@ namespace SquintScript.ViewModelClasses
         }
         public ParameterOptions ParameterOption { get; set; } = ParameterOptions.Required;
 
-        private List<Ctr.BeamGeometry> _ReferenceGeometryOptions;
+        private List<BeamGeometry> _ReferenceGeometryOptions;
 
-        public TestListBeamStartStopItem(CheckTypes CT, Ctr.BeamGeometry CV, List<Ctr.BeamGeometry> referenceRange, string WS = null, string EmptyCheckValueString = null,
+        public TestListBeamStartStopItem(CheckTypes CT, BeamGeometry CV, List<BeamGeometry> referenceRange, string WS = null, string EmptyCheckValueString = null,
             string EmptyRefValueString = "")
         {
             CheckType = CT;
-            Check = CV as Ctr.BeamGeometry;
-            Reference = new TrackedValue<Ctr.BeamGeometry>(null);
+            Check = CV as BeamGeometry;
+            Reference = new TrackedValue<BeamGeometry>(null);
             WarningString = WS;
             _ReferenceGeometryOptions = referenceRange;
             if (EmptyCheckValueString != null)

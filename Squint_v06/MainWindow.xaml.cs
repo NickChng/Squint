@@ -48,7 +48,7 @@ namespace SquintScript.Views
 
         private void OnSelectedStructureChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
         {
-            var VM = (Presenter)DataContext;
+            var VM = (MainViewModel)DataContext;
         }
 
         private void OnClosing(object sender, CancelEventArgs e)
@@ -75,9 +75,9 @@ namespace SquintScript.Views
         // Constraints dragging
         private void DragImage_MouseDown(object sender, MouseButtonEventArgs e)
         {
-            var VM = DataContext as Presenter;
+            var VM = DataContext as MainViewModel;
             ConstraintListView.AllowDrop = true;
-            VM.Protocol.DragSelected = true;
+            VM.ProtocolVM.DragSelected = true;
 
             var ImageContentPresenter = (ContentPresenter)(sender as System.Windows.Controls.Image).TemplatedParent;
             var SelectedListBoxItem = (ListBoxItem)VisualTreeHelper.GetParent(ImageContentPresenter.Parent);
@@ -86,30 +86,30 @@ namespace SquintScript.Views
         }
         private void ListView_DragOver(object sender, DragEventArgs e)
         {
-            var VM = DataContext as Presenter;
+            var VM = DataContext as MainViewModel;
             var SelectedIndex = GetCurrentIndex(e.GetPosition);
             //
 
-            var DropIndex = VM.Protocol.SelectedIndex;
+            var DropIndex = VM.ProtocolVM.SelectedIndex;
             if (SelectedIndex < 0)
                 return;
             if (DropIndex < 0)
                 return;
             if (SelectedIndex == DropIndex)
                 return;
-            if (VM.Protocol.DragSelected)
+            if (VM.ProtocolVM.DragSelected)
             {
-                int OldIndex = VM.Protocol.Constraints[SelectedIndex].DisplayOrder;
+                int OldIndex = VM.ProtocolVM.Constraints[SelectedIndex].DisplayOrder;
                 int inc = 1;
                 if (SelectedIndex < DropIndex)
                     inc = -1;
                 int CurrentIndex = DropIndex;
                 while (CurrentIndex != SelectedIndex)
                 {
-                    int Switch  = VM.Protocol.Constraints[CurrentIndex + inc].DisplayOrder;
-                    VM.Protocol.Constraints[CurrentIndex + inc].DisplayOrder = VM.Protocol.Constraints[CurrentIndex].DisplayOrder;
-                    VM.Protocol.Constraints[CurrentIndex].DisplayOrder = Switch;
-                    VM.Protocol.Constraints.Move(CurrentIndex + inc, CurrentIndex);
+                    int Switch  = VM.ProtocolVM.Constraints[CurrentIndex + inc].DisplayOrder;
+                    VM.ProtocolVM.Constraints[CurrentIndex + inc].DisplayOrder = VM.ProtocolVM.Constraints[CurrentIndex].DisplayOrder;
+                    VM.ProtocolVM.Constraints[CurrentIndex].DisplayOrder = Switch;
+                    VM.ProtocolVM.Constraints.Move(CurrentIndex + inc, CurrentIndex);
                     CurrentIndex = CurrentIndex + inc;
                 }
                 
@@ -140,8 +140,8 @@ namespace SquintScript.Views
             {
                 var LV = ItemsControl.ItemsControlFromItemContainer((sender as ListViewItem)) as ListView; // all this to get the listbox!
                 LV.AllowDrop = false;
-                var VM = DataContext as Presenter;
-                VM.Protocol.DragSelected = false; // this needs to be at protocol level as it's used to suppress selection/expansion of constraint in XAML
+                var VM = DataContext as MainViewModel;
+                VM.ProtocolVM.DragSelected = false; // this needs to be at protocol level as it's used to suppress selection/expansion of constraint in XAML
                 (sender as ListViewItem).MouseLeave += ConstraintsListView_MouseLeave;
             }
 

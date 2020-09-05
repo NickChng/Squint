@@ -1,0 +1,9 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<GeometryDefinitions xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <Geometry GeometryName ="Right Partial Arc (CCW)" StartAngle="15" StartAngleTolerance="15" EndAngle="181" EndAngleTolerance="1" Trajectory="CCW"/>
+  <Geometry GeometryName ="Left Partial Arc (CCW)" StartAngle="179" StartAngleTolerance="1" EndAngle="345" EndAngleTolerance="15" Trajectory="CCW"/>
+  <Geometry GeometryName ="Left Partial Arc (CW)" StartAngle="345" StartAngleTolerance="15" EndAngle="179" EndAngleTolerance="1" Trajectory="CW"/>
+  <Geometry GeometryName ="Right Partial Arc (CW)" StartAngle="181" StartAngleTolerance="1" EndAngle="15" EndAngleTolerance="15" Trajectory="CW"/>
+  <Geometry GeometryName ="Full Arc (CCW)" StartAngle="179" StartAngleolerance="1" EndAngle="181" EndAngleTolerance="1" Trajectory="CCW"/>
+  <Geometry GeometryName ="Full Arc (CW)" StartAngle="181" StartAngleTolerance="1" EndAngle="179" EndAngleTolerance="1" Trajectory="CW"/>
+</GeometryDefinitions>
