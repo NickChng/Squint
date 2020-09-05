@@ -664,6 +664,41 @@
   <ItemGroup>
     <SplashScreen Include="Resources\SquintSplash.png" />
   </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Protocol Library\Anal Canal %283 Phase%29_v0.7.xml" />
+    <Resource Include="Protocol Library\Brain_60in30_v0.7.xml" />
+    <Resource Include="Protocol Library\Breast_v0.7.xml" />
+    <Resource Include="Protocol Library\COMET-3 Pelvis_35in5_v0.7.xml" />
+    <Resource Include="Protocol Library\COMET-3 Thorax_35in5_v0.7.xml" />
+    <Resource Include="Protocol Library\EsophagusGE_414in23_v0.7.xml" />
+    <Resource Include="Protocol Library\EsophagusGE_50in25_v0.7.xml" />
+    <Resource Include="Protocol Library\General_Pelvis_45in25_v0.7.xml" />
+    <Resource Include="Protocol Library\Gyne_45in25_v0.7.xml" />
+    <Resource Include="Protocol Library\Gyne_57in25_v0.7.xml" />
+    <Resource Include="Protocol Library\H&amp;N %2870in35%29_v0.7.xml" />
+    <Resource Include="Protocol Library\HN10 %2870in35%29_v0.7.xml" />
+    <Resource Include="Protocol Library\Lung_45in30_v0.7.xml" />
+    <Resource Include="Protocol Library\Lung_60in15_v0.7.xml" />
+    <Resource Include="Protocol Library\Lung_60in30_v0.7.xml" />
+    <Resource Include="Protocol Library\Lung_EQD2.xml" />
+    <Resource Include="Protocol Library\RAPVMAT_20Gyin5_v0.7.xml" />
+    <Resource Include="Protocol Library\RAPVMAT_30Gyin10_v0.7.xml" />
+    <Resource Include="Protocol Library\RAPVMAT_40Gyin15_v0.7.xml" />
+    <Resource Include="Protocol Library\RAPVMAT_8Gyin1_v0.7.xml" />
+    <Resource Include="Protocol Library\SABR-5_35in5_v0.7.xml" />
+    <Resource Include="Protocol Library\SABR_Lung_48in4_v0.7.xml" />
+    <Resource Include="Protocol Library\SABR_Lung_60in8_EQD2_v0.7.xml" />
+    <Resource Include="Protocol Library\SABR_Lung_60in8_v0.7.xml" />
+    <Resource Include="Protocol Library\Single-phase_Prostate_70in28_v0.7.xml" />
+    <Resource Include="Protocol Library\Spine_35in5_v0.7.xml" />
+    <Resource Include="Protocol Library\SUPR-3D_VMAT_20in5_v0.7.xml" />
+    <Resource Include="Protocol Library\Three-phase_Prostate_v0.7.xml" />
+    <Resource Include="Protocol Library\Two-phase_Prostate_v0.7.xml" />
+    <Resource Include="Protocol Library\VMAT_Brain_Metastases_5FX_25Gy_v0.7.xml" />
+    <Resource Include="Protocol Library\VMAT_Brain_Metastases_5FX_30Gy_v0.7.xml" />
+    <Resource Include="Protocol Library\VMAT_Brain_Metastases_5FX_35Gy_v0.7.xml" />
+    <Resource Include="Protocol Library\VMAT_Brain_Metastases_5FX_40Gy_v0.7.xml" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>

@@ -1,0 +1,172 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<SquintProtocol xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <version>1</version>
+  <ProtocolMetaData  ProtocolName="Breast (42.5 Gy in 16# + Boost)" ProtocolType="Clinical" ProtocolDate="01-08-2017" Intent="Adjuvant" ApprovalStatus ="Approved" DiseaseSite="Breast" TreatmentCentre="CN"/>
+
+  <!-- Defines target structures and assigns associated aliases for each one. Also include checks for stray voxels as necessary.-->
+  <Structures>
+    <Structure Label="CTV High Risk" ProtocolStructureName="CTV High">
+      <StructureChecklist>
+        <PointContourCheck Threshold="0.05"/>
+      </StructureChecklist>
+      <EclipseAliases>
+        <EclipseId Id="CTV_52.5"></EclipseId>
+        <EclipseId Id="CTV52.5"></EclipseId>
+        <EclipseId Id="CTV"></EclipseId>
+      </EclipseAliases>
+    </Structure>
+    <Structure Label="PTV High Risk" ProtocolStructureName="PTV (boost)">
+      <EclipseAliases>
+        <EclipseId Id="PTV"></EclipseId>
+        <EclipseId Id="PTV_Boost"></EclipseId>
+      </EclipseAliases>
+    </Structure>
+
+    <!--Defines OAR structures and assigns acceptable aliases for each OAR.-->
+    <Structure Label="Heart" ProtocolStructureName="Heart">
+      <EclipseAliases>
+        <EclipseId Id="Heart"></EclipseId>
+      </EclipseAliases>
+    </Structure>
+    <Structure Label="Lung" ProtocolStructureName="Lung">
+      <EclipseAliases>
+        <EclipseId Id="Lung"></EclipseId>
+      </EclipseAliases>
+    </Structure>
+    <Structure Label="Control" ProtocolStructureName="Artifacts">
+      <EclipseAliases>
+        <EclipseId Id="Artifacts"></EclipseId>
+        <EclipseId Id="Artifact"></EclipseId>
+      </EclipseAliases>
+    </Structure>
+  </Structures>
+
+  <!--This section defines default parameters for plan checklists including Artifacts, Supports, Calculation algorithms, simulations and prescription values-->
+  <ProtocolChecklist>
+    <Artifacts>
+      <Artifact HU="0" Tolerance ="0.1" ProtocolStructureName="Artifacts"/>
+    </Artifacts>
+    <Calculation Algorithm="AAA_13623" AlgorithmResolution="2.5" HeterogeneityOn="true" FieldNormalizationMode="ISO"/>
+    <Simulation SliceSpacing ="2.5"/>
+    <Supports CouchSurface="-300" CouchInterior="-1000" Indication="Required"/>
+  </ProtocolChecklist>
+
+  <!--This section defines the Components used in plan checking including Imaging protocols, beams. Each phase must have its own component element-->
+  <Components>
+    <Component ComponentName="Phase 1" Type="Phase" >
+      <Prescription PNVMin="80" PNVMax="103" PrescribedPercentage="100" NumFractions="16" ReferenceDose="4250"/>
+      <ImagingProtocols>
+        <ImagingProtocol Id="kv_Ant" />
+        <ImagingProtocol Id="MV_BEV" />
+      </ImagingProtocols>
+      <!-- This section defines beam child elements including Eclipse aliases, valid geometries, energies and bolus definitions. Each field in a plan must have its own Beam element. -->
+      <Beams MinBeams="2" MaxBeams="4" NumIso ="1">
+        <Beam ProtocolBeamName="Lateral" Technique="STATIC" MinMUWarning="150" MaxMUWarning="200" ToleranceTable="CN+VI Indexed" CouchRotation="0" MinX="3" MaxX="18" MinY="3" MaxY="25" >
+          <BolusDefinitions>
+            <Bolus HU="0" Thickness="0.5" ToleranceHU="0.1" ToleranceThickness="0.1" Indication="Optional"  />
+          </BolusDefinitions>
+          <EclipseAliases>
+            <EclipseId Id= "Llat"/>
+            <EclipseId Id= "Rlat"/>
+          </EclipseAliases>
+          <ValidGeometries>
+            <Geometry GeometryName ="Left Lateral" StartAngle="135" StartAngleTolerance="20"/>
+            <Geometry GeometryName ="Right Lateral" StartAngle="225" StartAngleTolerance="20"/>
+          </ValidGeometries>
+          <ValidEnergies>
+            <Energy Mode="6X"/>
+            <Energy Mode="10X"/>
+            <Energy Mode="15X"/>
+          </ValidEnergies>
+        </Beam>
+        <Beam ProtocolBeamName="Medial" Technique="STATIC" MinMUWarning="150" MaxMUWarning="200" ToleranceTable="CN+VI Indexed" CouchRotation="0" MinX="3" MaxX="18" MinY="3" MaxY="25">
+          <BolusDefinitions>
+            <Bolus HU="0" Thickness="0.5" ToleranceHU="0.1" ToleranceThickness="0.1" Indication="Optional" />
+          </BolusDefinitions>
+          <EclipseAliases>
+            <EclipseId Id= "Lmed"/>
+            <EclipseId Id= "Rmed"/>
+          </EclipseAliases>
+          <ValidGeometries>
+            <Geometry GeometryName ="Left Medial" StartAngle="315" StartAngleTolerance="20"/>
+            <Geometry GeometryName ="Right Medial" StartAngle="45" StartAngleTolerance="20"/>
+          </ValidGeometries>
+          <ValidEnergies>
+            <Energy Mode="6X"/>
+            <Energy Mode="10X"/>
+            <Energy Mode="15X"/>
+          </ValidEnergies>
+        </Beam>
+        <Beam ProtocolBeamName="Ant SCLAV" Technique="STATIC" MinMUWarning="150" MaxMUWarning="200" ToleranceTable="CN+VI Indexed" CouchRotation="0" MinX="3" MaxX="18" MinY="3" MaxY="15">
+          <BolusDefinitions>
+            <Bolus Indication="None" />
+          </BolusDefinitions>
+          <EclipseAliases>
+            <EclipseId Id= "Rao"/>
+            <EclipseId Id= "ant"/>
+            <EclipseId Id= "Lao"/>
+          </EclipseAliases>
+          <ValidGeometries>
+            <Geometry GeometryName ="Rao" StartAngle="345" StartAngleTolerance="14"/>
+            <Geometry GeometryName ="Lao" StartAngle="15" StartAngleTolerance="14"/>
+            <Geometry GeometryName ="ant" StartAngle="0"/>
+          </ValidGeometries>
+          <ValidEnergies>
+            <Energy Mode="6X"/>
+            <Energy Mode="10X"/>
+            <Energy Mode="15X"/>
+          </ValidEnergies>
+        </Beam>
+        <Beam ProtocolBeamName="Post SCLAV" Technique="STATIC" MinMUWarning="20" MaxMUWarning="150" ToleranceTable="CN+VI Indexed" CouchRotation="0" MinX="3" MaxX="18" MinY="3" MaxY="15">
+          <BolusDefinitions>
+            <Bolus Indication="None" />
+          </BolusDefinitions>
+          <EclipseAliases>
+            <EclipseId Id= "Rpo"/>
+            <EclipseId Id= "post"/>
+            <EclipseId Id= "Lpo"/>
+          </EclipseAliases>
+          <ValidGeometries>
+            <Geometry GeometryName ="Rpo" StartAngle="195" StartAngleTolerance="14"/>
+            <Geometry GeometryName ="Lpo" StartAngle="165" StartAngleTolerance="14"/>
+            <Geometry GeometryName ="post" StartAngle="180"/>
+          </ValidGeometries>
+          <ValidEnergies>
+            <Energy Mode="6X"/>
+            <Energy Mode="10X"/>
+            <Energy Mode="15X"/>
+          </ValidEnergies>
+        </Beam>
+      </Beams>
+    </Component>
+    <Component ComponentName="Phase 2" Type="Phase" NumFractions="4" ReferenceDose="1000">
+      <Prescription PNVMin="80" PNVMax="103" PrescribedPercentage="100" NumFractions="4" ReferenceDose="1000"/>
+      <ImagingProtocols>
+        <ImagingProtocol Id="kv_2D" />
+        <ImagingProtocol Id="MV_BEV"/>
+      </ImagingProtocols>
+    </Component>
+    <Component ComponentName="Plan Sum" Type="Sum" >
+      <Prescription PNVMin="80" PNVMax="103" NumFractions="20" ReferenceDose="5250"/>
+      <Constituents>
+        <Constituent ComponentName="Phase 1" />
+        <Constituent ComponentName="Phase 2" />
+      </Constituents>
+    </Component>
+  </Components>
+
+  <!--This section defines the Constraints (DVH, conformity index etc) as based on clinical protocols-->
+  <Constraints>
+    <Constraint  ComponentName="Phase 1" ProtocolStructureName="Lung" ConstraintType="V" ConstraintValue="1600" ConstraintUnit="absolute" ReferenceType="upper" MajorViolation="30" ReferenceUnit="relative" />
+    <Constraint  ComponentName="Phase 1" ProtocolStructureName="Lung" ConstraintType="V" ConstraintValue="2000" ConstraintUnit="absolute" ReferenceType="upper" MajorViolation="30" ReferenceUnit="relative" />
+    <Constraint  ComponentName="Phase 1" ProtocolStructureName="Lung" ConstraintType="M" ConstraintValue="0" ConstraintUnit="absolute" ReferenceType="upper" MajorViolation="2000" ReferenceUnit="absolute"/>
+    <Constraint  ComponentName="Phase 1" ProtocolStructureName="Heart" ConstraintType="M" ConstraintValue="0" ConstraintUnit="absolute" ReferenceType="upper" MajorViolation="400" ReferenceUnit="absolute" />
+    <Constraint  ComponentName="Phase 1" ProtocolStructureName="Heart" ConstraintType="V" ConstraintValue="2500" ConstraintUnit="absolute" ReferenceType="upper" MajorViolation="5" ReferenceUnit="relative" />
+    <Constraint  ComponentName="Phase 2" ProtocolStructureName="PTV (boost)" ConstraintType="V" ConstraintValue="95" ConstraintUnit="relative" ReferenceType="lower" MajorViolation="98" ReferenceUnit="relative"/>
+    <Constraint  ComponentName="Plan Sum" ProtocolStructureName="Lung" ConstraintType="V" ConstraintValue="1600" ConstraintUnit="absolute" ReferenceType="upper" MajorViolation="30" ReferenceUnit="relative" />
+    <Constraint  ComponentName="Plan Sum" ProtocolStructureName="Lung" ConstraintType="V" ConstraintValue="2000" ConstraintUnit="absolute" ReferenceType="upper" MajorViolation="30" ReferenceUnit="relative" />
+    <Constraint  ComponentName="Plan Sum" ProtocolStructureName="Lung" ConstraintType="M" ConstraintValue="0" ConstraintUnit="absolute" ReferenceType="upper" MajorViolation="2000" ReferenceUnit="absolute"/>
+    <Constraint  ComponentName="Plan Sum" ProtocolStructureName="Heart" ConstraintType="M" ConstraintValue="0" ConstraintUnit="absolute" ReferenceType="upper" MajorViolation="400" ReferenceUnit="absolute" />
+    <Constraint  ComponentName="Plan Sum" ProtocolStructureName="Heart" ConstraintType="V" ConstraintValue="2500" ConstraintUnit="absolute" ReferenceType="upper" MajorViolation="5" ReferenceUnit="relative" />
+  </Constraints>
+</SquintProtocol>

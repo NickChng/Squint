@@ -1,0 +1,261 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<SquintProtocol xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <version>1</version>
+  <ProtocolMetaData
+    ProtocolName="VMAT Brain Metastases 25/5fx" ProtocolType="Clinical" ProtocolDate="17-01-2020" Intent="Palliative" ApprovalStatus ="Approved" DiseaseSite="CNS" TreatmentCentre="CN"/>
+
+  <!-- Defines target structures and assigns associated aliases for each one. Also includes checks for stray voxels as necessary.-->
+  <Structures>
+    <Structure Label="GTV Primary" ProtocolStructureName="GTV_1_25" >
+      <StructureChecklist>
+        <PointContourCheck Threshold="0.05"/>
+      </StructureChecklist>
+      <EclipseAliases>
+        <EclipseId Id="GTV_1_25"></EclipseId>
+      </EclipseAliases>
+    </Structure>
+    <Structure Label="GTV Primary" ProtocolStructureName="GTV_2_25" >
+      <StructureChecklist>
+        <PointContourCheck Threshold="0.05"/>
+      </StructureChecklist>
+      <EclipseAliases>
+        <EclipseId Id="GTV_2_25"></EclipseId>
+      </EclipseAliases>
+    </Structure>
+    <Structure Label="GTV Primary" ProtocolStructureName="GTV_3_25" >
+      <StructureChecklist>
+        <PointContourCheck Threshold="0.05"/>
+      </StructureChecklist>
+      <EclipseAliases>
+        <EclipseId Id="GTV_3_25"></EclipseId>
+      </EclipseAliases>
+    </Structure>
+    <Structure Label="GTV Primary" ProtocolStructureName="GTV_4_25" >
+      <StructureChecklist>
+        <PointContourCheck Threshold="0.05"/>
+      </StructureChecklist>
+      <EclipseAliases>
+        <EclipseId Id="GTV_4_25"></EclipseId>
+      </EclipseAliases>
+    </Structure>
+    <Structure Label="GTV Primary" ProtocolStructureName="GTV_5_25" >
+      <StructureChecklist>
+        <PointContourCheck Threshold="0.05"/>
+      </StructureChecklist>
+      <EclipseAliases>
+        <EclipseId Id="GTV_5_25"></EclipseId>
+      </EclipseAliases>
+    </Structure>
+    <Structure Label="PTV Primary" ProtocolStructureName="PTV_1_22.5" >
+      <EclipseAliases>
+        <EclipseId Id="PTV_1_22.5"></EclipseId>
+      </EclipseAliases>
+    </Structure>
+    <Structure Label="PTV Primary" ProtocolStructureName="PTV_2_22.5" >
+      <EclipseAliases>
+        <EclipseId Id="PTV_2_22.5"></EclipseId>
+      </EclipseAliases>
+    </Structure>
+    <Structure Label="PTV Primary" ProtocolStructureName="PTV_3_22.5" >
+      <EclipseAliases>
+        <EclipseId Id="PTV_3_22.5"></EclipseId>
+      </EclipseAliases>
+    </Structure>
+    <Structure Label="PTV Primary" ProtocolStructureName="PTV_4_22.5" >
+      <EclipseAliases>
+        <EclipseId Id="PTV_4_22.5"></EclipseId>
+      </EclipseAliases>
+    </Structure>
+    <Structure Label="PTV Primary" ProtocolStructureName="PTV_5_22.5" >
+      <EclipseAliases>
+        <EclipseId Id="PTV_5_22.5"></EclipseId>
+      </EclipseAliases>
+    </Structure>
+    <Structure Label="Ring" ProtocolStructureName="Shell_GTV_1" >
+      <EclipseAliases>
+        <EclipseId Id="Shell_GTV_1"></EclipseId>
+      </EclipseAliases>
+    </Structure>
+    <Structure Label="Ring" ProtocolStructureName="Shell_GTV_2" >
+      <EclipseAliases>
+        <EclipseId Id="Shell_GTV_2"></EclipseId>
+      </EclipseAliases>
+    </Structure>
+    <Structure Label="Ring" ProtocolStructureName="Shell_GTV_3" >
+      <EclipseAliases>
+        <EclipseId Id="Shell_GTV_3"></EclipseId>
+      </EclipseAliases>
+    </Structure>
+    <Structure Label="Ring" ProtocolStructureName="Shell_GTV_4" >
+      <EclipseAliases>
+        <EclipseId Id="Shell_GTV_4"></EclipseId>
+      </EclipseAliases>
+    </Structure>
+    <Structure Label="Ring" ProtocolStructureName="Shell_GTV_5" >
+      <EclipseAliases>
+        <EclipseId Id="Shell_GTV_5"></EclipseId>
+      </EclipseAliases>
+    </Structure>
+    <Structure Label="Ring" ProtocolStructureName="Shell_PTV_1" >
+      <EclipseAliases>
+        <EclipseId Id="Shell_PTV_1"></EclipseId>
+      </EclipseAliases>
+    </Structure>
+    <Structure Label="Ring" ProtocolStructureName="Shell_PTV_2" >
+      <EclipseAliases>
+        <EclipseId Id="Shell_PTV_2"></EclipseId>
+      </EclipseAliases>
+    </Structure>
+    <Structure Label="Ring" ProtocolStructureName="Shell_PTV_3" >
+      <EclipseAliases>
+        <EclipseId Id="Shell_PTV_3"></EclipseId>
+      </EclipseAliases>
+    </Structure>
+    <Structure Label="Ring" ProtocolStructureName="Shell_PTV_4" >
+      <EclipseAliases>
+        <EclipseId Id="Shell_PTV_4"></EclipseId>
+      </EclipseAliases>
+    </Structure>
+    <Structure Label="Ring" ProtocolStructureName="Shell_PTV_5" >
+      <EclipseAliases>
+        <EclipseId Id="Shell_PTV_5"></EclipseId>
+      </EclipseAliases>
+    </Structure>
+    <Structure Label="PTV Primary" ProtocolStructureName="PTV_Skull_20" >
+      <EclipseAliases>
+        <EclipseId Id="PTV_Skull_20"></EclipseId>
+      </EclipseAliases>
+    </Structure>
+
+    <!--Defines OAR structures and assigns acceptable aliases for each OAR.-->
+    <Structure Label="PRV" ProtocolStructureName="Optics_PRV" >
+      <EclipseAliases>
+        <EclipseId Id="Optics_PRV"></EclipseId>
+      </EclipseAliases>
+    </Structure>
+    <Structure Label="PRV" ProtocolStructureName="SpinalCord_PRV" >
+      <EclipseAliases>
+        <EclipseId Id="SpinalCord_PRV"></EclipseId>
+      </EclipseAliases>
+    </Structure>
+    <Structure Label="Left Eye" ProtocolStructureName="Eye_L" >
+      <EclipseAliases>
+        <EclipseId Id="Eye_L"></EclipseId>
+      </EclipseAliases>
+    </Structure>
+    <Structure Label="Right Eye" ProtocolStructureName="Eye_R" >
+      <EclipseAliases>
+        <EclipseId Id="Eye_R"></EclipseId>
+      </EclipseAliases>
+    </Structure>
+    <Structure Label="Skin" ProtocolStructureName="Skin" >
+      <EclipseAliases>
+        <EclipseId Id="Skin"></EclipseId>
+      </EclipseAliases>
+    </Structure>
+    <Structure Label="Control" ProtocolStructureName="Artifacts">
+      <EclipseAliases>
+        <EclipseId Id="Artifacts"></EclipseId>
+        <EclipseId Id="Artifact"></EclipseId>
+      </EclipseAliases>
+    </Structure>
+  </Structures>
+
+  <!--This section defines default parameters for plan checklists including Artifacts, Supports, Calculation algorithms, simulations and prescription values-->
+  <ProtocolChecklist>
+    <Artifacts>
+      <Artifact HU="0" Tolerance ="0.1" ProtocolStructureName="Artifacts"/>
+    </Artifacts>
+    <Supports Indication="None"/>
+    <Calculation Algorithm="AAA_13623" AlgorithmResolution="2.5" HeterogeneityOn="true" FieldNormalizationMode="ISO"/>
+    <Simulation SliceSpacing ="1.25"/>
+  </ProtocolChecklist>
+
+  <!--This section defines the Components used in plan checking including Imaging protocols, beams. Each phase must have its own component element-->
+  <Components>
+    <Component ComponentName="Single Phase" Type="Phase" >
+      <Prescription PNVMin="97" PNVMax="103" PrescribedPercentage="100" NumFractions="5" ReferenceDose="3500"/>
+      <ImagingProtocols>
+        <ImagingProtocol Id="kv_2D" />
+        <ImagingProtocol Id="PreCBCT" />
+        <ImagingProtocol Id="PostCBCT" />
+      </ImagingProtocols>
+      <!-- This section defines beam child elements including Eclipse aliases, valid geometries, energies and bolus definitions. Each arc in a plan must have its own Beam element. -->
+      <Beams MinBeams="1" MaxBeams="2" NumIso ="1" MinColOffset="20">
+        <Beam ProtocolBeamName="ARC CCW" Technique="ARC" StartAngle="179" EndAngle="181" ToleranceTable="CN+VI Indexed" MinColRotation="20" MaxColRotation="70" CouchRotation="0" MinX="3" MaxX="18" MinY="3" MaxY="29" JawTracking_Indication="Required">
+          <EclipseAliases>
+            <EclipseId Id= "rarc_ccw"/>
+            <EclipseId Id= "arc_ccw"/>
+          </EclipseAliases>
+          <ValidGeometries>
+            <Geometry GeometryName ="Full Arc (CCW)" StartAngle="179" EndAngle="181" StartAngleTolerance="1" EndAngleTolerance="1" Trajectory="CCW"/>
+            <Geometry GeometryName ="Right Partial Arc (CCW)" StartAngle="15" StartAngleTolerance="15" EndAngle="181" EndAngleTolerance="1" Trajectory="CCW"/>
+            <Geometry GeometryName ="Left Partial Arc (CCW)" StartAngle="179" StartAngleTolerance="1" EndAngle="15" EndAngleTolerance="15" Trajectory="CCW"/>
+          </ValidGeometries>
+          <ValidEnergies>
+            <Energy Mode="6X"/>
+            <Energy Mode="10XFFF"/>
+          </ValidEnergies>
+          <BolusDefinitions>
+            <Bolus Indication="None"/>
+          </BolusDefinitions>
+        </Beam>
+        <Beam ProtocolBeamName="ARC CW" Technique="ARC" StartAngle="181" EndAngle="179" ToleranceTable="CN+VI Indexed" MinColRotation="20" MaxColRotation="70" CouchRotation="0" MinX="3" MaxX="18" MinY="3" MaxY="29" JawTracking_Indication="Required">
+          <EclipseAliases>
+            <EclipseId Id= "rarc_cw"/>
+            <EclipseId Id= "arc_cw"/>
+          </EclipseAliases>
+          <ValidGeometries>
+            <Geometry GeometryName ="Full Arc (CW)" StartAngle="181" StartAngleTolerance="1" EndAngle="179" EndAngleTolerance="1" Trajectory="CW"/>
+            <Geometry GeometryName ="Left Partial Arc (CW)" StartAngle="345" StartAngleTolerance="15" EndAngle="179" EndAngleTolerance="1" Trajectory="CW"/>
+            <Geometry GeometryName ="Right Partial Arc (CW)" StartAngle="181" StartAngleTolerance="1" EndAngle="15" EndAngleTolerance="15" Trajectory="CW"/>
+          </ValidGeometries>
+          <ValidEnergies>
+            <Energy Mode="6X"/>
+            <Energy Mode="10XFFF"/>
+          </ValidEnergies>
+          <BolusDefinitions>
+            <Bolus Indication="None"/>
+          </BolusDefinitions>
+        </Beam>
+      </Beams>
+    </Component>
+  </Components>
+
+  <!--This section defines the Constraints (DVH, conformity index etc) as based on clinical protocols-->
+  <Constraints>
+    <Constraint  ComponentName="Single Phase" ProtocolStructureName="Optics_PRV" ConstraintType="V" ConstraintValue="2500" ConstraintUnit="absolute" ReferenceType="upper" MajorViolation="0.035"  ReferenceUnit="absolute" />
+    <Constraint  ComponentName="Single Phase" ProtocolStructureName="SpinalCord_PRV" ConstraintType="V" ConstraintValue="2500" ConstraintUnit="absolute" ReferenceType="upper" MajorViolation="0.035"  ReferenceUnit="absolute" />
+    <Constraint  ComponentName="Single Phase" ProtocolStructureName="GTV_1_25" ConstraintType="V" ConstraintValue="2500" ConstraintUnit="absolute" ReferenceType="lower" MajorViolation="98" MinorViolation="99"  ReferenceUnit="relative" />
+    <Constraint  ComponentName="Single Phase" ProtocolStructureName="GTV_1_25" ConstraintType="V" ConstraintValue="3125" ConstraintUnit="absolute" ReferenceType="upper" MajorViolation="0.035"  ReferenceUnit="absolute" />
+    <Constraint  ComponentName="Single Phase" ProtocolStructureName="GTV_2_25" ConstraintType="V" ConstraintValue="2500" ConstraintUnit="absolute" ReferenceType="lower" MajorViolation="98" MinorViolation="99"  ReferenceUnit="relative" />
+    <Constraint  ComponentName="Single Phase" ProtocolStructureName="GTV_2_25" ConstraintType="V" ConstraintValue="3125" ConstraintUnit="absolute" ReferenceType="upper" MajorViolation="0.035"  ReferenceUnit="absolute" />
+    <Constraint  ComponentName="Single Phase" ProtocolStructureName="GTV_3_25" ConstraintType="V" ConstraintValue="2500" ConstraintUnit="absolute" ReferenceType="lower" MajorViolation="98" MinorViolation="99"  ReferenceUnit="relative" />
+    <Constraint  ComponentName="Single Phase" ProtocolStructureName="GTV_3_25" ConstraintType="V" ConstraintValue="3125" ConstraintUnit="absolute" ReferenceType="upper" MajorViolation="0.035"  ReferenceUnit="absolute" />
+    <Constraint  ComponentName="Single Phase" ProtocolStructureName="GTV_4_25" ConstraintType="V" ConstraintValue="2500" ConstraintUnit="absolute" ReferenceType="lower" MajorViolation="98" MinorViolation="99"  ReferenceUnit="relative" />
+    <Constraint  ComponentName="Single Phase" ProtocolStructureName="GTV_4_25" ConstraintType="V" ConstraintValue="3125" ConstraintUnit="absolute" ReferenceType="upper" MajorViolation="0.035"  ReferenceUnit="absolute" />
+    <Constraint  ComponentName="Single Phase" ProtocolStructureName="GTV_5_25" ConstraintType="V" ConstraintValue="2500" ConstraintUnit="absolute" ReferenceType="lower" MajorViolation="98" MinorViolation="99"  ReferenceUnit="relative" />
+    <Constraint  ComponentName="Single Phase" ProtocolStructureName="GTV_5_25" ConstraintType="V" ConstraintValue="3125" ConstraintUnit="absolute" ReferenceType="upper" MajorViolation="0.035"  ReferenceUnit="absolute" />
+    <Constraint  ComponentName="Single Phase" ProtocolStructureName="PTV_1_22.5" ConstraintType="V" ConstraintValue="2250" ConstraintUnit="absolute" ReferenceType="lower" MajorViolation="98" MinorViolation="99"  ReferenceUnit="relative" />
+    <Constraint  ComponentName="Single Phase" ProtocolStructureName="PTV_2_22.5" ConstraintType="V" ConstraintValue="2250" ConstraintUnit="absolute" ReferenceType="lower" MajorViolation="98" MinorViolation="99"  ReferenceUnit="relative" />
+    <Constraint  ComponentName="Single Phase" ProtocolStructureName="PTV_3_22.5" ConstraintType="V" ConstraintValue="2250" ConstraintUnit="absolute" ReferenceType="lower" MajorViolation="98" MinorViolation="99"  ReferenceUnit="relative" />
+    <Constraint  ComponentName="Single Phase" ProtocolStructureName="PTV_4_22.5" ConstraintType="V" ConstraintValue="2250" ConstraintUnit="absolute" ReferenceType="lower" MajorViolation="98" MinorViolation="99"  ReferenceUnit="relative" />
+    <Constraint  ComponentName="Single Phase" ProtocolStructureName="PTV_5_22.5" ConstraintType="V" ConstraintValue="2250" ConstraintUnit="absolute" ReferenceType="lower" MajorViolation="98" MinorViolation="99"  ReferenceUnit="relative" />
+    <Constraint  ComponentName="Single Phase" ProtocolStructureName="Shell_GTV_1" ConstraintType="V" ConstraintValue="2500" ConstraintUnit="absolute" ReferenceType="upper" MajorViolation="20" MinorViolation="10"  ReferenceUnit="relative" />
+    <Constraint  ComponentName="Single Phase" ProtocolStructureName="Shell_GTV_2" ConstraintType="V" ConstraintValue="2500" ConstraintUnit="absolute" ReferenceType="upper" MajorViolation="20" MinorViolation="10"  ReferenceUnit="relative" />
+    <Constraint  ComponentName="Single Phase" ProtocolStructureName="Shell_GTV_3" ConstraintType="V" ConstraintValue="2500" ConstraintUnit="absolute" ReferenceType="upper" MajorViolation="20" MinorViolation="10"  ReferenceUnit="relative" />
+    <Constraint  ComponentName="Single Phase" ProtocolStructureName="Shell_GTV_4" ConstraintType="V" ConstraintValue="2500" ConstraintUnit="absolute" ReferenceType="upper" MajorViolation="20" MinorViolation="10"  ReferenceUnit="relative" />
+    <Constraint  ComponentName="Single Phase" ProtocolStructureName="Shell_GTV_5" ConstraintType="V" ConstraintValue="2500" ConstraintUnit="absolute" ReferenceType="upper" MajorViolation="20" MinorViolation="10"  ReferenceUnit="relative" />
+    <Constraint  ComponentName="Single Phase" ProtocolStructureName="Shell_PTV_1" ConstraintType="V" ConstraintValue="2250" ConstraintUnit="absolute" ReferenceType="upper" MajorViolation="20" MinorViolation="10"  ReferenceUnit="relative" />
+    <Constraint  ComponentName="Single Phase" ProtocolStructureName="Shell_PTV_2" ConstraintType="V" ConstraintValue="2250" ConstraintUnit="absolute" ReferenceType="upper" MajorViolation="20" MinorViolation="10"  ReferenceUnit="relative" />
+    <Constraint  ComponentName="Single Phase" ProtocolStructureName="Shell_PTV_3" ConstraintType="V" ConstraintValue="2250" ConstraintUnit="absolute" ReferenceType="upper" MajorViolation="20" MinorViolation="10"  ReferenceUnit="relative" />
+    <Constraint  ComponentName="Single Phase" ProtocolStructureName="Shell_PTV_4" ConstraintType="V" ConstraintValue="2250" ConstraintUnit="absolute" ReferenceType="upper" MajorViolation="20" MinorViolation="10"  ReferenceUnit="relative" />
+    <Constraint  ComponentName="Single Phase" ProtocolStructureName="Shell_PTV_5" ConstraintType="V" ConstraintValue="2250" ConstraintUnit="absolute" ReferenceType="upper" MajorViolation="20" MinorViolation="10"  ReferenceUnit="relative" />
+    <Constraint  ComponentName="Single Phase" ProtocolStructureName="PTV_Skull_20" ConstraintType="V" ConstraintValue="2000" ConstraintUnit="absolute" ReferenceType="lower" MajorViolation="95"  ReferenceUnit="relative" />
+    <Constraint  ComponentName="Single Phase" ProtocolStructureName="PTV_Skull_20" ConstraintType="V" ConstraintValue="2500" ConstraintUnit="absolute" ReferenceType="upper" MajorViolation="0.035"  ReferenceUnit="absolute" />
+    <Constraint  ComponentName="Single Phase" ProtocolStructureName="Eye_L" ConstraintType="D" ConstraintValue="0" ConstraintUnit="relative" ReferenceType="upper" MajorViolation="2500"  ReferenceUnit="absolute" />
+    <Constraint  ComponentName="Single Phase" ProtocolStructureName="Eye_R" ConstraintType="D" ConstraintValue="0" ConstraintUnit="relative" ReferenceType="upper" MajorViolation="2500"  ReferenceUnit="absolute" />
+    <Constraint  ComponentName="Single Phase" ProtocolStructureName="Skin" ConstraintType="V" ConstraintValue="500" ConstraintUnit="absolute" ReferenceType="upper" MajorViolation="0.5"  ReferenceUnit="absolute" />
+  </Constraints>
+</SquintProtocol>

@@ -1,0 +1,173 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<SquintProtocol xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <version>1</version>
+  <ProtocolMetaData
+    ProtocolName="Lung (60 Gy in 15#) LUSTRE protocol" ProtocolType="Clinical" NumComponents="1" ProtocolDate="30-05-2017" Intent="Curative" ApprovalStatus ="Approved" DiseaseSite="Lung" TreatmentCentre="CN"/>
+
+  <Structures>
+    <!-- Defines target structures and assigns associated aliases for each one. Also include checks for stray voxels as necessary.-->
+    <Structure Label="PTV Primary" ProtocolStructureName="PTV">
+      <EclipseAliases>
+        <EclipseId Id="PTV_60"></EclipseId>
+        <EclipseId Id="PTVp_60"></EclipseId>
+        <EclipseId Id="PTV"></EclipseId>
+      </EclipseAliases>
+    </Structure>
+
+    <!--Defines OAR structures and assigns acceptable aliases for each OAR.-->
+    <Structure Label="Spinal Canal" ProtocolStructureName="SpinalCanal">
+      <EclipseAliases>
+        <EclipseId Id="SpinalCanal"></EclipseId>
+      </EclipseAliases>
+    </Structure>
+    <Structure Label="Lungs sub GTVs" ProtocolStructureName="BL_IGTV_PBT_PT">
+      <EclipseAliases>
+        <EclipseId Id="BL_IGTV_PBT_PT"></EclipseId>
+      </EclipseAliases>
+    </Structure>
+    <Structure Label="Brachial Nerve Plexus Right" ProtocolStructureName="RBrachialPlex">
+      <EclipseAliases>
+        <EclipseId Id="RBrachialPlex"></EclipseId>
+      </EclipseAliases>
+    </Structure>
+    <Structure Label="Brachial Nerve Plexus Left" ProtocolStructureName="LBrachialPlex">
+      <EclipseAliases>
+        <EclipseId Id="LBrachialPlex"></EclipseId>
+      </EclipseAliases>
+    </Structure>
+    <Structure Label="Bronchial Tree" ProtocolStructureName="ProxBronchTree">
+      <EclipseAliases>
+        <EclipseId Id="ProxBronchTree"></EclipseId>
+      </EclipseAliases>
+    </Structure>
+    <Structure Label="Trachea" ProtocolStructureName="ProxTrachea">
+      <EclipseAliases>
+        <EclipseId Id="ProxTrachea"></EclipseId>
+      </EclipseAliases>
+    </Structure>
+    <Structure Label="Great Vessels" ProtocolStructureName="GreatVessels">
+      <EclipseAliases>
+        <EclipseId Id="GreatVessels"></EclipseId>
+      </EclipseAliases>
+    </Structure>
+    <Structure Label="Heart" ProtocolStructureName="Heart">
+      <EclipseAliases>
+        <EclipseId Id="Heart"></EclipseId>
+      </EclipseAliases>
+    </Structure>
+    <Structure Label="Chest Wall" ProtocolStructureName="ChestWall">
+      <EclipseAliases>
+        <EclipseId Id="ChestWall"></EclipseId>
+      </EclipseAliases>
+    </Structure>
+    <Structure Label="Esophagus" ProtocolStructureName="Esophagus">
+      <EclipseAliases>
+        <EclipseId Id="Esophagus"></EclipseId>
+      </EclipseAliases>
+    </Structure>
+    <Structure Label="Stomach" ProtocolStructureName="Stomach">
+      <EclipseAliases>
+        <EclipseId Id="Stomach"></EclipseId>
+      </EclipseAliases>
+    </Structure>
+    <Structure Label="Undefined Normal Tissue" ProtocolStructureName="105subPTV">
+      <EclipseAliases>
+        <EclipseId Id="105subPTV"></EclipseId>
+      </EclipseAliases>
+    </Structure>
+    <Structure Label="Undefined Normal Tissue" ProtocolStructureName="D2cm">
+      <EclipseAliases>
+        <EclipseId Id="D2cm"></EclipseId>
+      </EclipseAliases>
+    </Structure>
+    <Structure Label="Body" ProtocolStructureName="BODY">
+      <EclipseAliases>
+        <EclipseId Id="BODY"></EclipseId>
+      </EclipseAliases>
+    </Structure>
+    <Structure Label="Control" ProtocolStructureName="Artifacts">
+      <EclipseAliases>
+        <EclipseId Id="Artifacts"></EclipseId>
+        <EclipseId Id="Artifact"></EclipseId>
+      </EclipseAliases>
+    </Structure>
+  </Structures>
+
+  <!--This section defines default parameters for plan checklists including Artifacts, Supports, Calculation algorithms, simulations and prescription values-->
+  <ProtocolChecklist>
+    <Artifacts>
+      <Artifact HU="0" Tolerance ="0.1" ProtocolStructureName="Artifacts"/>
+    </Artifacts>
+    <Supports CouchSurface="-300" CouchInterior="-1000"/>
+    <Calculation Algorithm="AAA_13623" AlgorithmResolution="2.5" HeterogeneityOn="true" FieldNormalizationMode="ISO"/>
+    <Simulation SliceSpacing ="2.5"/>
+  </ProtocolChecklist>
+
+  <!--This section defines the Components used in plan checking including Imaging protocols, beams. Each phase must have its own component element-->
+  <Components>
+    <Component ComponentName="Single Phase" Type="Phase" >
+      <Prescription PNVMin="97" PNVMax="103" PrescribedPercentage="100" NumFractions="15" ReferenceDose="6000" />
+      <ImagingProtocols>
+        <ImagingProtocol Id="kv_2D" />
+        <ImagingProtocol Id="PostCBCT" />
+      </ImagingProtocols>
+      <!-- This section defines beam child elements including Eclipse aliases, valid geometries, energies and bolus definitions. Each arc in a plan must have its own Beam element. -->
+      <Beams MinBeams="1" MaxBeams="2" NumIso="1" MinColOffset="20">
+        <Beam ProtocolBeamName="ARC CCW" Technique="ARC" StartAngle="179" EndAngle="181" ToleranceTable="CN+VI Indexed" MinColRotation="20" MaxColRotation="60" CouchRotation="0" MinX="3" MaxX="10" MinY="3" MaxY="10" JawTracking_Indication="Required">
+          <EclipseAliases>
+            <EclipseId Id="rarc_ccw"/>
+            <EclipseId Id="arc_ccw"/>
+          </EclipseAliases>
+          <ValidGeometries>
+            <Geometry GeometryName = "Right Partial Arc (CCW)" StartAngle="15" StartAngleTolerance="15" EndAngle="181" EndAngleTolerance="1" Trajectory="CCW"/>
+            <Geometry GeometryName = "Left Partial Arc (CCW)" StartAngle="179" StartAngleTolerance="1" EndAngle="345" EndAngleTolerance="15" Trajectory="CCW"/>
+          </ValidGeometries>
+          <ValidEnergies>
+            <Energy Mode="6X"/>
+            <Energy Mode="10XFFF"/>
+          </ValidEnergies>
+          <BolusDefinitions>
+            <Bolus Indication="None"/>
+          </BolusDefinitions>
+        </Beam>
+        <Beam ProtocolBeamName="ARC CW" Technique="ARC" StartAngle="181" EndAngle="179" ToleranceTable="CN+VI Indexed" MinColRotation="20" MaxColRotation="60" CouchRotation="0" MinX="3" MaxX="10" MinY="3" MaxY="10" JawTracking_Indication="Required">
+          <EclipseAliases>
+            <EclipseId Id="rarc_cw"/>
+            <EclipseId Id="arc_cw"/>
+          </EclipseAliases>
+          <ValidGeometries>
+            <Geometry GeometryName="Left Partial Arc (CW)" StartAngle="345" StartAngleTolerance="15" EndAngle="179" EndAngleTolerance="1" Trajectory="CW"/>
+            <Geometry GeometryName="Right Partial Arc (CW)" StartAngle="181" StartAngleTolerance="1" EndAngle="15" EndAngleTolerance="15" Trajectory="CW"/>
+          </ValidGeometries>
+          <ValidEnergies>
+            <Energy Mode="6X"/>
+            <Energy Mode="10XFFF"/>
+          </ValidEnergies>
+          <BolusDefinitions>
+            <Bolus Indication="None"/>
+          </BolusDefinitions>
+        </Beam>
+      </Beams>
+    </Component>
+  </Components>
+
+  <!--This section defines the Constraints (DVH, conformity index etc) as based on clinical protocols-->
+  <Constraints>
+    <Constraint ComponentName="Single Phase" ProtocolStructureName="SpinalCanal" ConstraintType="D" ConstraintValue="0.035" ConstraintUnit="relative" ReferenceType="upper" MajorViolation="3600" ReferenceUnit="absolute"  Description="Derived from LUSTRE Standard Arm protocol. https://www.ncbi.nlm.nih.gov/pubmed/27876603"/>
+    <Constraint ComponentName="Single Phase" ProtocolStructureName="BL_IGTV_PBT_PT" ConstraintType="V" ConstraintValue="2000" ConstraintUnit="absolute" ReferenceType="upper" MajorViolation="15" ReferenceUnit="relative" Description="Derived from LUSTRE Standard Arm protocol. https://www.ncbi.nlm.nih.gov/pubmed/27876603"/>
+    <Constraint ComponentName="Single Phase" ProtocolStructureName="BL_IGTV_PBT_PT" ConstraintType="V" ConstraintValue="1500" ConstraintUnit="absolute" ReferenceType="upper" MajorViolation="30" ReferenceUnit="relative" Description="Derived from LUSTRE Standard Arm protocol. https://www.ncbi.nlm.nih.gov/pubmed/27876603"/>
+    <Constraint ComponentName="Single Phase" ProtocolStructureName="BL_IGTV_PBT_PT" ConstraintType="M" ConstraintValue="0" ConstraintUnit="absolute" ReferenceType="upper" MajorViolation="1700" MinorViolation="1500" ReferenceUnit="absolute" Description="Derived from LUSTRE Standard Arm protocol. https://www.ncbi.nlm.nih.gov/pubmed/27876603"/>
+    <Constraint ComponentName="Single Phase" ProtocolStructureName="LBrachialPlex" ConstraintType="D" ConstraintValue="0.035" ConstraintUnit="absolute" ReferenceType="upper" MajorViolation="5000" ReferenceUnit="absolute" Description="Derived from LUSTRE Standard Arm protocol. https://www.ncbi.nlm.nih.gov/pubmed/27876603" />
+    <Constraint ComponentName="Single Phase" ProtocolStructureName="RBrachialPlex" ConstraintType="D" ConstraintValue="0.035" ConstraintUnit="relative" ReferenceType="upper" MajorViolation="5000" ReferenceUnit="absolute" Description="Derived from LUSTRE Standard Arm protocol. https://www.ncbi.nlm.nih.gov/pubmed/27876603"/>
+    <Constraint ComponentName="Single Phase" ProtocolStructureName="ProxBronchTree" ConstraintType="D" ConstraintValue="0.035" ConstraintUnit="absolute" ReferenceType="upper" MajorViolation="6600" ReferenceUnit="absolute" Description="Derived from LUSTRE Standard Arm protocol. https://www.ncbi.nlm.nih.gov/pubmed/27876603"/>
+    <Constraint ComponentName="Single Phase" ProtocolStructureName="ProxTrachea" ConstraintType="D" ConstraintValue="0.035" ConstraintUnit="absolute" ReferenceType="upper" MajorViolation="6600" ReferenceUnit="absolute" Description="Derived from LUSTRE Standard Arm protocol. https://www.ncbi.nlm.nih.gov/pubmed/27876603"/>
+    <Constraint ComponentName="Single Phase" ProtocolStructureName="GreatVessels" ConstraintType="D" ConstraintValue="0.035" ConstraintUnit="absolute" ReferenceType="upper" MajorViolation="6600" ReferenceUnit="absolute" Description="Derived from LUSTRE Standard Arm protocol. https://www.ncbi.nlm.nih.gov/pubmed/27876603"/>
+    <Constraint ComponentName="Single Phase" ProtocolStructureName="Heart" ConstraintType="D" ConstraintValue="0.035" ConstraintUnit="absolute" ReferenceType="upper" MajorViolation="6600" ReferenceUnit="absolute" Description="Derived from LUSTRE Standard Arm protocol. https://www.ncbi.nlm.nih.gov/pubmed/27876603" />
+    <Constraint ComponentName="Single Phase" ProtocolStructureName="Esophagus" ConstraintType="D" ConstraintValue="0.035" ConstraintUnit="absolute" ReferenceType="upper" MajorViolation="4800" ReferenceUnit="absolute" Description="Derived from LUSTRE Standard Arm protocol. https://www.ncbi.nlm.nih.gov/pubmed/27876603"/>
+    <Constraint ComponentName="Single Phase" ProtocolStructureName="Stomach" ConstraintType="D" ConstraintValue="0.035" ConstraintUnit="absolute" ReferenceType="upper" MajorViolation="4800" ReferenceUnit="absolute" Description="Derived from LUSTRE Standard Arm protocol. https://www.ncbi.nlm.nih.gov/pubmed/27876603"/>
+    <Constraint ComponentName="Single Phase" ProtocolStructureName="PTV" ConstraintType="V" ConstraintValue="95" ConstraintUnit="relative" ReferenceType="lower" MajorViolation="98" ReferenceUnit="relative" Description="Derived from LUSTRE Standard Arm protocol. https://www.ncbi.nlm.nih.gov/pubmed/27876603"/>
+    <Constraint ComponentName="Single Phase" ProtocolStructureName="PTV" ConstraintType="V" ConstraintValue="93" ConstraintUnit="relative" ReferenceType="lower" MajorViolation="99" ReferenceUnit="relative" Description="Derived from LUSTRE Standard Arm protocol. https://www.ncbi.nlm.nih.gov/pubmed/27876603" />
+    <Constraint ComponentName="Single Phase" ProtocolStructureName="PTV" ConstraintType="D" ConstraintValue="0" ConstraintUnit="relative" ReferenceType="upper" MajorViolation="110" ReferenceUnit="relative" Description="Derived from LUSTRE Standard Arm protocol. https://www.ncbi.nlm.nih.gov/pubmed/27876603"/>
+    <Constraint ComponentName="Single Phase" ProtocolStructureName="ChestWall" ConstraintType="D" ConstraintValue="0.035" ConstraintUnit="absolute" ReferenceType="upper" MajorViolation="6600" ReferenceUnit="absolute" Description="Derived from LUSTRE Standard Arm protocol. https://www.ncbi.nlm.nih.gov/pubmed/27876603" />
+  </Constraints>
+</SquintProtocol>

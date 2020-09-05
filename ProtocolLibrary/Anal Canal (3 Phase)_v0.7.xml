@@ -1,0 +1,311 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<SquintProtocol xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <version>1</version>
+  <ProtocolMetaData
+    ProtocolName="Anal Canal (3 Phase)" ProtocolType ="Clinical" NumComponents="4" ProtocolDate="02-08-2017" Intent="Curative" ApprovalStatus ="Approved" DiseaseSite="GI" TreatmentCentre="CN" />
+
+  <!-- Defines target structures and assigns associated aliases for each one. Also include checks for stray voxels as necessary.-->
+  <Structures>
+    <Structure Label="CTV High Risk" ProtocolStructureName="CTV High">
+      <StructureChecklist>
+        <PointContourCheck Threshold="0.05"/>
+      </StructureChecklist>
+      <EclipseAliases>
+        <EclipseId Id="CTVp_54"></EclipseId>
+        <EclipseId Id="CTV_54"></EclipseId>
+        <EclipseId Id="CTV54"></EclipseId>
+        <EclipseId Id="CTV"></EclipseId>
+      </EclipseAliases>
+    </Structure>
+    <Structure Label="CTV Intermediate Risk" ProtocolStructureName="CTV Intermediate">
+      <StructureChecklist>
+        <PointContourCheck Threshold="0.05"/>
+      </StructureChecklist>
+      <EclipseAliases>
+        <EclipseId Id="CTV_50.4"></EclipseId>
+        <EclipseId Id="CTVn_50.4"></EclipseId>
+        <EclipseId Id="CTV50.4"></EclipseId>
+      </EclipseAliases>
+    </Structure>
+    <Structure Label="CTV Low Risk" ProtocolStructureName="CTV Low">
+      <StructureChecklist>
+        <PointContourCheck Threshold="0.05"/>
+      </StructureChecklist>
+      <EclipseAliases>
+        <EclipseId Id="CTV_45"></EclipseId>
+        <EclipseId Id="CTVn_45"></EclipseId>
+        <EclipseId Id="CTV45"></EclipseId>
+      </EclipseAliases>
+    </Structure>
+    <Structure Label="GTV Primary" ProtocolStructureName="GTV Primary">
+      <StructureChecklist>
+        <PointContourCheck Threshold="0.05"/>
+      </StructureChecklist>
+      <EclipseAliases>
+        <EclipseId Id="GTV"></EclipseId>
+        <EclipseId Id="GTVp"></EclipseId>
+      </EclipseAliases>
+    </Structure>
+    <Structure Label="GTV Nodal" ProtocolStructureName="GTV Nodal">
+      <StructureChecklist>
+        <PointContourCheck Threshold="0.05"/>
+      </StructureChecklist>
+      <EclipseAliases>
+        <EclipseId Id="GTVn"></EclipseId>
+      </EclipseAliases>
+    </Structure>
+    <Structure Label="PTV High Risk" ProtocolStructureName="PTV High">
+      <EclipseAliases>
+        <EclipseId Id="PTV_54e"></EclipseId>
+        <EclipseId Id="PTVp_54e"></EclipseId>
+        <EclipseId Id="PTV_54"></EclipseId>
+        <EclipseId Id="PTVp_54"></EclipseId>
+      </EclipseAliases>
+    </Structure>
+    <Structure Label="PTV Intermediate Risk" ProtocolStructureName="PTV Intermediate">
+      <EclipseAliases>
+        <EclipseId Id="PTV_50.4e_eval"></EclipseId>
+        <EclipseId Id="PTVp2_50.4e_eval"></EclipseId>
+        <EclipseId Id="PTV_50.4_eval"></EclipseId>
+        <EclipseId Id="PTVp2_50.4_eval"></EclipseId>
+        <EclipseId Id="PTV_50.4"></EclipseId>
+        <EclipseId Id="PTVp2_50.4"></EclipseId>
+      </EclipseAliases>
+    </Structure>
+    <Structure Label="PTV Low Risk" ProtocolStructureName="PTV Low">
+      <EclipseAliases>
+        <EclipseId Id="PTV_45e_eval"></EclipseId>
+        <EclipseId Id="PTVn_45e_eval"></EclipseId>
+        <EclipseId Id="PTV_45_eval"></EclipseId>
+        <EclipseId Id="PTVn_45_eval"></EclipseId>
+        <EclipseId Id="PTVn_45"></EclipseId>
+        <EclipseId Id="PTV_45"></EclipseId>
+      </EclipseAliases>
+    </Structure>
+
+    <!--Defines OAR structures and assigns acceptable aliases for each OAR.-->
+    <Structure Label="Peritoneal sac" ProtocolStructureName="BowelBag">
+      <EclipseAliases>
+        <EclipseId Id="BowelBag"></EclipseId>
+        <EclipseId Id="Bowel Bag"></EclipseId>
+      </EclipseAliases>
+    </Structure>
+    <Structure Label="Femoral Head Right" ProtocolStructureName="Femur (Right)">
+      <EclipseAliases>
+        <EclipseId Id="Femur_R"></EclipseId>
+        <EclipseId Id="FemurR"></EclipseId>
+      </EclipseAliases>
+    </Structure>
+    <Structure Label="Femoral Head Left" ProtocolStructureName="Femur (Left)">
+      <EclipseAliases>
+        <EclipseId Id="Femur_L"></EclipseId>
+        <EclipseId Id="FemurL"></EclipseId>
+      </EclipseAliases>
+    </Structure>
+    <Structure Label="Right ilium" ProtocolStructureName="IliacCrest (Right)">
+      <EclipseAliases>
+        <EclipseId Id="IliacCrest_R"></EclipseId>
+        <EclipseId Id="IliacCrest R"></EclipseId>
+        <EclipseId Id="IliacCrestR"></EclipseId>
+      </EclipseAliases>
+    </Structure>
+    <Structure Label="Left ilium" ProtocolStructureName="IliacCrest (Left)">
+      <EclipseAliases>
+        <EclipseId Id="IliacCrest_L"></EclipseId>
+        <EclipseId Id="IliacCrest L"></EclipseId>
+        <EclipseId Id="IliacCrestL"></EclipseId>
+      </EclipseAliases>
+    </Structure>
+    <Structure Label="Genitalia External" ProtocolStructureName="External Genitalia">
+      <EclipseAliases>
+        <EclipseId Id="ExtGenitalia"></EclipseId>
+        <EclipseId Id="Ext Genitalia"></EclipseId>
+        <EclipseId Id="Genitalia"></EclipseId>
+      </EclipseAliases>
+    </Structure>
+    <Structure Label="Bladder" ProtocolStructureName="Bladder">
+      <EclipseAliases>
+        <EclipseId Id="Bladder"></EclipseId>
+      </EclipseAliases>
+    </Structure>
+    <Structure Label="Control" ProtocolStructureName="Artifacts">
+      <EclipseAliases>
+        <EclipseId Id="Artifacts"></EclipseId>
+        <EclipseId Id="Artifact"></EclipseId>
+      </EclipseAliases>
+    </Structure>
+  </Structures>
+
+  <!--This section defines default parameters for plan checklists including Artifacts, Supports, Calculation algorithms, simulations and prescription values-->
+  <ProtocolChecklist>
+    <Artifacts>
+      <Artifact HU="0" Tolerance ="0.1" ProtocolStructureName="Artifacts"/>
+    </Artifacts>
+    <Supports CouchSurface="-300" CouchInterior="-1000"/>
+    <Calculation Algorithm="AAA_13623" AlgorithmResolution="2.5" HeterogeneityOn="true" FieldNormalizationMode="ISO"/>
+    <Simulation SliceSpacing ="2.5"/>
+  </ProtocolChecklist>
+
+  <!--This section defines the Components used in plan checking including Imaging protocols, beams. Each phase must have its own component element-->
+  <Components>
+    <Component ComponentName="Phase 1" Type="Phase">
+      <Prescription NumFractions="25" ReferenceDose="4500" PNVMin="97" PNVMax="103" PrescribedPercentage="100"/>
+      <ImagingProtocols>
+        <ImagingProtocol Id="kv_2D" />
+      </ImagingProtocols>
+      <!-- This section defines beam child elements including Eclipse aliases, valid geometries, energies and bolus definitions. Each arc in a plan must have its own Beam element. -->
+      <Beams MinBeams="1" MaxBeams="2" NumIso ="1" MinColOffset="20">
+        <Beam ProtocolBeamName="ARC CCW" Technique="ARC" StartAngle="179" EndAngle="181"
+             ToleranceTable="CN+VI Non-Index" MinColRotation="20" CouchRotation="0" MinX="3" MaxX="18" MinY="3" MaxY="29" JawTracking_Indication="Required">
+          <EclipseAliases>
+            <EclipseId Id= "rarc_ccw"/>
+            <EclipseId Id= "arc_ccw"/>
+          </EclipseAliases>
+          <BolusDefinitions>
+            <Bolus HU="0" Thickness="0.5" Indication="Optional" ToleranceHU="0.1" ToleranceThickness="0.1"/>
+          </BolusDefinitions>
+          <ValidGeometries>
+            <Geometry GeometryName ="Full Arc (CCW)" StartAngle="179" StartAngleTolerance="2" EndAngle="181" EndAngleTolerance="2" Trajectory="CCW"/>
+          </ValidGeometries>
+          <ValidEnergies>
+            <Energy Mode="6X"/>
+          </ValidEnergies>
+        </Beam>
+        <Beam ProtocolBeamName="ARC CW" Technique="ARC" StartAngle="181" EndAngle="179" ToleranceTable="CN+VI Non-Index" MinColRotation="20" CouchRotation="0" MinX="3" MaxX="18" MinY="3" MaxY="29" JawTracking_Indication="Required">
+          <EclipseAliases>
+            <EclipseId Id= "rarc_cw"/>
+            <EclipseId Id= "arc_cw"/>
+          </EclipseAliases>
+          <BolusDefinitions>
+            <Bolus HU="0" Thickness="0.5" Indication="Optional" ToleranceHU="0.1" ToleranceThickness="0.1"/>
+          </BolusDefinitions>
+          <ValidGeometries>
+            <Geometry GeometryName ="Full Arc (CW)" StartAngle="181" StartAngleTolerance="2" EndAngle="179" EndAngleTolerance="2" Trajectory="CW"/>
+          </ValidGeometries>
+          <ValidEnergies>
+            <Energy Mode="6X"/>
+          </ValidEnergies>
+        </Beam>
+      </Beams>
+    </Component>
+    <Component ComponentName="Phase 2" Type="Phase">
+      <Prescription NumFractions="3" ReferenceDose="540" PNVMin="97" PNVMax="103" PrescribedPercentage="100"/>
+      <ImagingProtocols>
+        <ImagingProtocol Id="kv_2D" />
+      </ImagingProtocols>
+      <Beams MinBeams="1" MaxBeams="2" NumIso ="1" MinColOffset="20">
+        <Beam ProtocolBeamName="ARC CCW" Technique="ARC" StartAngle="179" EndAngle="181" ToleranceTable="CN+VI Non-Index" MinColRotation="20" CouchRotation="0" MinX="3" MaxX="18" MinY="3" MaxY="29" JawTracking_Indication="Required">
+          <EclipseAliases>
+            <EclipseId Id= "rarc_ccw"/>
+            <EclipseId Id= "arc_ccw"/>
+          </EclipseAliases>
+          <ValidGeometries>
+            <Geometry GeometryName ="Full Arc (CCW)" StartAngle="179" StartAngleTolerance="2" EndAngle="181" EndAngleTolerance="2" Trajectory="CCW"/>
+          </ValidGeometries>
+          <ValidEnergies>
+            <Energy Mode="6X"/>
+          </ValidEnergies>
+          <BolusDefinitions>
+            <Bolus HU="0" Thickness="0.5" Indication="Optional" ToleranceHU="0.1" ToleranceThickness="0.1"/>
+          </BolusDefinitions>
+        </Beam>
+        <Beam ProtocolBeamName="ARC CW" Technique="ARC" StartAngle="181" EndAngle="179" ToleranceTable="CN+VI Non-Index" MinColRotation="20" CouchRotation="0" MinX="3" MaxX="18" MinY="3" MaxY="29" JawTracking_Indication="Required">
+          <EclipseAliases>
+            <EclipseId Id= "rarc_cw"/>
+            <EclipseId Id= "arc_cw"/>
+          </EclipseAliases>
+          <ValidGeometries>
+            <Geometry GeometryName ="Full Arc (CW)" StartAngle="181" StartAngleTolerance="2" EndAngle="179" EndAngleTolerance="2" Trajectory="CW"/>
+          </ValidGeometries>
+          <ValidEnergies>
+            <Energy Mode="6X"/>
+          </ValidEnergies>
+          <BolusDefinitions>
+            <Bolus HU="0" Thickness="0.5" Indication="Optional" ToleranceHU="0.1" ToleranceThickness="0.1"/>
+          </BolusDefinitions>
+        </Beam>
+      </Beams>
+    </Component>
+    <Component ComponentName="Phase 3" Type="Phase" >
+      <Prescription NumFractions="2" ReferenceDose="360" PNVMin="97" PNVMax="103" PrescribedPercentage="100"/>
+      <ImagingProtocols>
+        <ImagingProtocol Id="kv_2D" />
+      </ImagingProtocols>
+      <Beams MinBeams="1" MaxBeams="2" NumIso ="1" MinColOffset="20">
+        <Beam ProtocolBeamName="ARC CCW" Technique="ARC" StartAngle="179" EndAngle="181" ToleranceTable="CN+VI Non-Index" MinColRotation="20" MaxColRotation="70" CouchRotation="0" MinX="3" MaxX="18" MinY="3" MaxY="29" JawTracking_Indication="Required">
+          <EclipseAliases>
+            <EclipseId Id= "rarc_ccw"/>
+            <EclipseId Id= "arc_ccw"/>
+          </EclipseAliases>
+          <ValidGeometries>
+            <Geometry GeometryName ="Full Arc (CCW)" StartAngle="179" StartAngleTolerance="2" EndAngle="181" EndAngleTolerance="2" Trajectory="CCW"/>
+          </ValidGeometries>
+          <ValidEnergies>
+            <Energy Mode="6X"/>
+          </ValidEnergies>
+          <BolusDefinitions>
+            <Bolus HU="0" Thickness="0.5" Indication="Optional" ToleranceHU="0.1" ToleranceThickness="0.1"/>
+          </BolusDefinitions>
+        </Beam>
+        <Beam ProtocolBeamName="ARC CW" Technique="ARC" StartAngle="181" EndAngle="179"
+            ToleranceTable="CN+VI Non-Index" MinColRotation="20" MaxColRotation="70" CouchRotation="0" MinX="3" MaxX="18" MinY="3" MaxY="29" JawTracking_Indication="Required">
+          <EclipseAliases>
+            <EclipseId Id= "rarc_cw"/>
+            <EclipseId Id= "arc_cw"/>
+          </EclipseAliases>
+          <ValidGeometries>
+            <Geometry GeometryName ="Full Arc (CW)" StartAngle="181" EndAngle="179" StartAngleTolerance="2" EndAngleTolerance="2" Trajectory="CW"/>
+          </ValidGeometries>
+          <ValidEnergies>
+            <Energy Mode="6X"/>
+          </ValidEnergies>
+          <BolusDefinitions>
+            <Bolus HU="0" Thickness="0.5" Indication="Optional" ToleranceHU="0.1" ToleranceThickness="0.1"/>
+          </BolusDefinitions>
+        </Beam>
+      </Beams>
+    </Component>
+    <Component ComponentName="Plan Sum" Type="Sum" NumFractions="30" ReferenceDose="5400">
+      <Prescription NumFractions="30" ReferenceDose="5400"/>
+    </Component>
+  </Components>
+
+  <!--This section defines the Constraints (DVH, conformity index etc) as based on clinical protocols-->
+  <Constraints>
+    <Constraint ComponentName="Phase 1" ProtocolStructureName="PTV High" ConstraintType="V" ConstraintValue="95" ConstraintUnit="relative" ReferenceType="lower" MajorViolation="99" ReferenceUnit="relative" />
+    <Constraint ComponentName="Phase 1" ProtocolStructureName="PTV Intermediate" ConstraintType="V" ConstraintValue="95" ConstraintUnit="relative" ReferenceType="lower" MajorViolation="99" ReferenceUnit="relative" />
+    <Constraint ComponentName="Phase 1" ProtocolStructureName="PTV Low" ConstraintType="V" ConstraintValue="95" ConstraintUnit="relative" ReferenceType="lower" MajorViolation="99" ReferenceUnit="relative" />
+    <Constraint ComponentName="Phase 1" ProtocolStructureName="PTV Low" ConstraintType="D" ConstraintValue="0" ConstraintUnit="relative" ReferenceType="upper" MajorViolation="110" MinorViolation="107" ReferenceUnit="relative" />
+    <Constraint ComponentName="Phase 2" ProtocolStructureName="PTV Low" ConstraintType="V" ConstraintValue="95" ConstraintUnit="relative" ReferenceType="lower" MajorViolation="99" ReferenceUnit="relative" />
+    <Constraint ComponentName="Phase 2" ProtocolStructureName="PTV Intermediate" ConstraintType="V" ConstraintValue="95" ConstraintUnit="relative" ReferenceType="lower" MajorViolation="99" ReferenceUnit="relative" />
+    <Constraint ComponentName="Phase 2" ProtocolStructureName="PTV Intermediate" ConstraintType="D" ConstraintValue="0" ConstraintUnit="relative" ReferenceType="upper" MajorViolation="110" MinorViolation="107" ReferenceUnit="relative" />
+    <Constraint ComponentName="Phase 3" ProtocolStructureName="PTV High" ConstraintType="V" ConstraintValue="95" ConstraintUnit="relative" ReferenceType="lower" MajorViolation="99" ReferenceUnit="relative" />
+    <Constraint ComponentName="Phase 3" ProtocolStructureName="PTV High" ConstraintType="D" ConstraintValue="0" ConstraintUnit="relative" ReferenceType="upper" MajorViolation="110" MinorViolation="107" ReferenceUnit="relative" />
+    <Constraint ComponentName="Plan Sum" ProtocolStructureName="BowelBag" ConstraintType="V" ConstraintValue="4500" ConstraintUnit="absolute" ReferenceType="upper" MajorViolation="20" ReferenceUnit="absolute" />
+    <Constraint ComponentName="Plan Sum" ProtocolStructureName="BowelBag" ConstraintType="V" ConstraintValue="3500" ConstraintUnit="absolute" ReferenceType="upper" MajorViolation="150" ReferenceUnit="absolute" />
+    <Constraint ComponentName="Plan Sum" ProtocolStructureName="BowelBag" ConstraintType="V" ConstraintValue="3000" ConstraintUnit="absolute" ReferenceType="upper" MajorViolation="200" ReferenceUnit="absolute" />
+    <Constraint ComponentName="Plan Sum" ProtocolStructureName="BowelBag" ConstraintType="D" ConstraintValue="0" ConstraintUnit="relative" ReferenceType="upper" MajorViolation="5000" ReferenceUnit="absolute" />
+    <Constraint ComponentName="Plan Sum" ProtocolStructureName="Femur (Right)" ConstraintType="V" ConstraintValue="4500" ConstraintUnit="absolute" ReferenceType="upper" MajorViolation="5" ReferenceUnit="relative" />
+    <Constraint ComponentName="Plan Sum" ProtocolStructureName="Femur (Right)" ConstraintType="V" ConstraintValue="4000" ConstraintUnit="absolute" ReferenceType="upper" MajorViolation="35" ReferenceUnit="relative" />
+    <Constraint ComponentName="Plan Sum" ProtocolStructureName="Femur (Right)" ConstraintType="V" ConstraintValue="3000" ConstraintUnit="absolute" ReferenceType="upper" MajorViolation="50" ReferenceUnit="relative" />
+    <Constraint ComponentName="Plan Sum" ProtocolStructureName="Femur (Right)" ConstraintType="D" ConstraintValue="0" ConstraintUnit="relative" ReferenceType="upper" MajorViolation="5200" ReferenceUnit="absolute" />
+    <Constraint ComponentName="Plan Sum" ProtocolStructureName="Femur (Left)" ConstraintType="V" ConstraintValue="4500" ConstraintUnit="absolute" ReferenceType="upper" MajorViolation="5" ReferenceUnit="relative" />
+    <Constraint ComponentName="Plan Sum" ProtocolStructureName="Femur (Left)" ConstraintType="V" ConstraintValue="4000" ConstraintUnit="absolute" ReferenceType="upper" MajorViolation="35" ReferenceUnit="relative" />
+    <Constraint ComponentName="Plan Sum" ProtocolStructureName="Femur (Left)" ConstraintType="V" ConstraintValue="3000" ConstraintUnit="absolute" ReferenceType="upper" MajorViolation="50" ReferenceUnit="relative" />
+    <Constraint ComponentName="Plan Sum" ProtocolStructureName="Femur (Left)" ConstraintType="D" ConstraintValue="0" ConstraintUnit="relative" ReferenceType="upper" MajorViolation="5200" ReferenceUnit="absolute" />
+    <Constraint ComponentName="Plan Sum" ProtocolStructureName="IliacCrest (Right)" ConstraintType="V" ConstraintValue="4500" ConstraintUnit="absolute" ReferenceType="upper" MajorViolation="5" ReferenceUnit="relative" />
+    <Constraint ComponentName="Plan Sum" ProtocolStructureName="IliacCrest (Right)" ConstraintType="V" ConstraintValue="4000" ConstraintUnit="absolute" ReferenceType="upper" MajorViolation="35" ReferenceUnit="relative" />
+    <Constraint ComponentName="Plan Sum" ProtocolStructureName="IliacCrest (Right)" ConstraintType="V" ConstraintValue="3000" ConstraintUnit="absolute" ReferenceType="upper" MajorViolation="50" ReferenceUnit="relative" />
+    <Constraint ComponentName="Plan Sum" ProtocolStructureName="IliacCrest (Right)" ConstraintType="D" ConstraintValue="0" ConstraintUnit="relative" ReferenceType="upper" MajorViolation="5200" ReferenceUnit="absolute" />
+    <Constraint ComponentName="Plan Sum" ProtocolStructureName="IliacCrest (Left)" ConstraintType="V" ConstraintValue="4500" ConstraintUnit="absolute" ReferenceType="upper" MajorViolation="5" ReferenceUnit="relative" />
+    <Constraint ComponentName="Plan Sum" ProtocolStructureName="IliacCrest (Left)" ConstraintType="V" ConstraintValue="4000" ConstraintUnit="absolute" ReferenceType="upper" MajorViolation="35" ReferenceUnit="relative" />
+    <Constraint ComponentName="Plan Sum" ProtocolStructureName="IliacCrest (Left)" ConstraintType="V" ConstraintValue="3000" ConstraintUnit="absolute" ReferenceType="upper" MajorViolation="50" ReferenceUnit="relative" />
+    <Constraint ComponentName="Plan Sum" ProtocolStructureName="IliacCrest (Left)" ConstraintType="D" ConstraintValue="0" ConstraintUnit="relative" ReferenceType="upper" MajorViolation="5200" ReferenceUnit="absolute" />
+    <Constraint ComponentName="Plan Sum" ProtocolStructureName="External Genitalia" ConstraintType="V" ConstraintValue="4000" ConstraintUnit="absolute" ReferenceType="upper" MajorViolation="5" ReferenceUnit="relative" />
+    <Constraint ComponentName="Plan Sum" ProtocolStructureName="External Genitalia" ConstraintType="V" ConstraintValue="3000" ConstraintUnit="absolute" ReferenceType="upper" MajorViolation="35" ReferenceUnit="relative" />
+    <Constraint ComponentName="Plan Sum" ProtocolStructureName="External Genitalia" ConstraintType="V" ConstraintValue="2000" ConstraintUnit="absolute" ReferenceType="upper" MajorViolation="50" ReferenceUnit="relative" />
+    <Constraint ComponentName="Plan Sum" ProtocolStructureName="Bladder" ConstraintType="V" ConstraintValue="5000" ConstraintUnit="absolute" ReferenceType="upper" MajorViolation="5" ReferenceUnit="relative" />
+    <Constraint ComponentName="Plan Sum" ProtocolStructureName="Bladder" ConstraintType="V" ConstraintValue="4000" ConstraintUnit="absolute" ReferenceType="upper" MajorViolation="35" ReferenceUnit="relative" />
+    <Constraint ComponentName="Plan Sum" ProtocolStructureName="Bladder" ConstraintType="V" ConstraintValue="3500" ConstraintUnit="absolute" ReferenceType="upper" MajorViolation="50" ReferenceUnit="relative" />
+  </Constraints>
+</SquintProtocol>

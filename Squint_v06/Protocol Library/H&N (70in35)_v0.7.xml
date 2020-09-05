@@ -1,0 +1,333 @@
+<?xml version="1.0" encoding="utf-8"?>
+<SquintProtocol xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ProtocolID>0</ProtocolID>
+  <version>1</version>
+  <ProtocolMetaData ProtocolName="HN (70 Gy in 35#)" ProtocolDate="19-Aug-2020" Author="phsabc\nchng" ApprovalStatus="Approved" DiseaseSite="HN" TreatmentCentre="CN" ProtocolType="Clinical" Intent="Curative" />
+  <ImagingProtocols />
+  <Structures>
+    <Structure Label="CTV High Risk" ProtocolStructureName="CTV High">
+      <EclipseAliases>
+        <EclipseId Id="CTV70" />
+        <EclipseId Id="CTV66" />
+        <EclipseId Id="CTV60" />
+        <EclipseId Id="CTVp70" />
+        <EclipseId Id="CTVp66" />
+        <EclipseId Id="CTVp60" />
+      </EclipseAliases>
+      <StructureChecklist>
+        <PointContourCheck Threshold="0.05" />
+      </StructureChecklist>
+    </Structure>
+    <Structure Label="CTV Intermediate Risk" ProtocolStructureName="CTV Intermediate">
+      <EclipseAliases>
+        <EclipseId Id="CTV63" />
+        <EclipseId Id="CTVp_63" />
+        <EclipseId Id="CTVp63" />
+      </EclipseAliases>
+      <StructureChecklist>
+        <PointContourCheck Threshold="0.05" />
+      </StructureChecklist>
+    </Structure>
+    <Structure Label="CTV Low Risk" ProtocolStructureName="CTV Low">
+      <EclipseAliases>
+        <EclipseId Id="CTV56" />
+        <EclipseId Id="CTV50" />
+        <EclipseId Id="CTV_50" />
+      </EclipseAliases>
+      <StructureChecklist>
+        <PointContourCheck Threshold="0.05" />
+      </StructureChecklist>
+    </Structure>
+    <Structure Label="GTV Primary" ProtocolStructureName="GTV Primary">
+      <EclipseAliases>
+        <EclipseId Id="GTV" />
+        <EclipseId Id="GTVp" />
+      </EclipseAliases>
+      <StructureChecklist>
+        <PointContourCheck Threshold="0.05" />
+      </StructureChecklist>
+    </Structure>
+    <Structure Label="GTV Nodal" ProtocolStructureName="GTV Nodal">
+      <EclipseAliases>
+        <EclipseId Id="GTVn" />
+      </EclipseAliases>
+      <StructureChecklist>
+        <PointContourCheck Threshold="0.05" />
+      </StructureChecklist>
+    </Structure>
+    <Structure Label="PTV High Risk" ProtocolStructureName="PTV High">
+      <EclipseAliases>
+        <EclipseId Id="PTV_70e_eval" />
+        <EclipseId Id="PTV_70e" />
+        <EclipseId Id="PTVp_70e_eval" />
+        <EclipseId Id="PTVp_70e" />
+        <EclipseId Id="PTV_70_eval" />
+        <EclipseId Id="PTV_70" />
+        <EclipseId Id="PTVp_70_eval" />
+        <EclipseId Id="PTVp_70" />
+        <EclipseId Id="PTV_66e_eval" />
+        <EclipseId Id="PTV_66e" />
+        <EclipseId Id="PTVp_66e_eval" />
+        <EclipseId Id="PTVp_66e" />
+        <EclipseId Id="PTV_66_eval" />
+        <EclipseId Id="PTV_66" />
+        <EclipseId Id="PTVp_66_eval" />
+        <EclipseId Id="PTVp_66" />
+        <EclipseId Id="PTV_60e_eval" />
+        <EclipseId Id="PTV_60e" />
+        <EclipseId Id="PTVp_60e_eval" />
+        <EclipseId Id="PTVp_60e" />
+        <EclipseId Id="PTV_60_eval" />
+        <EclipseId Id="PTV_60" />
+        <EclipseId Id="PTVp_60_eval" />
+        <EclipseId Id="PTVp_60" />
+      </EclipseAliases>
+    </Structure>
+    <Structure Label="PTV Intermediate Risk" ProtocolStructureName="PTV Intermediate (Eval)">
+      <EclipseAliases>
+        <EclipseId Id="PTV_63_e_eval" />
+        <EclipseId Id="PTVp_63_e_eval" />
+        <EclipseId Id="PTV_63e_eval" />
+        <EclipseId Id="PTVp_63e_eval" />
+        <EclipseId Id="PTV_63_eval" />
+        <EclipseId Id="PTVp_63_eval" />
+      </EclipseAliases>
+    </Structure>
+    <Structure Label="PTV Low Risk" ProtocolStructureName="PTV Low (Eval)">
+      <EclipseAliases>
+        <EclipseId Id="PTV_56_e_eval" />
+        <EclipseId Id="PTVn_56_e_eval" />
+        <EclipseId Id="PTV_56_eval" />
+        <EclipseId Id="PTVn_56_eval" />
+        <EclipseId Id="PTV_50_eval" />
+        <EclipseId Id="PTVn_50_eval" />
+      </EclipseAliases>
+    </Structure>
+    <Structure Label="Brainstem" ProtocolStructureName="Brainstem">
+      <EclipseAliases>
+        <EclipseId Id="Brainstem" />
+      </EclipseAliases>
+    </Structure>
+    <Structure Label="Segment of brainstem" ProtocolStructureName="Brainstem_PRV">
+      <EclipseAliases>
+        <EclipseId Id="Brainstem_PRV" />
+        <EclipseId Id="BrainstemPRV" />
+      </EclipseAliases>
+    </Structure>
+    <Structure Label="Spinal Cord" ProtocolStructureName="SpinalCord">
+      <EclipseAliases>
+        <EclipseId Id="SpinalCord" />
+        <EclipseId Id="Spinal_Cord" />
+        <EclipseId Id="Cord" />
+      </EclipseAliases>
+    </Structure>
+    <Structure Label="Segment of spinal cord" ProtocolStructureName="SpinalCord_PRV">
+      <EclipseAliases>
+        <EclipseId Id="SpinalCord_PRV" />
+        <EclipseId Id="SpinalCordPRV" />
+        <EclipseId Id="Cord_PRV" />
+        <EclipseId Id="CordPRV" />
+      </EclipseAliases>
+    </Structure>
+    <Structure Label="Brain" ProtocolStructureName="Brain">
+      <EclipseAliases>
+        <EclipseId Id="Brain" />
+      </EclipseAliases>
+    </Structure>
+    <Structure Label="Left eye" ProtocolStructureName="Eye_L">
+      <EclipseAliases>
+        <EclipseId Id="Eye_L" />
+        <EclipseId Id="Eye L" />
+        <EclipseId Id="EyeL" />
+        <EclipseId Id="L_Eye" />
+        <EclipseId Id="L Eye" />
+      </EclipseAliases>
+    </Structure>
+    <Structure Label="Right eye" ProtocolStructureName="Eye_R">
+      <EclipseAliases>
+        <EclipseId Id="Eye_R" />
+        <EclipseId Id="Eye R" />
+        <EclipseId Id="EyeR" />
+        <EclipseId Id="R_Eye" />
+        <EclipseId Id="R Eye" />
+      </EclipseAliases>
+    </Structure>
+    <Structure Label="Lens Left" ProtocolStructureName="Lens_L">
+      <EclipseAliases>
+        <EclipseId Id="Lens_L" />
+        <EclipseId Id="Lens L" />
+        <EclipseId Id="L_Lens" />
+        <EclipseId Id="L Lens" />
+      </EclipseAliases>
+    </Structure>
+    <Structure Label="Lens Right" ProtocolStructureName="Lens_R">
+      <EclipseAliases>
+        <EclipseId Id="Lens_R" />
+        <EclipseId Id="Lens R" />
+        <EclipseId Id="R_Lens" />
+        <EclipseId Id="R Lens" />
+      </EclipseAliases>
+    </Structure>
+    <Structure Label="Parotid Gland Left" ProtocolStructureName="Parotid_L">
+      <EclipseAliases>
+        <EclipseId Id="Parotid_L" />
+        <EclipseId Id="Parotid L" />
+        <EclipseId Id="L_Parotid" />
+        <EclipseId Id="L Parotid" />
+      </EclipseAliases>
+    </Structure>
+    <Structure Label="Parotid Gland Right" ProtocolStructureName="Parotid_R">
+      <EclipseAliases>
+        <EclipseId Id="Parotid_R" />
+        <EclipseId Id="Parotid R" />
+        <EclipseId Id="R_Parotid" />
+        <EclipseId Id="R Parotid" />
+      </EclipseAliases>
+    </Structure>
+    <Structure Label="Submandibular Gland Left" ProtocolStructureName="Submand_L">
+      <EclipseAliases>
+        <EclipseId Id="Submand_L" />
+        <EclipseId Id="SubmandL" />
+        <EclipseId Id="L_Submand" />
+        <EclipseId Id="L Submand" />
+      </EclipseAliases>
+    </Structure>
+    <Structure Label="Submandibular Gland Right" ProtocolStructureName="Submand_R">
+      <EclipseAliases>
+        <EclipseId Id="Submand_R" />
+        <EclipseId Id="SubmandR" />
+        <EclipseId Id="R_Submand" />
+        <EclipseId Id="R Submand" />
+      </EclipseAliases>
+    </Structure>
+    <Structure Label="Optic nerve" ProtocolStructureName="Optics">
+      <EclipseAliases>
+        <EclipseId Id="Optics" />
+      </EclipseAliases>
+    </Structure>
+    <Structure Label="Optic nerve-tract complex" ProtocolStructureName="Optics_PRV">
+      <EclipseAliases>
+        <EclipseId Id="Optics_PRV" />
+        <EclipseId Id="OpticsPRV" />
+      </EclipseAliases>
+    </Structure>
+    <Structure Label="Laryngopharynx" ProtocolStructureName="Larynx">
+      <EclipseAliases>
+        <EclipseId Id="Larynx" />
+      </EclipseAliases>
+    </Structure>
+    <Structure Label="Mandible" ProtocolStructureName="Mandible">
+      <EclipseAliases>
+        <EclipseId Id="Mandible" />
+      </EclipseAliases>
+    </Structure>
+    <Structure Label="Oral Cavity" ProtocolStructureName="OralCavity">
+      <EclipseAliases>
+        <EclipseId Id="OralCavity" />
+      </EclipseAliases>
+    </Structure>
+    <Structure Label="Carotid Artery" ProtocolStructureName="Carotids">
+      <EclipseAliases>
+        <EclipseId Id="Carotids" />
+        <EclipseId Id="Carotid" />
+      </EclipseAliases>
+    </Structure>
+    <Structure Label="Unset" ProtocolStructureName="Artifacts">
+      <EclipseAliases>
+        <EclipseId Id="Artifacts" />
+        <EclipseId Id="Artifact" />
+      </EclipseAliases>
+    </Structure>
+    <Structure Label="Unset" ProtocolStructureName="Musc_Constrict">
+      <EclipseAliases>
+        <EclipseId Id="Musc_Constrict" />
+      </EclipseAliases>
+    </Structure>
+  </Structures>
+  <ProtocolChecklist>
+    <Supports CouchSurface="-300" CouchInterior="-1000" Indication="Optional" />
+    <Artifacts>
+      <Artifact HU="0" ToleranceHU="40" ProtocolStructureName="Artifacts" />
+    </Artifacts>
+    <Simulation SliceSpacing="2.5" />
+    <Calculation Algorithm="AAA_13623" AlgorithmResolution="2.5" FieldNormalizationMode="ISO" HeterogeneityOn="True" />
+  </ProtocolChecklist>
+  <Components>
+    <Component ComponentName="Single Phase" Type="Phase">
+      <Prescription NumFractions="35" ReferenceDose="7000" PNVMin="97" PNVMax="103" PrescribedPercentage="100" />
+      <ImagingProtocols />
+      <Beams MinBeams="1" MaxBeams="2" NumIso="1" MinColOffset="20">
+        <Beam ProtocolBeamName="ARC CCW" Technique="ARC" ToleranceTable="CN+VI Indexed" MinMUWarning="150" MaxMUWarning="300" MinColRotation="20" MaxColRotation="45" CouchRotation="0" MinX="3" MaxX="18" MinY="3" MaxY="25" JawTracking_Indication="Required">
+          <BolusDefinitions>
+            <Bolus HU="0" Thickness="0.5" Indication="Optional" ToleranceHU="0.1" ToleranceThickness="0.1"/>
+          </BolusDefinitions>
+          <ValidEnergies>
+            <Energy Mode="6X" />
+          </ValidEnergies>
+          <EclipseAliases>
+            <EclipseId Id="rarc_ccw" />
+            <EclipseId Id="arc_ccw" />
+          </EclipseAliases>
+          <ValidGeometries>
+            <Geometry GeometryName="Full Arc (CCW)" Trajectory="CCW" StartAngle="179" EndAngle="181" StartAngleTolerance="1" EndAngleTolerance="1" />
+            <Geometry GeometryName="Right Partial Arc (CCW)" Trajectory="CCW" StartAngle="15" EndAngle="181" StartAngleTolerance="15" EndAngleTolerance="1" />
+            <Geometry GeometryName="Left Partial Arc (CCW)" Trajectory="CCW" StartAngle="179" EndAngle="345" StartAngleTolerance="1" EndAngleTolerance="15" />
+          </ValidGeometries>
+        </Beam>
+        <Beam ProtocolBeamName="ARC CW" Technique="ARC" ToleranceTable="CN+VI Indexed" MinMUWarning="150" MaxMUWarning="300" MinColRotation="20" MaxColRotation="45" CouchRotation="0" MinX="3" MaxX="18" MinY="3" MaxY="25" JawTracking_Indication="Required">
+          <ValidEnergies>
+            <Energy Mode="6X" />
+          </ValidEnergies>
+          <BolusDefinitions>
+            <Bolus HU="0" Thickness="0.5" Indication="Optional" ToleranceHU="0.1" ToleranceThickness="0.1"/>
+          </BolusDefinitions>
+          <EclipseAliases>
+            <EclipseId Id="rarc_cw" />
+            <EclipseId Id="arc_cw" />
+          </EclipseAliases>
+          <ValidGeometries>
+            <Geometry GeometryName="Full Arc (CW)" Trajectory="CW" StartAngle="181" EndAngle="179" StartAngleTolerance="1" EndAngleTolerance="1" />
+            <Geometry GeometryName="Left Partial Arc (CW)" Trajectory="CW" StartAngle="345" EndAngle="179" StartAngleTolerance="15" EndAngleTolerance="1" />
+            <Geometry GeometryName="Right Partial Arc (CW)" Trajectory="CW" StartAngle="181" EndAngle="15" StartAngleTolerance="1" EndAngleTolerance="15" />
+          </ValidGeometries>
+        </Beam>
+      </Beams>
+    </Component>
+  </Components>
+  <Constraints>
+    <Constraint ComponentName="Single Phase" ProtocolStructureName="Brainstem_PRV" Description="(No description in initial protocol)" ReferenceType="Upper" ConstraintValue="0.035" ConstraintUnit="Absolute" ConstraintType="D" MajorViolation="5400" MinorViolation="" Stop="4500" ReferenceUnit="Absolute" DataTablePath="" />
+    <Constraint ComponentName="Single Phase" ProtocolStructureName="Brainstem_PRV" Description="(No description in initial protocol)" ReferenceType="Upper" ConstraintValue="5000" ConstraintUnit="Absolute" ConstraintType="V" MajorViolation="1" MinorViolation="" Stop="" ReferenceUnit="Relative" DataTablePath="" />
+    <Constraint ComponentName="Single Phase" ProtocolStructureName="Brainstem_PRV" Description="(No description in initial protocol)" ReferenceType="Upper" ConstraintValue="4500" ConstraintUnit="Absolute" ConstraintType="V" MajorViolation="10" MinorViolation="" Stop="" ReferenceUnit="Relative" DataTablePath="" />
+    <Constraint ComponentName="Single Phase" ProtocolStructureName="SpinalCord_PRV" Description="(No description in initial protocol)" ReferenceType="Upper" ConstraintValue="0.035" ConstraintUnit="Absolute" ConstraintType="D" MajorViolation="5400" MinorViolation="" Stop="4500" ReferenceUnit="Absolute" DataTablePath="" />
+    <Constraint ComponentName="Single Phase" ProtocolStructureName="SpinalCord_PRV" Description="(No description in initial protocol)" ReferenceType="Upper" ConstraintValue="5000" ConstraintUnit="Absolute" ConstraintType="V" MajorViolation="2" MinorViolation="1" Stop="" ReferenceUnit="Relative" DataTablePath="" />
+    <Constraint ComponentName="Single Phase" ProtocolStructureName="SpinalCord_PRV" Description="(No description in initial protocol)" ReferenceType="Upper" ConstraintValue="4500" ConstraintUnit="Absolute" ConstraintType="V" MajorViolation="10" MinorViolation="" Stop="" ReferenceUnit="Relative" DataTablePath="" />
+    <Constraint ComponentName="Single Phase" ProtocolStructureName="SpinalCord" Description="(No description in initial protocol)" ReferenceType="Upper" ConstraintValue="0.035" ConstraintUnit="Absolute" ConstraintType="D" MajorViolation="4800" MinorViolation="" Stop="3900" ReferenceUnit="Absolute" DataTablePath="" />
+    <Constraint ComponentName="Single Phase" ProtocolStructureName="PTV High" Description="(No description in initial protocol)" ReferenceType="Lower" ConstraintValue="95" ConstraintUnit="Relative" ConstraintType="V" MajorViolation="98" MinorViolation="" Stop="" ReferenceUnit="Relative" DataTablePath="" />
+    <Constraint ComponentName="Single Phase" ProtocolStructureName="PTV High" Description="(No description in initial protocol)" ReferenceType="Upper" ConstraintValue="0" ConstraintUnit="Relative" ConstraintType="D" MajorViolation="110" MinorViolation="107" Stop="" ReferenceUnit="Relative" DataTablePath="" />
+    <Constraint ComponentName="Single Phase" ProtocolStructureName="PTV High" Description="(No description in initial protocol)" ReferenceType="Upper" ConstraintValue="107" ConstraintUnit="Relative" ConstraintType="V" MajorViolation="1" MinorViolation="" Stop="" ReferenceUnit="Relative" DataTablePath="" />
+    <Constraint ComponentName="Single Phase" ProtocolStructureName="CTV High" Description="(No description in initial protocol)" ReferenceType="Lower" ConstraintValue="100" ConstraintUnit="Relative" ConstraintType="D" MajorViolation="95" MinorViolation="" Stop="" ReferenceUnit="Relative" DataTablePath="" />
+    <Constraint ComponentName="Single Phase" ProtocolStructureName="PTV Intermediate (Eval)" Description="(No description in initial protocol)" ReferenceType="Lower" ConstraintValue="85.5" ConstraintUnit="Relative" ConstraintType="V" MajorViolation="98" MinorViolation="" Stop="" ReferenceUnit="Relative" DataTablePath="" />
+    <Constraint ComponentName="Single Phase" ProtocolStructureName="PTV Intermediate (Eval)" Description="(No description in initial protocol)" ReferenceType="Upper" ConstraintValue="0" ConstraintUnit="Relative" ConstraintType="D" MajorViolation="105" MinorViolation="102" Stop="" ReferenceUnit="Relative" DataTablePath="" />
+    <Constraint ComponentName="Single Phase" ProtocolStructureName="PTV Low (Eval)" Description="(No description in initial protocol)" ReferenceType="Lower" ConstraintValue="76" ConstraintUnit="Relative" ConstraintType="V" MajorViolation="98" MinorViolation="" Stop="" ReferenceUnit="Relative" DataTablePath="" />
+    <Constraint ComponentName="Single Phase" ProtocolStructureName="PTV Low (Eval)" Description="(No description in initial protocol)" ReferenceType="Upper" ConstraintValue="0" ConstraintUnit="Relative" ConstraintType="D" MajorViolation="105" MinorViolation="102" Stop="" ReferenceUnit="Relative" DataTablePath="" />
+    <Constraint ComponentName="Single Phase" ProtocolStructureName="Brain" Description="(No description in initial protocol)" ReferenceType="Upper" ConstraintValue="0.035" ConstraintUnit="Absolute" ConstraintType="D" MajorViolation="6000" MinorViolation="" Stop="5000" ReferenceUnit="Absolute" DataTablePath="" />
+    <Constraint ComponentName="Single Phase" ProtocolStructureName="Brain" Description="(No description in initial protocol)" ReferenceType="Upper" ConstraintValue="6000" ConstraintUnit="Absolute" ConstraintType="V" MajorViolation="2" MinorViolation="" Stop="" ReferenceUnit="Relative" DataTablePath="" />
+    <Constraint ComponentName="Single Phase" ProtocolStructureName="Brain" Description="(No description in initial protocol)" ReferenceType="Upper" ConstraintValue="5000" ConstraintUnit="Absolute" ConstraintType="V" MajorViolation="10" MinorViolation="" Stop="" ReferenceUnit="Relative" DataTablePath="" />
+    <Constraint ComponentName="Single Phase" ProtocolStructureName="Optics_PRV" Description="(No description in initial protocol)" ReferenceType="Upper" ConstraintValue="0.035" ConstraintUnit="Absolute" ConstraintType="D" MajorViolation="5400" MinorViolation="5000" Stop="4500" ReferenceUnit="Absolute" DataTablePath="" />
+    <Constraint ComponentName="Single Phase" ProtocolStructureName="Eye_L" Description="(No description in initial protocol)" ReferenceType="Upper" ConstraintValue="0.035" ConstraintUnit="Absolute" ConstraintType="D" MajorViolation="4500" MinorViolation="" Stop="" ReferenceUnit="Absolute" DataTablePath="" />
+    <Constraint ComponentName="Single Phase" ProtocolStructureName="Eye_R" Description="(No description in initial protocol)" ReferenceType="Upper" ConstraintValue="0.035" ConstraintUnit="Absolute" ConstraintType="D" MajorViolation="4500" MinorViolation="" Stop="" ReferenceUnit="Absolute" DataTablePath="" />
+    <Constraint ComponentName="Single Phase" ProtocolStructureName="Lens_L" Description="(No description in initial protocol)" ReferenceType="Upper" ConstraintValue="0.035" ConstraintUnit="Absolute" ConstraintType="D" MajorViolation="1000" MinorViolation="" Stop="" ReferenceUnit="Absolute" DataTablePath="" />
+    <Constraint ComponentName="Single Phase" ProtocolStructureName="Lens_R" Description="(No description in initial protocol)" ReferenceType="Upper" ConstraintValue="0.035" ConstraintUnit="Absolute" ConstraintType="D" MajorViolation="1000" MinorViolation="" Stop="" ReferenceUnit="Absolute" DataTablePath="" />
+    <Constraint ComponentName="Single Phase" ProtocolStructureName="Parotid_R" Description="(No description in initial protocol)" ReferenceType="Upper" ConstraintValue="0" ConstraintUnit="Relative" ConstraintType="M" MajorViolation="2600" MinorViolation="2000" Stop="1000" ReferenceUnit="Absolute" DataTablePath="" />
+    <Constraint ComponentName="Single Phase" ProtocolStructureName="Parotid_L" Description="(No description in initial protocol)" ReferenceType="Upper" ConstraintValue="0" ConstraintUnit="Relative" ConstraintType="M" MajorViolation="2600" MinorViolation="2000" Stop="1000" ReferenceUnit="Absolute" DataTablePath="" />
+    <Constraint ComponentName="Single Phase" ProtocolStructureName="Submand_R" Description="(No description in initial protocol)" ReferenceType="Upper" ConstraintValue="0" ConstraintUnit="Relative" ConstraintType="M" MajorViolation="2600" MinorViolation="2000" Stop="1000" ReferenceUnit="Absolute" DataTablePath="" />
+    <Constraint ComponentName="Single Phase" ProtocolStructureName="Submand_L" Description="(No description in initial protocol)" ReferenceType="Upper" ConstraintValue="0" ConstraintUnit="Relative" ConstraintType="M" MajorViolation="2600" MinorViolation="2000" Stop="1000" ReferenceUnit="Absolute" DataTablePath="" />
+    <Constraint ComponentName="Single Phase" ProtocolStructureName="Larynx" Description="(No description in initial protocol)" ReferenceType="Upper" ConstraintValue="0" ConstraintUnit="Relative" ConstraintType="M" MajorViolation="4500" MinorViolation="" Stop="" ReferenceUnit="Absolute" DataTablePath="" />
+    <Constraint ComponentName="Single Phase" ProtocolStructureName="Musc_Constrict" Description="(No description in initial protocol)" ReferenceType="Upper" ConstraintValue="0" ConstraintUnit="Absolute" ConstraintType="M" MajorViolation="5500" MinorViolation="4000" Stop="" ReferenceUnit="Absolute" DataTablePath="" />
+    <Constraint ComponentName="Single Phase" ProtocolStructureName="OralCavity" Description="(No description in initial protocol)" ReferenceType="Upper" ConstraintValue="0" ConstraintUnit="Relative" ConstraintType="M" MajorViolation="5000" MinorViolation="" Stop="" ReferenceUnit="Absolute" DataTablePath="" />
+    <Constraint ComponentName="Single Phase" ProtocolStructureName="Mandible" Description="(No description in initial protocol)" ReferenceType="Upper" ConstraintValue="5000" ConstraintUnit="Absolute" ConstraintType="V" MajorViolation="30" MinorViolation="" Stop="" ReferenceUnit="Relative" DataTablePath="" />
+    <Constraint ComponentName="Single Phase" ProtocolStructureName="Mandible" Description="(No description in initial protocol)" ReferenceType="Upper" ConstraintValue="7000" ConstraintUnit="Absolute" ConstraintType="V" MajorViolation="1" MinorViolation="" Stop="" ReferenceUnit="Absolute" DataTablePath="" />
+    <Constraint ComponentName="Single Phase" ProtocolStructureName="Carotids" Description="(No description in initial protocol)" ReferenceType="Upper" ConstraintValue="0.035" ConstraintUnit="Absolute" ConstraintType="D" MajorViolation="12000" MinorViolation="" Stop="" ReferenceUnit="Absolute" DataTablePath="" />
+    <Constraint ComponentName="Single Phase" ProtocolStructureName="Carotids" Description="(No description in initial protocol)" ReferenceType="Upper" ConstraintValue="0" ConstraintUnit="Absolute" ConstraintType="M" MajorViolation="12000" MinorViolation="" Stop="" ReferenceUnit="Absolute" DataTablePath="" />
+  </Constraints>
+</SquintProtocol>

@@ -1,0 +1,234 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<SquintProtocol xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <version>1</version>
+  <ProtocolMetaData
+    ProtocolName="Gyne (57.5 Gy in 25#)" NumComponents="1" ProtocolDate="01-08-2017" ApprovalStatus ="Approved" Intent="Curative" ProtocolType="Clinical" DiseaseSite="GU" TreatmentCentre="CN" />
+
+  <!-- Defines target structures and assigns associated aliases for each one. Also include checks for stray voxels as necessary.-->
+  <Structures>
+    <Structure Label="CTV Primary" ProtocolStructureName="CTV_45">
+      <StructureChecklist>
+        <PointContourCheck Threshold="0.05"/>
+      </StructureChecklist>
+      <EclipseAliases>
+        <EclipseId Id="CTV_45"></EclipseId>
+        <EclipseId Id="CTVp"></EclipseId>
+      </EclipseAliases>
+    </Structure>
+    <Structure Label="ITV" ProtocolStructureName="ITV_45">
+      <StructureChecklist>
+        <PointContourCheck Threshold="0.05"/>
+      </StructureChecklist>
+      <EclipseAliases>
+        <EclipseId Id="ITV_45"></EclipseId>
+        <EclipseId Id="CTVp"></EclipseId>
+      </EclipseAliases>
+    </Structure>
+    <Structure Label="GTV Primary" ProtocolStructureName="GTV Primary">
+      <StructureChecklist>
+        <PointContourCheck Threshold="0.05"/>
+      </StructureChecklist>
+      <EclipseAliases>
+        <EclipseId Id="GTV"></EclipseId>
+        <EclipseId Id="GTVp"></EclipseId>
+      </EclipseAliases>
+    </Structure>
+    <Structure Label="GTV Nodal" ProtocolStructureName="GTV Nodal">
+      <StructureChecklist>
+        <PointContourCheck Threshold="0.05"/>
+      </StructureChecklist>
+      <EclipseAliases>
+        <EclipseId Id="GTVn"></EclipseId>
+      </EclipseAliases>
+    </Structure>
+    <Structure Label="PTV High Risk" ProtocolStructureName="PTV_45">
+      <EclipseAliases>
+        <EclipseId Id="PTVp_45e"></EclipseId>
+        <EclipseId Id="PTV_45e"></EclipseId>
+        <EclipseId Id="PTV45e"></EclipseId>
+        <EclipseId Id="PTVp_45"></EclipseId>
+        <EclipseId Id="PTV_45"></EclipseId>
+        <EclipseId Id="PTV45"></EclipseId>
+        <EclipseId Id="PTVe"></EclipseId>
+        <EclipseId Id="PTVp"></EclipseId>
+        <EclipseId Id="PTV"></EclipseId>
+      </EclipseAliases>
+    </Structure>
+    <Structure Label="PTVp2" ProtocolStructureName="PTVn1_57.5">
+      <EclipseAliases>
+        <EclipseId Id="PTVn1_57.5"></EclipseId>
+      </EclipseAliases>
+    </Structure>
+    <Structure Label="PTVp2" ProtocolStructureName="PTVn2_57.5">
+      <EclipseAliases>
+        <EclipseId Id="PTVn2_57.5"></EclipseId>
+      </EclipseAliases>
+    </Structure>
+    <Structure Label="PTVp2" ProtocolStructureName="PTVn3_57.5">
+      <EclipseAliases>
+        <EclipseId Id="PTVn3_57.5"></EclipseId>
+      </EclipseAliases>
+    </Structure>
+    
+    
+
+    <!--Defines OAR structures and assigns acceptable aliases for each OAR.-->
+    <Structure Label="Sacral nerve" ProtocolStructureName="Sacral Canal PRV">
+      <EclipseAliases>
+        <EclipseId Id="SacralCanal_PRV"></EclipseId>
+      </EclipseAliases>
+    </Structure>
+    <Structure Label="Segment of spinal cord" ProtocolStructureName="Spinal Cord PRV">
+      <EclipseAliases>
+        <EclipseId Id="SpinalCord_PRV"></EclipseId>
+      </EclipseAliases>
+    </Structure>
+    <Structure Label="Peritoneal sac" ProtocolStructureName="Bowel Bag">
+      <EclipseAliases>
+        <EclipseId Id="SmallBowel"></EclipseId>
+        <EclispeId Id="Small_Bowel"></EclispeId>
+        <EclipseId Id="BowelBag"></EclipseId>
+        <EclipseId Id="Bowel_Bag"></EclipseId>
+        <EclipseId Id="Bowel Bag"></EclipseId>
+      </EclipseAliases>
+    </Structure>
+    <Structure Label="Kidney Right" ProtocolStructureName="Kidney Right">
+      <EclipseAliases>
+        <EclipseId Id="Kidney_R"></EclipseId>
+      </EclipseAliases>
+    </Structure>
+    <Structure Label="Kidney Left" ProtocolStructureName="Kidney Left">
+      <EclipseAliases>
+        <EclipseId Id="Kidney_L"></EclipseId>
+      </EclipseAliases>
+    </Structure>
+    <Structure Label="Rectum" ProtocolStructureName="Rectum">
+      <EclipseAliases>
+        <EclipseId Id="Rectum"></EclipseId>
+        <EclipseId Id="Rectum"></EclipseId>
+      </EclipseAliases>
+    </Structure>
+    <Structure Label="Sigmoid colon" ProtocolStructureName="Sigmoid">
+      <EclipseAliases>
+        <EclipseId Id="Sigmoid"></EclipseId>
+      </EclipseAliases>
+    </Structure>
+    <Structure Label="Bladder" ProtocolStructureName="Bladder">
+      <EclipseAliases>
+        <EclipseId Id="Bladder"></EclipseId>
+      </EclipseAliases>
+    </Structure>
+    <Structure Label="Femoral Head Left" ProtocolStructureName="Femoral Head Left">
+      <EclipseAliases>
+        <EclipseId Id="Femur_L"></EclipseId>
+      </EclipseAliases>
+    </Structure>
+    <Structure Label="Femoral Head Right" ProtocolStructureName="Femoral Head Right">
+      <EclipseAliases>
+        <EclipseId Id="Femur_R"></EclipseId>
+      </EclipseAliases>
+    </Structure>
+    <Structure Label="Liver" ProtocolStructureName="Liver">
+      <EclipseAliases>
+        <EclipseId Id="Liver"></EclipseId>
+      </EclipseAliases>
+    </Structure>
+    <Structure Label="Control" ProtocolStructureName="Artifacts">
+      <EclipseAliases>
+        <EclipseId Id="Artifacts"></EclipseId>
+        <EclipseId Id="Artifact"></EclipseId>
+      </EclipseAliases>
+    </Structure>
+  </Structures>
+
+  <!--This section defines default parameters for plan checklists including Artifacts, Supports, Calculation algorithms, simulations and prescription values-->
+  <ProtocolChecklist>
+    <Artifacts>
+      <Artifact HU="0" Tolerance="0.1" ProtocolStructureName="Artifacts"/>
+    </Artifacts>
+    <Supports CouchSurface="-300" CouchInterior="-1000"/>
+    <Calculation Algorithm="AAA_13623" AlgorithmResolution="2.5" HeterogeneityOn="true" FieldNormalizationMode="ISO"/>
+    <Simulation SliceSpacing="2.5" />
+  </ProtocolChecklist>
+
+  <!--This section defines the Components used in plan checking including Imaging protocols, beams. Each phase must have its own component element-->
+  <Components>
+    <Component ComponentName="Single Phase" Type="Phase">
+      <Prescription PNVMin="80" PNVMax="110" PrescribedPercentage="100" NumFractions="25" ReferenceDose="5750"/>
+      <ImagingProtocols>
+        <ImagingProtocol Id="kV_2D"/>
+        <ImagingProtocol iD="PreCBCT" />
+      </ImagingProtocols>
+      <!-- This section defines beam child elements including Eclipse aliases, valid geometries, energies and bolus definitions. Each arc in a plan must have its own Beam element. -->
+      <Beams MinBeams="1" MaxBeams="2" NumIso ="1" MinColOffset="20">
+        <Beam ProtocolBeamName="ARC CCW" Technique="ARC" StartAngle="179" EndAngle="181"
+              MinMUWarning="200" MaxMUWarning="400" ToleranceTable="CN+VI Non-Index" MinColRotation="20" MaxColRotation="70" CouchRotation="0" MinX="3" MaxX="18" MinY="3" MaxY="29" JawTracking_Indication="Required">
+          <EclipseAliases>
+            <EclipseId Id= "rarc_ccw"/>
+            <EclipseId Id= "arc_ccw"/>
+          </EclipseAliases>
+          <ValidGeometries>
+            <Geometry GeometryName ="Full Arc (CCW)" StartAngle="179" StartAngleTolerance="2" EndAngle="181" EndAngleTolerance="2" Trajectory="CCW"/>
+          </ValidGeometries>
+          <ValidEnergies>
+            <Energy Mode="6X"/>
+          </ValidEnergies>
+          <BolusDefinitions>
+            <Bolus HU="0" Thickness="0.5" Indication="Optional" ToleranceHU="0.1" ToleranceThickness="0.1"/>
+          </BolusDefinitions>
+        </Beam>
+        <Beam ProtocolBeamName="ARC CW" Technique="ARC" StartAngle="181" EndAngle="179"
+             MinMUWarning="200" MaxMUWarning="400" ToleranceTable="CN+VI Non-Index" MinColRotation="20" MaxColRotation="70" CouchRotation="0" MinX="3" MaxX="18" MinY="3" MaxY="29" JawTracking_Indication="Required">
+          <EclipseAliases>
+            <EclipseId Id= "rarc_cw"/>
+            <EclipseId Id= "arc_cw"/>
+          </EclipseAliases>
+          <ValidGeometries>
+            <Geometry GeometryName ="Full Arc (CW)" StartAngle="181" StartAngleTolerance="2" EndAngle="179" EndAngleTolerance="2" Trajectory="CW"/>
+          </ValidGeometries>
+          <ValidEnergies>
+            <Energy Mode="6X"/>
+          </ValidEnergies>
+          <BolusDefinitions>
+            <Bolus HU="0" Thickness="0.5" Indication="Optional" ToleranceHU="0.1" ToleranceThickness="0.1"/>
+          </BolusDefinitions>
+        </Beam>
+      </Beams>
+    </Component>
+  </Components>
+
+  <!--This section defines the Constraints (DVH, conformity index etc) as based on clinical protocols-->
+  <Constraints>
+    <Constraint ComponentName="Single Phase" ProtocolStructureName="Sacral Canal PRV" ConstraintType="D" ConstraintValue="0.035" ConstraintUnit="absolute" ReferenceType="upper" MajorViolation="4600" ReferenceUnit="absolute"/>
+    <Constraint ComponentName="Single Phase" ProtocolStructureName="Spinal Cord PRV" ConstraintType="D" ConstraintValue="0.035" ConstraintUnit="absolute" ReferenceType="upper" MajorViolation="4600" ReferenceUnit="absolute"/>
+    <Constraint ComponentName="Single Phase" ProtocolStructureName="Bowel Bag" ConstraintType="D" ConstraintValue="0.035" ConstraintUnit="absolute" ReferenceType="upper" MajorViolation="5750" ReferenceUnit="absolute"/>
+    <Constraint ComponentName="Single Phase" ProtocolStructureName="Bowel Bag" ConstraintType="V" ConstraintValue="4500" ConstraintUnit="absolute" ReferenceType="upper" MajorViolation="195" ReferenceUnit="absolute"/>
+    <Constraint ComponentName="Single Phase" ProtocolStructureName="Bowel Bag" ConstraintType="V" ConstraintValue="3000" ConstraintUnit="absolute" ReferenceType="upper" MajorViolation="500" MinorViolation="350" ReferenceUnit="absolute"/>
+    <Constraint ComponentName="Single Phase" ProtocolStructureName="ITV_45" ConstraintType="D" ConstraintValue="100" ConstraintUnit="relative" ReferenceType="lower" MajorViolation="4275" ReferenceUnit="absolute"/>
+    <Constraint ComponentName="Single Phase" ProtocolStructureName="CTV_45" ConstraintType="D" ConstraintValue="100" ConstraintUnit="relative" ReferenceType="lower" MajorViolation="4275" ReferenceUnit="absolute"/>
+    <Constraint ComponentName="Single Phase" ProtocolStructureName="PTV_45" ConstraintType="V" ConstraintValue="4275" ConstraintUnit="absolute" ReferenceType="lower" MajorViolation="98" ReferenceUnit="relative"/>
+    <Constraint ComponentName="Single Phase" ProtocolStructureName="PTV_45" ConstraintType="D" ConstraintValue="0" ConstraintUnit="relative" ReferenceType="upper" MajorViolation="4860" ReferenceUnit="absolute"/>
+    <Constraint ComponentName="Single Phase" ProtocolStructureName="PTVn1_57.5" ConstraintType="V" ConstraintValue="5460" ConstraintUnit="absolute" ReferenceType="lower" MajorViolation="98" ReferenceUnit="relative"/>
+    <Constraint ComponentName="Single Phase" ProtocolStructureName="PTVn1_57.5" ConstraintType="D" ConstraintValue="0" ConstraintUnit="relative" ReferenceType="upper" MajorViolation="108" ReferenceUnit="relative"/>
+    <Constraint ComponentName="Single Phase" ProtocolStructureName="PTVn2_57.5" ConstraintType="V" ConstraintValue="5460" ConstraintUnit="absolute" ReferenceType="lower" MajorViolation="98" ReferenceUnit="relative"/>
+    <Constraint ComponentName="Single Phase" ProtocolStructureName="PTVn2_57.5" ConstraintType="D" ConstraintValue="0" ConstraintUnit="relative" ReferenceType="upper" MajorViolation="108" ReferenceUnit="relative"/>
+    <Constraint ComponentName="Single Phase" ProtocolStructureName="PTVn3_57.5" ConstraintType="V" ConstraintValue="5460" ConstraintUnit="absolute" ReferenceType="lower" MajorViolation="98" ReferenceUnit="relative"/>
+    <Constraint ComponentName="Single Phase" ProtocolStructureName="PTVn3_57.5" ConstraintType="D" ConstraintValue="0" ConstraintUnit="relative" ReferenceType="upper" MajorViolation="108" ReferenceUnit="relative"/>
+    <Constraint ComponentName="Single Phase" ProtocolStructureName="Kidney Right" ConstraintType="V" ConstraintValue="2000" ConstraintUnit="absolute" ReferenceType="upper" MajorViolation="30" ReferenceUnit="relative"/>
+    <Constraint ComponentName="Single Phase" ProtocolStructureName="Kidney Right" ConstraintType="M" ConstraintValue="0" ConstraintUnit="relative" ReferenceType="upper" MajorViolation="1500" ReferenceUnit="absolute"/>
+    <Constraint ComponentName="Single Phase" ProtocolStructureName="Kidney Left" ConstraintType="V" ConstraintValue="2000" ConstraintUnit="absolute" ReferenceType="upper" MajorViolation="30" ReferenceUnit="relative"/>
+    <Constraint ComponentName="Single Phase" ProtocolStructureName="Kidney Left" ConstraintType="M" ConstraintValue="0" ConstraintUnit="relative" ReferenceType="upper" MajorViolation="1500" ReferenceUnit="absolute"/>
+    <Constraint ComponentName="Single Phase" ProtocolStructureName="Rectum" ConstraintType="D" ConstraintValue="0.035" ConstraintUnit="absolute" ReferenceType="upper" MajorViolation="5750" MinorViolation="4700" ReferenceUnit="absolute"/>
+    <Constraint ComponentName="Single Phase" ProtocolStructureName="Rectum" ConstraintType="V" ConstraintValue="4000" ConstraintUnit="absolute" ReferenceType="upper" MajorViolation="85" ReferenceUnit="relative"/>
+    <Constraint ComponentName="Single Phase" ProtocolStructureName="Sigmoid" ConstraintType="D" ConstraintValue="0.035" ConstraintUnit="absolute" ReferenceType="upper" MajorViolation="5750" MinorViolation="4700" ReferenceUnit="absolute"/>
+    <Constraint ComponentName="Single Phase" ProtocolStructureName="Sigmoid" ConstraintType="V" ConstraintValue="4500" ConstraintUnit="absolute" ReferenceType="upper" MajorViolation="50" ReferenceUnit="relative"/>
+    <Constraint ComponentName="Single Phase" ProtocolStructureName="Bladder" ConstraintType="D" ConstraintValue="0.035" ConstraintUnit="absolute" ReferenceType="upper" MajorViolation="5750" MinorViolation="4700" ReferenceUnit="absolute"/>
+    <Constraint ComponentName="Single Phase" ProtocolStructureName="Bladder" ConstraintType="V" ConstraintValue="4600" ConstraintUnit="absolute" ReferenceType="upper" MajorViolation="2" ReferenceUnit="absolute"/>
+    <Constraint ComponentName="Single Phase" ProtocolStructureName="Bladder" ConstraintType="V" ConstraintValue="3000" ConstraintUnit="absolute" ReferenceType="upper" MajorViolation="80" ReferenceUnit="relative"/>
+    <Constraint ComponentName="Single Phase" ProtocolStructureName="Femoral Head Right" ConstraintType="V" ConstraintValue="4000" ConstraintUnit="absolute" ReferenceType="upper" MajorViolation="5" ReferenceUnit="relative"/>
+    <Constraint ComponentName="Single Phase" ProtocolStructureName="Femoral Head Right" ConstraintType="V" ConstraintValue="3000" ConstraintUnit="absolute" ReferenceType="upper" MajorViolation="10" ReferenceUnit="relative"/>
+    <Constraint ComponentName="Single Phase" ProtocolStructureName="Femoral Head Left" ConstraintType="V" ConstraintValue="4000" ConstraintUnit="absolute" ReferenceType="upper" MajorViolation="5" ReferenceUnit="relative"/>
+    <Constraint ComponentName="Single Phase" ProtocolStructureName="Femoral Head Left" ConstraintType="V" ConstraintValue="3000" ConstraintUnit="absolute" ReferenceType="upper" MajorViolation="10" ReferenceUnit="relative"/>
+    <Constraint ComponentName="Single Phase" ProtocolStructureName="Liver" ConstraintType="V" ConstraintValue="3000" ConstraintUnit="absolute" ReferenceType="upper" MajorViolation="30" ReferenceUnit="relative"/>
+  </Constraints>
+</SquintProtocol>

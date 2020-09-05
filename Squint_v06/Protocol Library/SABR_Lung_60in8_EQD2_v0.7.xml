@@ -1,0 +1,164 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<SquintProtocol xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <version>1</version>
+  <ProtocolMetaData 
+    ProtocolName="Lung (60 Gy EQD2 in 8# SABR)" ProtocolType="Clnical" NumComponents="1" ProtocolDate="30-05-2017" Intent="Curative" ApprovalStatus ="Approved" DiseaseSite="Lung" TreatmentCentre="CN"/>
+
+
+  <!-- Defines target structures and assigns associated aliases for each one. Also include checks for stray voxels as necessary.-->
+  <Structures>
+    <Structure Label="PTV Primary" ProtocolStructureName="PTV">
+      <EclipseAliases>
+        <ProtocolStructureName Id="PTV"></ProtocolStructureName>
+      </EclipseAliases>
+    </Structure>
+
+    <!--Defines OAR structures and assigns acceptable aliases for each OAR.-->
+    <Structure Label="Spinal Canal" ProtocolStructureName="SpinalCanal">
+      <EclipseAliases>
+        <ProtocolStructureName Id="SpinalCanal"></ProtocolStructureName>
+      </EclipseAliases>
+    </Structure>
+    <Structure Label="Lungs sub GTVs" ProtocolStructureName="BL_IGTV_PBT_PT">
+      <EclipseAliases>
+        <ProtocolStructureName Id="BL_IGTV_PBT_PT"></ProtocolStructureName>
+      </EclipseAliases>
+    </Structure>
+    <Structure Label="Brachial Nerve Plexus Right" ProtocolStructureName="RBrachialPlex">
+      <EclipseAliases>
+        <ProtocolStructureName Id="RBrachialPlex"></ProtocolStructureName>
+      </EclipseAliases>
+    </Structure>
+    <Structure Label="Brachial Nerve Plexus Left" ProtocolStructureName="LBrachialPlex">
+      <EclipseAliases>
+        <ProtocolStructureName Id="LBrachialPlex"></ProtocolStructureName>
+      </EclipseAliases>
+    </Structure>
+    <Structure Label="Bronchial Tree" ProtocolStructureName="ProxBronchTree">
+      <EclipseAliases>
+        <ProtocolStructureName Id="ProxBronchTree"></ProtocolStructureName>
+      </EclipseAliases>
+    </Structure>
+    <Structure Label="Trachea" ProtocolStructureName="ProxTrachea">
+      <EclipseAliases>
+        <ProtocolStructureName Id="ProxTrachea"></ProtocolStructureName>
+      </EclipseAliases>
+    </Structure>
+    <Structure Label="Great Vessels" ProtocolStructureName="GreatVessels">
+      <EclipseAliases>
+        <ProtocolStructureName Id="GreatVessels"></ProtocolStructureName>
+      </EclipseAliases>
+    </Structure>
+    <Structure Label="Heart" ProtocolStructureName="Heart">
+      <EclipseAliases>
+        <ProtocolStructureName Id="Heart"></ProtocolStructureName>
+      </EclipseAliases>
+    </Structure>
+    <Structure Label="Chest Wall" ProtocolStructureName="ChestWall">
+      <EclipseAliases>
+        <ProtocolStructureName Id="ChestWall"></ProtocolStructureName>
+      </EclipseAliases>
+    </Structure>
+    <Structure Label="Esophagus" ProtocolStructureName="Esophagus">
+      <EclipseAliases>
+        <ProtocolStructureName Id="Esophagus"></ProtocolStructureName>
+      </EclipseAliases>
+    </Structure>
+    <Structure Label="Stomach" ProtocolStructureName="Stomach">
+      <EclipseAliases>
+        <ProtocolStructureName Id="Stomach"></ProtocolStructureName>
+      </EclipseAliases>
+    </Structure>
+    <Structure Label="Undefined Normal Tissue" ProtocolStructureName="105subPTV">
+      <EclipseAliases>
+        <ProtocolStructureName Id="105subPTV"></ProtocolStructureName>
+      </EclipseAliases>
+    </Structure>
+    <Structure Label="Undefined Normal Tissue" ProtocolStructureName="D2cm">
+      <EclipseAliases>
+        <ProtocolStructureName Id="D2cm"></ProtocolStructureName>
+      </EclipseAliases>
+    </Structure>
+    <Structure Label="Body" ProtocolStructureName="BODY">
+      <EclipseAliases>
+        <ProtocolStructureName Id="BODY"></ProtocolStructureName>
+      </EclipseAliases>
+    </Structure>
+    <Structure Label="Control" ProtocolStructureName="Artifacts">
+      <EclipseAliases>
+        <EclipseId Id="Artifacts"></EclipseId>
+        <EclipseId Id="Artifact"></EclipseId>
+      </EclipseAliases>
+    </Structure>
+  </Structures>
+
+  <!--This section defines default parameters for plan checklists including Artifacts, Supports, Calculation algorithms, simulations and prescription values-->
+  <ComponentDefaults>
+    <BolusClinical Indication="None"/>
+    <Artifacts>
+      <Artifact HU="0" Tolerance ="0.1" ProtocolStructureName="Artifacts"/>
+    </Artifacts>
+    <Supports CouchSurface="-300" CouchInterior="-1000"/>
+    <Calculation Algorithm="AAA_13623" AlgorithmResolution="2.5" HeterogeneityOn="true" FieldNormalizationMode="ISO"/>
+    <Simulation SliceSpacing ="2.5"/>
+  </ComponentDefaults>
+
+  <!--This section defines the Components used in plan checking including Imaging protocols, beams. Each phase must have its own component element-->
+  <Components>
+    <Component ComponentName="Current 60/8" Type="Phase">
+      <Prescription PNVMin="97" PNVMax="103" PrescribedPercentage="100" NumFractions="8" ReferenceDose="6000"/>
+    </Component>
+    <Component ComponentName="Sum_EQD2" Type="Phase" NumFractions="1" ReferenceDose="1">
+      <Prescription NumFractions="1" ReferenceDose="1"/>
+    </Component>
+  </Components>
+
+  <!--This section defines the Constraints (DVH, conformity index etc) as based on clinical protocols-->
+  <Constraints>
+    <Constraint ComponentName="Current 60/8" ProtocolStructureName="SpinalCanal" ConstraintType="D" ConstraintValue="0" ConstraintUnit="relative" ReferenceType="upper" MajorViolation="3060" ReferenceUnit="absolute" />
+    <Constraint ComponentName="Current 60/8" ProtocolStructureName="BL_IGTV_PBT_PT" ConstraintType="CV" ConstraintValue="1400" ConstraintUnit="absolute" ReferenceType="lower" MajorViolation="1500" ReferenceUnit="absolute" />
+    <Constraint ComponentName="Current 60/8" ProtocolStructureName="BL_IGTV_PBT_PT" ConstraintType="V" ConstraintValue="2600" ConstraintUnit="absolute" ReferenceType="upper" MajorViolation="10" MinorViolation="6" ReferenceUnit="relative" />
+    <Constraint ComponentName="Current 60/8" ProtocolStructureName="BL_IGTV_PBT_PT" ConstraintType="M" ConstraintValue="0" ConstraintUnit="absolute" ReferenceType="upper" MajorViolation="700" ReferenceUnit="absolute" />
+    <Constraint ComponentName="Current 60/8" ProtocolStructureName="RBrachialPlex" ConstraintType="D" ConstraintValue="0.035" ConstraintUnit="absolute" ReferenceType="upper" MajorViolation="3500" ReferenceUnit="absolute" />
+    <Constraint ComponentName="Current 60/8" ProtocolStructureName="LBrachialPlex" ConstraintType="D" ConstraintValue="0.035" ConstraintUnit="absolute" ReferenceType="upper" MajorViolation="3500" ReferenceUnit="absolute" />
+    <Constraint ComponentName="Current 60/8" ProtocolStructureName="ProxBronchTree" ConstraintType="D" ConstraintValue="0.035" ConstraintUnit="absolute" ReferenceType="upper" MajorViolation="4630" ReferenceUnit="absolute" />
+    <Constraint ComponentName="Current 60/8" ProtocolStructureName="ProxTrachea" ConstraintType="D" ConstraintValue="0.035" ConstraintUnit="absolute" ReferenceType="upper" MajorViolation="4630" ReferenceUnit="absolute" />
+    <Constraint ComponentName="Current 60/8" ProtocolStructureName="GreatVessels" ConstraintType="D" ConstraintValue="0.0350" ConstraintUnit="absolute" ReferenceType="upper" MajorViolation="6500" ReferenceUnit="absolute" />
+    <Constraint ComponentName="Current 60/8" ProtocolStructureName="Heart" ConstraintType="D" ConstraintValue="0.035" ConstraintUnit="absolute" ReferenceType="upper" MajorViolation="4600" ReferenceUnit="absolute" />
+    <Constraint ComponentName="Current 60/8" ProtocolStructureName="Heart" ConstraintType="D" ConstraintValue="15.00" ConstraintUnit="absolute" ReferenceType="upper" MajorViolation="3900" ReferenceUnit="absolute" />
+    <Constraint ComponentName="Current 60/8" ProtocolStructureName="ChestWall" ConstraintType="D" ConstraintValue="0.035" ConstraintUnit="absolute" ReferenceType="upper" MajorViolation="6800" ReferenceUnit="absolute" />
+    <Constraint ComponentName="Current 60/8" ProtocolStructureName="ChestWall" ConstraintType="D" ConstraintValue="30.00" ConstraintUnit="absolute" ReferenceType="upper" MajorViolation="4500" ReferenceUnit="absolute" />
+    <Constraint ComponentName="Current 60/8" ProtocolStructureName="Esophagus" ConstraintType="D" ConstraintValue="0.035" ConstraintUnit="absolute" ReferenceType="upper" MajorViolation="4000" ReferenceUnit="absolute" />
+    <Constraint ComponentName="Current 60/8" ProtocolStructureName="Stomach" ConstraintType="D" ConstraintValue="0.035" ConstraintUnit="absolute" ReferenceType="upper" MajorViolation="4000" ReferenceUnit="absolute" />
+    <Constraint ComponentName="Current 60/8" ProtocolStructureName="PTV" ConstraintType="V" ConstraintValue="100" ConstraintUnit="relative" ReferenceType="lower" MajorViolation="95" ReferenceUnit="relative" />
+    <Constraint ComponentName="Current 60/8" ProtocolStructureName="PTV" ConstraintType="V" ConstraintValue="90" ConstraintUnit="relative" ReferenceType="lower" MajorViolation="99" ReferenceUnit="relative" />
+    <Constraint ComponentName="Current 60/8" ProtocolStructureName="PTV" ConstraintType="D" ConstraintValue="0" ConstraintUnit="relative" ReferenceType="upper" MajorViolation="167" ReferenceUnit="relative" />
+    <Constraint ComponentName="Current 60/8" ProtocolStructureName="PTV" ConstraintType="D" ConstraintValue="0" ConstraintUnit="relative" ReferenceType="lower" MajorViolation="111" ReferenceUnit="relative" />
+    <Constraint ComponentName="Current 60/8" ProtocolStructureName="105subPTV" ConstraintType="CI" ConstraintValue="0" ConstraintUnit="relative" ReferenceStructureName="PTV" ReferenceType="upper" MajorViolation="15" ReferenceUnit="relative"/>
+    <Constraint ComponentName="Current 60/8" ProtocolStructureName="BODY" ConstraintType="CI" ConstraintValue="50" ConstraintUnit="relative" ReferenceStructureName="PTV" ReferenceType="upper" ReferenceUnit="absolute"
+                               DataTablePath="H:\Physics\CN\Software\Squint\XML ConstraintData\SABR_Lung_CI.xml" />
+    <Constraint ComponentName="Current 60/8" ProtocolStructureName="D2cm" ConstraintType="D" ConstraintValue="0.035" ConstraintUnit="absolute" ReferenceType="upper" MajorVioltion="100" ReferenceUnit="relative" 
+                DataTablePath="H:\Physics\CN\Software\Squint\XML ConstraintData\SABR_Lung_D2cm_Dmax.xml" ReferenceStructureName="PTV"/>
+    <Constraint ComponentName="Sum_EQD2" ProtocolStructureName="SpinalCanal" ConstraintType="D" ConstraintValue="0" ConstraintUnit="relative" ReferenceType="upper" MajorViolation="4460" ReferenceUnit="absolute" />
+    <Constraint ComponentName="Sum_EQD2" ProtocolStructureName="BL_IGTV_PBT_PT" ConstraintType="CV" ConstraintValue="1330" ConstraintUnit="absolute" ReferenceType="lower" MajorViolation="1500" ReferenceUnit="absolute" />
+    <Constraint ComponentName="Sum_EQD2" ProtocolStructureName="BL_IGTV_PBT_PT" ConstraintType="V" ConstraintValue="3250" ConstraintUnit="absolute" ReferenceType="upper" MajorViolation="10" MinorViolation="6" ReferenceUnit="relative" />
+    <Constraint ComponentName="Sum_EQD2" ProtocolStructureName="BL_IGTV_PBT_PT" ConstraintType="V" ConstraintValue="2000" ConstraintUnit="absolute" ReferenceType="upper" MajorViolation="35" MinorViolation="30" ReferenceUnit="relative" />
+    <Constraint ComponentName="Sum_EQD2" ProtocolStructureName="BL_IGTV_PBT_PT" ConstraintType="M" ConstraintValue="0" ConstraintUnit="absolute" ReferenceType="upper" MajorViolation="540" ReferenceUnit="absolute" />
+    <Constraint ComponentName="Sum_EQD2" ProtocolStructureName="BL_IGTV_PBT_PT" ConstraintType="V" ConstraintValue="500" ConstraintUnit="absolute" ReferenceType="upper" MajorViolation="70" MinorViolation="60" ReferenceUnit="relative" />
+    <Constraint ComponentName="Sum_EQD2" ProtocolStructureName="RBrachialPlex" ConstraintType="D" ConstraintValue="0.035" ConstraintUnit="absolute" ReferenceType="upper" MajorViolation="5580" ReferenceUnit="absolute" />
+    <Constraint ComponentName="Sum_EQD2" ProtocolStructureName="LBrachialPlex" ConstraintType="D" ConstraintValue="0.035" ConstraintUnit="absolute" ReferenceType="upper" MajorViolation="5580" ReferenceUnit="absolute" />
+    <Constraint ComponentName="Sum_EQD2" ProtocolStructureName="ProxBronchTree" ConstraintType="D" ConstraintValue="0.035" ConstraintUnit="absolute" ReferenceType="upper" MajorViolation="8140" ReferenceUnit="absolute" />
+    <Constraint ComponentName="Sum_EQD2" ProtocolStructureName="ProxTrachea" ConstraintType="D" ConstraintValue="0.035" ConstraintUnit="absolute" ReferenceType="upper" MajorViolation="8140" ReferenceUnit="absolute" />
+    <Constraint ComponentName="Sum_EQD2" ProtocolStructureName="GreatVessels" ConstraintType="D" ConstraintValue="0.035" ConstraintUnit="absolute" ReferenceType="upper" MajorViolation="14460" ReferenceUnit="absolute" />
+    <Constraint ComponentName="Sum_EQD2" ProtocolStructureName="GreatVessels" ConstraintType="D" ConstraintValue="10" ConstraintUnit="absolute" ReferenceType="upper" MajorViolation="11890" ReferenceUnit="absolute" />
+    <Constraint ComponentName="Sum_EQD2" ProtocolStructureName="Heart" ConstraintType="D" ConstraintValue="0.035" ConstraintUnit="relative" ReferenceType="upper" MajorViolation="8050" ReferenceUnit="absolute" />
+    <Constraint ComponentName="Sum_EQD2" ProtocolStructureName="Heart" ConstraintType="D" ConstraintValue="15" ConstraintUnit="absolute" ReferenceType="upper" MajorViolation="6140" ReferenceUnit="absolute" />
+    <Constraint ComponentName="Sum_EQD2" ProtocolStructureName="Heart" ConstraintType="V" ConstraintValue="3000" ConstraintUnit="absolute" ReferenceType="upper" MajorViolation="40" ReferenceUnit="relative" />
+    <Constraint ComponentName="Sum_EQD2" ProtocolStructureName="ChestWall" ConstraintType="D" ConstraintValue="0.035" ConstraintUnit="absolute" ReferenceType="upper" MajorViolation="15640" ReferenceUnit="absolute" />
+    <Constraint ComponentName="Sum_EQD2" ProtocolStructureName="ChestWall" ConstraintType="D" ConstraintValue="30" ConstraintUnit="absolute" ReferenceType="upper" MajorViolation="7760" ReferenceUnit="absolute" />
+    <Constraint ComponentName="Sum_EQD2" ProtocolStructureName="Esophagus" ConstraintType="D" ConstraintValue="0.035" ConstraintUnit="absolute" ReferenceType="upper" MajorViolation="6400" ReferenceUnit="absolute" />
+    <Constraint ComponentName="Sum_EQD2" ProtocolStructureName="Esophagus" ConstraintType="M" ConstraintValue="0" ConstraintUnit="absolute" ReferenceType="upper" MajorViolation="3400" ReferenceUnit="absolute" />
+    <Constraint ComponentName="Sum_EQD2" ProtocolStructureName="Stomach" ConstraintType="D" ConstraintValue="0.035" ConstraintUnit="relative" ReferenceType="upper" MajorViolation="6400" ReferenceUnit="absolute" />
+  </Constraints>
+
+</SquintProtocol>
