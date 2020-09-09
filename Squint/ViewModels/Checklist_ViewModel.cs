@@ -499,7 +499,7 @@ namespace SquintScript.ViewModels
                             }
                         }
                         var TL = new CheckValueItem<double?>(CheckTypes.MinSubvolume, MinVol, C.PointContourVolumeThreshold, null, WarningString, "Not found", "Not specified");
-                        TL.OptionalNameSuffix = string.Format(@" of (""{0}"") [cc]", E.AssignedStructureId);
+                        TL.OptionalNameSuffix = string.Format(@"of (""{0}"") [cc]", E.AssignedStructureId);
                         TL.Test = TestType.GreaterThan;
                         Targets_ViewModel.Tests.Add(TL);
                     }
@@ -512,17 +512,18 @@ namespace SquintScript.ViewModels
         {
             //Refresh Field col separation check
 
-            if (Beam_ViewModel.Beams.Any(x => x.Field == null) || Comp.MaxBeams.Value < 2 || (Comp.MinColOffset.Value != null))
+            if (Beam_ViewModel.Beams.Any(x => x.Field == null) || Comp.MaxBeams.Value < 2 || (Comp.MinColOffset.Value == null))
             {
                 return;
             }
             var ColOffset = Beam_ViewModel.Beams.Select(x => x.Field).Select(x => x.CollimatorAngle).ToList();
             var MinColOffset = (int?)Math.Round(findMinDiff(ColOffset.ToArray()));
             var OldTest = Beam_ViewModel.GroupTests.Tests.Where(x => x.CheckType == CheckTypes.MinColOffset).FirstOrDefault();
-            Beam_ViewModel.GroupTests.Tests.Remove(OldTest);
-            var MinColOffsetCheck = new CheckValueItem<int?>(CheckTypes.MinColOffset, MinColOffset, Comp.MinColOffset, null, "Insufficient collimator offset");
-            MinColOffsetCheck.Test = TestType.GreaterThan;
-            Beam_ViewModel.GroupTests.Tests.Add(MinColOffsetCheck);
+            OldTest.SetCheckValue(MinColOffset);
+            //Beam_ViewModel.GroupTests.Tests.Remove(OldTest);
+            //var MinColOffsetCheck = new CheckValueItem<int?>(CheckTypes.MinColOffset, MinColOffset, Comp.MinColOffset, null, "Insufficient collimator offset");
+            //MinColOffsetCheck.Test = TestType.GreaterThan;
+            //Beam_ViewModel.GroupTests.Tests.Add(MinColOffsetCheck);
         }
 
         private double findMinDiff(double[] arr)

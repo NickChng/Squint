@@ -1228,7 +1228,7 @@
                   AutoGenerateColumns="False" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" ColumnHeaderStyle="{DynamicResource SquintColumnHeaderStyle}" 
                       SC:DataGridColumnsBehavior.BindableColumns="{Binding AssessmentsVM.AssessmentColumns}" RowHeaderWidth="{Binding ElementName=SquintWindow, Path=DataContext.AssessmentsVM.RowHeaderWidth, UpdateSourceTrigger=PropertyChanged}"
                   ItemsSource="{Binding ProtocolVM.Constraints, UpdateSourceTrigger=PropertyChanged, Mode=OneWay}" GridLinesVisibility="None" Style="{DynamicResource SquintDataGridStyle}"
-                  Visibility="{Binding ProtocolVMCheckVisible, Converter={StaticResource VisibilityConverter}, UpdateSourceTrigger=PropertyChanged}">
+                  Visibility="{Binding ProtocolCheckVisible, Converter={StaticResource VisibilityConverter}, UpdateSourceTrigger=PropertyChanged}">
         </DataGrid>
         <Grid Grid.Row="1" Grid.RowSpan="3" Grid.Column="1" Margin="10,0,0,0" Visibility="{Binding PlanCheckVisible, Converter={StaticResource VisibilityConverter}, UpdateSourceTrigger=PropertyChanged}" IsEnabled="{Binding PlanCheckVisible}">
             <Grid Visibility="{Binding isPlanCheckCalculating, Mode=OneWay, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource VisibilityInverseConverter}}">

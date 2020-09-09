@@ -101,6 +101,8 @@ namespace SquintScript
                     _Patient = application.OpenPatientById(PID);
                 if (_Patient != null)
                     Patient = new AsyncPatient(this, _Patient);
+                else
+                    Patient = null;
                 return;
             }
             ));

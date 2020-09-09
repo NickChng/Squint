@@ -196,7 +196,7 @@
                 <Border Grid.Column="1" Name="border_textBox_PID" Background="{Binding DataContext.PatientVM.TextBox_Background_Color,ElementName=SquintWindow, UpdateSourceTrigger=PropertyChanged}" CornerRadius="5,5,5,5" Margin="5,5,0,5" Width="0" HorizontalAlignment="Right">
                     <TextBox Name="textBox_PID" Text="{Binding DataContext.PatientVM.PatientId, ElementName=SquintWindow, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" AcceptsReturn="False"
                                  FontSize="16" BorderThickness="0" TextAlignment="Center"  Width="0" HorizontalAlignment="Stretch" Height="30" Background="{Binding DataContext.PatientVM.TextBox_Background_Color,ElementName=SquintWindow, UpdateSourceTrigger=PropertyChanged}"
-                                 VerticalAlignment="Stretch" Padding="0,3,0,0" Margin="3,3,3,3">
+                                 VerticalAlignment="Stretch" Padding="0,3,0,0" Margin="3,3,3,3" ToolTip="Enter Patient ID and press enter to load patient">
                         <TextBox.InputBindings>
                             <KeyBinding Key="Enter" Command="{Binding DataContext.EnterKeyCommand_PID, ElementName=SquintWindow}"/>
                         </TextBox.InputBindings>
