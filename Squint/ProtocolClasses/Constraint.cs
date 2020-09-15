@@ -41,12 +41,12 @@ namespace SquintScript
             get { return _parentComponent.Value; }
             set { _parentComponent.Value = value; }
         }
-        private ProtocolStructure referenceStructure 
+        private ProtocolStructure referenceStructure
         {
-            get 
+            get
             {
-               return _referenceStructure.Value; 
-            } 
+                return _referenceStructure.Value;
+            }
         }
         private void NotifyPropertyChanged([CallerMemberName] String propertyName = "")
         {
@@ -795,7 +795,7 @@ namespace SquintScript
             if (isConstraintValueDose())
             {
                 if (ConstraintScale == UnitScale.Relative)
-                    return ConstraintValue * parentComponent.ReferenceDose / 100;
+                    return ConstraintValue * parentComponent.TotalDose / 100;
                 else
                     return ConstraintValue;
             }
@@ -805,7 +805,7 @@ namespace SquintScript
                 {
                     if (ReferenceScale == UnitScale.Relative)
                     {
-                        return ReferenceValue * parentComponent.ReferenceDose / 100;
+                        return ReferenceValue * parentComponent.TotalDose / 100;
                     }
                     else
                     {
@@ -833,7 +833,7 @@ namespace SquintScript
                 {
                     if (ConstraintScale == UnitScale.Relative)
                     {
-                        ConstraintValue = DoseFunctions.BED(_NumFractions.ReferenceValue, SC.NumFractions, _ConstraintValue.ReferenceValue / 100 * SC.ReferenceDose, abRatio) * 100 / SC.ReferenceDose;
+                        ConstraintValue = DoseFunctions.BED(_NumFractions.ReferenceValue, SC.NumFractions, _ConstraintValue.ReferenceValue / 100 * SC.TotalDose, abRatio) * 100 / SC.TotalDose;
                     }
                     else
                     {
@@ -845,11 +845,11 @@ namespace SquintScript
                     if (ReferenceScale == UnitScale.Relative)
                     {
                         if (_ThresholdCalculator.MajorViolation != null && _ThresholdCalculator.MajorViolation != null)
-                            MajorViolation = Math.Round(DoseFunctions.BED(_NumFractions.ReferenceValue, SC.NumFractions, (double)_ThresholdCalculator.ReferenceMajorViolation / 100 * SC.ReferenceDose, abRatio)) * 100 / SC.ReferenceDose;
+                            MajorViolation = Math.Round(DoseFunctions.BED(_NumFractions.ReferenceValue, SC.NumFractions, (double)_ThresholdCalculator.ReferenceMajorViolation / 100 * SC.TotalDose, abRatio)) * 100 / SC.TotalDose;
                         if (_ThresholdCalculator.MinorViolation != null && _ThresholdCalculator.MinorViolation != null)
-                            MinorViolation = Math.Round(DoseFunctions.BED(_NumFractions.ReferenceValue, SC.NumFractions, (double)_ThresholdCalculator.ReferenceMinorViolation / 100 * SC.ReferenceDose, abRatio)) * 100 / SC.ReferenceDose;
+                            MinorViolation = Math.Round(DoseFunctions.BED(_NumFractions.ReferenceValue, SC.NumFractions, (double)_ThresholdCalculator.ReferenceMinorViolation / 100 * SC.TotalDose, abRatio)) * 100 / SC.TotalDose;
                         if (_ThresholdCalculator.Stop != null && _ThresholdCalculator.Stop != null)
-                            Stop = Math.Round(DoseFunctions.BED(_NumFractions.ReferenceValue, SC.NumFractions, (double)_ThresholdCalculator.ReferenceStop / 100 * SC.ReferenceDose, abRatio)) * 100 / SC.ReferenceDose;
+                            Stop = Math.Round(DoseFunctions.BED(_NumFractions.ReferenceValue, SC.NumFractions, (double)_ThresholdCalculator.ReferenceStop / 100 * SC.TotalDose, abRatio)) * 100 / SC.TotalDose;
                     }
                     else
                     {
@@ -879,10 +879,7 @@ namespace SquintScript
             || _ReferenceScale.IsChanged
             || _ConstraintValue.IsChanged;
         }
-        //public void RegisterAssessment(Assessment SA)
-        //{
-        //    RegisteredAssessments.Add(SA);
-        //}
+    
 
         public void ChangePrimaryStructure(ProtocolStructure primaryStructure_in)
         {
@@ -904,34 +901,7 @@ namespace SquintScript
             if (ConstraintResults.ContainsKey(SA.ID))
                 ConstraintResults[SA.ID].AddStatusCode(ConstraintResultStatusCodes.NotLinked);
         }
-        public async void OnComponentAssociationChanged(object sender, int ChangedComponentID)
-        {
-            Assessment SA = (sender as Assessment);
-            if (ComponentID == ChangedComponentID)
-            {
-                // if (SA.AutoCalculate)
-                //await EvaluateConstraint(SA);
-            }
-        }
-        public async void OnPlanMappingChanged(object sender, int ChangedComponentID)
-        {
-            Assessment SA = (sender as Assessment);
-            string.Format("{0}", ID);
-            if (ComponentID == ChangedComponentID)
-            {
-                // if (SA.AutoCalculate)
-                //await Task.Run(() => EvaluateConstraint(SA));
-                //await EvaluateConstraint(SA);
-            }
-        }
 
-        //public async Task EvaluateConstraint()
-        //{
-        //    foreach (var SA in parentComponent.RegisteredAssessments)
-        //    {
-        //        await EvaluateConstraint(SA);
-        //    }
-        //}
         public async Task EvaluateConstraint(PlanAssociation PA)
         {
             try
@@ -950,21 +920,21 @@ namespace SquintScript
                 {
                     CR.AddStatusCode(ConstraintResultStatusCodes.ConstraintUndefined);
                     CR.isCalculating = false;
-                    ConstraintEvaluated?.Raise(new ConstraintResultView(CR), PA.AssessmentID); // this notifies the view class, no need to raise to UI
+                    ConstraintEvaluated?.Raise(new ConstraintResultViewModel(CR), PA.AssessmentID); // this notifies the view class, no need to raise to UI
                     return;
                 }
                 if (PA == null)
                 {
                     CR.AddStatusCode(ConstraintResultStatusCodes.NotLinked);
                     CR.isCalculating = false;
-                    ConstraintEvaluated?.Raise(new ConstraintResultView(CR), PA.AssessmentID); // this notifies the view class, no need to raise to UI
+                    ConstraintEvaluated?.Raise(new ConstraintResultViewModel(CR), PA.AssessmentID); // this notifies the view class, no need to raise to UI
                     return;
                 }
                 if (PA.LoadWarning)
                 {
                     CR.AddStatusCode(ConstraintResultStatusCodes.NotLinked);
                     CR.isCalculating = false;
-                    ConstraintEvaluated?.Raise(new ConstraintResultView(CR), PA.AssessmentID); // this notifies the view class, no need to raise to UI
+                    ConstraintEvaluated?.Raise(new ConstraintResultViewModel(CR), PA.AssessmentID); // this notifies the view class, no need to raise to UI
 
                     return;
                 }
@@ -973,7 +943,7 @@ namespace SquintScript
                 { // this constraint is not evaluable because of an error int he component link
                     CR.AddStatusCode(ConstraintResultStatusCodes.ErrorUnspecified);
                     CR.isCalculating = false;
-                    ConstraintEvaluated?.Raise(new ConstraintResultView(CR), PA.AssessmentID); // this notifies the view class, no need to raise to UI
+                    ConstraintEvaluated?.Raise(new ConstraintResultViewModel(CR), PA.AssessmentID); // this notifies the view class, no need to raise to UI
 
                     return;
                 }
@@ -991,7 +961,7 @@ namespace SquintScript
                     CR.AddStatusCode(ConstraintResultStatusCodes.NoDoseDistribution);
                     //UpdateProgress();
                     CR.isCalculating = false;
-                    ConstraintEvaluated?.Raise(new ConstraintResultView(CR), PA.AssessmentID); // this notifies the view class, no need to raise to UI
+                    ConstraintEvaluated?.Raise(new ConstraintResultViewModel(CR), PA.AssessmentID); // this notifies the view class, no need to raise to UI
                     return;
                 }
                 bool targetExists = p.StructureIds.Contains(targetId);
@@ -1000,13 +970,13 @@ namespace SquintScript
                     CR.AddStatusCode(ConstraintResultStatusCodes.StructureNotFound);
                     //UpdateProgress();
                     CR.isCalculating = false;
-                    ConstraintEvaluated?.Raise(new ConstraintResultView(CR), PA.AssessmentID); // this notifies the view class, no need to raise to UI
+                    ConstraintEvaluated?.Raise(new ConstraintResultViewModel(CR), PA.AssessmentID); // this notifies the view class, no need to raise to UI
                     return;
                 }
                 else
                     CR.LinkedLabelName = DbController.GetLabelByCode(p.Structures[targetId].Code);
                 // Constraint is evaluable
-                ConstraintEvaluating?.Raise(new ConstraintResultView(CR), PA.AssessmentID); // this notifies the view class, no need to raise to UI
+                ConstraintEvaluating?.Raise(new ConstraintResultViewModel(CR), PA.AssessmentID); // this notifies the view class, no need to raise to UI
                 string structureCode = await Ctr.GetStructureCode(primaryStructure.StructureLabelID);
                 if (p.Structures[targetId].Code != structureCode)
                 {
@@ -1040,9 +1010,9 @@ namespace SquintScript
                 {
                     if (isConstraintValueDose() && ConstraintScale == UnitScale.Relative)
                     {
-                        if (parentComponent.ReferenceDose > 0)
+                        if (parentComponent.TotalDose > 0)
                         {
-                            doseQuery = new DoseValue(ConstraintValue / 100 * parentComponent.ReferenceDose, DoseValue.DoseUnit.cGy);
+                            doseQuery = new DoseValue(ConstraintValue / 100 * parentComponent.TotalDose, DoseValue.DoseUnit.cGy);
                             CR.AddStatusCode(ConstraintResultStatusCodes.RelativeDoseForSum);
                         }
                         else
@@ -1051,7 +1021,7 @@ namespace SquintScript
                             CR.AddStatusCode(ConstraintResultStatusCodes.RefDoseInValid);
                             //UpdateProgress();
                             CR.isCalculating = false;
-                            ConstraintEvaluated?.Invoke(new ConstraintResultView(CR), PA.AssessmentID);
+                            ConstraintEvaluated?.Invoke(new ConstraintResultViewModel(CR), PA.AssessmentID);
                             return;
                         }
                     }
@@ -1059,9 +1029,9 @@ namespace SquintScript
                     {
                         SumAndRefIsRelative = true;
                         dosePresentationReturn = DoseValuePresentation.Absolute;
-                        if (parentComponent.ReferenceDose > 0)
+                        if (parentComponent.TotalDose > 0)
                         {
-                            doseQuery = new DoseValue(ReferenceValue / 100 * parentComponent.ReferenceDose, DoseValue.DoseUnit.cGy);
+                            doseQuery = new DoseValue(ReferenceValue / 100 * parentComponent.TotalDose, DoseValue.DoseUnit.cGy);
                             CR.AddStatusCode(ConstraintResultStatusCodes.RelativeDoseForSum);
                         }
                         else
@@ -1070,7 +1040,7 @@ namespace SquintScript
                             CR.AddStatusCode(ConstraintResultStatusCodes.RefDoseInValid);
                             //UpdateProgress();
                             CR.isCalculating = false;
-                            ConstraintEvaluated?.Invoke(new ConstraintResultView(CR), PA.AssessmentID);
+                            ConstraintEvaluated?.Invoke(new ConstraintResultViewModel(CR), PA.AssessmentID);
                             return;
                         }
                     }
@@ -1088,7 +1058,7 @@ namespace SquintScript
                             rawresult = await p.GetDoseAtVolume(targetId, ConstraintValue, volPresentationQuery, dosePresentationReturn);
                             if (SumAndRefIsRelative)
                             {
-                                rawresult = rawresult / parentComponent.ReferenceDose * 100;
+                                rawresult = rawresult / parentComponent.TotalDose * 100;
                             }
                             break;
                         }
@@ -1096,7 +1066,7 @@ namespace SquintScript
                         rawresult = await p.GetMeanDose(targetId, volPresentationReturn, dosePresentationReturn, binWidth);
                         if (SumAndRefIsRelative)
                         {
-                            rawresult = rawresult / parentComponent.ReferenceDose * 100;
+                            rawresult = rawresult / parentComponent.TotalDose * 100;
                         }
                         break;
                     case ConstraintTypeCodes.CI:
@@ -1120,7 +1090,7 @@ namespace SquintScript
                                 CR.AddStatusCode(ConstraintResultStatusCodes.StructureNotFound);
                                 //UpdateProgress();
                                 CR.isCalculating = false;
-                                ConstraintEvaluated?.Invoke(new ConstraintResultView(CR), PA.AssessmentID);
+                                ConstraintEvaluated?.Invoke(new ConstraintResultViewModel(CR), PA.AssessmentID);
                                 return;
                             }
                         }
@@ -1129,7 +1099,7 @@ namespace SquintScript
                             CR.AddStatusCode(ConstraintResultStatusCodes.StructureNotFound);
                             //UpdateProgress();
                             CR.isCalculating = false;
-                            ConstraintEvaluated?.Invoke(new ConstraintResultView(CR), PA.AssessmentID);
+                            ConstraintEvaluated?.Invoke(new ConstraintResultViewModel(CR), PA.AssessmentID);
                             return;
                         }
                         break;
@@ -1137,7 +1107,7 @@ namespace SquintScript
                         CR.AddStatusCode(ConstraintResultStatusCodes.ErrorUnspecified);
                         //UpdateProgress();
                         CR.isCalculating = false;
-                        ConstraintEvaluated?.Invoke(new ConstraintResultView(CR), PA.AssessmentID);
+                        ConstraintEvaluated?.Invoke(new ConstraintResultViewModel(CR), PA.AssessmentID);
                         break;
                 }
                 if (!double.IsNaN(rawresult) && rawresult > -1) // <0 is flag for no structure in mean dose calculation
@@ -1152,7 +1122,7 @@ namespace SquintScript
                 }
                 //UpdateProgress();
                 CR.isCalculating = false;
-                ConstraintEvaluated?.Invoke(new ConstraintResultView(CR), PA.AssessmentID);
+                ConstraintEvaluated?.Invoke(new ConstraintResultViewModel(CR), PA.AssessmentID);
                 return;
             }
 
@@ -1191,19 +1161,19 @@ namespace SquintScript
             }
             return ReferenceThresholdTypes.None;
         }
-        public ConstraintResultView GetResult(int AssessmentID)
+        public ConstraintResultViewModel GetResult(int AssessmentID)
         {
             if (ConstraintResults.ContainsKey(AssessmentID))
-                return new ConstraintResultView(ConstraintResults[AssessmentID]);
+                return new ConstraintResultViewModel(ConstraintResults[AssessmentID]);
             else
                 return null;
         }
-        public List<ConstraintResultView> GetAllResults()
+        public List<ConstraintResultViewModel> GetAllResults()
         {
-            List<ConstraintResultView> returnList = new List<ConstraintResultView>();
+            List<ConstraintResultViewModel> returnList = new List<ConstraintResultViewModel>();
             foreach (ConstraintResult CR in ConstraintResults.Values)
             {
-                returnList.Add(new ConstraintResultView(CR));
+                returnList.Add(new ConstraintResultViewModel(CR));
             }
             return returnList;
         }
@@ -1370,7 +1340,7 @@ namespace SquintScript
                 }
                 else if (ConstraintScale == UnitScale.Absolute && ReferenceType == ReferenceTypes.Lower && LowerConstraintDoseScalesWithComponent)
                 {
-                    ConstraintValue = _ConstraintValue.ReferenceValue * parentComponent.ReferenceDose / parentComponent.ReferenceDoseOriginal;
+                    ConstraintValue = _ConstraintValue.ReferenceValue * parentComponent.TotalDose / parentComponent.TotalDoseReference;
                     NotifyPropertyChanged("ConstraintValue");
                 }
             }
@@ -1385,9 +1355,9 @@ namespace SquintScript
 
                     if (ReferenceType == ReferenceTypes.Upper)
                     {
-                        _ThresholdCalculator.MajorViolation = _ThresholdCalculator.ReferenceMajorViolation * parentComponent.ReferenceDose / parentComponent.ReferenceDoseOriginal;
-                        _ThresholdCalculator.MinorViolation = _ThresholdCalculator.ReferenceMinorViolation * parentComponent.ReferenceDose / parentComponent.ReferenceDoseOriginal;
-                        _ThresholdCalculator.Stop = _ThresholdCalculator.ReferenceStop * parentComponent.ReferenceDose / parentComponent.ReferenceDoseOriginal;
+                        _ThresholdCalculator.MajorViolation = _ThresholdCalculator.ReferenceMajorViolation * parentComponent.TotalDose / parentComponent.TotalDoseReference;
+                        _ThresholdCalculator.MinorViolation = _ThresholdCalculator.ReferenceMinorViolation * parentComponent.TotalDose / parentComponent.TotalDoseReference;
+                        _ThresholdCalculator.Stop = _ThresholdCalculator.ReferenceStop * parentComponent.TotalDose / parentComponent.TotalDoseReference;
                         NotifyPropertyChanged(nameof(IReferenceThreshold.MajorViolation));
                         NotifyPropertyChanged(nameof(IReferenceThreshold.MinorViolation));
                         NotifyPropertyChanged(nameof(IReferenceThreshold.Stop));
@@ -1429,9 +1399,9 @@ namespace SquintScript
                 ReferenceScale = _ReferenceScale.ReferenceValue,
                 ConstraintValue = _ConstraintValue.ReferenceValue
             };
-    }
+        }
 
-}
+    }
 
 }
 

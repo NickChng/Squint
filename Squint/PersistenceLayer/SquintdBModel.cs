@@ -18,18 +18,9 @@ namespace SquintScript
     using System.Reflection;
     using SquintScript.XML_Definitions;
 
-    public class SquintdBModel : DbContext
+    public class SquintDBModel : DbContext
     {
-        // Your context has been configured to use a 'SquintdBModel' connection string from your application's 
-        // configuration file (App.config or Web.config). By default, this connection string targets the 
-        // 'WinSquint2.SquintdBModel' database on your LocalDb instance. 
-        // 
-        // If you wish to target a different database and/or database provider, modify the 'SquintdBModel' 
-        // connection string in the application configuration file.
-        //public SquintdBModel()
-        //    : base("name=SquintdBModel.config") { }
-
-        public SquintdBModel()
+        public SquintDBModel()
         : base(VersionContextConnection.GetDatabaseConnection(), true) { }
 
         protected override void OnModelCreating(DbModelBuilder modelBuilder)
@@ -60,13 +51,13 @@ namespace SquintScript
                 .WillCascadeOnDelete(false);
 
 
-            Database.SetInitializer<SquintdBModel>(new InitializeLookupTables());
+            Database.SetInitializer<SquintDBModel>(new InitializeLookupTables());
             base.OnModelCreating(modelBuilder);
         }
-        public class InitializeLookupTables : CreateDatabaseIfNotExists<SquintdBModel> // CreateDatabaseIfNotExists<SquintdBModel> //DropCreateDatabaseAlways<SquintdBModel>
+        public class InitializeLookupTables  : CreateDatabaseIfNotExists<SquintDBModel> 
         //public class InitializeLookupTables : DropCreateDatabaseAlways<SquintdBModel>
         {
-            protected override void Seed(SquintdBModel context)
+            protected override void Seed(SquintDBModel context)
             {
                 foreach (TreatmentCentres item in Enum.GetValues(typeof(TreatmentCentres)))
                 {
@@ -131,7 +122,7 @@ namespace SquintScript
                     {
                         ID = 1,
                         ARIA_ID = "nchng",
-                        PermissionGroupID = 1, // Superuser
+                        PermissionGroupID = 1, // Superuser, but permisions are not implemented yet
                         FirstName = "Nick",
                         LastName = "Chng"
                     };
@@ -876,7 +867,7 @@ namespace SquintScript
         public int? MinBeams { get; set; }
         public int? MaxBeams { get; set; }
         public int? NumIso { get; set; }
-        public int? MinColOffset { get; set; }
+        public double? MinColOffset { get; set; }
 
         // Prescription
         public double? PrescribedPercentage { get; set; }

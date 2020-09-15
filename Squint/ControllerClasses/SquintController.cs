@@ -40,8 +40,6 @@ namespace SquintScript
             private set { _CurrentStructureSet = value; CurrentStructureSetChanged?.Invoke(null, EventArgs.Empty); }
         }
 
-        //private static Dictionary<int, StructureLabel> StructureLabels = new Dictionary<int, StructureLabel>();
-        //public static Dictionary<int, ConstraintView> ConstraintViews { get; private set; } = new Dictionary<int, ConstraintView>();
         public static Dictionary<int, Component> ComponentViews { get; private set; } = new Dictionary<int, Component>();
         public static Dictionary<int, AssessmentView> AssessmentViews { get; private set; } = new Dictionary<int, AssessmentView>();
         public static bool SavingNewProtocol { get; } = false;
@@ -55,6 +53,10 @@ namespace SquintScript
         // Events
 
         //public static event EventHandler CurrentStructureSetChanged;
+        public static event EventHandler Initialized;
+        public static event EventHandler DatabaseInitializing;
+        public static event EventHandler DatabaseCreating;
+        public static event EventHandler ESAPIInitializing;
         public static event EventHandler AvailableStructureSetsChanged;
         public static event EventHandler SynchronizationComplete;
         public static event EventHandler ProtocolListUpdated;
@@ -69,7 +71,7 @@ namespace SquintScript
         public static event EventHandler EndingLongProcess;
         public static event EventHandler SessionsChanged;
         public static event EventHandler<int> ConstraintAdded;
-        
+
         // Initialization
         public static bool Initialize(Dispatcher uiDispatcher)
         {
@@ -91,31 +93,38 @@ namespace SquintScript
                         throw new Exception("Unable to configuration file.  Please review the configuration file, which should be named (Squint exe file name)_Config.xml");
                     }
                 }
-                var database = Config.Databases.FirstOrDefault(x => x.Site == Config.Site.CurrentSite);
-                if (database == null)
-                {
-                    throw new Exception("Unable to find the site database, please review the configuration file and ensure that the (case sensitive) CurrentSite has a configured Database");
-                }
-                else
-                {
-                    _uiDispatcher = uiDispatcher;
-                    DbController.SetDatabaseName(database.DatabaseName);
-                    if (!DbController.TestDbConnection())
-                    {
-                        throw new Exception("Unable to find the site database, please review the configuration file and ensure that the (case sensitive) CurrentSite has a configured Database");
-                    }
-                    ESAPIContext = new AsyncESAPI();
-                    SquintUser = ESAPIContext.CurrentUserId(); // Get user from ESAPI;
-                    DbController.RegisterUser(SquintUser, ESAPIContext.CurrentUserId(), ESAPIContext.CurrentUserName());
-                    CurrentSession = new Session();
-                    return true;
-                }
+                _uiDispatcher = uiDispatcher;
+                InitializeESAPI();
+                InitializeDatabase();
+                CurrentSession = new Session();
+                _uiDispatcher.Invoke(Initialized, new object[] { null, EventArgs.Empty });
+                return true;
             }
             catch (Exception ex)
             {
                 MessageBox.Show(ex.Message);
                 return false;
             }
+        }
+        private static void InitializeESAPI()
+        {
+            _uiDispatcher.Invoke(ESAPIInitializing, new object[] { null, EventArgs.Empty });
+            ESAPIContext = new AsyncESAPI();
+            SquintUser = ESAPIContext.CurrentUserId(); // Get user from ESAPI;
+            
+        }
+        private static void InitializeDatabase()
+        {
+            _uiDispatcher.Invoke(DatabaseInitializing, new object[] { null, EventArgs.Empty });
+            var database = Config.Databases.FirstOrDefault(x => x.Site == Config.Site.CurrentSite);
+            DbController.SetDatabaseName(database.DatabaseName);
+            var DBStatus = DbController.TestDbConnection();
+            if (DBStatus == DatabaseStatus.NonExistent)
+            {
+                _uiDispatcher.Invoke(DatabaseCreating, new object[] { null, EventArgs.Empty });
+                DbController.InitializeDatabase();
+            }
+            DbController.RegisterUser(SquintUser, ESAPIContext.CurrentUserId(), ESAPIContext.CurrentUserName());
         }
 
         public static string PatientFirstName
@@ -189,8 +198,8 @@ namespace SquintScript
             }
             else return null;
         }
-        
-        public async static Task<List<Controls.ObjectiveDefinition>> GetOptimizationObjectiveList(string CourseId, string PlanId)
+
+        public async static Task<List<ObjectiveDefinition>> GetOptimizationObjectiveList(string CourseId, string PlanId)
         {
             if (!PatientOpen)
                 return null;
@@ -202,7 +211,7 @@ namespace SquintScript
                     var Objectives = await P.GetObjectiveItems();
                     return Objectives;
                 }
-                else return new List<Controls.ObjectiveDefinition>();
+                else return new List<ObjectiveDefinition>();
             }
         }
         public async static Task<double> GetSliceSpacing(string CourseId, string PlanId)
@@ -478,7 +487,7 @@ namespace SquintScript
             }
             return Errors;
         }
-        public async static Task<Controls.NTODefinition> GetNTOObjective(string CourseId, string PlanId)
+        public async static Task<NTODefinition> GetNTOObjective(string CourseId, string PlanId)
         {
             if (!PatientOpen)
                 return null;
@@ -524,7 +533,7 @@ namespace SquintScript
         {
             return CurrentSession.Assessments.OrderBy(x => x.DisplayOrder).ToList();
         }
-        public static List<AssessmentPreviewView> GetAssessmentPreviews(string PID)
+        public static List<AssessmentPreviewViewModel> GetAssessmentPreviews(string PID)
         {
             //return DataCache.GetAssessmentPreviews(PID);
             return null;
@@ -723,7 +732,7 @@ namespace SquintScript
                         {
                             int structureId = 1;
                             if (Item.Primary)
-                                SC.ReferenceDose = (double)Item.TotalDose * 100;
+                                SC.TotalDose = (double)Item.TotalDose * 100;
                             if (EclipseStructureIdToSquintStructureIdMapping.ContainsKey(Item.ID.ToLower()))
                                 structureId = EclipseStructureIdToSquintStructureIdMapping[Item.ID.ToLower()];
                             var primaryStructure = EclipseProtocol.Structures.FirstOrDefault(x => x.ID == structureId);
@@ -955,7 +964,7 @@ namespace SquintScript
         public static bool SaveXMLProtocolToDatabase(SquintProtocolXML _XMLProtocol)
         {
             List<string> ExistingProtocolNames;
-            using (SquintdBModel LocalContext = new SquintdBModel())
+            using (SquintDBModel LocalContext = new SquintDBModel())
             {
                 if (LocalContext.DbLibraryProtocols.Where(y => !y.isRetired) != null)
                 {
@@ -1604,7 +1613,7 @@ namespace SquintScript
                 cd.Prescription.PNVMin = C.PNVMin.Value.ToString();
                 cd.Prescription.PrescribedPercentage = C.PrescribedPercentage.Value.ToString();
                 cd.Prescription.NumFractions = C.NumFractions.ToString();
-                cd.Prescription.ReferenceDose = C.ReferenceDose.ToString();
+                cd.Prescription.ReferenceDose = C.TotalDose.ToString();
                 cd.Beams.MaxBeams = C.MaxBeams.Value.ToString();
                 cd.Beams.MinBeams = C.MinBeams.Value.ToString();
                 cd.Beams.NumIso = C.NumIso.Value.ToString();
@@ -1873,108 +1882,6 @@ namespace SquintScript
                 }
             }
         }
-        //public static async void LoadAssessmentFromDb(string AssessmentName, bool AskToLoadAssociatedAssessments = true)
-        //{
-        //    //if (DataCache.Patient == null)
-        //    //    return;
-        //    //else
-        //    //{
-        //    //    (ProgressBar as IProgress<int>).Report(10);
-        //    //    CloseProtocol();
-        //    //    ProtocolClosed?.Raise(null, EventArgs.Empty);
-        //    //    (ProgressBar as IProgress<int>).Report(50);
-        //    //    DbAssessment DbSA = SquintDb.Context.DbAssessments.Where(x => x.PID == DataCache.Patient.Id && x.AssessmentName == AssessmentName).SingleOrDefault();
-        //    //    if (DbSA != null)
-        //    //    {
-        //    //        ProtocolLoaded = LoadProtocol(DbSA.DbLibraryProtocol); // this subroutine doesn't announce constraint creation since DataCache.Assessments may include user-added DataCache.Constraints
-        //    //        if (DbSA.DbSession != null)
-        //    //            if (DataCache.CurrentSession == null)
-        //    //                DataCache.CurrentSession = new Session(DbSA.DbSession); // this applies all exceptions to the protocol
-        //    //            else
-        //    //            {
-        //    //                //DataCache.ConstraintThresholds
-        //    //                if (DataCache.CurrentSession.DbO != DbSA.DbSession)
-        //    //                    MessageBox.Show("Protocol Exceptions don't match");
-        //    //            }
-        //    //        Assessment SA = new Assessment(DbSA);
-        //    //        //Now load and attach plans
-        //    //        foreach (DbPlan DbP in SquintDb.Context.DbPlans.Where(x => x.AssessmentID == SA.ID).ToList())
-        //    //        {
-        //    //            if (!isPlanLoaded(DbP.CourseName, DbP.PlanName))
-        //    //            {
-        //    //                await GetCourseByName(DbP.CourseName, null, false);
-        //    //            }
-        //    //            ECPlan ECP = new ECPlan(DbP);
-        //    //            Plans.Add(ECP.ID,ECP);// add plan to cache if not already loaded
-        //    //            SA.RegisterPlan(ECP);
-        //    //        }
-        //    //        foreach (Constraint Con in DataCache.Constraints.Values)
-        //    //        {
-        //    //            DbConstraintResult DbCR = DbSA.ConstraintResults.Where(x => x.SessionConstraintID == Con.ID).SingleOrDefault();
-        //    //            if (DbCR == null)
-        //    //            {
-        //    //                //MessageBox.Show("Evaluating loaded constraint.  This is a bug as some constraintresult should have been saved");
-        //    //            }
-        //    //            else
-        //    //            {
-        //    //                Con.ImportEvaluatedConstraint(DbCR);
-        //    //            }
-        //    //        }
-        //    //        //Generate views
-        //    //        CurrentProtocol = new ProtocolView(DataCache.CurrentProtocol);
-        //    //        foreach (Component Comp in DataCache.GetAllComponents())
-        //    //        {
-        //    //            new Component(Comp);
-        //    //        }
-        //    //        foreach (Constituent Cons in Constituents.Values)
-        //    //        {
-        //    //            new ConstituentView(Cons);
-        //    //        }
-        //    //        foreach (ProtocolStructure ProtocolStructure in DataCache.GetAllProtocolStructures())
-        //    //        {
-        //    //            new StructureView(ProtocolStructure);
-        //    //        }
-        //    //        foreach (Constraint Con in DataCache.Constraints.Values)
-        //    //        {
-        //    //            ConstraintView CV = new ConstraintView(Con);
-        //    //            Con.RegisterAssessment(SA);
-        //    //            //RaiseEventOnUIThread(ConstraintAdded, new object[] { null, CV.ID });
-        //    //            ConstraintAdded?.Raise(null, CV.ID);
-        //    //        }
-        //    //        new AssessmentView(SA);
-        //    //        //
-        //    //        ICollection<DbAssessment> DbSA_Associated = DbSA.DbSession.AssociatedAssessments;
-        //    //        if (DbSA_Associated.Count > 1 && AskToLoadAssociatedAssessments)
-        //    //        {
-        //    //            //Window.DialogResult DR = MessageBox.Show("Load associated DataCache.Assessments?", "Load", MessageBoxButtons.YesNo);
-        //    //            MessageBoxResult D = MessageBox.Show("Load associated DataCache.Assessments?", "Load", MessageBoxButton.YesNo);
-        //    //            if (D == MessageBoxResult.Yes)
-        //    //            {
-        //    //                foreach (DbAssessment DbSA2 in DbSA_Associated)
-        //    //                {
-        //    //                    if (DbSA != DbSA2)
-        //    //                    {
-        //    //                        new Assessment(DbSA2);
-        //    //                        new AssessmentView(SA);
-        //    //                    }
-        //    //                }
-        //    //            }
-        //    //        }
-        //    //        // Announcements
-        //    //        (ProgressBar as IProgress<int>).Report(100);
-        //    //        ProtocolOpened?.Raise(null, EventArgs.Empty); // now DataCache.Constraints are announced, announce protocol opening
-        //    //        foreach (Assessment SA2 in DataCache.GetAllAssessments())
-        //    //        {
-        //    //            AssessmentLoaded?.Raise(null, SA2.ID);
-        //    //        }
-        //    //    }
-        //    //    else
-        //    //    {
-        //    //        MessageBox.Show("Error: Assessment not found");
-        //    //    }
-        //    //}
-        //}
-
         public static void StartNewSession()
         {
             CurrentSession = new Session();

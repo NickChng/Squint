@@ -1,11 +1,11 @@
 ﻿//using System.Windows.Forms;
 
-namespace SquintScript
+namespace SquintScript.ViewModels
 {
 
-    public class AssessmentPreviewView
+    public class AssessmentPreviewViewModel
     {
-        public AssessmentPreviewView(int _ID, string _AssessmentName, string _ReferenceProtocol, string _User, string _DateOfAssessment, string _Comments)
+        public AssessmentPreviewViewModel(int _ID, string _AssessmentName, string _ReferenceProtocol, string _User, string _DateOfAssessment, string _Comments)
         {
             ID = _ID;
             AssessmentName = _AssessmentName;

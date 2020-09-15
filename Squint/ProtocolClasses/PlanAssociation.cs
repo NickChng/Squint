@@ -180,7 +180,7 @@ namespace SquintScript
             {
                 if (!LinkedPlan.IsDoseValid)
                     ErrorCodes.Add(ComponentStatusCodes.NoDoseDistribution);
-                if (Math.Abs((double)LinkedPlan.Dose - component.ReferenceDose) > 1)
+                if (Math.Abs((double)LinkedPlan.Dose - component.TotalDose) > 1)
                 {
                     // Reference dose mismatch
                     ErrorCodes.Add(ComponentStatusCodes.ReferenceDoseMismatch);

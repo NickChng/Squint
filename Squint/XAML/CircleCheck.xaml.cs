@@ -13,7 +13,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 
-namespace SquintScript.Controls
+namespace SquintScript.Views
 {
     /// <summary>
     /// Interaction logic for CircleCheck.xaml
@@ -43,13 +43,23 @@ namespace SquintScript.Controls
         }
 
         public static DependencyProperty PassProperty =
-        DependencyProperty.Register("Pass", typeof(bool), typeof(CircleCheck), new
-         PropertyMetadata(false, new PropertyChangedCallback(OnPassChanged)));
+        DependencyProperty.Register("Pass", typeof(bool?), typeof(CircleCheck), new
+         PropertyMetadata(null, new PropertyChangedCallback(OnPassChanged)));
 
-        public bool Pass
+        public bool? Pass
         {
-            get { return (bool)GetValue(PassProperty); }
+            get { return (bool?)GetValue(PassProperty); }
             set { SetValue(PassProperty, value); }
+        }
+
+        public static DependencyProperty ParameterOptionProperty =
+      DependencyProperty.Register("ParameterOption", typeof(ParameterOptions), typeof(CircleCheck), new
+       PropertyMetadata(ParameterOptions.Unset, new PropertyChangedCallback(OnPassChanged)));
+
+        public ParameterOptions ParameterOption
+        {
+            get { return (ParameterOptions)GetValue(ParameterOptionProperty); }
+            set { SetValue(ParameterOptionProperty, value); }
         }
 
         private static void OnPassChanged(DependencyObject d,

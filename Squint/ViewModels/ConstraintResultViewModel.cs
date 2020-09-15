@@ -3,9 +3,9 @@
 
 namespace SquintScript
 {
-    public class ConstraintResultView
+    public class ConstraintResultViewModel
     {
-        public ConstraintResultView(ConstraintResult CR)
+        public ConstraintResultViewModel(ConstraintResult CR)
         {
             AssessmentID = CR.AssessmentID;
             ConstraintID = CR.ConstraintID;

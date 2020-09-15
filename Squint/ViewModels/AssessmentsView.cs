@@ -7,7 +7,7 @@ using System.Windows.Controls;
 using System.Windows;
 using wpfcolors = System.Windows.Media.Colors;
 using wpfcolor = System.Windows.Media.Color;
-using SquintScript.Controls;
+using SquintScript.Views;
 using System.Linq;
 
 namespace SquintScript.ViewModels

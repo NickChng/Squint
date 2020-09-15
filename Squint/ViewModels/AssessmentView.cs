@@ -43,7 +43,7 @@ namespace SquintScript.ViewModels
         {
             get { return ACVs.Count; }
         }
-        public ObservableCollection<AssessmentComponentView> ACVs { get; set; } = new ObservableCollection<AssessmentComponentView>(); // only add to this from outside classes through AddACV, so ComponentCount is notified
+        public ObservableCollection<AssessmentComponentViewModel> ACVs { get; set; } = new ObservableCollection<AssessmentComponentViewModel>(); // only add to this from outside classes through AddACV, so ComponentCount is notified
         public AssessmentView(wpfcolor Color_in, wpfcolor TextColor_in, AssessmentsView ParentView_in)
         {
             ParentView = ParentView_in;
@@ -58,7 +58,7 @@ namespace SquintScript.ViewModels
             AssessmentName = A.AssessmentName;
             foreach (Component Comp in Ctr.CurrentProtocol.Components.OrderBy(x=>x.DisplayOrder))
             {
-                ACVs.Add(new AssessmentComponentView(this, Comp, A));
+                ACVs.Add(new AssessmentComponentViewModel(this, Comp, A));
             }
         }
         public AssessmentView(Assessment Ain, wpfcolor Color_in, wpfcolor TextColor_in, AssessmentsView ParentView_in)
@@ -70,7 +70,7 @@ namespace SquintScript.ViewModels
             ParentView = ParentView_in;
             foreach (Component Comp in Ctr.CurrentProtocol.Components)
             {
-                var ACV = new AssessmentComponentView(this, Comp, A);
+                var ACV = new AssessmentComponentViewModel(this, Comp, A);
                 ACV.DisableAutomaticAssociation = true;
                 var _P = Ctr.GetPlanAssociation(Comp.ID, A.ID);
                 if (_P != null)
@@ -100,7 +100,7 @@ namespace SquintScript.ViewModels
 
         }
 
-        public void AddACV(AssessmentComponentView ACV)
+        public void AddACV(AssessmentComponentViewModel ACV)
         {
             ACVs.Add(ACV);
             RaisePropertyChangedEvent(nameof(ComponentCount));

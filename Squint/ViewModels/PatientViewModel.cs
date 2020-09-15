@@ -23,7 +23,7 @@ namespace SquintScript.ViewModels
         public bool CalculateOnUpdate = true;
 
         // Visibility toggles
-        public bool isPIDVisible { get; set; } = false;
+        public bool isPIDVisible { get; set; } = true;
         public StructureSetSelector CurrentStructureSet
         {
             get
@@ -62,7 +62,6 @@ namespace SquintScript.ViewModels
         public PatientViewModel(MainViewModel parentView)
         {
             ParentView = parentView;
-            isPIDVisible = true;
             Ctr.PatientOpened += OnPatientOpened;
             Ctr.PatientClosed += OnPatientClosed;
             Ctr.CurrentStructureSetChanged += OnCurrentStructureSetChanged;

@@ -11,6 +11,14 @@ using System.ComponentModel.DataAnnotations;
 namespace SquintScript
 {
     //Type Definitions
+
+    public enum DatabaseStatus
+    {
+        [Description("NonExistent")] NonExistent = 0,
+        [Description("Exists")] Exists = 1,
+        [Description("Creating")] Creating = 2,
+        [Description("ConnectionError")] ConnectionError = 3,
+    }
     public enum CheckTypes
     {
         [Description("Unset")] Unset,
@@ -175,40 +183,40 @@ namespace SquintScript
         [Description("Patient reference")] PatientReference,
         [Description("Artifact")] Artifact
     }
-    public enum StructureLabelEnum // Note: XML input/output uses the description, not the enum values
-    {
-        [Description("")] Unset,
-        [Description("Bladder")] Bladder,
-        [Description("Brachial Plexus")] BrachialPlexus,
-        [Description("Brain")] Brain,
-        [Description("Brainstem")] Brainstem,
-        [Description("CTVn")] CTVn,
-        [Description("CTVp")] CTVp,
-        [Description("Esophagus")] Esophagus,
-        [Description("External Genitalia")] ExternalGenitalia,
-        [Description("Eye")] Eye,
-        [Description("Femur")] Femur,
-        [Description("GTV")] GTV,
-        [Description("Heart")] Heart,
-        [Description("Iliac Crest")] IliacCrest,
-        [Description("Laryngopharynx")] Laryngopharynx,
-        [Description("Lens")] Lens,
-        [Description("Liver")] Liver,
-        [Description("Mandible")] Mandible,
-        [Description("Optics")] Optics,
-        [Description("Oral Cavity")] OralCavity,
-        [Description("Parotid")] Parotid,
-        [Description("PTVn")] PTVn,
-        [Description("PTVp")] PTVp,
-        [Description("PTVp2")] PTVp2,
-        [Description("Rectum")] Rectum,
-        [Description("Small Bowel")] SmallBowel,
-        [Description("Spinal Cord")] SpinalCord,
-        [Description("Submandibular")] Submandibular,
-        [Description("Large Bowel")] LargeBowel,
-        [Description("Kidney")] Kidney,
-        [Description("Sacral Canal")] SacralCanal
-    }
+    //public enum StructureLabelEnum // Note: XML input/output uses the description, not the enum values
+    //{
+    //    [Description("")] Unset,
+    //    [Description("Bladder")] Bladder,
+    //    [Description("Brachial Plexus")] BrachialPlexus,
+    //    [Description("Brain")] Brain,
+    //    [Description("Brainstem")] Brainstem,
+    //    [Description("CTVn")] CTVn,
+    //    [Description("CTVp")] CTVp,
+    //    [Description("Esophagus")] Esophagus,
+    //    [Description("External Genitalia")] ExternalGenitalia,
+    //    [Description("Eye")] Eye,
+    //    [Description("Femur")] Femur,
+    //    [Description("GTV")] GTV,
+    //    [Description("Heart")] Heart,
+    //    [Description("Iliac Crest")] IliacCrest,
+    //    [Description("Laryngopharynx")] Laryngopharynx,
+    //    [Description("Lens")] Lens,
+    //    [Description("Liver")] Liver,
+    //    [Description("Mandible")] Mandible,
+    //    [Description("Optics")] Optics,
+    //    [Description("Oral Cavity")] OralCavity,
+    //    [Description("Parotid")] Parotid,
+    //    [Description("PTVn")] PTVn,
+    //    [Description("PTVp")] PTVp,
+    //    [Description("PTVp2")] PTVp2,
+    //    [Description("Rectum")] Rectum,
+    //    [Description("Small Bowel")] SmallBowel,
+    //    [Description("Spinal Cord")] SpinalCord,
+    //    [Description("Submandibular")] Submandibular,
+    //    [Description("Large Bowel")] LargeBowel,
+    //    [Description("Kidney")] Kidney,
+    //    [Description("Sacral Canal")] SacralCanal
+    //}
     public enum ComponentStatusCodes
     {
         [Description("")] NoError,
@@ -267,25 +275,6 @@ namespace SquintScript
         [Description("New")] New,
     }
 
-    public enum ExceptionTypes
-    {
-        [Description("None")] None,
-        [Description("Edited Constraint")] Edited,
-        [Description("Deleted Constraint")] Deleted,
-        [Description("Added Constraint")] Added,
-        [Description("Added Constraint")] Parent,
-        [Description("Only scaled by BED")] BEDScaled,
-        [Description("Change in component property")] ComponentChanged,
-    }
-
-    public enum CommitStatus
-    {
-        [Description("")] Committed,
-        [Description("")] Attached,
-        [Description("")] Detached,
-        [Description("Duplicate Name")] DuplicateName,
-    }
-
     public enum PlanTypes
     {
         Unset,
@@ -314,13 +303,6 @@ namespace SquintScript
         [Description("Phase")] Phase = 1,
         [Description("Sum")] Sum = 2,
     }
-    public enum TypeCodes
-    {
-        [Description("Unset")] Unset = 0,
-        [Description("DVH")] DVHConstraint = 1,
-        [Description("Conformity")] CIConstraint = 2
-    }
-
     public enum ConstraintTypeCodes
     {
         [Description("-")] Unset = 0,

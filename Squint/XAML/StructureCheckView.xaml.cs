@@ -13,7 +13,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 
-namespace SquintScript.Controls
+namespace SquintScript.Views
 {
     /// <summary>
     /// Interaction logic for StructureCheckView.xaml

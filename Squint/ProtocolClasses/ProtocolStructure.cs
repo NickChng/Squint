@@ -95,11 +95,6 @@ namespace SquintScript
                 _StructureLabel.Value = value;
             }
         }
-        public ExceptionTypes ExceptionType
-        {
-            get;
-            private set;
-        }
         public int ID { get; private set; }
         public int DisplayOrder { get; set; }
         public double? AlphaBetaRatioOverride { get; set; } = null;
@@ -124,10 +119,7 @@ namespace SquintScript
             else
                 return Ctr.GetStructureSet(SSUID).GetStructure(AssignedStructureId).Label;
         }
-        public void Delete()
-        {
-            ProtocolStructureDeleting?.Invoke(this, ID);
-        }
+        
         public void ApplyAliasing(AsyncStructureSet SS)
         {
             // this will assign a structure Id if that structure exists in the plan ECP
@@ -197,11 +189,7 @@ namespace SquintScript
                 return double.NaN;
             return Math.Round(AS.HU);
         }
-        private void OnESPropertyChanged(object sender, PropertyChangedEventArgs e)
-        {
-            //PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("ES")); // let subscribers know that the Eclipse structure internal properties have changed
-            RaisePropertyChangedEvent(e.PropertyName);
-        }
+        
     }
 
 }

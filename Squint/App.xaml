@@ -7,6 +7,7 @@
              DispatcherUnhandledException="App_DispatcherUnhandledException"
              StartupUri="MainWindow.xaml">
     <Application.Resources>
+        <converters:VisibilityOptionalIconConverter x:Key="VisibilityOptionalIconConverter"/>
         <converters:ConstraintStatusColourConverter x:Key="ConstraintStatusColourConverter"/>
         <converters:UnsetComboColourConverter x:Key="UnsetComboColourConverter"/>
         <converters:BusyToCursorConverter x:Key="BusyToCursorConverter"/>

@@ -1,10 +1,9 @@
-﻿<UserControl x:Class="SquintScript.Controls.LoadingControl"
+﻿<UserControl x:Class="SquintScript.Views.LoadingControl"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
-             xmlns:local="clr-namespace:SquintScript.Controls"
-             xmlns:global="clr-namespace:SquintScript"
+             xmlns:vm="clr-namespace:SquintScript.ViewModels"
              mc:Ignorable="d" 
              d:DesignHeight="100" d:DesignWidth="400">
     <UserControl.Resources>
@@ -167,7 +166,7 @@
         </ControlTemplate>
     </UserControl.Resources>
     <UserControl.DataContext>
-        <local:LoadingViewModel/>
+        <vm:LoadingViewModel/>
     </UserControl.DataContext>
     <Grid>
         <Grid Margin="5,5,5,5">

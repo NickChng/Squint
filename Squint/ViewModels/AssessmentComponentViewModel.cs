@@ -9,7 +9,7 @@ using SquintScript.Extensions;
 namespace SquintScript.ViewModels
 {
     [AddINotifyPropertyChangedInterface]
-    public class AssessmentComponentView : ObservableObject, IDisposable
+    public class AssessmentComponentViewModel : ObservableObject, IDisposable
     {
         public string ComponentName
         {
@@ -102,7 +102,7 @@ namespace SquintScript.ViewModels
         private AssessmentView ParentView;
         public ObservableCollection<CourseSelector> Courses { get; set; } = new ObservableCollection<CourseSelector>();
         public ObservableCollection<PlanSelector> Plans { get; set; } = new ObservableCollection<PlanSelector>();
-        public AssessmentComponentView(AssessmentView AV, Component CompIn, Assessment Ain)
+        public AssessmentComponentViewModel(AssessmentView AV, Component CompIn, Assessment Ain)
         {
             Comp = CompIn;
             ParentView = AV;

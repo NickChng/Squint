@@ -136,24 +136,48 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="AsyncESAPI\AsyncCourse.cs" />
     <Compile Include="AsyncESAPI\AsyncESAPI.cs" />
-    <Compile Include="ControllerClasses\IDGenerator.cs" />
+    <Compile Include="AsyncESAPI\AsyncPatient.cs" />
+    <Compile Include="AsyncESAPI\AsyncPlan.cs" />
+    <Compile Include="AsyncESAPI\AsyncStructure.cs" />
+    <Compile Include="AsyncESAPI\AsyncStructureSet.cs" />
+    <Compile Include="Helpers and Functions\IDGenerator.cs" />
+    <Compile Include="Interfaces\IDisplayable.cs" />
+    <Compile Include="Interfaces\IElementOf.cs" />
     <Compile Include="PersistenceLayer\VersionContextConnection.cs" />
     <Compile Include="Helpers and Functions\BolusTools.cs" />
+    <Compile Include="TestFramework\TestContainsItem.cs" />
+    <Compile Include="TestFramework\TestRangeItem.cs" />
+    <Compile Include="TestFramework\TestValueItem.cs" />
+    <Compile Include="TestFramework\TestListClassItem.cs" />
+    <Compile Include="TestFramework\TestListItem.cs" />
     <Compile Include="ProtocolClasses\ImagingFieldItem.cs" />
     <Compile Include="ProtocolClasses\ProtocolPreview.cs" />
     <Compile Include="ProtocolClasses\StructureSetHeader.cs" />
     <Compile Include="ProtocolClasses\TxFieldItem.cs" />
     <Compile Include="ProtocolClasses\PlanDescriptor.cs" />
     <Compile Include="ProtocolClasses\Beam.cs" />
-    <Compile Include="ViewModels\AssessmentComponentView.cs" />
+    <Compile Include="ViewModels\AssessmentComponentViewModel.cs" />
     <Compile Include="ViewModels\AssessmentsView.cs" />
     <Compile Include="ViewModels\AssessmentView.cs" />
+    <Compile Include="ProtocolCheckClasses\BeamListItem.cs" />
+    <Compile Include="ViewModels\Beam_ViewModel.cs" />
+    <Compile Include="ViewModels\Imaging_ViewModel.cs" />
+    <Compile Include="ViewModels\LoadingViewModel.cs" />
+    <Compile Include="ProtocolCheckClasses\NTODefinition.cs" />
+    <Compile Include="ProtocolCheckClasses\ObjectiveDefinition.cs" />
+    <Compile Include="ProtocolCheckClasses\ObjectiveItem.cs" />
     <Compile Include="ViewModels\PatientViewModel.cs" />
+    <Compile Include="ViewModels\Prescription_ViewModel.cs" />
+    <Compile Include="ViewModels\ProtocolImagingViewModel.cs" />
     <Compile Include="ViewModels\SessionsView.cs" />
+    <Compile Include="ViewModels\Simulation_ViewModel.cs" />
+    <Compile Include="ViewModels\TestList_ViewModel.cs" />
+    <Compile Include="XAML\WaitWindow.xaml.cs" />
     <Compile Include="WPF Extensions\TextBoxExtensions.cs" />
-    <Compile Include="ViewModels\AssessmentPreviewView.cs" />
-    <Compile Include="ViewModels\ConstraintResultView.cs" />
+    <Compile Include="ViewModels\AssessmentPreviewViewModel.cs" />
+    <Compile Include="ViewModels\ConstraintResultViewModel.cs" />
     <Compile Include="ViewModels\SessionView.cs" />
     <Compile Include="XML Definitions\ConfigXML.cs" />
     <Compile Include="XAML\EditStructurePopup.xaml.cs">
@@ -232,10 +256,10 @@
     <Compile Include="XAML\ObjectiveControl.xaml.cs">
       <DependentUpon>ObjectiveControl.xaml</DependentUpon>
     </Compile>
-    <Compile Include="ViewModelClasses\TestListItems.cs" />
+    <Compile Include="TestFramework\TestListBeamStartStopItem.cs" />
     <Compile Include="ViewModels\EclipseProtocolPopupViewModel.cs" />
     <Compile Include="ViewModels\Checklist_ViewModel.cs" />
-    <Compile Include="ViewModels\Control_ViewModel.cs" />
+    <Compile Include="ViewModels\OptimizationCheckViewModel.cs" />
     <Compile Include="XAML\SavePopup.xaml.cs">
       <DependentUpon>SavePopup.xaml</DependentUpon>
     </Compile>
@@ -255,7 +279,7 @@
     <Compile Include="Helpers and Functions\Levenshtein.cs" />
     <Compile Include="Helpers and Functions\Serializer.cs" />
     <Compile Include="ControllerClasses\SquintController.cs" />
-    <Compile Include="PersistenceLayer\SquintdBModel.cs" />
+    <Compile Include="PersistenceLayer\SquintDBModel.cs" />
     <Compile Include="Enums\SquintEnums.cs" />
     <Compile Include="ProtocolClasses\BeamGeometry.cs" />
     <Compile Include="XML Definitions\GeometryDefintionsXML.cs" />
@@ -266,9 +290,10 @@
     <Compile Include="ViewModels\ProtocolViewModel.cs" />
     <Compile Include="ViewModels\ViewModel.cs" />
     <Compile Include="XML Definitions\EclipseClinicalProtocolXML.cs" />
-    <Compile Include="WaitWindow.xaml.cs">
-      <DependentUpon>WaitWindow.xaml</DependentUpon>
-    </Compile>
+    <Page Include="XAML\WaitWindow.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
     <Page Include="XAML\EditStructurePopup.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -361,10 +386,6 @@
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
-    <Page Include="WaitWindow.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs">
@@ -635,7 +656,7 @@
     <Resource Include="Resources\section_expand_small.png" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="ConstraintProperties\" />
+    <Folder Include="ViewModelClasses\" />
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Resources\edit_trans.png" />
@@ -698,6 +719,9 @@
     <Resource Include="Protocol Library\VMAT_Brain_Metastases_5FX_30Gy_v0.7.xml" />
     <Resource Include="Protocol Library\VMAT_Brain_Metastases_5FX_35Gy_v0.7.xml" />
     <Resource Include="Protocol Library\VMAT_Brain_Metastases_5FX_40Gy_v0.7.xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\appbar.question.lightsteelblue.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">

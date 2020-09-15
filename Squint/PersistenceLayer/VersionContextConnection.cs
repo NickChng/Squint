@@ -1,14 +1,13 @@
 ﻿using System.Data.Common;
-//using System.Windows.Forms;
 
 namespace SquintScript
 {
     public static class VersionContextConnection
     {
         private static string providerName = "Npgsql";
-        public static string databaseName = ""; // populated from SquintConfig.XML
+        public static string databaseName = ""; // populated from Config.XML file
         private static string userName = "postgres";
-        private static string password = "bccacn"; // not saved in XML for superficial security, but also not secure
+        private static string password = "bccacn"; // not saved in XML for superficial security, but NOT not secure from inspection of executable by MSIL tools
         private static string host = "sprtqacn001";
         private static int port = 5432;
 

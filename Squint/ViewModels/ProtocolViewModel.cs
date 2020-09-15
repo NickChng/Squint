@@ -16,8 +16,8 @@ using System.Windows;
 using wpfcolors = System.Windows.Media.Colors;
 using wpfcolor = System.Windows.Media.Color;
 using wpfbrush = System.Windows.Media.SolidColorBrush;
-using Controls = SquintScript.Controls;
-using SquintScript.ViewModelClasses;
+using Controls = SquintScript.Views;
+using SquintScript.TestFramework;
 using SquintScript.Interfaces;
 using SquintScript.Extensions;
 using System.Windows.Threading;
@@ -31,17 +31,17 @@ namespace SquintScript.ViewModels
         public ProtocolViewModel(MainViewModel parentView)
         {
             ParentView = parentView;
-            var ProtocolPreviews = Ctr.GetProtocolPreviewList();
-            ChecklistViewModel = new Checklist_ViewModel(this);
-            foreach (var PP in ProtocolPreviews)
+            var ProtocolPreviews = new List<ProtocolSelector>();
+            foreach (var PP in Ctr.GetProtocolPreviewList())
             {
-                Protocols.Add(new ProtocolSelector(PP));
+                ProtocolPreviews.Add(new ProtocolSelector(PP));
             }
+            Protocols = new ObservableCollection<ProtocolSelector>(ProtocolPreviews);
+            ChecklistViewModel = new Checklist_ViewModel(this);
             // Subscribe to events
             Ctr.CurrentStructureSetChanged += UpdateAvailableStructureIds;
             Ctr.ProtocolListUpdated += UpdateProtocolList;
             Ctr.ProtocolClosed += Ctr_ProtocolClosed;
-            //Ctr.ProtocolConstraintOrderChanged += UpdateConstraintOrder;
         }
 
         private void Ctr_ProtocolClosed(object sender, EventArgs e)
@@ -310,7 +310,7 @@ namespace SquintScript.ViewModels
                 }
                 foreach (var AV in ParentView.AssessmentsVM.Assessments)
                 {
-                    AV.AddACV(new AssessmentComponentView(AV, newComponent, Ctr.GetAssessmentList().FirstOrDefault(x => x.ID == AV.AssessmentId)));
+                    AV.AddACV(new AssessmentComponentViewModel(AV, newComponent, Ctr.GetAssessmentList().FirstOrDefault(x => x.ID == AV.AssessmentId)));
                 }
             }
         }
@@ -393,8 +393,8 @@ namespace SquintScript.ViewModels
             ParentView.LoadingString = "Loading selected protocol...";
             ParentView.isLoading = true;
             ParentView.AssessmentsVM = new AssessmentsView(ParentView);
-            ChecklistViewModel.Unsubscribe();
-            ChecklistViewModel = new Checklist_ViewModel(this);
+            //ChecklistViewModel.Unsubscribe();
+            //ChecklistViewModel = new Checklist_ViewModel(this);
             if (await Task.Run(() => Ctr.LoadProtocolFromDb(PS.ProtocolName)))
             {
                 UpdateProtocolView();

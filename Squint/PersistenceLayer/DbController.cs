@@ -7,24 +7,24 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Data.Common;
+using Npgsql;
 
 namespace SquintScript
 {
     public static class DbController
     {
-   
         public static Dictionary<int, int> CourseLookupFromPlan = new Dictionary<int, int>(); // lookup course PK by planPK
         public static Dictionary<int, int> CourseLookupFromSum = new Dictionary<int, int>(); // lookup course PK by plansumPK
         private static Dictionary<int, StructureLabel> _StructureLabels = new Dictionary<int, StructureLabel>();
         private static bool areStructuresLoaded = false;
-        
+
         public static void SetDatabaseName(string dbname)
         {
             VersionContextConnection.databaseName = dbname;
         }
         public static void RegisterUser(string UserId, string ARIA_ID, string Name)
         {
-            using (var Context = new SquintdBModel())
+            using (var Context = new SquintDBModel())
             {
                 var User = Context.DbUsers.FirstOrDefault(x => x.ARIA_ID == UserId);
                 if (User == null)
@@ -47,7 +47,7 @@ namespace SquintScript
         public static List<ConstraintChangelog> GetConstraintChangelogs(int ID)
         {
             var L = new List<ConstraintChangelog>();
-            using (var Context = new SquintdBModel())
+            using (var Context = new SquintDBModel())
             {
                 foreach (DbConstraintChangelog DbCL in Context.DbConstraints.Find(ID).DbConstraintChangelogs.OrderByDescending(x => x.Date))
                 {
@@ -56,14 +56,24 @@ namespace SquintScript
             }
             return L;
         }
-        public static bool TestDbConnection()
+        public static DatabaseStatus TestDbConnection()
         {
-            using (SquintdBModel Context = new SquintdBModel())
+            NpgsqlConnection conn = new NpgsqlConnection(VersionContextConnection.ConnectionString());
+            try
             {
-                if (Context.Database.Exists())
-                    return true;
-                else return false;
+                conn.Open();
+                conn.Close();
+                return DatabaseStatus.Exists;
             }
+            catch (NpgsqlException ex)
+            {
+                return DatabaseStatus.NonExistent;
+            }
+        }
+        public static void InitializeDatabase()
+        {
+            var Context = new SquintDBModel();
+            Context.Dispose();
         }
 
         private static async Task LoadStructures()
@@ -71,7 +81,7 @@ namespace SquintScript
             _StructureLabels.Clear();
             await Task.Run(() =>
             {
-                using (SquintdBModel Context = new SquintdBModel())
+                using (SquintDBModel Context = new SquintDBModel())
                 {
                     foreach (DbStructureLabel DbSL in Context.DbStructureLabels)
                         _StructureLabels.Add(DbSL.ID, new StructureLabel(DbSL));
@@ -119,7 +129,7 @@ namespace SquintScript
         public static List<ProtocolPreview> GetProtocolPreviews()
         {
             List<ProtocolPreview> previewlist = new List<ProtocolPreview>();
-            using (var Context = new SquintdBModel())
+            using (var Context = new SquintDBModel())
             {
                 if (Context.DbLibraryProtocols != null)
                 {
@@ -140,7 +150,7 @@ namespace SquintScript
         }
         public static Protocol GetProtocol(int Id)
         {
-            using (var Context = new SquintdBModel())
+            using (var Context = new SquintDBModel())
             {
                 if (Context.DbLibraryProtocols != null)
                 {
@@ -155,7 +165,7 @@ namespace SquintScript
         }
         public async static Task<Protocol> LoadProtocol(string ProtocolName)
         {
-            using (SquintdBModel Context = new SquintdBModel())
+            using (SquintDBModel Context = new SquintDBModel())
             {
                 DbProtocol DbP = Context.DbLibraryProtocols
                     .Include(x => x.ProtocolStructures)
@@ -221,7 +231,7 @@ namespace SquintScript
         }
         public static async Task<Session> Load_Session(int ID)
         {
-            using (SquintdBModel Context = new SquintdBModel())
+            using (SquintDBModel Context = new SquintDBModel())
             {
                 DbSession DbS = Context.DbSessions.FirstOrDefault(x => x.PID == Ctr.PatientID && x.ID == ID);
                 if (DbS == null)
@@ -256,6 +266,10 @@ namespace SquintScript
                     {
                         Component SC = new Component(DbC);
                         SessionProtocol.Components.Add(SC);
+                        foreach (DbBeam DbB in DbC.DbBeams)
+                        {
+                            SC.Beams.Add(new Beam(DbB));
+                        }
                         foreach (DbComponentImaging DbCI in DbC.ImagingProtocols)
                         {
                             foreach (DbImaging I in DbCI.Imaging)
@@ -305,7 +319,7 @@ namespace SquintScript
         public static List<Session> GetSessions()
         {
             List<Session> S = new List<Session>();
-            using (SquintdBModel Context = new SquintdBModel())
+            using (SquintDBModel Context = new SquintDBModel())
             {
                 foreach (DbSession DbS in Context.DbSessions.Where(x => x.PID == Ctr.PatientID).ToList())
                 {
@@ -316,7 +330,7 @@ namespace SquintScript
         }
         public static void Delete_Session(int ID)
         {
-            using (SquintdBModel Context = new SquintdBModel())
+            using (SquintDBModel Context = new SquintDBModel())
             {
                 DbSession DbS = Context.DbSessions.Find(ID);
                 if (DbS != null)
@@ -331,7 +345,7 @@ namespace SquintScript
             Dictionary<int, int> ComponentLookup = new Dictionary<int, int>();
             Dictionary<int, int> StructureLookup = new Dictionary<int, int>();
             Dictionary<int, int> AssessmentLookup = new Dictionary<int, int>();
-            using (SquintdBModel Context = new SquintdBModel())
+            using (SquintDBModel Context = new SquintDBModel())
             {
                 // Create session
                 DbSession DbS = Context.DbSessions.Create();
@@ -438,15 +452,34 @@ namespace SquintScript
                     //Update
                     DbC.ComponentName = SC.ComponentName;
                     DbC.NumFractions = SC.NumFractions;
-                    DbC.ReferenceDose = SC.ReferenceDose;
+                    DbC.ReferenceDose = SC.TotalDose;
                     DbC.DisplayOrder = SC.DisplayOrder;
                     DbC.MinColOffset = SC.MinColOffset.Value;
+                    DbC.PNVMax = SC.PNVMax.Value;
+                    DbC.PNVMin = SC.PNVMin.Value;
+                    DbC.PrescribedPercentage = SC.PrescribedPercentage.Value;
+                    DbC.NumIso = SC.NumIso.Value;
+                    DbC.MinColOffset = SC.MinColOffset.Value;
+                    DbC.MinBeams = SC.MinBeams.Value;
+                    DbC.MaxBeams = SC.MaxBeams.Value;
                     foreach (Beam B in SC.Beams)
                     {
                         var DbB = Context.DbBeams.Create();
                         Context.DbBeams.Add(DbB);
                         DbB.DbBeamGeometries = new List<DbBeamGeometry>();
                         DbB.ComponentID = DbC.ID;
+                        DbB.JawTracking_Indication = (int)B.JawTracking_Indication.Value;
+                        DbB.MaxColRotation = B.MaxColRotation.Value;
+                        DbB.MaxMUWarning = B.MaxMUWarning.Value;
+                        DbB.MinMUWarning = B.MinMUWarning.Value;
+                        DbB.MaxX = B.MaxX.Value;
+                        DbB.MinX = B.MinX.Value;
+                        DbB.Technique = (int)B.Technique;
+                        DbB.ToleranceTable = B.ToleranceTable.Value;
+                        DbB.ProtocolBeamName = B.ProtocolBeamName;
+                        DbB.MinColRotation = B.MinColRotation.Value;
+                        DbB.MaxY = B.MaxY.Value;
+                        DbB.MinY = B.MinY.Value;
                         DbB.CouchRotation = (double)B.CouchRotation.Value;
                         foreach (string Alias in B.EclipseAliases)
                         {
@@ -460,14 +493,6 @@ namespace SquintScript
                             DbBeamGeometry DbBG = Context.DbBeamGeometries.FirstOrDefault(x => x.GeometryName == BG.GeometryName);
                             if (DbBG != null)
                                 DbB.DbBeamGeometries.Add(DbBG);
-                            //var DbBG = Context.DbBeamGeometries.Create();
-                            //Context.DbBeamGeometries.Add(DbBG);
-                            //DbBG.DbBeam = DbB;
-                            //DbBG.GeometryName = BG.GeometryName;
-                            //DbBG.EndAngle = BG.EndAngle;
-                            //DbBG.StartAngle = BG.StartAngle;
-                            //DbBG.EndAngleTolerance = BG.EndAngleTolerance;
-                            //DbBG.StartAngleTolerance = BG.StartAngleTolerance;
                         }
                         if (DbB.DbEnergies == null && B.ValidEnergies.Count > 0)
                         {
@@ -514,7 +539,7 @@ namespace SquintScript
                         //Link Results to Asssessment
                         foreach (Assessment A in Ctr.CurrentSession.Assessments)
                         {
-                            ConstraintResultView CRV = Con.GetResult(A.ID);
+                            ConstraintResultViewModel CRV = Con.GetResult(A.ID);
                             if (CRV != null)
                             {
                                 DbConstraintResult DbCR = Context.DbConstraintResults.Create();
@@ -563,7 +588,7 @@ namespace SquintScript
         }
         public static async Task Save_UpdateProtocol()
         {
-            using (SquintdBModel Context = new SquintdBModel())
+            using (SquintDBModel Context = new SquintDBModel())
             {
                 //Update Protocol
                 DbLibraryProtocol DbP = Context.DbLibraryProtocols.Find(Ctr.CurrentProtocol.ID);
@@ -637,7 +662,7 @@ namespace SquintScript
         }
         public static void Save_DuplicateProtocol()
         {
-            using (SquintdBModel Context = new SquintdBModel())
+            using (SquintDBModel Context = new SquintDBModel())
             {
                 // Name check
                 if (Context.DbLibraryProtocols.Select(x => x.ProtocolName).Contains(Ctr.CurrentProtocol.ProtocolName))
@@ -698,7 +723,7 @@ namespace SquintScript
         }
         public static bool Delete_Protocol(int Id)
         {
-            using (var Context = new SquintdBModel())
+            using (var Context = new SquintDBModel())
             {
                 var DbP = Context.DbLibraryProtocols.Find(Id);
                 if (DbP != null)
@@ -713,7 +738,7 @@ namespace SquintScript
 
         }
 
-        private static int? Save_UpdateComponent(SquintdBModel Context, Component comp, int protocolId, bool createCopy)
+        private static int? Save_UpdateComponent(SquintDBModel Context, Component comp, int protocolId, bool createCopy)
         {
             DbComponent DbC;
             if (comp.ToRetire)
@@ -743,7 +768,7 @@ namespace SquintScript
             DbC.DisplayOrder = comp.DisplayOrder;
             DbC.ComponentType = (int)comp.ComponentType.Value;
             DbC.NumFractions = comp.NumFractions;
-            DbC.ReferenceDose = comp.ReferenceDose;
+            DbC.ReferenceDose = comp.TotalDose;
             Save_UpdateBeamDefinition(Context, DbC, comp.ID, createCopy);
 
             // Update checklist parameters
@@ -764,7 +789,7 @@ namespace SquintScript
             return DbC.ID;
         }
 
-        private static void Save_UpdateConstraint(SquintdBModel Context, Constraint Con, int ComponentId, int StructureId, int refStructureId, bool createCopy)
+        private static void Save_UpdateConstraint(SquintDBModel Context, Constraint Con, int ComponentId, int StructureId, int refStructureId, bool createCopy)
         {
             DbConstraint DbO;
             if ((Con.isCreated || createCopy) && !Con.ToRetire)
@@ -826,7 +851,7 @@ namespace SquintScript
         }
 
         // Checklist functions
-        private static void Save_UpdateProtocolCheckList(SquintdBModel Context, DbProtocol DbP)
+        private static void Save_UpdateProtocolCheckList(SquintDBModel Context, DbProtocol DbP)
         {
             DbProtocolChecklist DbPC = Context.DbProtocolChecklists.FirstOrDefault(x => x.ProtocolID == DbP.ID);
             if (DbPC == null)
@@ -863,7 +888,7 @@ namespace SquintScript
 
         }
 
-        private static void Save_UpdateStructureCheckList(SquintdBModel Context, DbProtocolStructure DbS, ProtocolStructure S)
+        private static void Save_UpdateStructureCheckList(SquintDBModel Context, DbProtocolStructure DbS, ProtocolStructure S)
         {
             if (DbS.DbStructureChecklist == null) // no existing checklist in db
             {
@@ -882,7 +907,7 @@ namespace SquintScript
             }
         }
 
-        private static void Save_UpdateStructureAliases(SquintdBModel Context, DbProtocolStructure DbS, ProtocolStructure S)
+        private static void Save_UpdateStructureAliases(SquintDBModel Context, DbProtocolStructure DbS, ProtocolStructure S)
         {
             if (DbS.DbStructureAliases == null) //no existing aliases
                 DbS.DbStructureAliases = new List<DbStructureAlias>();
@@ -910,7 +935,7 @@ namespace SquintScript
 
         }
 
-        private static void Save_UpdateBeamDefinition(SquintdBModel Context, DbComponent DbC, int sourceComponentID, bool createCopy)
+        private static void Save_UpdateBeamDefinition(SquintDBModel Context, DbComponent DbC, int sourceComponentID, bool createCopy)
         {
             foreach (Beam B in Ctr.CurrentProtocol.Components.FirstOrDefault(x => x.ID == sourceComponentID).Beams.ToList())
             {

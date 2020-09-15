@@ -88,10 +88,8 @@ namespace SquintScript.ViewModels
         public SessionsViewModel(MainViewModel parentView)
         {
             ParentView = parentView;
-            Ctr.SessionsChanged -= OnSessionsChanged;
             Ctr.SessionsChanged += OnSessionsChanged;
-            foreach (SessionView E in Ctr.GetSessionViews())
-                SessionViews.Add(E);
+            SessionViews = new ObservableCollection<SessionView>(Ctr.GetSessionViews());
         }
         public void OnSessionsChanged(object sender, EventArgs e)
         {

@@ -15,7 +15,7 @@ using System.Windows.Navigation;
 using System.Windows.Shapes;
 using SquintScript;
 
-namespace SquintScript.Controls
+namespace SquintScript.Views
 {
     /// <summary>
     /// Interaction logic for HorizontalPopup.xaml

@@ -1,9 +1,9 @@
-﻿<UserControl x:Class="SquintScript.Controls.SessionsPopupButton"
+﻿<UserControl x:Class="SquintScript.Views.SessionsPopupButton"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
-             xmlns:local="clr-namespace:SquintScript.Controls">
+             xmlns:local="clr-namespace:SquintScript.Views">
     <Grid>
         <Button Name="OpenSessionsButton" Style="{DynamicResource ButtonStyle}" Command="{Binding LoadWorkspaceCommand}" ToolTip="Save patient workspace" Padding="0,0,0,0" CommandParameter="{Binding ElementName=SquintWindow, Path=DataContext.Protocol.AssessmentPresenter}" Margin="0,0,0,10">
             <Image Source="/Resources/folder-open.png" Stretch="Fill" Margin="0,0,0,0" Height="36" VerticalAlignment="Bottom" Visibility="{Binding }"></Image>

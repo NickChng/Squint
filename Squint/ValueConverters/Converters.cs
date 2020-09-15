@@ -11,7 +11,7 @@ using System.Collections.ObjectModel;
 using wpfcolor = System.Windows.Media.Colors;
 using SquintScript.ViewModels;
 using SquintScript.Extensions;
-using SquintScript.Controls;
+using SquintScript.Views;
 
 namespace SquintScript.Converters
 {
@@ -34,6 +34,34 @@ namespace SquintScript.Converters
                 return false;
             else
                 return true;
+        }
+    }
+    public class VisibilityOptionalIconConverter : IMultiValueConverter
+    {
+        public object Convert(object[] value, Type targetType,
+               object parameter, System.Globalization.CultureInfo culture)
+        {
+            try
+            {
+                bool? pass = (bool?)value[0];
+                ParameterOptions status = (ParameterOptions)value[1];
+                if (status == ParameterOptions.Optional && pass == null)
+                    return Visibility.Visible;
+                else
+                    return Visibility.Hidden;
+            }
+            catch
+            {
+                MessageBox.Show(@"Error casting inputs to VisibilityOptionalIconConverter");
+                return Visibility.Hidden;
+                //throw new Exception(@"Error casting inputs to VisibilityOptionalIconConverter");
+            }
+            
+        }
+        public object[] ConvertBack(object value, Type[] targetTypes,
+               object parameter, System.Globalization.CultureInfo culture)
+        {
+            throw new NotImplementedException();
         }
     }
     public class ToStringConverter : IValueConverter

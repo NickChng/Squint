@@ -36,8 +36,10 @@ namespace SquintScript.Views
         {
             try
             {
-                Ctr.Initialize(Dispatcher.CurrentDispatcher);
                 InitializeComponent();
+                System.Threading.Thread.Sleep(3000); // 
+                // Note that Squint is initialized when the windows Loaded Event is fired, (see OnLoaded)
+                // This is necessary so any message boxes and exceptions that get thrown by Squint on start are visible to the user.
             }
             catch (Exception ex)
             {
@@ -45,6 +47,8 @@ namespace SquintScript.Views
             }
             
         }
+
+        
 
         private void OnSelectedStructureChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
         {
@@ -219,16 +223,7 @@ namespace SquintScript.Views
             }
             return index;
         }
-        //private void StructureAliasList_MouseEnter(object sender, MouseEventArgs e)
-        //{
-
-        //    var VM = (sender as ListBox).DataContext as StructureSelector;
-        //    if (e.LeftButton == MouseButtonState.Released && VM.DragSelected)
-        //    {
-        //        VM.DragSelected = false;
-        //        (sender as ListBox).AllowDrop = false;
-        //    }
-        //}
+ 
 
         ListViewItem GetListViewItem(int index, ListView LV)
         {
@@ -256,22 +251,7 @@ namespace SquintScript.Views
         }
 
         private List<DependencyObject> hitResults = new List<DependencyObject>();
-        //void ConstraintListView_DragLeave(object sender, DragEventArgs e)
-        //{
-        //    var gd = sender as Grid;
 
-        //    if (gd == null) return;
-        //    Point pt = e.GetPosition(this);
-        //    hitResults.Clear();
-        //    VisualTreeHelper.HitTest(gd, null, GridHitTestResultCallback,
-        //        new PointHitTestParameters(pt));
-
-        //    if (!hitResults.Contains(gd))
-        //    {
-        //        (DataContext as Presenter).Protocol.DragSelected = false;
-        //        ConstraintListView.AllowDrop = false;
-        //    }
-        //}
 
         HitTestResultBehavior GridHitTestResultCallback(HitTestResult result)
         {
@@ -279,30 +259,6 @@ namespace SquintScript.Views
             return HitTestResultBehavior.Continue;
         }
 
-        //private void ConstraintListView_MouseLeave(object sender, MouseEventArgs e)
-        //{
-        //    if (this.IsMouseOverTarget(this, e.GetPosition))
-        //    {
-        //        (DataContext as Presenter).Protocol.DragSelected = false;
-        //        ConstraintListView.AllowDrop = false;
-        //    }
-
-        //}
-        //private void ConstraintListView_MouseEnter(object sender, MouseEventArgs e)
-        //{
-
-        //    if (e.LeftButton == MouseButtonState.Released && (DataContext as Presenter).Protocol.DragSelected)
-        //    {
-        //        (DataContext as Presenter).Protocol.DragSelected = false;
-        //        ConstraintListView.AllowDrop = false;
-        //    }
-        //}
-        //private void ConstraintListView_MouseUp(object sender, MouseButtonEventArgs e)
-        //{
-        //    var VM = (sender as ListView).DataContext as Presenter;
-        //    VM.Protocol.DragSelected = false;
-        //    ConstraintListView.AllowDrop = false;
-        //}
         private void TextBox_KeyEnterUpdate(object sender, KeyEventArgs e)
         {
             if (e.Key == Key.Enter)
@@ -313,6 +269,13 @@ namespace SquintScript.Views
                 BindingExpression binding = BindingOperations.GetBindingExpression(tBox, prop);
                 if (binding != null) { binding.UpdateSource(); }
             }
+        }
+
+
+        private void OnLoaded(object sender, RoutedEventArgs e)
+        {
+            var uiDispatcher = Dispatcher.CurrentDispatcher;
+            Task.Run(() => Ctr.Initialize(uiDispatcher));
         }
     }
 }

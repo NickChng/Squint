@@ -1,10 +1,10 @@
-﻿<UserControl x:Class="SquintScript.Controls.EclipseProtocolPopup"
+﻿<UserControl x:Class="SquintScript.Views.EclipseProtocolPopup"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:main="clr-namespace:SquintScript"
-             xmlns:local="clr-namespace:SquintScript.Controls"
+             xmlns:local="clr-namespace:SquintScript.Views"
              mc:Ignorable="d" 
              x:Name="EclipseProtocol_Popup"
              Height="Auto" Width="Auto">

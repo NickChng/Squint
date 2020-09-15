@@ -8,6 +8,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Input;
 using wpfbrush = System.Windows.Media.SolidColorBrush;
 using wpfcolor = System.Windows.Media.Color;
@@ -327,7 +328,7 @@ namespace SquintScript.ViewModels
         }
         public double ReferenceDose
         {
-            get { return Comp.ReferenceDose; }
+            get { return Comp.TotalDose; }
             set
             {
                 SetReferenceDose(value);
@@ -370,7 +371,7 @@ namespace SquintScript.ViewModels
         }
         private async void SetReferenceDose(double dose)
         {
-            Comp.ReferenceDose = dose;
+            Comp.TotalDose = dose;
             await Task.Run(() =>
             {
                 Ctr.UpdateConstraints(Comp.ID, null);
@@ -451,10 +452,10 @@ namespace SquintScript.ViewModels
         public ComponentSelector Component
         {
             get { return Components.FirstOrDefault(x => x.Id == Con.ComponentID); }
-            set 
-            { 
+            set
+            {
                 if (Con.ComponentID != value.Id)
-                    Ctr.ChangeConstraintComponent(Con.ID, value.Id); 
+                    Ctr.ChangeConstraintComponent(Con.ID, value.Id);
             }
         }
         public string ComponentName
@@ -702,7 +703,7 @@ namespace SquintScript.ViewModels
         }
         public string GetResult(int AssessmentId)
         {
-            ConstraintResultView CRV = Con.GetResult(AssessmentId);
+            ConstraintResultViewModel CRV = Con.GetResult(AssessmentId);
             if (CRV != null)
                 return CRV.Result;
             else
@@ -710,7 +711,7 @@ namespace SquintScript.ViewModels
         }
         public List<ConstraintResultStatusCodes> GetStatusCodes(int AssessmentId)
         {
-            ConstraintResultView CRV = Con.GetResult(AssessmentId);
+            ConstraintResultViewModel CRV = Con.GetResult(AssessmentId);
             if (CRV != null)
                 return CRV.StatusCodes;
             else
@@ -718,7 +719,7 @@ namespace SquintScript.ViewModels
         }
         public bool isResultCalculating(int AssessmentId)
         {
-            ConstraintResultView CRV = Con.GetResult(AssessmentId);
+            ConstraintResultViewModel CRV = Con.GetResult(AssessmentId);
             if (CRV != null)
                 return CRV.isCalculating;
             else
@@ -726,7 +727,7 @@ namespace SquintScript.ViewModels
         }
         public ReferenceThresholdTypes GetViolationStatus(int AssessmentId)
         {
-            ConstraintResultView CRV = Con.GetResult(AssessmentId);
+            ConstraintResultViewModel CRV = Con.GetResult(AssessmentId);
             if (CRV != null)
                 return CRV.ThresholdStatus;
             else
@@ -916,7 +917,7 @@ namespace SquintScript.ViewModels
         public string CourseId { get; private set; } = "";
         public PlanTypes PlanType { get; set; } = PlanTypes.Unset;
 
-        public PlanSelector(string planId = "", string planUID = "", string courseId = "", string structureSetUID = "", AssessmentComponentView ACVinit = null)
+        public PlanSelector(string planId = "", string planUID = "", string courseId = "", string structureSetUID = "", AssessmentComponentViewModel ACVinit = null)
         {
             PlanId = planId;
             StructureSetUID = structureSetUID;
@@ -924,8 +925,8 @@ namespace SquintScript.ViewModels
             CourseId = courseId;
             ACV = ACVinit;
         }
-        public AssessmentComponentView ACV = null;
-        public Controls.Control_ViewModel VM = new Controls.Control_ViewModel();
+        public AssessmentComponentViewModel ACV = null;
+        public OptimizationCheckViewModel VM = new OptimizationCheckViewModel();
     }
     [AddINotifyPropertyChangedInterface]
     public class CourseSelector
@@ -986,19 +987,52 @@ namespace SquintScript.ViewModels
     {
         public MainViewModel()
         {
-            ProtocolVM = new ProtocolViewModel(this);
-            PatientVM = new PatientViewModel(this);
-            SessionsVM = new SessionsViewModel(this);
-            AssessmentsVM = new AssessmentsView(this);
+            InitializingMessages = "Initializing Squint, please wait...";
+            Ctr.Initialized += Ctr_Initialized;
+            Ctr.ESAPIInitializing += Ctr_ESAPIInitialized;
+            Ctr.DatabaseInitializing += Ctr_DatabaseInitialized;
+            Ctr.DatabaseCreating += Ctr_DatabaseCreating;
         }
-        
-        public Controls.LoadingViewModel Loading_ViewModel { get; set; } = new Controls.LoadingViewModel();
+
+        private async void Ctr_Initialized(object sender, EventArgs e)
+        {
+            PatientVM = new PatientViewModel(this);
+            InitializingMessages = "Loading protocol list...";
+            await Task.Run(() =>
+            {
+                ProtocolVM = new ProtocolViewModel(this);
+                SessionsVM = new SessionsViewModel(this);
+                AssessmentsVM = new AssessmentsView(this);
+                SquintIsInitializing = false;
+            });
+        }
+
+        private void Ctr_DatabaseCreating(object sender, EventArgs e)
+        {
+            InitializingMessages = "Preparing Squint database for first use...";
+        }
+
+        private void Ctr_DatabaseInitialized(object sender, EventArgs e)
+        {
+            InitializingMessages = "Connecting to Squint database...";
+        }
+
+        private void Ctr_ESAPIInitialized(object sender, EventArgs e)
+        {
+            InitializingMessages = "Starting ESAPI...";
+        }
+
+        public LoadingViewModel Loading_ViewModel { get; set; } = new LoadingViewModel();
         public ProtocolViewModel ProtocolVM { get; set; }
         public PatientViewModel PatientVM { get; set; }
-        public SessionsViewModel SessionsVM { get; set; } 
+        public SessionsViewModel SessionsVM { get; set; }
         public AssessmentsView AssessmentsVM { get; set; }
         public EclipseProtocolPopupViewModel EclipseProtocolPopupVM { get; set; }
         public bool AdminOptionsToggle { get; set; } = false;
+
+        public bool SquintIsInitializing { get; set; } = true;
+
+        public string InitializingMessages { get; set; } = "Squint is initializing, please wait...";
         public bool SquintIsBusy { get; set; } = false;
         public int NumAdminButtons { get; private set; } = 8;
         public bool PlanCheckVisible { get; set; } = false;
@@ -1266,7 +1300,7 @@ namespace SquintScript.ViewModels
                 ProtocolCheckVisible = false;
                 PlanCheckVisible = true;
                 isPlanCheckCalculating = true;
-                Loading_ViewModel = new Controls.LoadingViewModel() { LoadingMessage = @"Checking plan, please wait..." };
+                Loading_ViewModel = new LoadingViewModel() { LoadingMessage = @"Checking plan, please wait..." };
 
                 await ProtocolVM.ChecklistViewModel.DisplayChecksForPlan(p);
                 isPlanCheckCalculating = false;
@@ -1331,8 +1365,8 @@ namespace SquintScript.ViewModels
         {
             SessionSaveVisibility ^= true;
         }
-        
-      
+
+
         private void LaunchAdminView(object param = null)
         {
             if (Ctr.PatientOpen)
@@ -1409,7 +1443,7 @@ namespace SquintScript.ViewModels
             var CS = (ConstraintSelector)param;
             CS.Pinned = !CS.Pinned;
         }
-      
+
         public ICommand UpdateProtocolCommand
         {
             get { return new DelegateCommand(UpdateProtocol); }
@@ -1468,8 +1502,8 @@ namespace SquintScript.ViewModels
                 MessageBox.Show("Please disable administration mode before loading a patient.", "Admin mode active");
                 return;
             }
-//            PatientVM = new PatientViewModel(this);
-           isLoading = true;
+            //            PatientVM = new PatientViewModel(this);
+            isLoading = true;
             LoadingString = "Loading patient";
             if (Ctr.PatientOpen)
             {
@@ -1498,7 +1532,7 @@ namespace SquintScript.ViewModels
 
         }
         private static EventHandler SynchronizeHandler;
-        private async void SynchronizePatient(object param = null)
+        private void SynchronizePatient(object param = null)
         {
             if (Ctr.PatientOpen && Ctr.ProtocolLoaded && Ctr.GetAssessmentList().Count > 0)
             {
@@ -1539,7 +1573,7 @@ namespace SquintScript.ViewModels
             }
             foreach (AssessmentView AV in AssessmentsVM.Assessments)
             {
-                foreach (AssessmentComponentView ACV in AV.ACVs)
+                foreach (AssessmentComponentViewModel ACV in AV.ACVs)
                 {
                     ObservableCollection<CourseSelector> UpdatedCourses = new ObservableCollection<CourseSelector>();
                     foreach (string CourseName in Ctr.GetCourseNames())

@@ -9,16 +9,6 @@ using System.Windows;
 
 namespace SquintScript.Interfaces
 {
-
-    public interface IDisplayable
-    {
-        string DisplayName { get; }
-    }
-    public interface IElementOf<T>
-    {
-        bool IsElementOf(T SuperSet);
-        string SuperSetName { get; }
-    }
     public interface ITestListItem
     {
         void SetCheckValue(object value);
@@ -32,7 +22,7 @@ namespace SquintScript.Interfaces
         string CheckValueString { get; }
         TrackedValue<T> Reference{ get; set; }
         T Check{ get; set; }
-        bool Warning { get; }
+        bool? Warning { get; }
         string WarningString { get; }
     }
     public interface ITestListClassItem<T> : ITestListItem 

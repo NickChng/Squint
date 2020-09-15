@@ -346,7 +346,7 @@ using SquintScript.ViewModels;
 //    }
 //}
 
-namespace SquintScript.Controls
+namespace SquintScript.Views
 {
     public class SquintDataColumn : DataGridTemplateColumn
     {

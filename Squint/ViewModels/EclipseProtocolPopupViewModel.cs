@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using System.Windows.Input;
 using PropertyChanged;
 using SquintScript.Interfaces;
-using SquintScript.ViewModelClasses;
+using SquintScript.TestFramework;
 using SquintScript.Extensions;
 using System.IO;
 using System.Xml.Serialization;
