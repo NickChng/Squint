@@ -127,6 +127,8 @@ namespace SquintScript.ViewModels
                 if (value != null)
                 {
                     E.AssignedStructureId = value;
+                    if (isUserAdded)
+                        ProtocolStructureName = value;
                     RaisePropertyChangedEvent(nameof(this.StructureColor));
                     RaisePropertyChangedEvent(nameof(this.LabelName));
                     Ctr.UpdateConstraints(E);
@@ -146,6 +148,11 @@ namespace SquintScript.ViewModels
             }
         }
 
+        public int DisplayOrder
+        {
+            get { return E.DisplayOrder; }
+            set { E.DisplayOrder = value; }
+        }
         public StructureLabel StructureLabel
         {
             get { return E.StructureLabel; }
@@ -309,6 +316,8 @@ namespace SquintScript.ViewModels
     public class ComponentSelector : ObservableObject
     {
         private bool isSelected { get; set; }
+
+        public bool isCreated { get { return Id < 0; } }
         public bool Pinned { get; set; } = false;
         public int DisplayHeight { get; } = 100;
         private Component Comp;
@@ -440,7 +449,7 @@ namespace SquintScript.ViewModels
         }
         public bool Pinned { get; set; } = false;
         public bool DragSelected { get; set; } = false;
-
+        public bool isCreated { get { return Con.isCreated; } }
         public bool ThresholdIsInterpolated
         {
             get
@@ -738,6 +747,15 @@ namespace SquintScript.ViewModels
             ConstraintUnitTypes.Clear();
             List<ConstraintUnits> ConUnitList = new List<ConstraintUnits>();
             List<ConstraintUnits> RefUnitList = new List<ConstraintUnits>();
+            if (ConstraintType == ConstraintTypeCodes.M)
+            {
+                ConUnitList.Add(ConstraintUnits.Unset);
+                RefUnitList.Add(ConstraintUnits.cGy);
+                RefUnitList.Add(ConstraintUnits.Percent);
+                RaisePropertyChangedEvent("ReferenceUnits");
+                RaisePropertyChangedEvent("ReferenceTypes");
+                return;
+            }
             ConUnitList.Add(ConstraintUnits.Percent);
             if (Con.isConstraintValueDose())
             {
@@ -835,11 +853,12 @@ namespace SquintScript.ViewModels
                 default:
                     RefreshFlag ^= true; // necessary for when these properties are updated internally to Squin, i.e. by an A/B ratio change
                     RaisePropertyChangedEvent(nameof(ConstraintSelector.ShortConstraintDefinition));
-                    RaisePropertyChangedEvent(nameof(ChangeStatusString));
+                    RaisePropertyChangedEvent(nameof(ConstraintSelector.ChangeStatusString));
                     RaisePropertyChangedEvent(nameof(ConstraintSelector.ConstraintType));
                     RaisePropertyChangedEvent(nameof(ConstraintSelector.ConstraintValue));
                     RaisePropertyChangedEvent(nameof(ConstraintSelector.ConstraintUnit));
                     RaisePropertyChangedEvent(nameof(ConstraintSelector.ReferenceValue));
+                    RaisePropertyChangedEvent(nameof(ConstraintSelector.ReferenceType));
                     RaisePropertyChangedEvent(nameof(ConstraintSelector.ReferenceUnit));
                     RaisePropertyChangedEvent(nameof(ConstraintSelector.MajorViolation));
                     RaisePropertyChangedEvent(nameof(ConstraintSelector.MinorViolation));
@@ -861,6 +880,67 @@ namespace SquintScript.ViewModels
         public ObservableCollection<ReferenceTypes> AvailableReferenceTypes { get; private set; } = new ObservableCollection<ReferenceTypes>() { ReferenceTypes.Unset };
         public ObservableCollection<ConstraintUnits> AvailableReferenceUnitTypes { get; private set; } = new ObservableCollection<ConstraintUnits>() { ConstraintUnits.Unset };
         public ObservableCollection<ComponentSelector> Components { get; private set; } = new ObservableCollection<ComponentSelector>() { };
+
+        public ICommand SetV95Command
+        {
+            get { return new DelegateCommand(SetV95); }
+        }
+        private void SetV95(object param = null)
+        {
+            ConstraintType = ConstraintTypeCodes.V;
+            Con.ReferenceType = ReferenceTypes.Lower;
+            Con.MajorViolation = 98;
+            Con.ReferenceScale = UnitScale.Relative;
+            Con.ConstraintScale = UnitScale.Relative;
+            Con.ConstraintValue = 95;
+            UpdateConstraint();
+        }
+
+        public ICommand SetD0035Command
+        {
+            get { return new DelegateCommand(SetD0035); }
+        }
+        private void SetD0035(object param = null)
+        {
+            ConstraintType = ConstraintTypeCodes.D;
+            Con.ReferenceType = ReferenceTypes.Upper;
+            Con.MajorViolation = 0;
+            Con.ReferenceScale = UnitScale.Absolute;
+            Con.ConstraintScale = UnitScale.Absolute;
+            Con.ConstraintValue = 0.035;
+            var test = AvailableReferenceUnitTypes;
+            UpdateConstraint();
+        }
+
+        public ICommand SetDMinCommand
+        {
+            get { return new DelegateCommand(SetDMin); }
+        }
+        private void SetDMin(object param = null)
+        {
+            ConstraintType = ConstraintTypeCodes.D;
+            Con.ReferenceType = ReferenceTypes.Lower;
+            Con.MajorViolation = 95;
+            Con.ReferenceScale = UnitScale.Relative;
+            Con.ConstraintScale = UnitScale.Relative;
+            Con.ConstraintValue = 100;
+            UpdateConstraint();
+        }
+
+        public ICommand SetMeanDoseCommand
+        {
+            get { return new DelegateCommand(SetMeanDose); }
+        }
+        private void SetMeanDose(object param = null)
+        {
+            ConstraintType = ConstraintTypeCodes.M;
+            Con.ReferenceType = ReferenceTypes.Upper;
+            Con.MajorViolation = 0;
+            Con.ReferenceScale = UnitScale.Absolute;
+            Con.ConstraintScale = UnitScale.Relative;
+            Con.ConstraintValue = 0;
+            UpdateConstraint();
+        }
 
     }
     [AddINotifyPropertyChangedInterface]
@@ -1214,8 +1294,6 @@ namespace SquintScript.ViewModels
                     return;
             }
             Ctr.StartNewSession();
-            ProtocolVM.Unsubscribe();
-            ProtocolVM = new ProtocolViewModel(this);
             SquintIsBusy = true;
             System.Windows.Forms.OpenFileDialog d = new System.Windows.Forms.OpenFileDialog();
             d.Title = "Open Ctr.GetProtocolView() File";
@@ -1474,8 +1552,6 @@ namespace SquintScript.ViewModels
                     LoadingString = "Deleting Protocol";
                     isLoading = true;
                     await Task.Run(() => Ctr.DeleteProtocol(Ctr.CurrentProtocol.ID));
-                    ProtocolVM.Unsubscribe();
-                    ProtocolVM = new ProtocolViewModel(this);
                     Ctr.StartNewSession();
                     isLoading = false;
                     LoadingString = "";
@@ -1512,8 +1588,7 @@ namespace SquintScript.ViewModels
                     return;
                 CloseCheckList();
                 Ctr.ClosePatient();
-                //ProtocolVM.Unsubscribe();
-                //ProtocolVM = new ProtocolViewModel(this);
+                Ctr.CloseProtocol();
                 Ctr.StartNewSession();
                 foreach (string CourseId in Ctr.GetCourseNames())
                 {
@@ -1522,11 +1597,11 @@ namespace SquintScript.ViewModels
             }
             AdminOptionsToggle = false;
             await Ctr.OpenPatient(PatientVM.PatientId);
-            //SessionsVM = new SessionsViewModel(this);
             if (Ctr.PatientOpen)
                 PatientVM.TextBox_Background_Color = new System.Windows.Media.SolidColorBrush(wpfcolors.AliceBlue);
             else
                 PatientVM.TextBox_Background_Color = new System.Windows.Media.SolidColorBrush(wpfcolors.DarkOrange);
+            //ProtocolVM.UpdateProtocolView();
             isLoading = false;
             LoadingString = "";
 
@@ -1607,10 +1682,13 @@ namespace SquintScript.ViewModels
                 if (Result == MessageBoxResult.Cancel)
                     return;
                 Ctr.ClosePatient();
-                CloseCheckList();
-                ProtocolVM.Unsubscribe();
-                ProtocolVM = new ProtocolViewModel(this);
+                Ctr.CloseProtocol();
                 Ctr.StartNewSession();
+                CloseCheckList();
+                ProtocolVM.UpdateProtocolView();
+                //ProtocolVM.Unsubscribe();
+                //ProtocolVM = new ProtocolViewModel(this);
+                
             }
             else PatientVM.isPIDVisible ^= true;
         }

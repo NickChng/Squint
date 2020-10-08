@@ -14,28 +14,15 @@ namespace SquintScript
     {
         bool IsChanged { get; }
     }
-    [AddINotifyPropertyChangedInterface]
-    public class TrackedValue<T> : ObservableObject, ITrackedValue, INotifyPropertyChanged, IRevertibleChangeTracking, IComparable<TrackedValue<T>>
+
+   [AddINotifyPropertyChangedInterface]
+    public class TrackedValue<T> : ObservableObject, ITrackedValue, INotifyPropertyChanged, IComparable<TrackedValue<T>>
     {
         protected T _ReferenceValue;
         protected T _CurrentValue;
-        
+
         public string DisplayName { get; set; }
 
-        //private event EventHandler _UpdateEvent = null;
-        
-        //public void AcceptChangesOnEvent(EventHandler e)
-        //{
-        //    if (_UpdateEvent != null)
-        //        _UpdateEvent -= UpdateOnEvent;
-        //    if (e != null)
-        //        e += UpdateOnEvent;
-        //    _UpdateEvent = e;
-        //}
-        //private void UpdateOnEvent(object sender, EventArgs e)
-        //{
-        //    AcceptChanges();
-        //}
         public bool IsChanged { get; private set; }
         public string Display()
         {
@@ -115,28 +102,4 @@ namespace SquintScript
         public T ReferenceValue { get { return _ReferenceValue; } }
     }
 
-    [AddINotifyPropertyChangedInterface]
-    public class TrackedValueWithReferences<T> : TrackedValue<T> where T : IComparable
-    {
-        public TrackedValue<T> majorViolation { get; private set; }
-        public TrackedValue<T> minorViolation { get; private set; }
-        public TrackedValue<T> stop { get; private set; }
-
-        public TrackedValueWithReferences(T value) : base(value)
-        {
-            _ReferenceValue = value;
-        }
-        public void SetMajorViolation(T value)
-        {
-            majorViolation = new TrackedValue<T>(value);
-        }
-        public void SetMinorViolation(T value)
-        {
-            minorViolation = new TrackedValue<T>(value);
-        }
-        public void SetStop(T value)
-        {
-            stop = new TrackedValue<T>(value);
-        }
-    }
 }

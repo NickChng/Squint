@@ -59,8 +59,8 @@ namespace SquintScript
         [Description("Maximum X field size")] MaximumXfieldSize,
         [Description("Minimum Y field size")] MinimumYfieldSize,
         [Description("Maximum Y field size")] MaximumYfieldSize,
-        [Description("Bolus HU")] BolusThickness,
-        [Description("Bolus thickness [cm]")] BolusHU,
+        [Description("Bolus HU")] BolusHU,
+        [Description("Bolus thickness [cm]")] BolusThickness,
         [Description("Tolerance Table")] ToleranceTable
     }
     public enum Energies
@@ -69,7 +69,7 @@ namespace SquintScript
         [Description("6X")] Photons6 = 2,
         [Description("10X")] Photons10 = 3,
         [Description("15X")] Photons15 = 4,
-        [Description("10XFFF")] Photons10FFF = 5
+        [Description("10XFFF")] Photons10FFF =5
     }
     public enum Trajectories
     {
@@ -106,7 +106,7 @@ namespace SquintScript
 
     public enum TreatmentIntents
     {
-        [Description("Unset")] Unset,
+        [Description("")] Unset,
         [Description("Curative")] Curative,
         [Description("Adjuvant")] Adjuvant,
         [Description("Neo-adjuvant")] NeoAdjuvant,
@@ -396,7 +396,7 @@ namespace SquintScript
 
     public enum TreatmentCentres
     {
-        [Description("-")] Unset,
+        [Description("")] Unset,
         [Description("Show all")] All,
         [Description("Provincial")] Provincial,
         [Description("CN")] CN,
@@ -408,7 +408,7 @@ namespace SquintScript
     }
     public enum ApprovalLevels
     {
-        [Description("-")] Unset,
+        [Description("")] Unset,
         [Description("Show all")] All,
         [Description("Unapproved")] Unapproved,
         [Description("Reviewed")] Reviewed,
@@ -417,7 +417,7 @@ namespace SquintScript
     }
     public enum ProtocolTypes
     {
-        [Description("-")] Unset,
+        [Description("")] Unset,
         [Description("Show all")] All,
         [Description("Clinical")] Clinical,
         [Description("Trial")] Trial,
@@ -426,7 +426,7 @@ namespace SquintScript
     }
     public enum TreatmentSites
     {
-        [Description("-")] Unset,
+        [Description("")] Unset,
         [Description("Show all")] All,
         [Description("GU")] GU,
         [Description("GI")] GI,
@@ -440,7 +440,7 @@ namespace SquintScript
     }
     public enum TreatmentTechniques
     {
-        [Description("-")] Unset,
+        [Description("")] Unset,
         [Description("Conformal")] Conformal,
         [Description("IMRT")] IMRT,
         [Description("VMAT")] VMAT,

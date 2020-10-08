@@ -384,7 +384,6 @@
                                                        Visibility="{TemplateBinding ComputedVerticalScrollBarVisibility}" Value="{Binding VerticalOffset, Mode=OneWay, RelativeSource={RelativeSource TemplatedParent}}" ViewportSize="{TemplateBinding ViewportHeight}"/>
                                             <Grid Grid.Column="1" Grid.Row="3" Margin="0,5,0,5">
                                                 <Grid.ColumnDefinitions>
-                                                    <!--<ColumnDefinition Width="50"/>-->
                                                     <ColumnDefinition Width="{Binding NonFrozenColumnsViewportHorizontalOffset, RelativeSource={RelativeSource AncestorType={x:Type DataGrid}}}"/>
                                                     <ColumnDefinition Width="*"/>
                                                 </Grid.ColumnDefinitions>
@@ -751,7 +750,7 @@
                 <MultiDataTrigger>
                     <MultiDataTrigger.Conditions>
                         <Condition Binding="{Binding RelativeSource={RelativeSource AncestorLevel=3, AncestorType=Grid}, Path=IsMouseOver}" Value="false"/>
-                        <Condition Binding="{Binding ElementName=SquintWindow, Path=DataContext.Protocol.DragSelected}" Value="false"/>
+                        <Condition Binding="{Binding ElementName=SquintWindow, Path=DataContext.ProtocolVM.DragSelected}" Value="false"/>
                     </MultiDataTrigger.Conditions>
                     <Setter Property="IsSelected" Value="false"></Setter>
                 </MultiDataTrigger>
@@ -1188,7 +1187,7 @@
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate>
-                        <Grid Background="White" HorizontalAlignment="Stretch">
+                        <Grid Background="White" HorizontalAlignment="Stretch" Margin="0,0,10,0">
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="Auto"/>
                                 <RowDefinition Height="10"/>

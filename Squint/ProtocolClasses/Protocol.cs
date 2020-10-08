@@ -7,7 +7,7 @@ namespace SquintScript
 {
     public class Protocol
     {
-        
+
         public List<Component> Components = new List<Component>();
         public List<ProtocolStructure> Structures = new List<ProtocolStructure>();
 
@@ -39,19 +39,26 @@ namespace SquintScript
             ApprovingUser = DbO.DbUser_Approver.ARIA_ID;
             Comments = DbO.Comments;
             ProtocolType = (ProtocolTypes)DbO.DbProtocolType.ProtocolType;
-            _TreatmentCentre = new TrackedValue<TreatmentCentres>((TreatmentCentres)DbO.DbTreatmentCentre.TreatmentCentre);
-            _TreatmentSite = new TrackedValue<TreatmentSites>((TreatmentSites)DbO.DbTreatmentSite.TreatmentSite);
-            _TreatmentIntent = new TrackedValue<TreatmentIntents>((TreatmentIntents)DbO.TreatmentIntent);
-       }
+            TreatmentCentre = new TrackedValue<TreatmentCentres>((TreatmentCentres)DbO.DbTreatmentCentre.TreatmentCentre);
+            TreatmentSite = new TrackedValue<TreatmentSites>((TreatmentSites)DbO.DbTreatmentSite.TreatmentSite);
+            TreatmentIntent = new TrackedValue<TreatmentIntents>((TreatmentIntents)DbO.TreatmentIntent);
+        }
         //Properties
         public int ID { get; private set; }
 
         private TrackedValue<string> _ProtocolName = new TrackedValue<string>("");
         public string ProtocolName
         {
-            get { return _ProtocolName.Value; }
-            set { _ProtocolName.Value = value; }
+            get
+            {
+                return _ProtocolName.Value;
+            }
+            set
+            {
+                _ProtocolName.Value = value;
+            }
         }
+
         public ProtocolTypes ProtocolType { get; set; }
         public string CreationDate { get; set; }
         public ApprovalLevels ApprovalLevel { get; set; }
@@ -59,31 +66,13 @@ namespace SquintScript
         public string ApprovingUser { get; set; }
         public string LastModifiedBy { get; set; }
         public string Comments { get; set; } = "";
-        public TrackedValue<TreatmentCentres> _TreatmentCentre { get; private set; } = new TrackedValue<TreatmentCentres>(TreatmentCentres.Unset);
-        public TreatmentCentres TreatmentCentre
-        {
-            get { return _TreatmentCentre.Value; }
-            set { _TreatmentCentre.Value = value; }
-        }
-        public TrackedValue<TreatmentSites> _TreatmentSite { get; private set; } = new TrackedValue<TreatmentSites>(TreatmentSites.Unset);
-        public TreatmentSites TreatmentSite
-        {
-            get { return _TreatmentSite.Value; }
-            set { _TreatmentSite.Value = value; }
-        }
-        public TrackedValue<TreatmentIntents> _TreatmentIntent { get; private set; } = new TrackedValue<TreatmentIntents>(TreatmentIntents.Unset);
-        public TreatmentIntents TreatmentIntent
-        {
-            get { return _TreatmentIntent.Value; }
-            set { _TreatmentIntent.Value = value; }
-        }
+        public TrackedValue<TreatmentCentres> TreatmentCentre { get; private set; } = new TrackedValue<TreatmentCentres>(TreatmentCentres.Unset);
+        public TrackedValue<TreatmentSites> TreatmentSite { get; private set; } = new TrackedValue<TreatmentSites>(TreatmentSites.Unset);
+        public TrackedValue<TreatmentIntents> TreatmentIntent { get; private set; } = new TrackedValue<TreatmentIntents>(TreatmentIntents.Unset);
+
         // Protocol Checklist
         public ProtocolChecklist Checklist { get; set; }
 
-        public void AcceptChanges()
-        {
-            _ProtocolName.AcceptChanges();
-        }
         public ProtocolReferenceValues GetReferenceValues()
         {
             return new ProtocolReferenceValues(_ProtocolName.ReferenceValue);

@@ -541,7 +541,7 @@ namespace SquintScript
                        && (ConstraintScale != UnitScale.Unset || ConstraintType == ConstraintTypeCodes.M)
                        && (ConstraintType != ConstraintTypeCodes.CI || ReferenceStructureId != 1)
                        && ConstraintValue >= 0
-                       && ReferenceValue >= 0
+                       && (ReferenceValue >= 0 || (double.IsNaN(ReferenceValue) && _ThresholdCalculator is InterpolatedThreshold))
                        && ReferenceType != ReferenceTypes.Unset
                        && ComponentID != 1
                        && ReferenceScale != UnitScale.Unset)

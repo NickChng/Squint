@@ -126,7 +126,7 @@ namespace SquintScript
                 }
 
                 public string DataPath { get; private set; }
-                private double _Xi;
+                private double _Xi = double.NaN;
                 private double[] XMajor;
                 private double[] YMajor;
                 private double[] XMinor;

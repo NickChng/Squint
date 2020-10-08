@@ -105,6 +105,18 @@ namespace SquintScript
         public string CourseId;
         public string PlanId;
         public GantryDirection GantryDirection { get; set; }
+
+        public Trajectories Trajectory
+        {
+            get
+            {
+                if (GantryDirection == GantryDirection.Clockwise)
+                    return Trajectories.CW;
+                if (GantryDirection == GantryDirection.CounterClockwise)
+                    return Trajectories.CCW;
+                return Trajectories.Unset;
+            }
+        }
         public Energies Energy { get; set; }
         public string Id { get; set; } = "Default Field";
         public double MU { get; set; } = 0;

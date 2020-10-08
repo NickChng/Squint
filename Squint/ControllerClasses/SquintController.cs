@@ -20,6 +20,7 @@ using System.Windows.Threading;
 using System.Runtime.Remoting.Contexts;
 using VMSTemplates;
 using System.Reflection;
+using AutoMapper;
 //using System.Windows.Forms;
 
 namespace SquintScript
@@ -40,6 +41,7 @@ namespace SquintScript
             private set { _CurrentStructureSet = value; CurrentStructureSetChanged?.Invoke(null, EventArgs.Empty); }
         }
 
+        private static List<BeamGeometryDefinition> _BeamGeometryDefinitions;
         public static Dictionary<int, Component> ComponentViews { get; private set; } = new Dictionary<int, Component>();
         public static Dictionary<int, AssessmentView> AssessmentViews { get; private set; } = new Dictionary<int, AssessmentView>();
         public static bool SavingNewProtocol { get; } = false;
@@ -47,6 +49,7 @@ namespace SquintScript
         private static int _NewStructureCounter = 1;
         private static int _NewPlanCounter = 1;
         private static int _AssessmentNameIterator = 1;
+        public static string DefaultNewStructureName = "UserStructure";
         public static SquintConfiguration Config;
         //static public bool PatientOpen { get; private set; } = false;
         public static bool ProtocolLoaded { get; private set; } = false;
@@ -77,6 +80,8 @@ namespace SquintScript
         {
             try
             {
+                // Initialize automapper
+                
                 //Get configuration
                 XmlSerializer ConfigSer = new XmlSerializer(typeof(SquintConfiguration));
                 var AssemblyName = System.Diagnostics.Process.GetCurrentProcess().ProcessName;
@@ -96,6 +101,7 @@ namespace SquintScript
                 _uiDispatcher = uiDispatcher;
                 InitializeESAPI();
                 InitializeDatabase();
+                InitializeDefinitions();
                 CurrentSession = new Session();
                 _uiDispatcher.Invoke(Initialized, new object[] { null, EventArgs.Empty });
                 return true;
@@ -105,6 +111,11 @@ namespace SquintScript
                 MessageBox.Show(ex.Message);
                 return false;
             }
+        }
+        private static void InitializeDefinitions()
+        {
+            // Automapper.Initialize();  // unable to get this to work globally due to limitations with ConvertUsing in the version of Automapper that supports .net 4.5
+            _BeamGeometryDefinitions = DbController.GetBeamGeometryDefinitions();
         }
         private static void InitializeESAPI()
         {
@@ -595,7 +606,7 @@ namespace SquintScript
             var Con = AllConstraints.FirstOrDefault(x => x.ID == Id);
             Con.FlagForDeletion();
             int NewDisplayOrder = 1;
-            foreach (Constraint C in CurrentProtocol.Components.FirstOrDefault(x => x.ID == Con.ID).Constraints.Where(x => !x.ToRetire))
+            foreach (Constraint C in CurrentProtocol.Components.FirstOrDefault(x => x.ID == Con.ComponentID).Constraints.Where(x => !x.ToRetire))
             {
                 Con.DisplayOrder.Value = NewDisplayOrder++;
             }
@@ -620,6 +631,19 @@ namespace SquintScript
                     Comp.DisplayOrder = NewDisplayOrder++;
                 }
             }
+        }
+        public static void DeleteStructure(int Id)
+        {
+            if (CurrentProtocol.Structures.Count() > 1)
+            {
+                GetProtocolStructure(Id).FlagForDeletion();
+                int NewDisplayOrder = 1;
+                foreach (ProtocolStructure PS in CurrentProtocol.Structures.OrderBy(x => x.DisplayOrder))
+                {
+                    PS.DisplayOrder = NewDisplayOrder++;
+                }
+            }
+
         }
         public static void ShiftConstraintUp(int Id)
         {
@@ -685,7 +709,11 @@ namespace SquintScript
                 return null;
             else
             {
-                string NewStructureName = string.Format("UserStructure{0}", _NewStructureCounter++);
+                string NewStructureName = string.Format("{0}{1}", DefaultNewStructureName, _NewStructureCounter++);
+                while (CurrentProtocol.Structures.Select(x=>x.ProtocolStructureName).Any(x=> x.Equals(NewStructureName)))
+                {
+                    NewStructureName = string.Format("{0}{1}", DefaultNewStructureName, _NewStructureCounter++);
+                }
                 StructureLabel SL = await DbController.GetStructureLabel(1);
                 ProtocolStructure newProtocolStructure = new ProtocolStructure(SL, NewStructureName);
                 newProtocolStructure.DisplayOrder = CurrentProtocol.Structures.Count() + 1;
@@ -703,6 +731,7 @@ namespace SquintScript
         {
             // Reset adjusted protocol flag
             ClosePatient();
+            CloseProtocol();
             StartNewSession();
             //load the XML document
             try
@@ -1099,6 +1128,11 @@ namespace SquintScript
                         else
                             ProtocolStructure.ProtocolStructureName = S.ProtocolStructureName;
                     }
+                    if (S.Label == null)
+                    {
+                        MessageBox.Show(string.Format("Error: Structure {1} in protocol {0} is missing a label", _XMLProtocol.ProtocolMetaData.ProtocolName, S.ProtocolStructureName));
+                        return false;
+                    }
                     if (S.EclipseAliases != null)
                     {
                         int displayOrder = 1;
@@ -1219,7 +1253,13 @@ namespace SquintScript
                             DbA.HU = string.IsNullOrEmpty(A.HU) ? null : (double?)double.Parse(A.HU);
                             DbA.ToleranceHU = string.IsNullOrEmpty(A.ToleranceHU) ? null : (double?)double.Parse(A.ToleranceHU);
                             DbA.DbProtocolChecklist = Checklist;
-                            DbA.ProtocolStructure_ID = ProtocolStructureNameToID[A.ProtocolStructureName];
+                            if (ProtocolStructureNameToID.ContainsKey(A.ProtocolStructureName))
+                                DbA.ProtocolStructure_ID = ProtocolStructureNameToID[A.ProtocolStructureName];
+                            else
+                            {
+                                MessageBox.Show(string.Format("Error importing Protocol {0}: Artifact check references a structure that can't be found. Possible reasons are that it  is not defined, or that there are capitalization errors in the defintiion.", P.ProtocolName));
+                                return false;
+                            }
                         }
                     }
                 }
@@ -1587,7 +1627,7 @@ namespace SquintScript
                 XMLProtocol.ProtocolChecklist.Artifacts.Artifact.Add(new SquintProtocolXML.ArtifactDefinition
                 {
                     HU = A.RefHU.Value.ToString(),
-                    ProtocolStructureName = A.E.ProtocolStructureName,
+                    ProtocolStructureName = Ctr.GetProtocolStructure(A.ProtocolStructureId.Value).ProtocolStructureName,
                     ToleranceHU = A.ToleranceHU.Value.ToString()
                 });
             }
@@ -1664,12 +1704,7 @@ namespace SquintScript
                     {
                         bd.ValidGeometries.Geometry.Add(new SquintProtocolXML.GeometryDefinition()
                         {
-                            StartAngle = vg.StartAngle,
-                            EndAngle = vg.EndAngle,
-                            StartAngleTolerance = vg.StartAngleTolerance,
-                            EndAngleTolerance = vg.EndAngleTolerance,
-                            GeometryName = vg.GeometryName,
-                            Trajectory = vg.Trajectory.ToString()
+                            GeometryName = vg.DisplayName
                         });
                     }
                 }
@@ -1693,6 +1728,7 @@ namespace SquintScript
                                 ConstraintValue = Con.ConstraintValue.ToString(),
                                 MajorViolation = Con.MajorViolation.ToString(),
                                 MinorViolation = Con.MinorViolation.ToString(),
+                                ReferenceStructureName = Con.ReferenceStructureName,
                                 DataTablePath = Con.ThresholdDataPath,
                                 Stop = Con.Stop.ToString(),
                                 ProtocolStructureName = Con.ProtocolStructureName
@@ -1745,13 +1781,10 @@ namespace SquintScript
 
         public static async Task Save_UpdateProtocol()
         {
-            await DbController.Save_UpdateProtocol();
-            if (CurrentProtocol.ID < 0) // first save of protocol
-            {
-                StartNewSession();
-                await LoadProtocolFromDb(CurrentProtocol.ProtocolName);
-            }
             CurrentProtocol.LastModifiedBy = SquintUser;
+            await DbController.Save_UpdateProtocol();
+            string ProtocolNameToReload = CurrentProtocol.ProtocolName;
+            await LoadProtocolFromDb(ProtocolNameToReload);
             _uiDispatcher.Invoke(ProtocolUpdated, new[] { null, EventArgs.Empty });
             ProtocolListUpdated?.Invoke(null, EventArgs.Empty);
         }
@@ -1767,6 +1800,7 @@ namespace SquintScript
             {
                 if (CurrentProtocol.ID == Id)
                 {
+                    
                     StartNewSession();
                 }
             }
@@ -1809,7 +1843,10 @@ namespace SquintScript
             if (PatientOpen)
             {
                 if (ProtocolLoaded)
+                {
+                    CloseProtocol();
                     StartNewSession();
+                }
                 Session LoadedSession = await DbController.Load_Session(ID);
                 if (LoadedSession != null)  // true if successful load
                 {
@@ -1818,6 +1855,10 @@ namespace SquintScript
                     AvailableStructureSetsChanged?.Invoke(null, EventArgs.Empty);
                     CurrentStructureSetChanged?.Invoke(null, EventArgs.Empty);
                     _uiDispatcher.Invoke(ProtocolOpened, new object[] { null, EventArgs.Empty });
+                    foreach (ProtocolStructure PS in CurrentSession.SessionProtocol.Structures)
+                    {
+                        UpdateConstraintThresholds(PS);
+                    }
                 }
                 else
                     Ctr.ProtocolLoaded = false;
@@ -1882,14 +1923,18 @@ namespace SquintScript
                 }
             }
         }
+
+        public static void CloseProtocol()
+        {
+            CurrentSession.SessionProtocol = null;
+            ProtocolLoaded = false;
+            ProtocolClosed?.Invoke(null, EventArgs.Empty);
+        }
         public static void StartNewSession()
         {
             CurrentSession = new Session();
             SetCurrentStructureSet(null);
             _AssessmentNameIterator = 1;
-            ProtocolLoaded = false;
-            //_uiDispatcher.Invoke(ProtocolClosed, new[] { null, EventArgs.Empty });
-            ProtocolClosed?.Invoke(null, EventArgs.Empty);
         }
 
         public static void ClosePatient()
@@ -2115,5 +2160,12 @@ namespace SquintScript
         {
             GetProtocolStructure(StructureId).DefaultEclipseAliases.Remove(AliasToRemove);
         }
+
+        public static List<BeamGeometryDefinition> GetBeamGeometryDefinitions()
+        {
+            return new List<BeamGeometryDefinition>(_BeamGeometryDefinitions);
+        }
+
+        
     }
 }

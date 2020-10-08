@@ -23,9 +23,17 @@ namespace SquintScript.TestFramework
             {
                 if (Reference == null || Reference2 == null)
                     return _EmptyRefValueString;
-                else
-                    return
-                         string.Format("{0:0.###} - {1:0.###}", Reference.Value, Reference2.Value);
+                else if (Reference.Value is double)
+                {
+                    var dRef1 = Convert.ToDouble(Reference.Value);
+                    var dRef2 = Convert.ToDouble(Reference2.Value);
+                    if (double.IsNaN(dRef1) || double.IsNaN(dRef2))
+                        return "";
+                    else
+                        return string.Format("{0:0.###} - {1:0.###}", Reference.Value, Reference2.Value);
+                }
+                else return string.Format("{0:0.###} - {1:0.###}", Reference.Value, Reference2.Value);
+
             }
         }
 

@@ -28,8 +28,11 @@ namespace SquintScript.TestFramework
                 {
                     if (Reference.Value == null)
                         return _EmptyRefValueString;
-                    if (Check is double || Check is int)
+                    if (Reference.Value is double || Reference.Value is int)
                     {
+                        var dCheck = Convert.ToDouble(Reference.Value);
+                        if (double.IsNaN(dCheck))
+                            return "";
                         switch (Test)
                         {
                             case TestType.Equality:
@@ -109,15 +112,38 @@ namespace SquintScript.TestFramework
             {
                 if (Check == null)
                     return _EmptyCheckValueString;
-                else
+                if (Check is double)
                 {
-                    if (Check is double || Check is int)
-                        return string.Format("{0:0.###}", Check);
-                    else if (Check is Enum)
-                        return (Check as Enum).Display();
+                    var dCheck = Convert.ToDouble(Check);
+                    if (double.IsNaN(dCheck))
+                        return "";
                     else
-                        return Check.ToString();
+                        return string.Format("{0:0.###}", Check);
                 }
+                if (Check is int)
+                {
+                    return string.Format("{0:0.###}", Check);
+                }
+                if (Check is Enum)
+                    return (Check as Enum).Display();
+                else
+                    return Check.ToString();
+
+                //if (Check is double)
+                //{
+                //    if (double.IsNaN((double?)Check))
+                //        return "";
+                //    else
+                //        return string.Format("{0:0.###}", Check);
+                //}
+                //if (Check is int)
+                //{
+                //    return string.Format("{0:0.###}", Check);
+                //}
+                //else if (Check is Enum)
+                //    return (Check as Enum).Display();
+                //else
+                //    return Check.ToString();
             }
         }
 
@@ -218,19 +244,7 @@ namespace SquintScript.TestFramework
             _EmptyCheckValueString = EmptyCheckValueString;
             _EmptyRefValueString = EmptyRefValueString;
         }
-        public void CommitChanges()
-        {
-            
-        }
-        public void RejectChanges()
-        {
-            if (Reference != null)
-                Reference.RejectChanges();
-            if (Tolerance != null)
-                Tolerance.RejectChanges();
-        }
     }
-
 }
 //}
 

@@ -129,7 +129,7 @@
                             <TextBlock Grid.Column="1" Text="Editing component:" Foreground="White" VerticalAlignment="Center" Visibility="{Binding ParentView.ParentView.AdminOptionsToggle, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource VisibilityConverter}}" />
                             <ComboBox Grid.Column="2" Style="{StaticResource ConstraintComboBoxStyle}" MinWidth="120"
                           Background="{Binding SelectedComponent, Converter={StaticResource UnsetComboColourConverter}}"
-                          ItemsSource="{Binding ParentView.Components, UpdateSourceTrigger=PropertyChanged, Mode=OneWay}" SelectedItem="{Binding SelectedComponent, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
+                          ItemsSource="{Binding Components, UpdateSourceTrigger=PropertyChanged, Mode=OneWay}" SelectedItem="{Binding SelectedComponent, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
                           Visibility="{Binding ParentView.ParentView.AdminOptionsToggle, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource VisibilityConverter}}"
                           DisplayMemberPath="ComponentName"/>
                         </Grid>

@@ -9,7 +9,7 @@ using SquintScript.ViewModels;
 namespace SquintScript.TestFramework
 {
     [AddINotifyPropertyChangedInterface]
-    public class TestContainsItem<T> : TestListItem<T>, ITestListItem<T> 
+    public class TestContainsItem<T> : TestListItem<T>, ITestListItem<T>
     {
         public EditTypes EditType { get; private set; } = EditTypes.AnyOfValues;
 
@@ -17,11 +17,11 @@ namespace SquintScript.TestFramework
         public void SetCheckValue(object CheckThis)
         {
             Check = (T)CheckThis;
-            if (Check is IElementOf<T>)
+            if (Check is IContains<T>)
             {
                 foreach (var S in ReferenceCollection)
                 {
-                    ((IElementOf<T>)Check).IsElementOf(S);
+                    ((IContains<T>)Check).Contains(S);
                 }
             }
             RaisePropertyChangedEvent(nameof(CheckPass));
@@ -39,7 +39,7 @@ namespace SquintScript.TestFramework
                     return _EmptyRefValueString;
                 else
                 {
-                    if (Check is IDisplayable)
+                    if (ReferenceCollection.FirstOrDefault() is IDisplayable)
                     {
                         return string.Format("{0}", string.Join("\r\n", ReferenceCollection.Select(x => (x as IDisplayable).DisplayName)));
                     }
@@ -59,15 +59,12 @@ namespace SquintScript.TestFramework
                     return _EmptyCheckValueString;
                 else
                 {
-                    //if (Check is IDisplayable)
-                    //    return string.Format("{0}", (Check as IDisplayable).DisplayName);
-                    //else
                     if (Check is double || Check is int)
                         return string.Format("{0:0.###}", Check);
                     else if (Check is Enum)
                         return (Check as Enum).Display();
-                    else if (Check is IElementOf<T>)
-                        return ((IElementOf<T>)Check).SuperSetName;
+                    else if (Check is IDisplayable)
+                        return ((IDisplayable)Check).DisplayName;
                     else
                         return Check.ToString();
                 }
@@ -108,22 +105,12 @@ namespace SquintScript.TestFramework
                     if (ReferenceCollection.Contains((T)Check))
                         return true;
                     else
-                    { 
-                        if (Check is BeamGeometry)
-                        {
-                            foreach (var G in ReferenceCollection)
-                            {
-                                if ((Check as BeamGeometry).IsElementOf((G as BeamGeometry)))
-                                    return true;
-                            }
-                        }
-                    }
-                    return false;
+                        return false;
                 }
             }
         }
-        public ObservableCollection<T> EnumOptions { get; set; } 
-        
+        public ObservableCollection<T> EnumOptions { get; set; }
+
         public T SetReference { get; set; }
         public TestContainsItem(CheckTypes CT, T V, ObservableCollection<T> referenceCollection, string WS = "", string EmptyCheckValueString = "", string EmptyRefValueString = "")
         {

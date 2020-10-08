@@ -114,17 +114,6 @@ namespace SquintScript
         {
             [XmlAttribute]
             public string GeometryName { get; set; } = "unset";
-            [XmlAttribute]
-            public string Trajectory { get; set; } = "unset";
-            [XmlAttribute]
-            public double StartAngle { get; set; } = double.NaN;
-            [XmlAttribute]
-            public double EndAngle { get; set; } = double.NaN;
-            [XmlAttribute]
-            public double StartAngleTolerance { get; set; } = double.NaN;
-
-            [XmlAttribute]
-            public double EndAngleTolerance { get; set; } = double.NaN;
         }
         public class BeamDefinition
         {

@@ -14,7 +14,6 @@ namespace SquintScript.Interfaces
         void SetCheckValue(object value);
         CheckTypes CheckType { get; set; }
         bool IsDirty { get; }
-        void RejectChanges();
     }
     public interface ITestListItem<T> : ITestListItem 
     {

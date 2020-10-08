@@ -8,6 +8,7 @@ using PropertyChanged;
 using SquintScript.TestFramework;
 using SquintScript.ViewModels;
 using SquintScript.Extensions;
+using SquintScript.Interfaces;
 
 namespace SquintScript
 {
@@ -82,25 +83,28 @@ namespace SquintScript
             Aliases = RefBeam_in.EclipseAliases;
             Fields = TxFields;
             Field = null;
+            //FieldChanged += BeamChangeAction;
         }
         public void InitializeTests()
         {
             BeamTests.Tests.Clear();
+            BeamGeometryInstance beamGeometry = null;
             if (Fields != null)
                 foreach (string alias in RefBeam.EclipseAliases)
                     foreach (TxFieldItem F in Fields)
                         if (F.Id == alias)
                         {
                             Field = F;
+                            beamGeometry = new BeamGeometryInstance(Field.GantryStart, Field.GantryEnd, Field.Trajectory);
                             NoFieldAssigned = false;
                         }
             FieldDescription = string.Format(@"Protocol field ""{0}"" assigned to plan field:", RefBeam.ProtocolBeamName);
 
             // Populate Tests
-            BeamTests.Tests.Add(new TestRangeItem<double?>(CheckTypes.MURange, double.NaN, RefBeam.MinMUWarning, RefBeam.MaxMUWarning, "MU outside normal range"));
+            BeamTests.Tests.Add(new TestRangeItem<double?>(CheckTypes.MURange, null, RefBeam.MinMUWarning, RefBeam.MaxMUWarning, "MU outside normal range"));
             BeamTests.Tests.Add(new TestContainsItem<Energies>(CheckTypes.ValidEnergies, Energies.Unset, RefBeam.ValidEnergies, "Not a valid energy") { ParameterOption = ParameterOptions.Required});
-            BeamTests.Tests.Add(new TestContainsItem<BeamGeometry>(CheckTypes.BeamGeometry, new BeamGeometry(), RefBeam.ValidGeometries, "No valid geometry found") { ParameterOption = ParameterOptions.Required });
-            BeamTests.Tests.Add(new TestValueItem<double?>(CheckTypes.CouchRotation, -1, RefBeam.CouchRotation, new TrackedValue<double?>(1E-2), "Non-standard couch rotation"));
+            BeamTests.Tests.Add(new TestContainsItem<BeamGeometryInstance>(CheckTypes.BeamGeometry, beamGeometry, RefBeam.ValidGeometries, "No valid geometry found") { ParameterOption = ParameterOptions.Required });
+            BeamTests.Tests.Add(new TestValueItem<double?>(CheckTypes.CouchRotation, null, RefBeam.CouchRotation, new TrackedValue<double?>(1E-2), "Non-standard couch rotation"));
             switch (RefBeam.JawTracking_Indication.Value)
             {
                 case ParameterOptions.Required:
@@ -113,24 +117,24 @@ namespace SquintScript
                     BeamTests.Tests.Add(new TestValueItem<bool?>(CheckTypes.JawTracking, null, new TrackedValue<bool?>(false), null, "No tracking detected"));
                     break;
             }
-            BeamTests.Tests.Add(new TestValueItem<double?>(CheckTypes.MinMLCOffsetFromAxial, -1, RefBeam.MinColRotation, new TrackedValue<double?>(1E-2), "Collimator less than minimum offset") { ParameterOption = ParameterOptions.Optional, Test = TestType.GreaterThan });
-            BeamTests.Tests.Add(new TestValueItem<double?>(CheckTypes.MinimumXfieldSize, -1, RefBeam.MinX, null, "X field too small") { Test = TestType.GreaterThan });
-            BeamTests.Tests.Add(new TestValueItem<double?>(CheckTypes.MaximumXfieldSize, -1, RefBeam.MaxX, null, "X field too large") { Test = TestType.LessThan });
-            BeamTests.Tests.Add(new TestValueItem<double?>(CheckTypes.MinimumYfieldSize, -1, RefBeam.MinY, null, "Y field too small") { Test = TestType.GreaterThan });
-            BeamTests.Tests.Add(new TestValueItem<double?>(CheckTypes.MaximumYfieldSize, -1, RefBeam.MaxY, null, "Y field too large") { Test = TestType.LessThan });
+            BeamTests.Tests.Add(new TestValueItem<double?>(CheckTypes.MinMLCOffsetFromAxial, null, RefBeam.MinColRotation, new TrackedValue<double?>(1E-2), "Collimator less than minimum offset") { ParameterOption = ParameterOptions.Optional, Test = TestType.GreaterThan });
+            BeamTests.Tests.Add(new TestValueItem<double?>(CheckTypes.MinimumXfieldSize, null, RefBeam.MinX, null, "X field too small") { Test = TestType.GreaterThan });
+            BeamTests.Tests.Add(new TestValueItem<double?>(CheckTypes.MaximumXfieldSize, null, RefBeam.MaxX, null, "X field too large") { Test = TestType.LessThan });
+            BeamTests.Tests.Add(new TestValueItem<double?>(CheckTypes.MinimumYfieldSize, null, RefBeam.MinY, null, "Y field too small") { Test = TestType.GreaterThan });
+            BeamTests.Tests.Add(new TestValueItem<double?>(CheckTypes.MaximumYfieldSize, null, RefBeam.MaxY, null, "Y field too large") { Test = TestType.LessThan });
             BeamTests.Tests.Add(new TestValueItem<string>(CheckTypes.ToleranceTable, "", RefBeam.ToleranceTable, null, "Incorrect Tol Table"));
             if (Field != null)
                 RefreshTests();
             //RaisePropertyChangedEvent(nameof(BeamTests));
         }
-        public void BeamChangeAction(string newFieldId = null)
-        {
-            if (newFieldId != string.Empty)
-            {
-                Field = Fields.FirstOrDefault(x => x.Id == newFieldId);
-                RefreshTests();
-            }
-        }
+        //public void BeamChangeAction(string newFieldId = null)
+        //{
+        //    if (newFieldId != string.Empty)
+        //    {
+        //        Field = Fields.FirstOrDefault(x => x.Id == newFieldId);
+        //        RefreshTests();
+        //    }
+        //}
         private async void RefreshTests()
         {
             if (Field == null)
@@ -159,7 +163,7 @@ namespace SquintScript
                             default:
                                 break;
                         }
-                        var CheckBeam = new BeamGeometry() { StartAngle = Field.GantryStart, EndAngle = Field.GantryEnd, GeometryName="Off protocol", Trajectory = BeamTrajectory };
+                        var CheckBeam = new BeamGeometryInstance(Field.GantryStart, Field.GantryEnd, Field.Trajectory);
                         Test.SetCheckValue(CheckBeam);
                         break;
                     case CheckTypes.CouchRotation:

@@ -42,6 +42,14 @@ namespace SquintScript.ViewModels
             Ctr.CurrentStructureSetChanged += UpdateAvailableStructureIds;
             Ctr.ProtocolListUpdated += UpdateProtocolList;
             Ctr.ProtocolClosed += Ctr_ProtocolClosed;
+            Ctr.ProtocolOpened += Ctr_ProtocolOpened;
+        }
+
+        private void Ctr_ProtocolOpened(object sender, EventArgs e)
+        {
+            isProtocolLoaded = true;
+            ParentView.isLoadProtocolPanelVisible = false;
+            UpdateProtocolView();
         }
 
         private void Ctr_ProtocolClosed(object sender, EventArgs e)
@@ -53,14 +61,6 @@ namespace SquintScript.ViewModels
         // ViewModels
         public MainViewModel ParentView { get; set; }
         public Checklist_ViewModel ChecklistViewModel { get; set; }
-        public void Unsubscribe()
-        {
-            Ctr.CurrentStructureSetChanged -= UpdateAvailableStructureIds;
-            Ctr.ProtocolListUpdated -= UpdateProtocolList;
-            //Ctr.ProtocolConstraintOrderChanged -= UpdateConstraintOrder;
-            ChecklistViewModel.Unsubscribe();
-
-        }
         private Protocol _P
         {
             get { return Ctr.CurrentProtocol; }
@@ -126,13 +126,13 @@ namespace SquintScript.ViewModels
                 if (_P == null)
                     return TreatmentCentres.Unset;
                 else
-                    return _P.TreatmentCentre;
+                    return _P.TreatmentCentre.Value;
             }
             set
             {
                 if (_P != null)
                 {
-                    _P.TreatmentCentre = value;
+                    _P.TreatmentCentre.Value = value;
                 }
             }
         }
@@ -143,13 +143,13 @@ namespace SquintScript.ViewModels
                 if (_P == null)
                     return TreatmentSites.Unset;
                 else
-                    return _P.TreatmentSite;
+                    return _P.TreatmentSite.Value;
             }
             set
             {
                 if (_P != null)
                 {
-                    _P.TreatmentSite = value;
+                    _P.TreatmentSite.Value = value;
                 }
             }
         }
@@ -201,10 +201,20 @@ namespace SquintScript.ViewModels
                 _SelectedIndex = value;
             }
         }
+        private int _SelectedStructureIndex = -2;
+        public int SelectedStructureIndex
+        {
+            get
+            {
+                return _SelectedStructureIndex;
+            }
+            set
+            {
+                _SelectedStructureIndex = value;
+            }
+        }
 
-        public static readonly DependencyProperty IsDraggingProperty = DependencyProperty.RegisterAttached("IsDragging", typeof(bool), typeof(ProtocolViewModel), new UIPropertyMetadata(false));
-
-        public int DropIndex { get; set; } = -1;
+        
         public StructureSelector SelectedStructure { get; set; }
         public int _ProgressPercentage;
         public int ProgressPercentage
@@ -218,9 +228,11 @@ namespace SquintScript.ViewModels
         }
         public Progress<int> Progress { get; set; }
         public ObservableCollection<StructureSelector> Structures { get; set; } = new ObservableCollection<StructureSelector>();
+        public int NumStructures { get { return Structures.Count; } }
         public ObservableCollection<string> AvailableStructureIds { get; private set; } = new ObservableCollection<string>() { "No structure set" };
         public ObservableCollection<ProtocolSelector> Protocols { get; set; } = new ObservableCollection<ProtocolSelector>();
         public ObservableCollection<ComponentSelector> Components { get; set; } = new ObservableCollection<ComponentSelector>();
+        public int NumComponents { get { return Components.Count; } }
         public ObservableCollection<ConstraintSelector> Constraints { get; set; } = new ObservableCollection<ConstraintSelector>();
         private ConstraintSelector _SelectedConstraint;
         public ConstraintSelector SelectedConstraint
@@ -267,7 +279,7 @@ namespace SquintScript.ViewModels
             if (Ctr.ProtocolLoaded)
             {
                 var Con = Ctr.AddConstraint(ConstraintTypeCodes.Unset, Components.FirstOrDefault().Id, Structures.FirstOrDefault().Id);
-                Constraints.Add(new ConstraintSelector(Con, Structures.FirstOrDefault()));
+                Constraints.Add(new ConstraintSelector(Con, Structures.LastOrDefault()));
                 Con.ConstraintFlaggedForDeletion += Con_ConstraintFlaggedForDeletion;
             }
 
@@ -335,15 +347,48 @@ namespace SquintScript.ViewModels
                         foreach (var CS in Constraints.ToList())
                         {
                             if (CS.Component.Id == csToDelete.Id)
+                            {
+                                Ctr.DeleteConstraint(CS.Id);
                                 Constraints.Remove(CS);
+                            }
                             else
-                                CS.Components.Remove(CS.Components.FirstOrDefault(x => x.Id == csToDelete.Id));
+                                CS.Components.Remove(CS.Components.FirstOrDefault(x => x.Id == csToDelete.Id)); // remove this component as an option from the pull down of remaining constraints
                         }
                     }
                 }
                 else
                 {
                     MessageBox.Show("Protocol must have at least one component.", "Cannot delete");
+                }
+            }
+        }
+
+        public ICommand DeleteStructureCommand
+        {
+            get { return new DelegateCommand(DeleteStructure); }
+        }
+
+        private void DeleteStructure(object param)
+        {
+            if (Ctr.ProtocolLoaded)
+            {
+                if (Ctr.CurrentProtocol.Structures.Count > 1)
+                {
+                    var ssToDelete = param as StructureSelector;
+                    var response = MessageBox.Show("Confirm deletion of this structure? Deleting this structure will delete all of its constraints", "Delete structure", MessageBoxButton.OKCancel);
+                    if (response == MessageBoxResult.OK)
+                    {
+                        foreach (var CS in Constraints.ToList())
+                        {
+                            if (CS.SS.Id == ssToDelete.Id)
+                            {
+                                Ctr.DeleteConstraint(CS.Id);
+                                Constraints.Remove(CS);
+                            }
+                        }
+                        Ctr.DeleteStructure(ssToDelete.Id);
+                        Structures.Remove(ssToDelete);
+                    }
                 }
             }
         }
@@ -387,14 +432,13 @@ namespace SquintScript.ViewModels
         {
             if (ParentView.isLoading == true)
                 return;
+            if (Ctr.ProtocolLoaded)
+                Ctr.CloseProtocol();
             var PS = (ProtocolSelector)param;
             if (PS.Id == 0)
                 return; // no protocol selected;
             ParentView.LoadingString = "Loading selected protocol...";
             ParentView.isLoading = true;
-            ParentView.AssessmentsVM = new AssessmentsView(ParentView);
-            //ChecklistViewModel.Unsubscribe();
-            //ChecklistViewModel = new Checklist_ViewModel(this);
             if (await Task.Run(() => Ctr.LoadProtocolFromDb(PS.ProtocolName)))
             {
                 UpdateProtocolView();
@@ -420,6 +464,9 @@ namespace SquintScript.ViewModels
             List<StructureSelector> SSList = new List<StructureSelector>();
             List<ConstraintSelector> ConList = new List<ConstraintSelector>();
             List<ComponentSelector> CompList = new List<ComponentSelector>();
+            Structures = new ObservableCollection<StructureSelector>(SSList);
+            Components = new ObservableCollection<ComponentSelector>(CompList);
+            Constraints = new ObservableCollection<ConstraintSelector>(ConList);
             if (Ctr.ProtocolLoaded)
             {
                 foreach (var S in Ctr.CurrentProtocol.Structures.OrderBy(x => x.DisplayOrder))
@@ -440,7 +487,7 @@ namespace SquintScript.ViewModels
                 Structures = new ObservableCollection<StructureSelector>(SSList);
                 Components = new ObservableCollection<ComponentSelector>(CompList);
                 Constraints = new ObservableCollection<ConstraintSelector>(ConList);
-                ParentView.AssessmentsVM = new AssessmentsView(ParentView);
+                //ParentView.AssessmentsVM = new AssessmentsView(ParentView);
                 ParentView.AssessmentsVM.LoadAssessmentViews();
             }
             else

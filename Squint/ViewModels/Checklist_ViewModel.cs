@@ -35,6 +35,8 @@ namespace SquintScript.ViewModels
         public BeamListItem SelectedBeam { get; set; }
 
         private ComponentSelector _SelectedComponent;
+
+        public ObservableCollection<ComponentSelector> Components { get; set; } = new ObservableCollection<ComponentSelector>();
         public ComponentSelector SelectedComponent
         {
             get { return _SelectedComponent; }
@@ -48,17 +50,14 @@ namespace SquintScript.ViewModels
             Ctr.ProtocolOpened += Ctr_ProtocolUpdated;
         }
 
-        public void Unsubscribe()
-        {
-            Ctr.ProtocolUpdated -= Ctr_ProtocolUpdated;
-            Ctr.ProtocolOpened -= Ctr_ProtocolUpdated;
-        }
-
         private void Ctr_ProtocolUpdated(object sender, EventArgs e)
         {
-            PopulateViewFromProtocol();
+            int? OldComponentId = null;
             if (_SelectedComponent != null)
-                SelectedComponent = ParentView.Components.FirstOrDefault(x => x.Id == _SelectedComponent.Id);
+                OldComponentId = _SelectedComponent.Id;
+            PopulateViewFromProtocol();
+            if (OldComponentId != null)
+                SelectedComponent = Components.FirstOrDefault(x => x.Id == OldComponentId);
             if (SelectedComponent != null)
                 PopulateViewFromSelectedComponent();
         }
@@ -69,14 +68,18 @@ namespace SquintScript.ViewModels
 
             // Populate Simulation ViewModel
             var P = Ctr.CurrentProtocol;
-
+            Components.Clear();
+            foreach (var Comp in Ctr.CurrentProtocol.Components.OrderBy(x => x.DisplayOrder))
+            {
+                Components.Add(new ComponentSelector(Comp));
+            }
             Simulation_ViewModel.Tests.Clear();
             TestValueItem<double?> SliceSpacing = new TestValueItem<double?>(CheckTypes.SliceSpacing, null, P.Checklist.SliceSpacing, new TrackedValue<double?>(1E-5), "Slice spacing does not match protocol");
-            TestValueItem<string> Series = new TestValueItem<string>(CheckTypes.SeriesId, null, null) { ParameterOption = ParameterOptions.Optional };
-            TestValueItem<string> Study = new TestValueItem<string>(CheckTypes.StudyId, null, null) { ParameterOption = ParameterOptions.Optional };
-            TestValueItem<string> SeriesComment = new TestValueItem<string>(CheckTypes.SeriesComment, null, null) { ParameterOption = ParameterOptions.Optional };
-            TestValueItem<string> ImageComment = new TestValueItem<string>(CheckTypes.ImageComment, null, null) { ParameterOption = ParameterOptions.Optional };
-            TestValueItem<int?> NumSlices = new TestValueItem<int?>(CheckTypes.NumSlices, null, null) { ParameterOption = ParameterOptions.Optional };
+            TestValueItem<string> Series = new TestValueItem<string>(CheckTypes.SeriesId, null, null) { ParameterOption = ParameterOptions.Optional, IsInfoOnly=true };
+            TestValueItem<string> Study = new TestValueItem<string>(CheckTypes.StudyId, null, null) { ParameterOption = ParameterOptions.Optional, IsInfoOnly = true };
+            TestValueItem<string> SeriesComment = new TestValueItem<string>(CheckTypes.SeriesComment, null, null) { ParameterOption = ParameterOptions.Optional, IsInfoOnly = true };
+            TestValueItem<string> ImageComment = new TestValueItem<string>(CheckTypes.ImageComment, null, null) { ParameterOption = ParameterOptions.Optional, IsInfoOnly = true };
+            TestValueItem<int?> NumSlices = new TestValueItem<int?>(CheckTypes.NumSlices, null, null) { ParameterOption = ParameterOptions.Optional, IsInfoOnly = true };
             Simulation_ViewModel.Tests.Add(Study);
             Simulation_ViewModel.Tests.Add(Series);
             Simulation_ViewModel.Tests.Add(NumSlices);
@@ -143,14 +146,15 @@ namespace SquintScript.ViewModels
                 string NoCheckHUString = @"No artifact structure";
                 string NoRefHUString = @"Not specified";
                 var ArtifactCheck = new TestValueItem<double?>(CheckTypes.ArtifactHU, null, A.RefHU, A.ToleranceHU, ArtifactWarningString, NoCheckHUString, NoRefHUString);
-                if (A.E != null)
-                    ArtifactCheck.OptionalNameSuffix = string.Format(@"(""{0}"")", A.E.AssignedStructureId);
+                var PS = Ctr.GetProtocolStructure(A.ProtocolStructureId.Value);
+                if (PS != null)
+                    ArtifactCheck.OptionalNameSuffix = string.Format(@"(""{0}"")", PS.AssignedStructureId);
                 ArtifactCheck.ParameterOption = ParameterOptions.Optional;
                 Calculation_ViewModel.Tests.Add(ArtifactCheck);
             }
 
             // Course Intent
-            var RefCourseIntent = Ctr.CurrentProtocol._TreatmentIntent;
+            var RefCourseIntent = Ctr.CurrentProtocol.TreatmentIntent;
             var CourseIntentWarningString = "";
             TestValueItem<TreatmentIntents> CourseIntentTest = new TestValueItem<TreatmentIntents>(CheckTypes.CourseIntent, TreatmentIntents.Unset, RefCourseIntent, null, CourseIntentWarningString);
             DiagnosisIntent_ViewModel.Tests = new ObservableCollection<ITestListItem>() { CourseIntentTest };
@@ -376,25 +380,25 @@ namespace SquintScript.ViewModels
                 string NoCheckHUString = @"No artifact structure";
                 string NoRefHUString = @"Not specified";
                 double? CheckHU = null;
-
-                if (A.E != null)
+                ProtocolStructure PS = Ctr.GetProtocolStructure(A.ProtocolStructureId.Value);
+                if (PS != null)
                 {
-                    if (A.E.AssignedStructureId != "")
+                    if (PS.AssignedStructureId != "")
                     {
-                        CheckHU = A.E.AssignedHU(p.StructureSetUID);
+                        CheckHU = PS.AssignedHU(p.StructureSetUID);
                     }
                 }
                 var ArtifactCheck = new TestValueItem<double?>(CheckTypes.ArtifactHU, CheckHU, A.RefHU, A.ToleranceHU, ArtifactWarningString, NoCheckHUString, NoRefHUString);
                 ArtifactCheck.ParameterOption = ParameterOptions.Optional;
-                if (A.E != null)
+                if (PS != null)
                 {
-                    ArtifactCheck.OptionalNameSuffix = string.Format(@"(""{0}"")", A.E.AssignedStructureId);
+                    ArtifactCheck.OptionalNameSuffix = string.Format(@"(""{0}"")", PS.AssignedStructureId);
                 }
                 Calculation_ViewModel.Tests.Add(ArtifactCheck);
             }
 
             // Course Intent
-            var RefCourseIntent = Ctr.CurrentProtocol._TreatmentIntent;
+            var RefCourseIntent = Ctr.CurrentProtocol.TreatmentIntent;
             TreatmentIntents CourseTxIntent;
             Enum.TryParse<TreatmentIntents>(await Ctr.GetCourseIntent(p.CourseId, p.PlanId), out CourseTxIntent);
             var CourseIntentWarningString = "";
@@ -450,19 +454,15 @@ namespace SquintScript.ViewModels
             // Min Col Offset
             if (Comp.MaxBeams.Value > 1 && Comp.MinColOffset.Value != null && Fields.Count > 1)
             {
-                if (Beam_ViewModel.Beams.Any(x => x.Field == null))
-                {
-                    var MinColOffsetCheck = new TestValueItem<double?>(CheckTypes.MinColOffset, null, null, null, "Protocol fields not assigned");
-                    MinColOffsetCheck.Test = TestType.GreaterThan;
-                    Beam_ViewModel.GroupTests.Tests.Add(MinColOffsetCheck);
-                }
-                else
+                var MinColOffsetCheck = new TestValueItem<double?>(CheckTypes.MinColOffset, null, Comp.MinColOffset, null, "Insufficient collimator offset", "Fields not assigned");
+                MinColOffsetCheck.ParameterOption = ParameterOptions.Optional;
+                MinColOffsetCheck.Test = TestType.GreaterThan;
+                Beam_ViewModel.GroupTests.Tests.Add(MinColOffsetCheck);
+                if (!Beam_ViewModel.Beams.Any(x => x.Field == null))
                 {
                     var ColOffset = Beam_ViewModel.Beams.Select(x => x.Field).Select(x => x.CollimatorAngle);
                     double? MinColOffset = (double?)Math.Round(findMinDiff(ColOffset.ToArray()));
-                    var MinColOffsetCheck = new TestValueItem<double?>(CheckTypes.MinColOffset, MinColOffset, Comp.MinColOffset, null, "Insufficient collimator offset");
-                    MinColOffsetCheck.Test = TestType.GreaterThan;
-                    Beam_ViewModel.GroupTests.Tests.Add(MinColOffsetCheck);
+                    MinColOffsetCheck.SetCheckValue(MinColOffset);
                 }
 
             }
@@ -510,7 +510,7 @@ namespace SquintScript.ViewModels
                 return;
             }
             var ColOffset = Beam_ViewModel.Beams.Select(x => x.Field).Select(x => x.CollimatorAngle).ToList();
-            var MinColOffset = (int?)Math.Round(findMinDiff(ColOffset.ToArray()));
+            var MinColOffset = (double?)Math.Round(findMinDiff(ColOffset.ToArray()));
             var OldTest = Beam_ViewModel.GroupTests.Tests.Where(x => x.CheckType == CheckTypes.MinColOffset).FirstOrDefault();
             OldTest.SetCheckValue(MinColOffset);
             //Beam_ViewModel.GroupTests.Tests.Remove(OldTest);
@@ -551,18 +551,6 @@ namespace SquintScript.ViewModels
             return diff;
         }
 
-        public ICommand RejectEditsCommand
-        {
-            get { return new DelegateCommand(RejectEdits); }
-        }
-
-        private void RejectEdits(object param = null)
-        {
-            foreach (var Test in Simulation_ViewModel.Tests)
-            {
-                Test.RejectChanges();
-            }
-        }
         public ICommand AddNewContourCheckCommand
         {
             get { return new DelegateCommand(AddNewContourCheck); }

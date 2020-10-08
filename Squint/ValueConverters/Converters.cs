@@ -718,16 +718,25 @@ namespace SquintScript.Converters
     {
         public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
         {
-            if (values.Count() > 1)
+            double MinHeight = double.Parse(parameter as string);
+            double AnimationVar = (double)values[0];
+            switch (values.Count())
             {
-                if (values[1] is int)
-                    return Math.Max((double)values[0] * System.Convert.ToDouble(values[1]) * Double.Parse(parameter as string), 0.1);
-                else
-                    return 0;
+                case 0:
+                    return MinHeight;
+                case 1:
+                    return AnimationVar * MinHeight;
+                case 2:
+                    return AnimationVar * MinHeight;
+                case 3:
+                    double? HeightPerElement = double.Parse(values[1] as string);
+                    int? NumElements = values[2] as int?;
+                    if (HeightPerElement != null && NumElements != null)
+                        return AnimationVar * Math.Max((double)NumElements * (double)HeightPerElement, MinHeight);
+                    else return MinHeight;
+                default:
+                    return MinHeight;
             }
-            else
-                return (double)values[0] * Double.Parse(parameter as string);
-
             //return result;
         }
 

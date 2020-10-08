@@ -63,6 +63,9 @@
     <ApplicationIcon>squint_icon.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="AutoMapper, Version=7.0.1.0, Culture=neutral, PublicKeyToken=be96cd2c38ef1005, processorArchitecture=MSIL">
+      <HintPath>..\packages\AutoMapper.7.0.1\lib\net45\AutoMapper.dll</HintPath>
+    </Reference>
     <Reference Include="Costura, Version=4.1.0.0, Culture=neutral, PublicKeyToken=9919ef960d84173d, processorArchitecture=MSIL">
       <HintPath>..\packages\Costura.Fody.4.1.0\lib\net40\Costura.dll</HintPath>
     </Reference>
@@ -102,6 +105,7 @@
     <Reference Include="System.Runtime.InteropServices.RuntimeInformation, Version=4.0.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <HintPath>..\packages\System.Runtime.InteropServices.RuntimeInformation.4.3.0\lib\net45\System.Runtime.InteropServices.RuntimeInformation.dll</HintPath>
     </Reference>
+    <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.Threading.Tasks.Extensions, Version=4.2.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
       <HintPath>..\packages\System.Threading.Tasks.Extensions.4.5.1\lib\portable-net45+win8+wp8+wpa81\System.Threading.Tasks.Extensions.dll</HintPath>
     </Reference>
@@ -142,8 +146,11 @@
     <Compile Include="AsyncESAPI\AsyncPlan.cs" />
     <Compile Include="AsyncESAPI\AsyncStructure.cs" />
     <Compile Include="AsyncESAPI\AsyncStructureSet.cs" />
+    <Compile Include="Helpers and Functions\Class1.cs" />
     <Compile Include="Helpers and Functions\IDGenerator.cs" />
+    <Compile Include="Helpers and Functions\PlanSumUIDGenerator.cs" />
     <Compile Include="Interfaces\IDisplayable.cs" />
+    <Compile Include="Interfaces\IBeamGeometry.cs" />
     <Compile Include="Interfaces\IElementOf.cs" />
     <Compile Include="PersistenceLayer\VersionContextConnection.cs" />
     <Compile Include="Helpers and Functions\BolusTools.cs" />
@@ -655,9 +662,7 @@
   <ItemGroup>
     <Resource Include="Resources\section_expand_small.png" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="ViewModelClasses\" />
-  </ItemGroup>
+  <ItemGroup />
   <ItemGroup>
     <Resource Include="Resources\edit_trans.png" />
   </ItemGroup>

@@ -219,7 +219,7 @@
                                     <TextBlock Grid.Column="0" Text="{Binding CheckTypeString, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" FontWeight="Bold" VerticalAlignment="Center" Margin="0,5,0,5"/>
                                     <TextBlock Grid.Column="1" Text="{Binding ReferenceValueString, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Center"
                                                Foreground="{Binding Reference.IsChanged, Converter={StaticResource ReferenceEditConverter}, UpdateSourceTrigger=PropertyChanged}"/>
-                                    <Grid Grid.Column="2">
+                                    <Grid Grid.Column="2" Visibility="{Binding IsInfoOnly, Converter={StaticResource VisibilityInverseConverter}}">
                                         <Grid x:Name="SingleSelection">
                                             <Grid.Visibility>
                                                 <MultiBinding Converter="{StaticResource VisibilityEditModeConverter}">

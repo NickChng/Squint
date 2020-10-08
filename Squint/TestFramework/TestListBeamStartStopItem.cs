@@ -15,11 +15,11 @@ namespace SquintScript.TestFramework
 {
 
     [AddINotifyPropertyChangedInterface]
-    public class TestListBeamStartStopItem : TestListClassItem<BeamGeometry>, ITestListClassItem<BeamGeometry> 
+    public class TestListBeamStartStopItem : TestListClassItem<BeamGeometryDefinition>, ITestListClassItem<BeamGeometryDefinition> 
     {
         public void SetCheckValue(object CheckThis)
         {
-            Check = (BeamGeometry)CheckThis;
+            Check = (BeamGeometryDefinition)CheckThis;
             RaisePropertyChangedEvent(nameof(CheckValueString));
             RaisePropertyChangedEvent(nameof(Warning));
         }
@@ -72,14 +72,14 @@ namespace SquintScript.TestFramework
         }
         public ParameterOptions ParameterOption { get; set; } = ParameterOptions.Required;
 
-        private List<BeamGeometry> _ReferenceGeometryOptions;
+        private List<BeamGeometryDefinition> _ReferenceGeometryOptions;
 
-        public TestListBeamStartStopItem(CheckTypes CT, BeamGeometry CV, List<BeamGeometry> referenceRange, string WS = null, string EmptyCheckValueString = null,
+        public TestListBeamStartStopItem(CheckTypes CT, BeamGeometryDefinition CV, List<BeamGeometryDefinition> referenceRange, string WS = null, string EmptyCheckValueString = null,
             string EmptyRefValueString = "")
         {
             CheckType = CT;
-            Check = CV as BeamGeometry;
-            Reference = new TrackedValue<BeamGeometry>(null);
+            Check = CV as BeamGeometryDefinition;
+            Reference = new TrackedValue<BeamGeometryDefinition>(null);
             WarningString = WS;
             _ReferenceGeometryOptions = referenceRange;
             if (EmptyCheckValueString != null)

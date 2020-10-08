@@ -9,11 +9,11 @@ namespace SquintScript
             {
                 RefHU = new TrackedValue<double?>(DbA.HU);
                 ToleranceHU = new TrackedValue<double?>(DbA.ToleranceHU);
-                //E = Ctr.GetProtocolStructure(DbA.DbProtocolStructure.ID);
+                ProtocolStructureId = new TrackedValue<int>(DbA.ProtocolStructure_ID);
             }
             public TrackedValue<double?> RefHU { get; set; }
             public TrackedValue<double?> ToleranceHU { get; set; }
-            public ProtocolStructure E { get; set; } 
+            public TrackedValue<int> ProtocolStructureId { get; set; } 
         }
 }
 

@@ -98,6 +98,11 @@ namespace SquintScript
         public int ID { get; private set; }
         public int DisplayOrder { get; set; }
         public double? AlphaBetaRatioOverride { get; set; } = null;
+        public bool ToRetire { get; private set; } = false;
+        public void FlagForDeletion()
+        {
+            ToRetire = true;
+        }
         public bool isCreated { get; private set; } = false;
         public int ProtocolID { get; set; }
         public string ProtocolStructureName { get; set; }
@@ -164,7 +169,7 @@ namespace SquintScript
         {
             var AS = Ctr.GetStructureSet(SSUID).GetStructure(AssignedStructureId);
             if (AS == null)
-                return -1;
+                return null;
             else
                 return AS.Volume;
         }
@@ -189,7 +194,7 @@ namespace SquintScript
                 return double.NaN;
             return Math.Round(AS.HU);
         }
-        
+
     }
 
 }

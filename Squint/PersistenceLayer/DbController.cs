@@ -229,6 +229,16 @@ namespace SquintScript
                 }
             }
         }
+        public static List<BeamGeometryDefinition> GetBeamGeometryDefinitions()
+        {
+            var BGD = new List<BeamGeometryDefinition>();
+            using (SquintDBModel Context = new SquintDBModel())
+            {
+                foreach (DbBeamGeometry DbBG in Context.DbBeamGeometries)
+                    BGD.Add(new BeamGeometryDefinition(DbBG));
+            }
+            return BGD;
+        }
         public static async Task<Session> Load_Session(int ID)
         {
             using (SquintDBModel Context = new SquintDBModel())
@@ -364,8 +374,8 @@ namespace SquintScript
                 DbP.ProtocolName = Ctr.CurrentProtocol.ProtocolName;
                 DbP.ApproverID = 1;
                 DbP.AuthorID = 1;
-                DbP.TreatmentCentreID = Context.DbTreatmentCentres.FirstOrDefault(x => x.TreatmentCentre == (int)Ctr.CurrentProtocol.TreatmentCentre).ID;
-                DbP.TreatmentSiteID = Context.DbTreatmentSites.FirstOrDefault(x => x.TreatmentSite == (int)Ctr.CurrentProtocol.TreatmentSite).ID;
+                DbP.TreatmentCentreID = Context.DbTreatmentCentres.FirstOrDefault(x => x.TreatmentCentre == (int)Ctr.CurrentProtocol.TreatmentCentre.Value).ID;
+                DbP.TreatmentSiteID = Context.DbTreatmentSites.FirstOrDefault(x => x.TreatmentSite == (int)Ctr.CurrentProtocol.TreatmentSite.Value).ID;
                 DbP.ApprovalLevelID = Context.DbApprovalLevels.FirstOrDefault(x => x.ApprovalLevel == (int)ApprovalLevels.Unapproved).ID;
                 DbP.ProtocolTypeID = Context.DbProtocolTypes.FirstOrDefault(x => x.ProtocolType == (int)Ctr.CurrentProtocol.ProtocolType).ID;
                 DbP.LastModifiedBy = Ctr.SquintUser;
@@ -429,10 +439,7 @@ namespace SquintScript
                         DbArtifact DbA = Context.DbArtifacts.Create();
                         Context.DbArtifacts.Add(DbA);
                         DbA.DbProtocolChecklist = DbPC;
-                        if (A.E != null)
-                            DbA.ProtocolStructure_ID = SessionProtocolStructure_Lookup[A.E.ID]; // will have been duplicated above;
-                        else
-                            DbA.ProtocolStructure_ID = 1;
+                        DbA.ProtocolStructure_ID = SessionProtocolStructure_Lookup[A.ProtocolStructureId.Value]; // will have been duplicated above;
                         DbA.HU = A.RefHU.Value;
                         DbA.ToleranceHU = A.ToleranceHU.Value;
                         DbA.DbProtocolChecklist = DbPC;
@@ -488,11 +495,14 @@ namespace SquintScript
                             DbBA.DbBeam = DbB;
                             DbBA.EclipseFieldId = Alias;
                         }
-                        foreach (BeamGeometry BG in B.ValidGeometries)
+                        foreach (BeamGeometryInstance BG in B.ValidGeometries)
                         {
-                            DbBeamGeometry DbBG = Context.DbBeamGeometries.FirstOrDefault(x => x.GeometryName == BG.GeometryName);
-                            if (DbBG != null)
-                                DbB.DbBeamGeometries.Add(DbBG);
+                            if (BG.Definition == null)
+                            {
+                                DbBeamGeometry DbBG = Context.DbBeamGeometries.FirstOrDefault(x => x.ID == BG.Definition.Id);
+                                if (DbBG != null)
+                                    DbB.DbBeamGeometries.Add(DbBG);
+                            }
                         }
                         if (DbB.DbEnergies == null && B.ValidEnergies.Count > 0)
                         {
@@ -555,23 +565,24 @@ namespace SquintScript
                         DbO.MinorViolation = Con.MinorViolation;
                         DbO.Stop = Con.Stop;
                     }
-                    foreach (var P in Ctr.GetPlanAssociations())
-                        if (P != null)
-                        {
-                            DbPlanAssociation DbPl = Context.DbPlans.Create();
-                            DbPl.SessionId = DbS.ID;
-                            DbPl.AssessmentID = AssessmentLookup[P.AssessmentID];
-                            DbPl.SessionComponentID = ComponentLookup[P.ComponentID];
-                            DbPl.LastModified = P.LastModified.ToBinary();
-                            DbPl.LastModifiedBy = P.LastModifiedBy;
-                            DbPl.CourseName = P.CourseId;
-                            DbPl.PlanName = P.PlanId;
-                            DbPl.UID = P.UID;
-                            DbPl.PlanType = (int)P.PlanType;
-                            Context.DbPlans.Add(DbPl);
-                        }
-
                 }
+                foreach (var P in Ctr.GetPlanAssociations())
+                    if (P != null)
+                    {
+                        DbPlanAssociation DbPl = Context.DbPlans.Create();
+                        DbPl.SessionId = DbS.ID;
+                        DbPl.AssessmentID = AssessmentLookup[P.AssessmentID];
+                        DbPl.SessionComponentID = ComponentLookup[P.ComponentID];
+                        DbPl.LastModified = P.LastModified.ToBinary();
+                        DbPl.LastModifiedBy = P.LastModifiedBy;
+                        DbPl.CourseName = P.CourseId;
+                        DbPl.PlanName = P.PlanId;
+                        DbPl.UID = P.UID;
+                        DbPl.PlanType = (int)P.PlanType;
+                        Context.DbPlans.Add(DbPl);
+                    }
+
+
 
                 try
                 {
@@ -604,10 +615,10 @@ namespace SquintScript
                     Context.DbLibraryProtocols.Add(DbP);
                     DbP.ID = Ctr.CurrentProtocol.ID;
                 }
-                DbP.TreatmentCentreID = Context.DbTreatmentCentres.FirstOrDefault(x => x.TreatmentCentre == (int)Ctr.CurrentProtocol.TreatmentCentre).ID;
+                DbP.TreatmentCentreID = Context.DbTreatmentCentres.FirstOrDefault(x => x.TreatmentCentre == (int)Ctr.CurrentProtocol.TreatmentCentre.Value).ID;
                 DbP.DbUser_Approver = Context.DbUsers.FirstOrDefault(x => x.ARIA_ID == Ctr.SquintUser);
                 DbP.DbUser_ProtocolAuthor = Context.DbUsers.FirstOrDefault(x => x.ARIA_ID == Ctr.SquintUser);
-                DbP.TreatmentSiteID = Context.DbTreatmentSites.FirstOrDefault(x => x.TreatmentSite == (int)Ctr.CurrentProtocol.TreatmentSite).ID;
+                DbP.TreatmentSiteID = Context.DbTreatmentSites.FirstOrDefault(x => x.TreatmentSite == (int)Ctr.CurrentProtocol.TreatmentSite.Value).ID;
                 DbP.ProtocolTypeID = Context.DbProtocolTypes.FirstOrDefault(x => x.ProtocolType == (int)Ctr.CurrentProtocol.ProtocolType).ID;
                 DbP.ApprovalLevelID = Context.DbApprovalLevels.FirstOrDefault(x => x.ApprovalLevel == (int)Ctr.CurrentProtocol.ApprovalLevel).ID;
                 DbP.LastModifiedBy = Ctr.SquintUser;
@@ -629,6 +640,12 @@ namespace SquintScript
                 foreach (ProtocolStructure S in Ctr.CurrentProtocol.Structures)
                 {
                     DbProtocolStructure DbS;
+                    if (S.ToRetire && !S.isCreated)
+                    {
+                        DbS = Context.DbProtocolStructures.Find(S.ID);
+                        Context.DbProtocolStructures.Remove(DbS);
+                        continue;
+                    }
                     if (S.isCreated)
                     {
                         DbS = Context.DbProtocolStructures.Create();
@@ -674,8 +691,8 @@ namespace SquintScript
                 DbP.ProtocolName = Ctr.CurrentProtocol.ProtocolName;
                 DbP.ApproverID = 1;
                 DbP.AuthorID = 1;
-                DbP.TreatmentCentreID = Context.DbTreatmentCentres.FirstOrDefault(x => x.TreatmentCentre == (int)Ctr.CurrentProtocol.TreatmentCentre).ID;
-                DbP.TreatmentSiteID = Context.DbTreatmentSites.FirstOrDefault(x => x.TreatmentSite == (int)Ctr.CurrentProtocol.TreatmentSite).ID;
+                DbP.TreatmentCentreID = Context.DbTreatmentCentres.FirstOrDefault(x => x.TreatmentCentre == (int)Ctr.CurrentProtocol.TreatmentCentre.Value).ID;
+                DbP.TreatmentSiteID = Context.DbTreatmentSites.FirstOrDefault(x => x.TreatmentSite == (int)Ctr.CurrentProtocol.TreatmentSite.Value).ID;
                 DbP.ApprovalLevelID = Context.DbApprovalLevels.FirstOrDefault(x => x.ApprovalLevel == (int)ApprovalLevels.Unapproved).ID;
                 DbP.ProtocolTypeID = Context.DbProtocolTypes.FirstOrDefault(x => x.ProtocolType == (int)Ctr.CurrentProtocol.ProtocolType).ID;
                 DbP.LastModifiedBy = Ctr.SquintUser;
@@ -962,6 +979,7 @@ namespace SquintScript
                     DbB.DbBoluses = new List<DbBolus>();
                     DbB.DbEnergies = new List<DbEnergy>();
                     DbB.DbBeamAliases = new List<DbBeamAlias>();
+                    DbB.DbBeamGeometries = new List<DbBeamGeometry>();
                 }
 
                 if (B.Boluses.FirstOrDefault() != null)
@@ -990,6 +1008,12 @@ namespace SquintScript
                 DbB.DbEnergies.Clear();
                 foreach (var energy in B.ValidEnergies)
                     DbB.DbEnergies.Add(Context.DbEnergies.Find((int)energy));
+                DbB.DbBeamGeometries.Clear();
+                foreach (var geometry in B.ValidGeometries)
+                {
+                    if (geometry.Definition != null)
+                        DbB.DbBeamGeometries.Add(Context.DbBeamGeometries.Find(geometry.Definition.Id));
+                }
                 DbB.JawTracking_Indication = (int)B.JawTracking_Indication.Value;
                 B.JawTracking_Indication.AcceptChanges();
                 DbB.MaxColRotation = B.MaxColRotation.Value == null ? double.NaN : (double)B.MaxColRotation.Value;

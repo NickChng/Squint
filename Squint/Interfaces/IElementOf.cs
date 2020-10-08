@@ -1,8 +1,13 @@
-﻿namespace SquintScript.Interfaces
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace SquintScript.Interfaces
 {
-    public interface IElementOf<T>
+    interface IContains<T>
     {
-        bool IsElementOf(T SuperSet);
-        string SuperSetName { get; }
+        bool Contains(T element);
     }
 }

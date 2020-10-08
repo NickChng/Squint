@@ -18,6 +18,7 @@ namespace SquintScript
         private List<AsyncPlan> _plans = new List<AsyncPlan>();
         public List<PlanDescriptor> PlanDescriptors { get; private set; } = new List<PlanDescriptor>();
         private Dictionary<string, bool> isPlanASum = new Dictionary<string, bool>();
+        private Dictionary<string, bool> isPlanASumByUID = new Dictionary<string, bool>();
         public async Task<AsyncPlan> GetPlan(string Id)
         {
             AsyncPlan AP = _plans.FirstOrDefault(x => x.Id == Id);
@@ -51,19 +52,24 @@ namespace SquintScript
             else
             {
                 return await A.ExecuteAsync(new Func<EApp, AsyncPlan>((app) =>
-            {
-                if (PlanDescriptors.Select(x => x.PlanUID).Contains(UID))
                 {
-                    return new AsyncPlan(A, c.PlanSetups.FirstOrDefault(x => x.UID == UID), pt, this);
-                }
-                else
-                    AP = null;
-                if (AP != null)
-                    _plans.Add(AP);
-                return AP;
-            }));
+                    if (PlanDescriptors.Select(x => x.PlanUID).Contains(UID))
+                    {
+                        string Id = PlanDescriptors.FirstOrDefault(x => x.PlanUID == UID).PlanId;
+                        if (isPlanASumByUID[UID])
+                            return new AsyncPlan(A, c.PlanSums.FirstOrDefault(x => x.Id == Id), pt, this);
+                        else
+                            return new AsyncPlan(A, c.PlanSetups.FirstOrDefault(x => x.UID == UID), pt, this);
+                    }
+                    else
+                        AP = null;
+                    if (AP != null)
+                        _plans.Add(AP);
+                    return AP;
+                }));
             }
         }
+       
         public AsyncCourse(AsyncESAPI ACurrent, Course cIn, Patient ptIn, IProgress<int> progress = null)
         {
             A = ACurrent;
@@ -77,11 +83,14 @@ namespace SquintScript
             {
                 PlanDescriptors.Add(PD);
                 isPlanASum.Add(PD.PlanId, false);
+                isPlanASumByUID.Add(PD.PlanUID, false);
             }
-            foreach (var PD in c.PlanSums.Select(x => new PlanDescriptor(ComponentTypes.Sum, x.Id, null, x.StructureSet.UID)))
+            foreach (var psum in c.PlanSums)
             {
+                var PD = new PlanDescriptor(ComponentTypes.Sum, psum.Id, PlanSumUIDGenerator.GetUID(psum), psum.StructureSet.UID);
                 PlanDescriptors.Add(PD);
                 isPlanASum.Add(PD.PlanId, true);
+                isPlanASumByUID.Add(PD.PlanUID, true);
             }
 
         }

@@ -74,7 +74,7 @@ namespace SquintScript.ViewModels
             ParentView.LoadingString = "Loading session...";
             if (await Task.Run(() => Ctr.Load_Session(E.ID)))
             {
-                ParentView.ProtocolVM.UpdateProtocolView();
+                //ParentView.ProtocolVM.UpdateProtocolView();
                 ParentView.ProtocolVM.isProtocolLoaded = true;
                 Ctr.UpdateConstraints();
                 ParentView.AssessmentsVM.isLinkProtocolVisible = true;

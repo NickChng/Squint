@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using SquintScript.Interfaces;
 using PropertyChanged;
 
 namespace SquintScript
@@ -18,19 +19,19 @@ namespace SquintScript
         public string ProtocolBeamName { get; set; } = "unset";
         public FieldType Technique { get; set; } = FieldType.Unset;
         public ObservableCollection<Energies> ValidEnergies { get; set; } = new ObservableCollection<Energies>();
-        public TrackedValue<string> ToleranceTable { get; set; }
-        public TrackedValue<double?> MinMUWarning { get; set; }
-        public TrackedValue<double?> MaxMUWarning { get; set; }
-        public TrackedValue<double?> MinColRotation { get; set; }
-        public TrackedValue<double?> MaxColRotation { get; set; }
-        public TrackedValue<double?> CouchRotation { get; set; }
-        public TrackedValue<double?> MinX { get; set; }
-        public TrackedValue<double?> MaxX { get; set; }
-        public TrackedValue<double?> MinY { get; set; }
-        public TrackedValue<double?> MaxY { get; set; }
-        public TrackedValue<ParameterOptions> JawTracking_Indication { get; set; }
-        public ObservableCollection<string> EclipseAliases { get; set; } = new ObservableCollection<string>();
-        public ObservableCollection<BeamGeometry> ValidGeometries { get; set; } = new ObservableCollection<BeamGeometry>();
+        public TrackedValue<string> ToleranceTable { get; private set; }
+        public TrackedValue<double?> MinMUWarning { get; private set; }
+        public TrackedValue<double?> MaxMUWarning { get; private set; }
+        public TrackedValue<double?> MinColRotation { get; private set; }
+        public TrackedValue<double?> MaxColRotation { get; private set; }
+        public TrackedValue<double?> CouchRotation { get; private set; }
+        public TrackedValue<double?> MinX { get; private set; }
+        public TrackedValue<double?> MaxX { get; private set; }
+        public TrackedValue<double?> MinY { get; private set; }
+        public TrackedValue<double?> MaxY { get; private set; }
+        public TrackedValue<ParameterOptions> JawTracking_Indication { get; private set; }
+        public ObservableCollection<string> EclipseAliases { get; private set; } = new ObservableCollection<string>();
+        public ObservableCollection<BeamGeometryInstance> ValidGeometries { get; private set; } = new ObservableCollection<BeamGeometryInstance>();
         public List<BolusDefinition> Boluses { get; set; } = new List<BolusDefinition>();
         // Methods
         public void Delete()
@@ -54,7 +55,7 @@ namespace SquintScript
                 EclipseAliases.Add(A.EclipseFieldId);
             foreach (var G in DbO.DbBeamGeometries)
             {
-                ValidGeometries.Add(new BeamGeometry() { EndAngle = G.EndAngle, StartAngle = G.StartAngle, EndAngleTolerance = G.EndAngleTolerance, StartAngleTolerance = G.StartAngleTolerance, GeometryName = G.GeometryName, Trajectory = (Trajectories)G.Trajectory });
+                ValidGeometries.Add(new BeamGeometryInstance(G));
             }
             foreach (var B in DbO.DbBoluses)
             {
