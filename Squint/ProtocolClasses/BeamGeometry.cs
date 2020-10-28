@@ -51,6 +51,11 @@ namespace SquintScript
             Trajectory = Definition.Trajectory;
         }
 
+        public BeamGeometryInstance()
+        {
+
+        }
+
         public BeamGeometryInstance(double startAngle, double endAngle, Trajectories trajectory)
         {
             StartAngle = startAngle;
@@ -125,9 +130,9 @@ namespace SquintScript
             }
             else // some kind of arc
             {
-                double InvariantMaxStart = GetInvariantAngle(startAngle) + StartAngleTolerance;
+                double InvariantMaxStart = GetInvariantAngle(StartAngle) + StartAngleTolerance;
                 double InvariantMinStart = InvariantMaxStart - 2 * StartAngleTolerance;
-                double InvariantMaxEnd = GetInvariantAngle(endAngle) + EndAngleTolerance;
+                double InvariantMaxEnd = GetInvariantAngle(EndAngle) + EndAngleTolerance;
                 double InvariantMinEnd = InvariantMaxEnd - 2 * EndAngleTolerance;
 
                 var FieldStart = GetInvariantAngle(startAngle);

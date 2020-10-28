@@ -13,7 +13,7 @@ namespace SquintScript
     {
         public static string GetUID(PlanSum ps)
         {
-            string UID = String.Join("+", ps.PlanSetups.OrderBy(x=>x.UID).Select(x => x.UID));
+            string UID = string.Format("{0}_{1}", ps.Id, String.Join("+", ps.PlanSetups.OrderBy(x=>x.UID).Select(x => x.UID)));
             return UID;
         }
     }

@@ -181,6 +181,9 @@
     <Compile Include="ViewModels\SessionsView.cs" />
     <Compile Include="ViewModels\Simulation_ViewModel.cs" />
     <Compile Include="ViewModels\TestList_ViewModel.cs" />
+    <Compile Include="XAML\DensityOverrides.xaml.cs">
+      <DependentUpon>DensityOverrides.xaml</DependentUpon>
+    </Compile>
     <Compile Include="XAML\WaitWindow.xaml.cs" />
     <Compile Include="WPF Extensions\TextBoxExtensions.cs" />
     <Compile Include="ViewModels\AssessmentPreviewViewModel.cs" />
@@ -297,6 +300,10 @@
     <Compile Include="ViewModels\ProtocolViewModel.cs" />
     <Compile Include="ViewModels\ViewModel.cs" />
     <Compile Include="XML Definitions\EclipseClinicalProtocolXML.cs" />
+    <Page Include="XAML\DensityOverrides.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
     <Page Include="XAML\WaitWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>

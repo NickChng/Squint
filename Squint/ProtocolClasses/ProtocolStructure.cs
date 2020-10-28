@@ -109,6 +109,18 @@ namespace SquintScript
         public StructureCheckList CheckList { get; set; }
         public string AssignedStructureId { get; set; } = "";
 
+        public double? AssignedHUInCurrentStructureSet // used for density override report
+        {
+            get 
+            {
+                if (Ctr.CurrentStructureSet != null)
+                    return GetAssignedHU(Ctr.CurrentStructureSet.UID);
+                else
+                    return null;
+            }
+        }
+                  
+
         public System.Windows.Media.Color? GetStructureColor(string SSUID)
         {
 
@@ -187,11 +199,11 @@ namespace SquintScript
                 return -1;
             return await AS.GetNumSeperateParts();
         }
-        public double AssignedHU(string SSUID)
+        public double? GetAssignedHU(string SSUID)
         {
-            var AS = Ctr.GetStructureSet(SSUID).GetStructure(AssignedStructureId);
+            AsyncStructure AS = Ctr.GetStructureSet(SSUID).GetStructure(AssignedStructureId);
             if (AS == null)
-                return double.NaN;
+                return null;
             return Math.Round(AS.HU);
         }
 

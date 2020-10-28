@@ -220,7 +220,7 @@
                                     <TextBlock Grid.Column="1" Text="{Binding ReferenceValueString, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Center"
                                                Foreground="{Binding Reference.IsChanged, Converter={StaticResource ReferenceEditConverter}, UpdateSourceTrigger=PropertyChanged}"/>
                                     <Grid Grid.Column="2" Visibility="{Binding IsInfoOnly, Converter={StaticResource VisibilityInverseConverter}}">
-                                        <Grid x:Name="SingleSelection">
+                                        <!--<Grid x:Name="SingleSelection">
                                             <Grid.Visibility>
                                                 <MultiBinding Converter="{StaticResource VisibilityEditModeConverter}">
                                                     <Binding Path="EditType"/>
@@ -285,14 +285,14 @@
                                             <TextBlock Grid.Column="1" Text="to" Margin="5,0,5,0" VerticalAlignment="Center" HorizontalAlignment="Center"/>
                                             <TextBox Grid.Column="2" Text="{Binding SetReference2, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" HorizontalContentAlignment="Center" Width="80"
                                                       Style="{StaticResource ChecklistTextBoxStyle}"/>
-                                        </Grid>
+                                        </Grid>-->
                                         <Grid x:Name="AnyOfValues">
                                             <Grid.Visibility>
-                                            <MultiBinding Converter="{StaticResource VisibilityEditModeConverter}">
-                                                <Binding Path="EditType"/>
-                                                <Binding Path="Name" RelativeSource="{RelativeSource Self}"/>
-                                                <Binding Path="EditEnabled"/>
-                                            </MultiBinding>
+                                                <MultiBinding Converter="{StaticResource VisibilityEditModeConverter}">
+                                                    <Binding Path="EditType"/>
+                                                    <Binding Path="Name" RelativeSource="{RelativeSource Self}"/>
+                                                    <Binding Path="EditEnabled"/>
+                                                </MultiBinding>
                                             </Grid.Visibility>
                                             <Grid>
                                                 <Grid.RowDefinitions>
@@ -302,7 +302,7 @@
                                                 <ListBox Grid.Row="0" ItemsSource="{Binding ReferenceCollection, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" Visibility="{Binding ItemHasDisplayName, Converter={StaticResource VisibilityInverseConverter}}"
                                                         Margin="0,5,0,5" HorizontalAlignment="Left" VerticalAlignment="Stretch" HorizontalContentAlignment="Stretch" Background="Transparent"
                                                         Width="200" Style="{DynamicResource ListBoxStyle1}" ItemContainerStyle="{DynamicResource SquintAliasesListBoxItemStyle}"
-                                                        BorderThickness="0"  SelectedItem="{Binding Reference, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
+                                                        BorderThickness="0"> <!--SelectedItem="{Binding Reference, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"-->
                                                     <ListBox.ItemTemplate>
                                                         <DataTemplate>
                                                             <Grid >
@@ -320,9 +320,9 @@
                                                     </ListBox.ItemTemplate>
                                                 </ListBox>
                                                 <ListBox Grid.Row="0" ItemsSource="{Binding ReferenceCollection, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" Visibility="{Binding ItemHasDisplayName, Converter={StaticResource VisibilityConverter}}"
-                                                        Margin="0,5,0,5" HorizontalAlignment="Left" VerticalAlignment="Stretch" HorizontalContentAlignment="Stretch" Background="Transparent"
+                                                        Margin="0,5,0,5" HorizontalAlignment="Left" VerticalAlignment="Stretch" HorizontalContentAlignment="Stretch" 
                                                         Width="200" Style="{DynamicResource ListBoxStyle1}" ItemContainerStyle="{DynamicResource SquintAliasesListBoxItemStyle}"
-                                                        BorderThickness="0"  SelectedItem="{Binding Reference, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
+                                                        BorderThickness="0" >
                                                     <ListBox.ItemTemplate>
                                                         <DataTemplate>
                                                             <Grid>

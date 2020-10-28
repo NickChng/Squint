@@ -86,12 +86,12 @@ namespace SquintScript
                     Structures.Add(s.Id, new AsyncStructure(ACurrent, s, ps.StructureSet.Id, ps.StructureSet.UID));
                 }
             }
-            foreach (PlanSetup p in ps.PlanSetups.OrderBy(x=>x.UID))
+            foreach (PlanSetup p in ps.PlanSetups.OrderBy(x => x.UID))
             {
                 ConstituentPlans.Add(new AsyncPlan(A, p, ptIn, cIn));
             }
             HashId = Convert.ToInt32(ps.Id.GetHashCode() + ps.Course.Id.GetHashCode() + string.Concat(ConstituentPlans.Select(x => x.UID)).GetHashCode());
-            UID = PlanSumUIDGenerator.GetUID(ps); 
+            UID = PlanSumUIDGenerator.GetUID(ps);
         }
         public Dictionary<string, AsyncStructure> Structures { get; private set; } = new Dictionary<string, AsyncStructure>();
         public async Task<double> GetSliceSpacing()
@@ -548,7 +548,6 @@ namespace SquintScript
                 case ComponentTypes.Phase:
                     return A.ExecuteAsync(new Func<PlanSetup, double>((p) =>
                     {
-
                         return (p.GetDoseAtVolume(_Structures[StructureId], ConstraintValue, VP, DVP)).Dose;
                     }), p);
                 case ComponentTypes.Sum:

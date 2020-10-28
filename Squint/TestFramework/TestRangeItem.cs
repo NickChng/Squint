@@ -136,6 +136,13 @@ namespace SquintScript.TestFramework
                 }
                 else
                 {
+                    if (Reference.Value == null || Reference2.Value == null)
+                    {
+                        if (ParameterOption == ParameterOptions.Required)
+                            return false;
+                        else
+                            return null;
+                    }
                     if (Comparer<T>.Default.Compare((T)Check, Reference.Value) >= 0 && Comparer<T>.Default.Compare((T)Check, Reference2.Value) <= 0)
                         return true;
                     else
@@ -149,6 +156,8 @@ namespace SquintScript.TestFramework
             get
             {
                 if (Reference == null || Reference2 == null)
+                    return _EmptyRefValueString;
+                if (Reference.Value == null || Reference2.Value == null)
                     return _EmptyRefValueString;
                 if (Check == null)
                     return _EmptyCheckValueString;

@@ -36,6 +36,8 @@ namespace SquintScript.ViewModels
 
         private ComponentSelector _SelectedComponent;
 
+        public List<ProtocolStructure> Structures { get; set; }
+        
         public ObservableCollection<ComponentSelector> Components { get; set; } = new ObservableCollection<ComponentSelector>();
         public ComponentSelector SelectedComponent
         {
@@ -65,7 +67,7 @@ namespace SquintScript.ViewModels
         private void PopulateViewFromProtocol()
         {
             // No pre-population of the Objectives of imaging checks yet, as these aren't editable
-
+            
             // Populate Simulation ViewModel
             var P = Ctr.CurrentProtocol;
             Components.Clear();
@@ -73,9 +75,10 @@ namespace SquintScript.ViewModels
             {
                 Components.Add(new ComponentSelector(Comp));
             }
+
             Simulation_ViewModel.Tests.Clear();
             TestValueItem<double?> SliceSpacing = new TestValueItem<double?>(CheckTypes.SliceSpacing, null, P.Checklist.SliceSpacing, new TrackedValue<double?>(1E-5), "Slice spacing does not match protocol");
-            TestValueItem<string> Series = new TestValueItem<string>(CheckTypes.SeriesId, null, null) { ParameterOption = ParameterOptions.Optional, IsInfoOnly=true };
+            TestValueItem<string> Series = new TestValueItem<string>(CheckTypes.SeriesId, null, null) { ParameterOption = ParameterOptions.Optional, IsInfoOnly = true };
             TestValueItem<string> Study = new TestValueItem<string>(CheckTypes.StudyId, null, null) { ParameterOption = ParameterOptions.Optional, IsInfoOnly = true };
             TestValueItem<string> SeriesComment = new TestValueItem<string>(CheckTypes.SeriesComment, null, null) { ParameterOption = ParameterOptions.Optional, IsInfoOnly = true };
             TestValueItem<string> ImageComment = new TestValueItem<string>(CheckTypes.ImageComment, null, null) { ParameterOption = ParameterOptions.Optional, IsInfoOnly = true };
@@ -86,8 +89,6 @@ namespace SquintScript.ViewModels
             Simulation_ViewModel.Tests.Add(SliceSpacing);
             Simulation_ViewModel.Tests.Add(SeriesComment);
             Simulation_ViewModel.Tests.Add(ImageComment);
-
-
 
             // Populate Calculation ViewModel
             Calculation_ViewModel.Tests.Clear(); // = new ObservableCollection<Controls.TestListItem<string>>();
@@ -236,6 +237,7 @@ namespace SquintScript.ViewModels
         }
         public async Task DisplayChecksForPlan(PlanSelector p)
         {
+            Structures = Ctr.CurrentProtocol.Structures.Where(x => x.AssignedHUInCurrentStructureSet != null).Where(x=>!double.IsNaN((double)x.AssignedHUInCurrentStructureSet)).ToList(); 
             Objectives_ViewModel = new OptimizationCheckViewModel();
             var Objectives = await Ctr.GetOptimizationObjectiveList(p.CourseId, p.PlanId);
             List<string> StructureIds = new List<string>();
@@ -385,7 +387,7 @@ namespace SquintScript.ViewModels
                 {
                     if (PS.AssignedStructureId != "")
                     {
-                        CheckHU = PS.AssignedHU(p.StructureSetUID);
+                        CheckHU = PS.GetAssignedHU(p.StructureSetUID);
                     }
                 }
                 var ArtifactCheck = new TestValueItem<double?>(CheckTypes.ArtifactHU, CheckHU, A.RefHU, A.ToleranceHU, ArtifactWarningString, NoCheckHUString, NoRefHUString);
@@ -466,7 +468,6 @@ namespace SquintScript.ViewModels
                 }
 
             }
-
 
             // Target Structure Checks
             Targets_ViewModel.Tests.Clear();

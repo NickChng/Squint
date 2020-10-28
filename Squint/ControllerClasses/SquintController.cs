@@ -1986,7 +1986,7 @@ namespace SquintScript
             }
         }
 
-        public async static void UpdateConstraints(int CompId, int? AssessmentId)
+        public async static Task<bool> UpdateConstraints(int CompId, int? AssessmentId)
         {
 
             var PAs = CurrentSession.PlanAssociations.Where(x => x.ComponentID == CompId);
@@ -2000,6 +2000,7 @@ namespace SquintScript
                         await Con.EvaluateConstraint(PA);
                 }
             }
+            return true;
         }
 
         public async static void UpdateConstraints(ProtocolStructure PS)

@@ -61,7 +61,8 @@ namespace SquintScript
         [Description("Maximum Y field size")] MaximumYfieldSize,
         [Description("Bolus HU")] BolusHU,
         [Description("Bolus thickness [cm]")] BolusThickness,
-        [Description("Tolerance Table")] ToleranceTable
+        [Description("Tolerance Table")] ToleranceTable,
+        [Description("Density Override")] DensityOverride
     }
     public enum Energies
     {

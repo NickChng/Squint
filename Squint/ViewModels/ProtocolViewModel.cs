@@ -47,9 +47,9 @@ namespace SquintScript.ViewModels
 
         private void Ctr_ProtocolOpened(object sender, EventArgs e)
         {
+            UpdateProtocolView();
             isProtocolLoaded = true;
             ParentView.isLoadProtocolPanelVisible = false;
-            UpdateProtocolView();
         }
 
         private void Ctr_ProtocolClosed(object sender, EventArgs e)
@@ -443,12 +443,13 @@ namespace SquintScript.ViewModels
             {
                 UpdateProtocolView();
                 isProtocolLoaded = true;
-                ParentView.isLoading = false;
-                ParentView.isLoadProtocolPanelVisible = false;
                 if (Ctr.PatientOpen)
                 {
                     ParentView.AssessmentsVM.AddAssessment();
                 }
+                ParentView.isLoadProtocolPanelVisible = false;
+                ParentView.isLoading = false;
+                
             }
             else
                 MessageBox.Show("Problem loading protocol.");

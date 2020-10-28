@@ -88,7 +88,7 @@ namespace SquintScript
         public void InitializeTests()
         {
             BeamTests.Tests.Clear();
-            BeamGeometryInstance beamGeometry = null;
+            BeamGeometryInstance beamGeometry = new BeamGeometryInstance();
             if (Fields != null)
                 foreach (string alias in RefBeam.EclipseAliases)
                     foreach (TxFieldItem F in Fields)
@@ -101,7 +101,7 @@ namespace SquintScript
             FieldDescription = string.Format(@"Protocol field ""{0}"" assigned to plan field:", RefBeam.ProtocolBeamName);
 
             // Populate Tests
-            BeamTests.Tests.Add(new TestRangeItem<double?>(CheckTypes.MURange, null, RefBeam.MinMUWarning, RefBeam.MaxMUWarning, "MU outside normal range"));
+            BeamTests.Tests.Add(new TestRangeItem<double?>(CheckTypes.MURange, null, RefBeam.MinMUWarning, RefBeam.MaxMUWarning, "MU outside normal range") { ParameterOption = ParameterOptions.Optional });
             BeamTests.Tests.Add(new TestContainsItem<Energies>(CheckTypes.ValidEnergies, Energies.Unset, RefBeam.ValidEnergies, "Not a valid energy") { ParameterOption = ParameterOptions.Required});
             BeamTests.Tests.Add(new TestContainsItem<BeamGeometryInstance>(CheckTypes.BeamGeometry, beamGeometry, RefBeam.ValidGeometries, "No valid geometry found") { ParameterOption = ParameterOptions.Required });
             BeamTests.Tests.Add(new TestValueItem<double?>(CheckTypes.CouchRotation, null, RefBeam.CouchRotation, new TrackedValue<double?>(1E-2), "Non-standard couch rotation"));
@@ -151,18 +151,6 @@ namespace SquintScript
                         Test.SetCheckValue(Field.Energy);
                         break;
                     case CheckTypes.BeamGeometry:
-                        Trajectories BeamTrajectory = Trajectories.Static;
-                        switch (Field.GantryDirection)
-                        {
-                            case VMS.TPS.Common.Model.Types.GantryDirection.Clockwise:
-                                BeamTrajectory = Trajectories.CW;
-                                break;
-                            case VMS.TPS.Common.Model.Types.GantryDirection.CounterClockwise:
-                                BeamTrajectory = Trajectories.CCW;
-                                break;
-                            default:
-                                break;
-                        }
                         var CheckBeam = new BeamGeometryInstance(Field.GantryStart, Field.GantryEnd, Field.Trajectory);
                         Test.SetCheckValue(CheckBeam);
                         break;

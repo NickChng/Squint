@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using PropertyChanged;
 using System.Windows;
 using SquintScript.Extensions;
+using System.Threading.Tasks;
 
 namespace SquintScript.ViewModels
 {
@@ -132,7 +133,7 @@ namespace SquintScript.ViewModels
                     ParentView.ParentView.ParentView.isLoading = true;
                     ParentView.ParentView.ParentView.LoadingString = "Loading plan...";
                     var CSC = await Ctr.AssociatePlanToComponent(A.ID, Comp.ID, _SelectedCourse.CourseId, _SelectedPlan.PlanId, Comp.ComponentType.Value, true);
-                    Ctr.UpdateConstraints(Comp.ID, A.ID);
+                    await Task.Run(() => Ctr.UpdateConstraints(Comp.ID, A.ID));
                     UpdateWarning(CSC);
                     ParentView.ParentView.ParentView.isLoading = false;
                     ParentView.ParentView.ParentView.LoadingString = "";

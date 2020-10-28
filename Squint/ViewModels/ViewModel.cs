@@ -1115,10 +1115,10 @@ namespace SquintScript.ViewModels
         public string InitializingMessages { get; set; } = "Squint is initializing, please wait...";
         public bool SquintIsBusy { get; set; } = false;
         public int NumAdminButtons { get; private set; } = 8;
-        public bool PlanCheckVisible { get; set; } = false;
+        public bool PlanCheckVisible { get; set; } = false; // normallly false
         public string PlanCheckLoadingMessage { get; set; } = "Checking plan, please wait...";
         public bool isPlanCheckCalculating { get; set; } = false;
-        public bool ProtocolCheckVisible { get; set; } = true;
+        public bool ProtocolCheckVisible { get; set; } = true; // normally true;
         public bool SessionSelectVisibility { get; set; } = false;
         public bool SessionSaveVisibility { get; set; } = false;
         public bool ConstraintInfoVisibility { get; set; } = false;
@@ -1370,18 +1370,25 @@ namespace SquintScript.ViewModels
         }
         private async void ViewPlanCheck(object param = null)
         {
-            var p = (param as PlanSelector);
-            if (param == null)
-                return;
-            else
+            try
             {
-                ProtocolCheckVisible = false;
-                PlanCheckVisible = true;
-                isPlanCheckCalculating = true;
-                Loading_ViewModel = new LoadingViewModel() { LoadingMessage = @"Checking plan, please wait..." };
+                var p = (param as PlanSelector);
+                if (param == null)
+                    return;
+                else
+                {
+                    ProtocolCheckVisible = false;
+                    PlanCheckVisible = true;
+                    isPlanCheckCalculating = true;
+                    Loading_ViewModel = new LoadingViewModel() { LoadingMessage = @"Checking plan, please wait..." };
 
-                await ProtocolVM.ChecklistViewModel.DisplayChecksForPlan(p);
-                isPlanCheckCalculating = false;
+                    await ProtocolVM.ChecklistViewModel.DisplayChecksForPlan(p);
+                    isPlanCheckCalculating = false;
+                }
+            }
+            catch (Exception Ex)
+            {
+                string debugme = "hi";
             }
         }
         public ICommand ToggleChecklistViewCommand
