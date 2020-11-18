@@ -549,6 +549,7 @@ namespace SquintScript
                     return A.ExecuteAsync(new Func<PlanSetup, double>((p) =>
                     {
                         return (p.GetDoseAtVolume(_Structures[StructureId], ConstraintValue, VP, DVP)).Dose;
+                        
                     }), p);
                 case ComponentTypes.Sum:
                     return A.ExecuteAsync(new Func<PlanSum, double>((ps) =>

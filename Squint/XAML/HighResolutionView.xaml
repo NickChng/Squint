@@ -1,4 +1,4 @@
-﻿<UserControl x:Class="SquintScript.Views.DensityOverrides"
+﻿<UserControl x:Class="SquintScript.Views.HighResolutionView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
@@ -105,7 +105,7 @@
                             <ColumnDefinition Width="150"/>
                         </Grid.ColumnDefinitions>
                         <TextBlock Grid.Column="0" Text="Structure Id" FontWeight="Bold" FontSize="13" HorizontalAlignment="Left"/>
-                        <TextBlock Grid.Column="1" Text="Assigned HU"  FontWeight="Bold" FontSize="13" HorizontalAlignment="Left" Margin="0,0,0,0"/>
+                        <TextBlock Grid.Column="1" Text="High Resolution"  FontWeight="Bold" FontSize="13" HorizontalAlignment="Left" Margin="0,0,0,0"/>
                     </Grid>
                     <ListView Grid.Row="1" Margin ="10,5,0,0" Name="MainTestListView" ItemsSource="{Binding}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch" AlternationCount="2"
                      ScrollViewer.HorizontalScrollBarVisibility="Disabled" Background="Transparent" BorderThickness="0">
@@ -144,7 +144,9 @@
                                         <ColumnDefinition Width="*"/>
                                     </Grid.ColumnDefinitions>
                                     <TextBlock Grid.Column="0" Text="{Binding Id, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" FontWeight="Bold" VerticalAlignment="Center"/>
-                                    <TextBlock Grid.Column="1" Text="{Binding HU, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Center"/>
+                                    <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Center" Visibility="{Binding DataContext.CheckVisibility, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}">
+                                        <local:CircleCheck Pass="False" Margin="35,0,0,0"  CheckHeight="20" CheckWidth="20" HorizontalAlignment="Right"/>
+                                    </StackPanel>
                                 </Grid>
                             </DataTemplate>
                         </ListView.ItemTemplate>

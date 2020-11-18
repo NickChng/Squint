@@ -107,6 +107,18 @@ namespace SquintScript
         public int ProtocolID { get; set; }
         public string ProtocolStructureName { get; set; }
         public StructureCheckList CheckList { get; set; }
+        
+        public bool? IsHighResolution 
+        {
+            get
+            {
+                if (Ctr.CurrentStructureSet != null)
+                    return GetStructureResolution(Ctr.CurrentStructureSet.UID);
+                else
+                    return null;
+            }
+                
+        }
         public string AssignedStructureId { get; set; } = "";
 
         public double? AssignedHUInCurrentStructureSet // used for density override report
@@ -205,6 +217,14 @@ namespace SquintScript
             if (AS == null)
                 return null;
             return Math.Round(AS.HU);
+        }
+
+        public bool? GetStructureResolution(string SSUID)
+        {
+            AsyncStructure AS = Ctr.GetStructureSet(SSUID).GetStructure(AssignedStructureId);
+            if (AS == null)
+                return null;
+            return AS.IsHighResolution;
         }
 
     }

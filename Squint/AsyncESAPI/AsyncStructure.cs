@@ -16,7 +16,7 @@ namespace SquintScript
         public string StructureSetID { get; private set; }
         public string StructureSetUID { get; private set; }
         public double Volume { get; private set; }
-        public bool isHighResolution { get; private set; }
+        public bool IsHighResolution { get; private set; }
         public string DicomType { get; private set; }
         public System.Windows.Media.Color Color { get; set; }
         public string Code { get; private set; }
@@ -29,7 +29,7 @@ namespace SquintScript
             A = ACurrent;
             S = Sin;
             isEmpty = Sin.IsEmpty;
-            isHighResolution = S.IsHighResolution;
+            IsHighResolution = S.IsHighResolution;
             Color = S.Color;
             StructureSetUID = SSUID;
             StructureSetID = SSID;

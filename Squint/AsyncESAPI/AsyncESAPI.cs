@@ -63,12 +63,10 @@ namespace SquintScript
 
             public override int MaximumConcurrencyLevel => 1;
         }
-
         private readonly AppTaskScheduler m_taskScheduler = new AppTaskScheduler();
         private EApp m_application;
         private Patient _Patient = null;
         public AsyncPatient Patient = null;
-
         public bool isInit { get; private set; } = false;
 
         public AsyncESAPI(string username = null, string password = null)
@@ -90,6 +88,7 @@ namespace SquintScript
                 {
                     application.ClosePatient();
                     _Patient = null;
+                    Patient = null;
                 }));
             }
             Execute(new Action<EApp>((application) =>
@@ -118,6 +117,7 @@ namespace SquintScript
                 {
                     application.ClosePatient();
                     _Patient = null;
+                    Patient = null;
                 }));
             }
         }

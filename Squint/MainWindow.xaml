@@ -77,6 +77,9 @@
                         <Button Style="{StaticResource ButtonStyle}" Command="{Binding AssessmentsVM.FontSizeDecreaseCommand}" ToolTip="Decrease font size" CommandParameter="{Binding ElementName=SquintWindow, Path=DataContext.AssessmentsVM}" Margin="0,0,0,10">
                             <Image Source="/Resources/appbar.text.size.minus.png" Stretch="Fill" Margin="0,0,0,0" Height="36" VerticalAlignment="Bottom"></Image>
                         </Button>
+                        <Button Style="{StaticResource ButtonStyle}" Command="{Binding ToggleGy2cGyCommand}" ToolTip="Decrease font size" Margin="0,0,0,10">
+                            <TextBlock Text="{Binding DoseUnit, FallbackValue=cGy}" FontSize="18" FontWeight="bold" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                        </Button>
                         <Button Name="SaveSessionButton" Style="{StaticResource ButtonStyle}" Command="{Binding SaveWorkspaceCommand}" ToolTip="Save patient workspace" CommandParameter="{Binding ElementName=SquintWindow, Path=DataContext.AssessmentsVM}" Margin="0,0,0,10">
                             <Image Source="/Resources/save_fontawesome.png" Stretch="Fill" Margin="0,0,0,0" Height="36" VerticalAlignment="Bottom"></Image>
                         </Button>
@@ -167,7 +170,7 @@
                             <Popup Name="ImportEclipseProtocolsPopup" PlacementTarget="{Binding ElementName=ImportEclipseProtocolButton}" 
                                Placement="Left" StaysOpen="False" AllowsTransparency="True" PopupAnimation="Fade" 
                                IsOpen="{Binding ImportEclipseProtocolVisibility, UpdateSourceTrigger=PropertyChanged}" >
-                                <Views:EclipseProtocolPopup DataContext="{Binding EclipseProtocolView}" MinHeight="35" Height="Auto"/>
+                                <Views:EclipseProtocolPopup DataContext="{Binding EclipseProtocolPopupVM}" MinHeight="35" Height="Auto"/>
                             </Popup>
                         </Grid>
                         <Grid Grid.Row="1">

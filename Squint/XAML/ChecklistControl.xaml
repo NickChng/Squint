@@ -91,39 +91,53 @@
                     <local:TestView DataContext="{Binding Calculation_ViewModel}"  TestItems ="{Binding Tests}" SetReferenceHeader="Reference Value" />
                 </StackPanel>
                 <Grid Grid.Row="7">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="Auto"/>
-                    </Grid.ColumnDefinitions>
-                    <Border Grid.Column="0" CornerRadius="5,5,5,5" Background="{Binding ParentView.ParentView.AdminOptionsToggle, Converter={StaticResource AdminColorModeConverter}, UpdateSourceTrigger=PropertyChanged}" Margin="0,15,0,10">
-                        <TextBlock Text="Structure checks" Foreground="White" FontSize="14" Margin="10,5,5,5"/>
-                    </Border>
-                    <Button x:Name="EditContourChecks" Grid.Column="1" Style="{DynamicResource ButtonStyle_Medium}" Margin="0,3,0,0" 
-                            Command="{Binding AddNewContourCheckCommand}">
-                        <Image Source="/Resources/edit.png"></Image>
-                    </Button>
-                    <Popup PlacementTarget="{Binding ElementName=EditContourChecks}" Placement="Left"  StaysOpen="False" 
-                           AllowsTransparency="True" PopupAnimation="Fade"  IsOpen="{Binding AddStructureCheckVisibility, UpdateSourceTrigger=PropertyChanged}" >
-                        <local:AddStructureCheckPopup DataContext="{Binding}"/>
-                    </Popup>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+                    <Grid Grid.Row="0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <Border Grid.Column="0" CornerRadius="5,5,5,5" Background="{Binding ParentView.ParentView.AdminOptionsToggle, Converter={StaticResource AdminColorModeConverter}, UpdateSourceTrigger=PropertyChanged}" Margin="0,15,0,10">
+                            <TextBlock Text="Structure checks" Foreground="White" FontSize="14" Margin="10,5,5,5"/>
+                        </Border>
+                        <Button x:Name="EditContourChecks" Grid.Column="1" Style="{DynamicResource ButtonStyle_Medium}" Margin="0,3,0,0" 
+                                Command="{Binding AddNewContourCheckCommand}">
+                            <Image Source="/Resources/edit.png"></Image>
+                        </Button>
+                        <Popup PlacementTarget="{Binding ElementName=EditContourChecks}" Placement="Left"  StaysOpen="False" 
+                               AllowsTransparency="True" PopupAnimation="Fade"  IsOpen="{Binding AddStructureCheckVisibility, UpdateSourceTrigger=PropertyChanged}" >
+                            <local:AddStructureCheckPopup DataContext="{Binding}"/>
+                        </Popup>
+                    </Grid>
+                    <StackPanel Grid.Row="1" Orientation="Vertical">
+                        <TextBlock Grid.Column="0" FontWeight="Bold" Text="Small subvolume checks" FontSize="13" Margin="5,5,0,5"/>
+                        <Border  Background="Black" CornerRadius="1,1,1,1" Height="2" Margin="5,3,10,5" HorizontalAlignment="Stretch"/>
+                        <local:TestView DataContext="{Binding Targets_ViewModel}" TestItems ="{Binding Tests}" SetReferenceHeader="Reference Value" />
+                    </StackPanel>
+                    <StackPanel Grid.Row="2" Orientation="Vertical">
+                        <TextBlock Grid.Column="0" FontWeight="Bold" Text="Density Overrides (excludes support structures)" FontSize="13" Margin="5,20,0,5"/>
+                        <Border Background="Black" CornerRadius="1,1,1,1" Height="2" Margin="5,3,10,5" HorizontalAlignment="Stretch"/>
+                        <local:DensityOverrides DataContext="{Binding StructuresWithDensityOverride, UpdateSourceTrigger=PropertyChanged}"/>
+                    </StackPanel>
+                    <StackPanel Grid.Row="3" Orientation="Vertical">
+                        <TextBlock Grid.Column="0" FontWeight="Bold" Text="Contour Resolution" FontSize="13" Margin="5,20,0,5"/>
+                        <Border Background="Black" CornerRadius="1,1,1,1" Height="2" Margin="5,3,10,5" HorizontalAlignment="Stretch"/>
+                        <local:HighResolutionView DataContext="{Binding StructuresWithHighResolutionContours, UpdateSourceTrigger=PropertyChanged}"/>
+                    </StackPanel>
                 </Grid>
-                <StackPanel Grid.Row="8" Orientation="Vertical">
-                    <TextBlock Grid.Column="0" FontWeight="Bold" Text="Small subvolume checks" FontSize="13" Margin="5,5,0,5"/>
-                    <Border  Background="Black" CornerRadius="1,1,1,1" Height="2" Margin="5,3,10,5" HorizontalAlignment="Stretch"/>
-                    <local:TestView DataContext="{Binding Targets_ViewModel}" TestItems ="{Binding Tests}" SetReferenceHeader="Reference Value" />
-                </StackPanel>
-                <StackPanel Grid.Row="9" Orientation="Vertical">
-                    <TextBlock Grid.Column="0" FontWeight="Bold" Text="Density Overrides" FontSize="13" Margin="5,20,0,5"/>
-                    <Border Background="Black" CornerRadius="1,1,1,1" Height="2" Margin="5,3,10,5" HorizontalAlignment="Stretch"/>
-                    <local:DensityOverrides DataContext="{Binding Structures, UpdateSourceTrigger=PropertyChanged}"/>
-                </StackPanel>
-                <Border Grid.Row="10" CornerRadius="5,5,5,5" Background="{Binding ParentView.ParentView.AdminOptionsToggle, Converter={StaticResource AdminColorModeConverter}, UpdateSourceTrigger=PropertyChanged}" Margin="0,10,0,0" Visibility="{Binding ParentView.ParentView.AdminOptionsToggle, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource VisibilityInverseConverter}}">
+             
+                <Border Grid.Row="8" CornerRadius="5,5,5,5" Background="{Binding ParentView.ParentView.AdminOptionsToggle, Converter={StaticResource AdminColorModeConverter}, UpdateSourceTrigger=PropertyChanged}" Margin="0,10,0,0" Visibility="{Binding ParentView.ParentView.AdminOptionsToggle, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource VisibilityInverseConverter}}">
                     <TextBlock Text="Optimization" Foreground="White" FontSize="14" Margin="10,5,5,5"/>
                 </Border>
-                <StackPanel Grid.Row="11" Orientation="Vertical" Visibility="{Binding ParentView.ParentView.AdminOptionsToggle, Converter={StaticResource VisibilityInverseConverter}, UpdateSourceTrigger=PropertyChanged}">
+                <StackPanel Grid.Row="9" Orientation="Vertical" Visibility="{Binding ParentView.ParentView.AdminOptionsToggle, Converter={StaticResource VisibilityInverseConverter}, UpdateSourceTrigger=PropertyChanged}">
                     <local:ObjectiveControl  DataContext="{Binding Objectives_ViewModel}" Background="Transparent" />
                 </StackPanel>
-                <Grid Grid.Row="12">
+                <Grid Grid.Row="10">
                     <Border  Grid.Column="0" CornerRadius="5,5,5,5" Background="{Binding ParentView.ParentView.AdminOptionsToggle, Converter={StaticResource AdminColorModeHeaderConverter}, ConverterParameter=LightSkyBlue, UpdateSourceTrigger=PropertyChanged}" Margin="0,15,0,0" >
                         <Grid>
                             <Grid.ColumnDefinitions>
@@ -141,15 +155,15 @@
                         </Grid>
                     </Border>
                 </Grid>
-                <Border Grid.Row="13" CornerRadius="5,5,5,5" Background="{Binding ParentView.ParentView.AdminOptionsToggle, Converter={StaticResource AdminColorModeConverter}, UpdateSourceTrigger=PropertyChanged}" Margin="0,10,0,10">
+                <Border Grid.Row="11" CornerRadius="5,5,5,5" Background="{Binding ParentView.ParentView.AdminOptionsToggle, Converter={StaticResource AdminColorModeConverter}, UpdateSourceTrigger=PropertyChanged}" Margin="0,10,0,10">
                     <TextBlock Text="Prescription" Foreground="White" FontSize="14" Margin="10,5,5,5"/>
                 </Border>
-                <StackPanel Grid.Row="14" Orientation="Vertical">
+                <StackPanel Grid.Row="12" Orientation="Vertical">
                     <TextBlock Grid.Column="0" FontWeight="Bold" Text="Prescription Details" FontSize="13" Margin="5,5,0,5"/>
                     <Border  Background="Black" CornerRadius="1,1,1,1" Height="2" Margin="5,3,10,5" HorizontalAlignment="Stretch"/>
                     <local:TestView DataContext="{Binding Prescription_ViewModel}" TestItems ="{Binding Tests}"  SetReferenceHeader="Reference Value" />
                 </StackPanel>
-                <Grid Grid.Row="15">
+                <Grid Grid.Row="13">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="Auto"/>
@@ -167,11 +181,11 @@
                         <local:EditBeamChecksPopup DataContext="{Binding}"/>
                     </Popup>
                 </Grid>
-                <local:BeamCheckView Grid.Row="16" DataContext="{Binding Beam_ViewModel, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Background="Transparent" />
-                <Border Grid.Row="17" CornerRadius="5,5,5,5" Background="{Binding ParentView.ParentView.AdminOptionsToggle, Converter={StaticResource AdminColorModeConverter}, UpdateSourceTrigger=PropertyChanged}" Margin="0,15,0,10" Visibility="{Binding ParentView.ParentView.AdminOptionsToggle, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource VisibilityInverseConverter}}">
+                <local:BeamCheckView Grid.Row="14" DataContext="{Binding Beam_ViewModel, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Background="Transparent" />
+                <Border Grid.Row="15" CornerRadius="5,5,5,5" Background="{Binding ParentView.ParentView.AdminOptionsToggle, Converter={StaticResource AdminColorModeConverter}, UpdateSourceTrigger=PropertyChanged}" Margin="0,15,0,10" Visibility="{Binding ParentView.ParentView.AdminOptionsToggle, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource VisibilityInverseConverter}}">
                     <TextBlock Text="Imaging" Foreground="White" FontSize="14" Margin="10,5,5,5"/>
                 </Border>
-                <Grid Grid.Row="18" Visibility="{Binding ParentView.ParentView.AdminOptionsToggle, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource VisibilityInverseConverter}}">
+                <Grid Grid.Row="16" Visibility="{Binding ParentView.ParentView.AdminOptionsToggle, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource VisibilityInverseConverter}}">
                     <local:ImagingControl DataContext="{Binding Imaging_ViewModel}" />
                 </Grid>
             </Grid>

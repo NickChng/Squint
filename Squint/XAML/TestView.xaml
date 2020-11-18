@@ -154,7 +154,7 @@
                                         <TextBlock Text="{Binding ReferenceValueString, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Center"/>
                                     </Grid>
                                     <StackPanel Grid.Column="3" Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Center" Visibility="{Binding DataContext.CheckVisibility, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}">
-                                        <local:CircleCheck Pass="{Binding Warning, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" ParameterOption="{Binding ParameterOption, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}"  CheckHeight="20" CheckWidth="20" HorizontalAlignment="Right"/>
+                                        <local:CircleCheck Pass="{Binding Warning, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" ParameterOption="{Binding ParameterOption, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" Margin="10,0,0,0"  CheckHeight="20" CheckWidth="20" HorizontalAlignment="Right"/>
                                         <TextBlock Text="{Binding WarningString, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" Foreground="Tomato" HorizontalAlignment="Right" Margin="10,0,0,0" VerticalAlignment="Center" 
                                         Visibility="{Binding Warning, Converter={StaticResource VisibilityConverter}, UpdateSourceTrigger=PropertyChanged}"/>
                                     </StackPanel>

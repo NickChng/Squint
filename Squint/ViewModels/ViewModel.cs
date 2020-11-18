@@ -1109,9 +1109,7 @@ namespace SquintScript.ViewModels
         public AssessmentsView AssessmentsVM { get; set; }
         public EclipseProtocolPopupViewModel EclipseProtocolPopupVM { get; set; }
         public bool AdminOptionsToggle { get; set; } = false;
-
         public bool SquintIsInitializing { get; set; } = true;
-
         public string InitializingMessages { get; set; } = "Squint is initializing, please wait...";
         public bool SquintIsBusy { get; set; } = false;
         public int NumAdminButtons { get; private set; } = 8;
@@ -1588,6 +1586,8 @@ namespace SquintScript.ViewModels
             //            PatientVM = new PatientViewModel(this);
             isLoading = true;
             LoadingString = "Loading patient";
+            bool OpenNewPatient = PatientVM.PatientId != Ctr.PatientID;
+            string NextPatient = PatientVM.PatientId;
             if (Ctr.PatientOpen)
             {
                 var Result = MessageBox.Show("Close current patient and all assessments?", "Close Patient?", MessageBoxButton.OKCancel);
@@ -1597,18 +1597,14 @@ namespace SquintScript.ViewModels
                 Ctr.ClosePatient();
                 Ctr.CloseProtocol();
                 Ctr.StartNewSession();
-                foreach (string CourseId in Ctr.GetCourseNames())
-                {
-                    PatientVM.Courses.Add(new CourseSelector(CourseId));
-                }
             }
             AdminOptionsToggle = false;
-            await Ctr.OpenPatient(PatientVM.PatientId);
-            if (Ctr.PatientOpen)
-                PatientVM.TextBox_Background_Color = new System.Windows.Media.SolidColorBrush(wpfcolors.AliceBlue);
-            else
-                PatientVM.TextBox_Background_Color = new System.Windows.Media.SolidColorBrush(wpfcolors.DarkOrange);
-            //ProtocolVM.UpdateProtocolView();
+            if (OpenNewPatient)
+            {
+                bool Success = await Ctr.OpenPatient(NextPatient);
+                if (!Success)
+                    PatientVM.TextBox_Background_Color = new System.Windows.Media.SolidColorBrush(wpfcolors.DarkOrange);
+            }
             isLoading = false;
             LoadingString = "";
 
@@ -1693,9 +1689,7 @@ namespace SquintScript.ViewModels
                 Ctr.StartNewSession();
                 CloseCheckList();
                 ProtocolVM.UpdateProtocolView();
-                //ProtocolVM.Unsubscribe();
-                //ProtocolVM = new ProtocolViewModel(this);
-                
+                PatientVM.PatientId = "";
             }
             else PatientVM.isPIDVisible ^= true;
         }

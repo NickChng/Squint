@@ -19,6 +19,7 @@ namespace SquintScript.ViewModels
     public class EclipseProtocolPopupViewModel
     {
 
+        public bool Loading { get; private set; }
         public MainViewModel ParentView { get; private set; }
         public string ProtocolPath = Ctr.Config.ClinicalProtocols.FirstOrDefault(x => x.Site == Ctr.Config.Site.CurrentSite).Path;
         public ObservableCollection<VMSTemplates.Protocol> EclipseProtocols { get; set; } = new ObservableCollection<VMSTemplates.Protocol>();
@@ -26,23 +27,35 @@ namespace SquintScript.ViewModels
         public EclipseProtocolPopupViewModel(MainViewModel parentView)
         {
             ParentView = parentView;
-            var filenames = Directory.GetFiles(ProtocolPath, @"*.xml");
-            XmlSerializer ser = new XmlSerializer(typeof(VMSTemplates.Protocol));
-            foreach (var f in filenames)
+            Loading = true;
+            LoadProtocols();
+        }
+
+
+        private async void LoadProtocols()
+        {
+            var eclipseProtocols = new ObservableCollection<VMSTemplates.Protocol>();
+            await Task.Run(() =>
             {
-                using (var data = new StreamReader(f))
+                var filenames = Directory.GetFiles(ProtocolPath, @"*.xml");
+                XmlSerializer ser = new XmlSerializer(typeof(VMSTemplates.Protocol));
+                foreach (var f in filenames)
                 {
-                    var EP = (VMSTemplates.Protocol)ser.Deserialize(data);
-                    if (EP != null)
+                    using (var data = new StreamReader(f))
                     {
-                        if (EP.Preview.ApprovalStatus.ToLower().Equals(@"approved"))
-                            EclipseProtocols.Add(EP);
+                        var EP = (VMSTemplates.Protocol)ser.Deserialize(data);
+                        if (EP != null)
+                        {
+                            if (EP.Preview.ApprovalStatus.ToLower().Equals(@"approved"))
+                                eclipseProtocols.Add(EP);
+                        }
+
                     }
-
                 }
-            }
-            EclipseProtocols = new ObservableCollection<VMSTemplates.Protocol>(EclipseProtocols.OrderBy(x => x.Preview.ID).ToList());
-
+            });
+            foreach (var p in eclipseProtocols.OrderBy(x => x.Preview.ID))
+                EclipseProtocols.Add(p);
+            Loading = false;
         }
 
         public ICommand ImportSelectedProtocolCommand

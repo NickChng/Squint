@@ -153,38 +153,38 @@
             <ColumnDefinition/>
             <ColumnDefinition Width="Auto" MinWidth="11"/>
         </Grid.ColumnDefinitions>
-        <Border Grid.Column="0" Background="PapayaWhip" CornerRadius="10,10,10,10" BorderThickness="0">
-            <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto"/>
-                    <ColumnDefinition Width="Auto"/>
-                </Grid.ColumnDefinitions>
-                <TextBlock Grid.Column="0" Text="Select protocol to import: " FontSize="13" FontFamily="Arial" VerticalAlignment="Center" TextAlignment="Center" Margin="10,2,0,0" />
-                <!--<ScrollViewer Grid.Column="1" VerticalAlignment="Stretch" PreviewMouseWheel="ScrollViewer_PreviewMouseWheel" MinHeight="10" MinWidth="20"
-                                  VerticalScrollBarVisibility="Auto" Template="{DynamicResource ScrollViewerControlTemplatePopup}"  Margin="0,0,10,0">-->
-                    <ListView Grid.Column="1" Background="PapayaWhip" BorderThickness="0" Margin="5,5,10,5" HorizontalContentAlignment="Stretch" Focusable="False" VerticalAlignment="Stretch" 
-                          ItemsSource="{Binding EclipseProtocols, UpdateSourceTrigger=PropertyChanged}" 
-                          ItemContainerStyle="{DynamicResource ListViewItemStyle}" Style="{DynamicResource EclipsePopupListViewStyle}">
-                        <ListView.ItemsPanel>
-                            <ItemsPanelTemplate>
-                                <StackPanel Orientation="Vertical"/>
-                            </ItemsPanelTemplate>
-                        </ListView.ItemsPanel>
-                        <ListView.ItemTemplate>
-                            <DataTemplate>
-                                <Grid>
-                                    <Button Background="Transparent" BorderThickness="0" Style="{DynamicResource RoundedButton}" ToolTip="{Binding SessionComment}" 
-                                        Command="{Binding DataContext.ImportSelectedProtocolCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}">
-                                        <TextBlock Text="{Binding Preview.ID}" FontSize="13" VerticalAlignment="Center" Margin="5,3,5,3" HorizontalAlignment="Left" Foreground="White"/>
-                                    </Button>
-                                </Grid>
-                            </DataTemplate>
-                        </ListView.ItemTemplate>
-                    </ListView>
-                <!--</ScrollViewer>-->
+        <local:WaitSpinner Visibility="{Binding Loading, Converter={StaticResource VisibilityConverter}, UpdateSourceTrigger=PropertyChanged}" Height="60" Width="60"/>
+        <Border Grid.Column="0" Background="PapayaWhip" CornerRadius="10,10,10,10" BorderThickness="0" Visibility="{Binding Loading, Converter={StaticResource VisibilityInverseConverter}, UpdateSourceTrigger=PropertyChanged}">
+             <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Grid.Column="0" Text="Select protocol to import: " FontSize="13" FontFamily="Arial" VerticalAlignment="Center" TextAlignment="Center" Margin="10,2,0,0" />
+                    <ListView Grid.Column="1" Background="PapayaWhip" BorderThickness="0" Margin="5,5,10,5" HorizontalContentAlignment="Stretch" Focusable="False" 
+                              VerticalAlignment="Stretch" 
+                              ItemsSource="{Binding EclipseProtocols, UpdateSourceTrigger=PropertyChanged}" 
+                              ItemContainerStyle="{DynamicResource ListViewItemStyle}" Style="{DynamicResource EclipsePopupListViewStyle}">
+                            <ListView.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <StackPanel Orientation="Vertical"/>
+                                </ItemsPanelTemplate>
+                            </ListView.ItemsPanel>
+                            <ListView.ItemTemplate>
+                                <DataTemplate>
+                                    <Grid>
+                                        <Button Background="Transparent" BorderThickness="0" Style="{DynamicResource RoundedButton}" ToolTip="{Binding SessionComment}" 
+                                            Command="{Binding DataContext.ImportSelectedProtocolCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}">
+                                            <TextBlock Text="{Binding Preview.ID}" FontSize="13" VerticalAlignment="Center" Margin="5,3,5,3" HorizontalAlignment="Left" Foreground="White"/>
+                                        </Button>
+                                    </Grid>
+                                </DataTemplate>
+                            </ListView.ItemTemplate>
+                        </ListView>
+                
             </Grid>
         </Border>
-        <Grid Grid.Column="1" VerticalAlignment="Top" Margin="0,10,0,0" Height="10">
+        <Grid Grid.Column="1" VerticalAlignment="Top" Margin="0,10,0,0" Height="10" Visibility="{Binding Loading, Converter={StaticResource VisibilityInverseConverter}, UpdateSourceTrigger=PropertyChanged}">
             <Path  StrokeThickness="0" Data="M 0,0 L 10,5 L 0,10" Fill="PapayaWhip"/>
         </Grid>
 

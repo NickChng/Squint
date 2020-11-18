@@ -77,16 +77,20 @@ namespace SquintScript.ViewModels
             {
                 StructureSets.Add(new StructureSetSelector(StS));
             }
+            foreach (string CourseId in Ctr.GetCourseNames())
+            {
+                Courses.Add(new CourseSelector(CourseId));
+            }
+            TextBox_Background_Color = new System.Windows.Media.SolidColorBrush(wpfcolors.AliceBlue);
         }
 
         private void OnPatientClosed(object sender, EventArgs e)
         {
-            PatientId = "";
             FullPatientName = "";
             StructureSets.Clear();
         }
 
-        private void OnAvailableStructureSetsChanged(object sender, EventArgs e)
+        private async void OnAvailableStructureSetsChanged(object sender, EventArgs e)
         {
             var A = Ctr.GetAvailableStructureSets();
             StructureSetSelector NewSSS = null;
@@ -95,10 +99,10 @@ namespace SquintScript.ViewModels
                 if (!StructureSets.Select(x => x.StructureSetUID).Contains(SS.StructureSetUID))
                 {
                     NewSSS = new StructureSetSelector(SS);
-                    SquintScript.App.Current.Dispatcher.Invoke(() =>
+                    await SquintScript.App.Current.Dispatcher.BeginInvoke((Action)(() =>
                     {
                         StructureSets.Add(NewSSS);
-                    });
+                    }));
 
                 }
             }
@@ -107,10 +111,10 @@ namespace SquintScript.ViewModels
             {
                 if (!A.Select(x => x.StructureSetUID).Contains(SSS.StructureSetUID))
                 {
-                    SquintScript.App.Current.Dispatcher.Invoke(() =>
+                    await SquintScript.App.Current.Dispatcher.BeginInvoke((Action)(() =>
                     {
                         StructureSets.Remove(SSS);
-                    });
+                    }));
                 }
             }
         }

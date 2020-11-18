@@ -36,8 +36,9 @@ namespace SquintScript.ViewModels
 
         private ComponentSelector _SelectedComponent;
 
-        public List<ProtocolStructure> Structures { get; set; }
-        
+        public List<AsyncStructure> StructuresWithDensityOverride { get; set; }
+        public List<AsyncStructure> StructuresWithHighResolutionContours { get; set; }
+
         public ObservableCollection<ComponentSelector> Components { get; set; } = new ObservableCollection<ComponentSelector>();
         public ComponentSelector SelectedComponent
         {
@@ -67,7 +68,7 @@ namespace SquintScript.ViewModels
         private void PopulateViewFromProtocol()
         {
             // No pre-population of the Objectives of imaging checks yet, as these aren't editable
-            
+
             // Populate Simulation ViewModel
             var P = Ctr.CurrentProtocol;
             Components.Clear();
@@ -237,7 +238,9 @@ namespace SquintScript.ViewModels
         }
         public async Task DisplayChecksForPlan(PlanSelector p)
         {
-            Structures = Ctr.CurrentProtocol.Structures.Where(x => x.AssignedHUInCurrentStructureSet != null).Where(x=>!double.IsNaN((double)x.AssignedHUInCurrentStructureSet)).ToList(); 
+
+            StructuresWithDensityOverride = Ctr.CurrentStructureSet.GetAllStructures().Where(x => !double.IsNaN(x.HU) && x.DicomType != @"SUPPORT").ToList();
+            StructuresWithHighResolutionContours = Ctr.CurrentStructureSet.GetAllStructures().Where(x=>x.IsHighResolution).ToList();
             Objectives_ViewModel = new OptimizationCheckViewModel();
             var Objectives = await Ctr.GetOptimizationObjectiveList(p.CourseId, p.PlanId);
             List<string> StructureIds = new List<string>();
