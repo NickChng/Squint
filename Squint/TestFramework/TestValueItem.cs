@@ -180,7 +180,7 @@ namespace SquintScript.TestFramework
                 }
                 else
                 {
-                    if (Reference.Value == null)  // this is hacky; need to decide whether to support Reference.Value is null or Reference = null but not both.
+                    if (Reference.Value == null || Check == null)  // this is hacky; need to decide whether to support Reference.Value is null or Reference = null but not both.
                         if (ParameterOption == ParameterOptions.Required)
                             return false;
                         else
@@ -197,7 +197,7 @@ namespace SquintScript.TestFramework
                             }
                             else
                             {
-                                if (Math.Abs((dynamic)Reference.Value - (dynamic)Check) < (dynamic)Tolerance.Value)
+                                if (Math.Abs((dynamic)Reference.Value - (dynamic)Check) <= (dynamic)Tolerance.Value+1E-5)
                                     return true;
                                 else
                                     return false;

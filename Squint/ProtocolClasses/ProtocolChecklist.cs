@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using PropertyChanged;
 
 namespace SquintScript
@@ -10,16 +11,6 @@ namespace SquintScript
         {
             ID = DbO.ID;
             ProtocolId = DbO.ProtocolID;
-            //TreatmentTechniqueType = (TreatmentTechniques)DbO.TreatmentTechniqueType;
-            //MinFields = DbO.MinFields;
-            //MaxFields = DbO.MaxFields;
-            //VMAT_MinFieldColSeparation = DbO.VMAT_MinFieldColSeparation;
-            //NumIso = DbO.NumIso;
-            //MinXJaw = DbO.MinXJaw;
-            //MaxXJaw = DbO.MaxXJaw;
-            //MinYJaw = DbO.MinYJaw;
-            //MaxYJaw = DbO.MaxYJaw;
-            //VMAT_JawTracking = (ParameterOptions)DbO.VMAT_JawTracking;
             Algorithm = new TrackedValue<AlgorithmVolumeDoseTypes>((AlgorithmVolumeDoseTypes)DbO.AlgorithmVolumeDose);
             AlgorithmVMATOptimization = new TrackedValue<AlgorithmVMATOptimizationTypes>((AlgorithmVMATOptimizationTypes)DbO.AlgorithmVMATOptimization);
             AlgorithmIMRTOptimization = new TrackedValue<AlgorithmIMRTOptimizationTypes>((AlgorithmIMRTOptimizationTypes)DbO.AlgorithmIMRTOptimization);
@@ -44,6 +35,11 @@ namespace SquintScript
                 BolusDefinition B = new BolusDefinition(DbB);
                 Boluses.Add(B);
             }
+            //CTDevices
+            foreach (DbCTDeviceId CT in DbO.CTDeviceIds)
+            {
+                CTDeviceIds.Add(CT.CTDeviceId);
+            }
 
         }
         public ProtocolChecklist(int protocolId)
@@ -53,19 +49,7 @@ namespace SquintScript
         }
         public int ID { get; set; }
         public int ProtocolId { get; set; }
-        //public TreatmentTechniques TreatmentTechniqueType { get; set; }
-        //public double MinFields { get; set; }
-        //public double MaxFields { get; set; }
-        //public double MinMU { get; set; }
-        //public double MaxMU { get; set; }
-        //public double VMAT_MinColAngle { get; set; }
-        //public double VMAT_MinFieldColSeparation { get; set; }
-        //public int NumIso { get; set; }
-        //public bool VMAT_SameStartStop { get; set; }
-        //public double MinXJaw { get; set; }
-        //public double MaxXJaw { get; set; }
-        //public double MinYJaw { get; set; }
-        //public double MaxYJaw { get; set; }
+      
         public TrackedValue<ParameterOptions> VMAT_JawTracking { get; set; } = new TrackedValue<ParameterOptions>(ParameterOptions.Unset);
         public TrackedValue<AlgorithmVolumeDoseTypes> Algorithm { get; set; } = new TrackedValue<AlgorithmVolumeDoseTypes>(AlgorithmVolumeDoseTypes.Unset);
         public TrackedValue<AlgorithmVMATOptimizationTypes> AlgorithmVMATOptimization { get; set; } = new TrackedValue<AlgorithmVMATOptimizationTypes>(AlgorithmVMATOptimizationTypes.Unset);
@@ -80,6 +64,8 @@ namespace SquintScript
         public TrackedValue<double?> CouchSurface { get; set; } = new TrackedValue<double?>(null);
         public TrackedValue<double?> CouchInterior { get; set; } = new TrackedValue<double?>(null);
         public List<Artifact> Artifacts { get; set; } = new List<Artifact>();
+
+        public ObservableCollection<string> CTDeviceIds { get; set; } = new ObservableCollection<string>();
         public List<BolusDefinition> Boluses { get; set; } = new List<BolusDefinition>();
     }
 

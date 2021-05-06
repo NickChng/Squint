@@ -582,7 +582,7 @@
                                     <ColumnDefinition Width="*"/>
                                 </Grid.ColumnDefinitions>
                                 <TextBlock Grid.Column="0" HorizontalAlignment="Left" Text="{Binding Component.ComponentName}" Margin="0,5,10,0" FontSize="{Binding ElementName=SquintWindow, UpdateSourceTrigger=PropertyChanged, Path=DataContext.Protocol.AssessmentPresenter.FontSize}"/>
-                                <TextBlock Grid.Column="1" HorizontalAlignment="Left" Text="{Binding ChangeStatusString}" FontStyle="Italic" VerticalAlignment="Center" Foreground="OrangeRed"/>
+                                <TextBlock Grid.Column="1" HorizontalAlignment="Left" Text="{Binding ChangeStatusString}" FontStyle="Italic" VerticalAlignment="Center" Foreground="{Binding ConstraintValueColor}"/>
                                 <TextBlock Grid.Column="2" HorizontalAlignment="Left" Margin="5,5,5,5" FontWeight="Medium" VerticalAlignment="Center" FontSize="{Binding ElementName=SquintWindow, UpdateSourceTrigger=PropertyChanged, Path=DataContext.Protocol.AssessmentPresenter.FontSize}">
                                     <TextBlock.Foreground>
                                         <MultiBinding Converter="{StaticResource ConstraintSelectedHighlight}" UpdateSourceTrigger="PropertyChanged">

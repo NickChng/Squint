@@ -117,7 +117,7 @@
                     <StackPanel Grid.Row="1" Orientation="Vertical">
                         <TextBlock Grid.Column="0" FontWeight="Bold" Text="Small subvolume checks" FontSize="13" Margin="5,5,0,5"/>
                         <Border  Background="Black" CornerRadius="1,1,1,1" Height="2" Margin="5,3,10,5" HorizontalAlignment="Stretch"/>
-                        <local:TestView DataContext="{Binding Targets_ViewModel}" TestItems ="{Binding Tests}" SetReferenceHeader="Reference Value" />
+                        <local:PointCheckView DataContext="{Binding PointCheck_VM}"/>
                     </StackPanel>
                     <StackPanel Grid.Row="2" Orientation="Vertical">
                         <TextBlock Grid.Column="0" FontWeight="Bold" Text="Density Overrides (excludes support structures)" FontSize="13" Margin="5,20,0,5"/>

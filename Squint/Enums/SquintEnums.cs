@@ -62,7 +62,8 @@ namespace SquintScript
         [Description("Bolus HU")] BolusHU,
         [Description("Bolus thickness [cm]")] BolusThickness,
         [Description("Tolerance Table")] ToleranceTable,
-        [Description("Density Override")] DensityOverride
+        [Description("Density Override")] DensityOverride,
+        [Description("CT Device Id")] CTDeviceId
     }
     public enum Energies
     {
@@ -110,7 +111,7 @@ namespace SquintScript
         [Description("")] Unset,
         [Description("Curative")] Curative,
         [Description("Adjuvant")] Adjuvant,
-        [Description("Neo-adjuvant")] NeoAdjuvant,
+        [Description("Neo-Adjuvant")] NeoAdjuvant,
         [Description("Palliative")] Palliative,
     }
 

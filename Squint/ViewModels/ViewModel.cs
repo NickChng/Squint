@@ -223,11 +223,16 @@ namespace SquintScript.ViewModels
         }
         public StructureSelector(ProtocolStructure Ein)
         {
+            //Must unsubscribe when cleared!
             E = Ein;
             Aliases = E.DefaultEclipseAliases;
             E.PropertyChanged += OnProtocolStructureChanged;
             _LabelFilterText = "";
             _source = new ObservableCollection<StructureLabel>(Ctr.GetStructureLabels());
+        }
+        public void Unsubscribe()
+        {
+            E.PropertyChanged -= OnProtocolStructureChanged;
         }
         public string NewAlias { get; set; }
         public int SelectedAliasIndex { get; set; }
@@ -464,7 +469,10 @@ namespace SquintScript.ViewModels
             set
             {
                 if (Con.ComponentID != value.Id)
+                {
                     Ctr.ChangeConstraintComponent(Con.ID, value.Id);
+                    UpdateConstraint();
+                }
             }
         }
         public string ComponentName
@@ -490,11 +498,13 @@ namespace SquintScript.ViewModels
                 }
             }
         }
-        public wpfbrush ConstraintValueColor
+        public wpfbrush ConstraintValueColor // Bound by SquintRowHeaderStyle to change and to ConstraintValue textbox when editing
         {
             get
             {
-                if (Con.isModified(nameof(Con.ConstraintValue)) && !Con.isCreated)
+                if (Con.isCreated)
+                    return new wpfbrush(wpfcolors.ForestGreen);
+                if (Con.isModified(nameof(Con.ConstraintValue)))
                     return new wpfbrush(wpfcolors.DarkOrange);
                 else
                     return new wpfbrush(wpfcolors.Black);
@@ -665,10 +675,10 @@ namespace SquintScript.ViewModels
         {
             get
             {
-                if (Con.isModified())
-                    return ChangeStatus.Modified.Display();
                 if (Con.isCreated)
                     return ChangeStatus.New.Display();
+                if (Con.isModified())
+                    return ChangeStatus.Modified.Display();
                 else
                     return "";
             }
@@ -807,6 +817,8 @@ namespace SquintScript.ViewModels
         }
         public ConstraintSelector(Constraint ConIn, StructureSelector SSin)
         {
+            // must unsubscribe when cleared!
+            
             Con = ConIn;
             SS = SSin;
             ConstraintTypes.Clear();
@@ -830,6 +842,14 @@ namespace SquintScript.ViewModels
             RaisePropertyChangedEvent(nameof(ConstraintValueColor));
             RaisePropertyChangedEvent(nameof(ReferenceValueColor));
         }
+        public void Unsubscribe()
+        {
+            Con.ConstraintEvaluating -= OnConstraintEvaluating;
+            Con.ConstraintEvaluated -= OnConstraintEvaluated;
+            Con.PropertyChanged -= OnConstraintPropertyChanged;
+            SS.PropertyChanged -= OnStructurePropertyChanged;
+        }
+
         // Event Handlers
         private async void UpdateConstraint()
         {
@@ -1592,7 +1612,11 @@ namespace SquintScript.ViewModels
             {
                 var Result = MessageBox.Show("Close current patient and all assessments?", "Close Patient?", MessageBoxButton.OKCancel);
                 if (Result == MessageBoxResult.Cancel)
+                {
+                    isLoading = false;
+                    LoadingString = "";
                     return;
+                }
                 CloseCheckList();
                 Ctr.ClosePatient();
                 Ctr.CloseProtocol();

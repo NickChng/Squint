@@ -9,9 +9,47 @@ using PropertyChanged;
 using SquintScript.Interfaces;
 using SquintScript.TestFramework;
 using SquintScript.Extensions;
+using SquintScript.Views;
 
 namespace SquintScript.ViewModels
 {
+    [AddINotifyPropertyChangedInterface]
+    public class PointCheck_ViewModel : ObservableObject
+    {
+        public class PointCheckObject
+        {
+            public string ProtocolStructureId { get; set; }
+            public string MinSubVolume { get; set; }
+            public string Centroid_x { get; set; }
+            public string Centroid_y { get; set; }
+            public string Centroid_z { get; set; }
+
+            public string CentroidString 
+            { 
+                get
+                {
+                    if (Warning != null)
+                    {
+                        if ((bool)Warning)
+                            return string.Format("{0},{1},{2}", Centroid_x, Centroid_y, Centroid_z);
+                        else
+                            return "";
+                    }
+                    else
+                        return "";
+                }
+            }
+            public bool? Warning { get; set; }
+            public string WarningString { get; set; }
+            public bool Assigned { get; set; }
+            public bool isEmpty { get; set; } = false;
+
+            public ParameterOptions ParameterOption { get; set; } = ParameterOptions.Required;
+
+        }
+        public ObservableCollection<PointCheckObject> Checks { get; set; } = new ObservableCollection<PointCheckObject>();
+    }
+
     [AddINotifyPropertyChangedInterface]
 
     public class Checklist_ViewModel : ObservableObject
@@ -21,7 +59,7 @@ namespace SquintScript.ViewModels
         public OptimizationCheckViewModel Objectives_ViewModel { get; set; } = new OptimizationCheckViewModel();
         public Imaging_ViewModel Imaging_ViewModel { get; set; } = new Imaging_ViewModel();
         public TestList_ViewModel Simulation_ViewModel { get; set; } = new TestList_ViewModel();
-        public TestList_ViewModel Targets_ViewModel { get; set; } = new TestList_ViewModel();
+        public PointCheck_ViewModel PointCheck_VM { get; set; } = new PointCheck_ViewModel();
         public TestList_ViewModel Calculation_ViewModel { get; set; } = new TestList_ViewModel();
         public TestList_ViewModel Prescription_ViewModel { get; set; } = new TestList_ViewModel();
         public TestList_ViewModel DiagnosisIntent_ViewModel { get; set; } = new TestList_ViewModel();
@@ -80,12 +118,14 @@ namespace SquintScript.ViewModels
             Simulation_ViewModel.Tests.Clear();
             TestValueItem<double?> SliceSpacing = new TestValueItem<double?>(CheckTypes.SliceSpacing, null, P.Checklist.SliceSpacing, new TrackedValue<double?>(1E-5), "Slice spacing does not match protocol");
             TestValueItem<string> Series = new TestValueItem<string>(CheckTypes.SeriesId, null, null) { ParameterOption = ParameterOptions.Optional, IsInfoOnly = true };
+            TestContainsItem<string> CTDevice = new TestContainsItem<string>(CheckTypes.CTDeviceId, null, P.Checklist.CTDeviceIds) { IsInfoOnly = false }; 
             TestValueItem<string> Study = new TestValueItem<string>(CheckTypes.StudyId, null, null) { ParameterOption = ParameterOptions.Optional, IsInfoOnly = true };
             TestValueItem<string> SeriesComment = new TestValueItem<string>(CheckTypes.SeriesComment, null, null) { ParameterOption = ParameterOptions.Optional, IsInfoOnly = true };
             TestValueItem<string> ImageComment = new TestValueItem<string>(CheckTypes.ImageComment, null, null) { ParameterOption = ParameterOptions.Optional, IsInfoOnly = true };
             TestValueItem<int?> NumSlices = new TestValueItem<int?>(CheckTypes.NumSlices, null, null) { ParameterOption = ParameterOptions.Optional, IsInfoOnly = true };
             Simulation_ViewModel.Tests.Add(Study);
             Simulation_ViewModel.Tests.Add(Series);
+            Simulation_ViewModel.Tests.Add(CTDevice);
             Simulation_ViewModel.Tests.Add(NumSlices);
             Simulation_ViewModel.Tests.Add(SliceSpacing);
             Simulation_ViewModel.Tests.Add(SeriesComment);
@@ -156,29 +196,13 @@ namespace SquintScript.ViewModels
             }
 
             // Course Intent
-            var RefCourseIntent = Ctr.CurrentProtocol.TreatmentIntent;
-            var CourseIntentWarningString = "";
-            TestValueItem<TreatmentIntents> CourseIntentTest = new TestValueItem<TreatmentIntents>(CheckTypes.CourseIntent, TreatmentIntents.Unset, RefCourseIntent, null, CourseIntentWarningString);
+            var ValidTreatmentIntents = Ctr.CurrentProtocol.TreatmentIntents;
+            var CourseIntentWarningString = "Invalid course intent";
+            TestContainsItem<TreatmentIntents> CourseIntentTest = new TestContainsItem<TreatmentIntents>(CheckTypes.CourseIntent, TreatmentIntents.Unset, ValidTreatmentIntents, null, CourseIntentWarningString);
             DiagnosisIntent_ViewModel.Tests = new ObservableCollection<ITestListItem>() { CourseIntentTest };
 
-            // Structures
-            Targets_ViewModel.Tests.Clear();
-            foreach (ProtocolStructure E in Ctr.CurrentProtocol.Structures)
-            {
-                if (E.CheckList != null)
-                {
-                    var C = E.CheckList;
-                    if ((bool)C.isPointContourChecked.Value)
-                    {
-                        string WarningString = "Subvolume less than threshold";
-                        var TL = new TestValueItem<double?>(CheckTypes.MinSubvolume, null, C.PointContourVolumeThreshold, null, WarningString, "Not found", "Not specified");
-                        TL.OptionalNameSuffix = string.Format(@" ({0})", E.ProtocolStructureName);
-                        TL.Test = TestType.GreaterThan;
-                        Targets_ViewModel.Tests.Add(TL);
-                    }
-
-                }
-            }
+            // Structure
+            // old point checks.
         }
         private void PopulateViewFromSelectedComponent()
         {
@@ -240,7 +264,7 @@ namespace SquintScript.ViewModels
         {
 
             StructuresWithDensityOverride = Ctr.CurrentStructureSet.GetAllStructures().Where(x => !double.IsNaN(x.HU) && x.DicomType != @"SUPPORT").ToList();
-            StructuresWithHighResolutionContours = Ctr.CurrentStructureSet.GetAllStructures().Where(x=>x.IsHighResolution).ToList();
+            StructuresWithHighResolutionContours = Ctr.CurrentStructureSet.GetAllStructures().Where(x => x.IsHighResolution).ToList();
             Objectives_ViewModel = new OptimizationCheckViewModel();
             var Objectives = await Ctr.GetOptimizationObjectiveList(p.CourseId, p.PlanId);
             List<string> StructureIds = new List<string>();
@@ -286,6 +310,7 @@ namespace SquintScript.ViewModels
             SliceSpacing.CheckType = CheckTypes.SliceSpacing;
             TestValueItem<string> Series = new TestValueItem<string>(CheckTypes.SeriesId, await Ctr.GetSeriesId(p.CourseId, p.PlanId), null) { ParameterOption = ParameterOptions.Optional };
             TestValueItem<string> Study = new TestValueItem<string>(CheckTypes.StudyId, await Ctr.GetStudyId(p.CourseId, p.PlanId), null) { ParameterOption = ParameterOptions.Optional };
+            TestContainsItem<string> CTDevice = new TestContainsItem<string>(CheckTypes.CTDeviceId, await Ctr.GetCTDeviceId(p.CourseId, p.PlanId), P.Checklist.CTDeviceIds) { IsInfoOnly = false };
             TestValueItem<string> SeriesComment = new TestValueItem<string>(CheckTypes.SeriesComment, await Ctr.GetSeriesComments(p.CourseId, p.PlanId), null) { ParameterOption = ParameterOptions.Optional };
             TestValueItem<string> ImageComment = new TestValueItem<string>(CheckTypes.ImageComment, await Ctr.GetImageComments(p.CourseId, p.PlanId), null) { ParameterOption = ParameterOptions.Optional };
             var NumSlices = await Ctr.GetNumSlices(p.CourseId, p.PlanId);
@@ -295,7 +320,7 @@ namespace SquintScript.ViewModels
             else
                 Slices = int.MinValue;
             TestValueItem<int> NumSlicesChk = new TestValueItem<int>(CheckTypes.NumSlices, Slices, null) { ParameterOption = ParameterOptions.Optional };
-            Simulation_ViewModel.Tests = new ObservableCollection<ITestListItem>() { Study, Series, NumSlicesChk, SliceSpacing, SeriesComment, ImageComment };
+            Simulation_ViewModel.Tests = new ObservableCollection<ITestListItem>() { Study, Series, CTDevice, NumSlicesChk, SliceSpacing, SeriesComment, ImageComment };
 
             // Populate Calculation ViewModel
             Calculation_ViewModel.Tests.Clear(); // = new ObservableCollection<Controls.TestListItem<string>>();
@@ -403,11 +428,11 @@ namespace SquintScript.ViewModels
             }
 
             // Course Intent
-            var RefCourseIntent = Ctr.CurrentProtocol.TreatmentIntent;
+            var RefCourseIntent = Ctr.CurrentProtocol.TreatmentIntents;
             TreatmentIntents CourseTxIntent;
             Enum.TryParse<TreatmentIntents>(await Ctr.GetCourseIntent(p.CourseId, p.PlanId), out CourseTxIntent);
             var CourseIntentWarningString = "";
-            TestValueItem<TreatmentIntents> CourseIntentTest = new TestValueItem<TreatmentIntents>(CheckTypes.CourseIntent, CourseTxIntent, RefCourseIntent, null, CourseIntentWarningString);
+            TestContainsItem<TreatmentIntents> CourseIntentTest = new TestContainsItem<TreatmentIntents>(CheckTypes.CourseIntent, CourseTxIntent, RefCourseIntent, null, CourseIntentWarningString);
             DiagnosisIntent_ViewModel.Tests = new ObservableCollection<ITestListItem>() { CourseIntentTest };
 
             // Plan normalization
@@ -473,7 +498,7 @@ namespace SquintScript.ViewModels
             }
 
             // Target Structure Checks
-            Targets_ViewModel.Tests.Clear();
+            PointCheck_VM.Checks.Clear();
             foreach (ProtocolStructure E in Ctr.CurrentProtocol.Structures)
             {
                 if (E.CheckList != null)
@@ -481,26 +506,86 @@ namespace SquintScript.ViewModels
                     var C = E.CheckList;
                     if ((bool)C.isPointContourChecked.Value)
                     {
-                        var VolParts = await E.PartVolumes(p.StructureSetUID);
-                        double MinVol = double.NaN;
-                        if (VolParts != null)
-                            MinVol = VolParts.Min();
-                        string WarningString = "Subvolume less than threshold";
-                        if (!double.IsNaN(MinVol))
+                        PointCheck_ViewModel.PointCheckObject PO = new PointCheck_ViewModel.PointCheckObject();
+                        PO.ProtocolStructureId = string.Format("{0} ({1})", E.ProtocolStructureName, E.AssignedStructureId);
+                        if (E.AssignedStructureId == "")
                         {
-                            var NumDetectedParts = await E.NumParts(p.StructureSetUID);
-                            var VMS_NumParts = await E.VMS_NumParts(p.StructureSetUID);
-                            if (VMS_NumParts > NumDetectedParts)
-                            {
-                                MinVol = 0.01;
-                            }
+                            PO.Assigned = false;
+                            PO.Warning = null;
+                            PO.ParameterOption = ParameterOptions.Optional;
                         }
-                        var TL = new TestValueItem<double?>(CheckTypes.MinSubvolume, MinVol, C.PointContourVolumeThreshold, null, WarningString, "Not found", "Not specified");
-                        TL.OptionalNameSuffix = string.Format(@" ({0}) [cc]", E.ProtocolStructureName);
-                        TL.Test = TestType.GreaterThan;
-                        Targets_ViewModel.Tests.Add(TL);
-                    }
+                        else
+                        {
+                            PO.Assigned = true;
+                            var VolParts = await E.PartVolumes(p.StructureSetUID);
+                            double MinVol = double.NaN;
+                            if (VolParts != null)
+                            {
+                                if (VolParts.Count() == 0)
+                                {
+                                    // Structure found but mesh problems.. likely failing isClosed()in g3helpers 
+                                    PO.isEmpty = false;
+                                    PO.Warning = null;
+                                    PO.ParameterOption = ParameterOptions.Optional;
+                                    PO.WarningString = "Unable to validate mesh, cannot check";
+                                }
+                                else
+                                {
+                                    MinVol = VolParts.Min();
+                                    if (!double.IsNaN(MinVol))
+                                    {
+                                        var NumDetectedParts = await E.NumParts(p.StructureSetUID);
+                                        var VMS_NumParts = await E.VMS_NumParts(p.StructureSetUID);
+                                        if (VMS_NumParts > NumDetectedParts)
+                                        {
+                                            PO.MinSubVolume = @"< 0.1";
+                                            var Result = await E.GetMinArea(p.StructureSetUID);
+                                            PO.Warning = true;
+                                            PO.WarningString = "Stray Voxel";
+                                            PO.Centroid_x = string.Format("{0:0.#}", Result.Item2.x);
+                                            PO.Centroid_y = string.Format("{0:0.#}", Result.Item2.y);
+                                            PO.Centroid_z = string.Format("{0:0.#}", Result.Item2.z);
+                                        }
+                                        else if (MinVol < 0.2)
+                                        {
 
+                                            var Result = await E.GetMinArea(p.StructureSetUID);
+                                            if (Result.Item1 < 50)
+                                            {
+                                                PO.MinSubVolume = @"< 0.1";
+                                                PO.Warning = true;
+                                                PO.WarningString = "Small 2D contour";
+                                                PO.Centroid_x = string.Format("{0:0.#}", Result.Item2.x);
+                                                PO.Centroid_y = string.Format("{0:0.#}", Result.Item2.y);
+                                                PO.Centroid_z = string.Format("{0:0.#}", Result.Item2.z);
+                                            }
+                                            else
+                                            {
+                                                PO.Warning = false;
+                                                //PO.WarningString = "Uncertainty in volume measurements";
+                                            }
+                                        }
+                                        else
+                                        {
+                                            PO.MinSubVolume = string.Format("{0:0.##}", MinVol);
+                                            PO.Warning = false;
+                                            PO.WarningString = "";
+                                        }
+                                    }
+
+                                }
+                            }
+                            else
+                            {
+                                PO.isEmpty = true;
+                                PO.Warning = null;
+                                PO.ParameterOption = ParameterOptions.Optional;
+                                PO.WarningString = "Empty structure";
+                            }
+                        
+                        }
+                        PointCheck_VM.Checks.Add(PO);
+                    }
                 }
             }
         }

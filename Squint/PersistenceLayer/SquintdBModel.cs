@@ -210,6 +210,14 @@ namespace SquintScript
                     };
                     context.DbTreatmentSites.Add(DbO);
                 }
+                foreach (TreatmentIntents item in Enum.GetValues(typeof(TreatmentIntents)))
+                {
+                    DbTreatmentIntent DbO = new DbTreatmentIntent()
+                    {
+                        Intent = item.ToString()
+                    };
+                    context.DbTreatmentIntents.Add(DbO);
+                }
                 context.SaveChanges();
                 DbStructureLabelGroup SLG = new DbStructureLabelGroup()
                 {
@@ -417,6 +425,8 @@ namespace SquintScript
         public DbSet<DbTreatmentSite> DbTreatmentSites { get; set; }
         public DbSet<DbProtocolType> DbProtocolTypes { get; set; }
         public DbSet<DbTreatmentCentre> DbTreatmentCentres { get; set; }
+        public DbSet<DbTreatmentIntent> DbTreatmentIntents { get; set; }
+        public DbSet<DbCTDeviceId> DbCTDeviceIds { get; set; }
         public DbSet<DbLibraryProtocol> DbLibraryProtocols { get; set; }
         public DbSet<DbSessionProtocol> DbSessionProtocols { get; set; }
         //Session
@@ -685,6 +695,22 @@ namespace SquintScript
         public int VMAT_JawTracking { get; set; }
     }
 
+    public class DbTreatmentIntent
+    {
+        [Key]
+        public int ID { get; set; }
+        public string Intent { get; set; }
+        public virtual ICollection<DbProtocol> Protocols { get; set; }
+    }
+
+    public class DbCTDeviceId
+    {
+        [Key]
+        public int ID { get; set; }
+        public string CTDeviceId { get; set; }
+        public virtual ICollection<DbProtocolChecklist> ProtocolChecklist { get; set; }
+    }
+
     public class DbArtifact
     {
         [Key]
@@ -733,6 +759,7 @@ namespace SquintScript
         public double? CouchInterior { get; set; }
         //Artifacts
         public virtual ICollection<DbArtifact> Artifacts { get; set; }
+        public virtual ICollection<DbCTDeviceId> CTDeviceIds { get; set; } 
 
         //Bolus
         public virtual ICollection<DbBolus> Boluses { get; set; }
@@ -755,6 +782,8 @@ namespace SquintScript
         public virtual ICollection<DbProtocolChecklist> ProtocolChecklists { get; set; }
         public virtual ICollection<DbAssessment> Assessments { get; set; }
         public virtual ICollection<DbComponent> Components { get; set; }
+
+        public virtual ICollection<DbTreatmentIntent> TreatmentIntents { get; set; }
         public virtual ICollection<DbProtocolStructure> ProtocolStructures { get; set; }
         public virtual ICollection<DbSessionProtocol> SessionProtocols { get; set; }
         [ForeignKey("DbTreatmentSite")]
@@ -788,7 +817,6 @@ namespace SquintScript
         public string ApprovalDate { get; set; }
         public bool isRetired { get; set; }
         public string Comments { get; set; }
-        public int TreatmentIntent { get; set; }
     }
 
     public class DbLibraryProtocol : DbProtocol

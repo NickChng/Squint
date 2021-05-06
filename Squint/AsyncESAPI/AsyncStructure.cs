@@ -24,43 +24,92 @@ namespace SquintScript
         public bool isEmpty { get; private set; }
 
         public string Label { get; private set; }
-        public AsyncStructure(AsyncESAPI ACurrent, Structure Sin, string SSID, string SSUID)
+
+        public VVector Origin { get; set; }
+
+        public int NumSlices { get; set; }
+        public AsyncStructure(AsyncESAPI ACurrent, Structure Sin, string SSID, string SSUID, int numSlices, VVector origin)
         {
             A = ACurrent;
             S = Sin;
+            Origin = origin;
             isEmpty = Sin.IsEmpty;
             IsHighResolution = S.IsHighResolution;
             Color = S.Color;
             StructureSetUID = SSUID;
             StructureSetID = SSID;
+            NumSlices = numSlices;
             Code = S.StructureCodeInfos.FirstOrDefault().Code;
             Label = DbController.GetLabelByCode(Code);
             double HU_out = Double.NaN;
             S.GetAssignedHU(out HU_out);
-            HU = HU_out;
+            HU = Math.Round(HU_out);
             DicomType = S.DicomType;
             Volume = S.Volume;
             Id = S.Id;
 
         }
         // Volume measurements
-        //private async Task<VVector[][]> GetContours(int planeId)
-        //{
-        //    return await A.ExecuteAsync(new Func<Structure, VVector[][]>((S) =>
-        //    {
-        //        if (S != null)
-        //        {
-        //            return S.GetContoursOnImagePlane(planeId);
-        //        }
-        //        else
-        //        {
-        //            return null;
-        //        }
 
-        //    }), S);
-        //}
+        private double GetArea(VVector[] V)
+        {
+            double Area = 0;
+            int c = 0;
+            for (c = 0; c < V.Count() - 2; c++)
+            {
+                Area = Area + (V[c].x * V[c + 1].y - V[c].y * V[c + 1].x);
+            }
+            Area = Area + Math.Abs(V[c + 1].x * V[0].y - V[c + 1].y * V[0].x);
+            return Math.Abs(Area)/2;
+
+        }
+        public async Task<Tuple<double, VVector>> GetMinArea()
+        {
+            return await A.ExecuteAsync(new Func<Structure, Tuple<double, VVector>>((S) =>
+            {
+                Tuple<double, VVector> MinArea = new Tuple<double, VVector>(0.0, new VVector());
+                if (S != null)
+                {
+                    var test = Ctr.CurrentStructureSet;
+                    double Area = double.PositiveInfinity;
+                    for (int z = 1; z < NumSlices; z++)
+                    {
+                        var contours = S.GetContoursOnImagePlane(z);
+                        if (contours.Count() == 0)
+                            continue;
+                        VVector Centroid = new VVector();
+                        foreach (VVector[] C in contours)
+                        {
+                            var contA = GetArea(C);
+                            if (Math.Abs( C.First().z + 97.5 ) < 1E-5)
+                            {
+                                string debugme = "hi";
+                            }
+                            if (contA < Area)
+                            {
+                                var Testpoint = new VVector(C.Average(x => x.x)+0.5, C.Average(x => x.y)+0.5, C.Average(x => x.z));
+                                if (!S.IsPointInsideSegment(Testpoint))
+                                {
+                                    Area = contA;
+                                    Centroid.x = (C.Average(x => x.x) - Origin.x) / 10; // convert to cm
+                                    Centroid.y = (C.Average(x => x.y) - Origin.y) / 10;
+                                    Centroid.z = (C.Average(x => x.z) - Origin.z) / 10;
+                                    MinArea = new Tuple<double, VVector>(Area, Centroid);
+                                }
+                            }
+                        }
+                    }
+                    return MinArea;
+                }
+                else
+                {
+                    return null;
+                }
+            }), S);
+        }
         private int _NumSeparateParts = -1;
         private List<double> _PartVolumes;
+        private List<VVector> _PartVolumes_Centroids;
         private async Task<bool> CalcPartVolumes()
         {
             return await A.ExecuteAsync(new Func<Structure, bool>((S) =>
@@ -69,8 +118,10 @@ namespace SquintScript
                 {
                     if (!S.IsEmpty)
                     {
-                        _PartVolumes = Helpers.MeshHelper.Volumes(S.MeshGeometry);
-                        _PartVolumes.RemoveAll(x => x < 0);
+                        var result = Helpers.MeshHelper.Volumes(S.MeshGeometry); // first of tuple is volume, second of tuple is centroid
+                        result.RemoveAll(x => x.Item1 < 1E-5);
+                        _PartVolumes = result.Select(x => x.Item1).ToList();
+                        _PartVolumes_Centroids = result.Select(x => x.Item2).ToList();
                         _NumSeparateParts = _PartVolumes.Count;
                         return true;
                     }
@@ -86,18 +137,12 @@ namespace SquintScript
         }
         public async Task<int> GetNumSeperateParts()
         {
-            if (_NumSeparateParts > 0)
-            {
+            bool Success = await CalcPartVolumes();
+            if (Success)
                 return _NumSeparateParts;
-            }
             else
-            {
-                bool Success = await CalcPartVolumes();
-                if (Success)
-                    return _NumSeparateParts;
-                else
-                    return -1;
-            }
+                return -1;
+
         }
         public async Task<int> GetVMS_NumParts()
         {

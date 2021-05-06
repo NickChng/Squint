@@ -83,8 +83,10 @@ namespace SquintScript
             {
                 if (Math.Abs(_TotalDose.Value - value) > 1E-5 && value > 0)
                 {
+                    double oldDose = _TotalDose.Value;
                     _TotalDose.Value = value;
-                    ReferenceDoseChanged?.Invoke(this, EventArgs.Empty);
+                    ReferenceDoseChanged?.Invoke(oldDose, EventArgs.Empty);
+                    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(TotalDose))); // unclear why this seems to be needed for this property in order to fire.  this fires automatically for updates to NumFractions
                 }
             }
         }
@@ -99,8 +101,9 @@ namespace SquintScript
             {
                 if (value != NumFractions && value > 0)
                 {
+                    int prevFractions = _NumFractions.Value;
                     _NumFractions.Value = value;
-                    ReferenceFractionsChanged?.Invoke(this, EventArgs.Empty);
+                    ReferenceFractionsChanged?.Invoke(prevFractions, EventArgs.Empty);
                 }
             }
         }

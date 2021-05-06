@@ -101,14 +101,14 @@ namespace SquintScript
             {
                 case Trajectories.CW:
                     if (A > 180)
-                        return -(A - 180);
+                        return A - 180;
                     else
-                        return A;
+                        return A + 180;
                 case Trajectories.CCW:
                     if (A > 180)
-                        return -(A - 360);
+                        return 540 -A;
                     else
-                        return -A;
+                        return 180 - A;
                 default:
                     return A;
             }

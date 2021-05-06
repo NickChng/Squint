@@ -272,7 +272,7 @@ namespace SquintScript
                         StructureLabel SL = await GetStructureLabel(1);
                         SessionProtocol.Structures.Add(new ProtocolStructure(SL, Context.DbProtocolStructures.Find(1)));  //Initialize non-defined structure
                     }
-                    foreach (DbSessionComponent DbC in DbSP.Components)
+                    foreach (DbSessionComponent DbC in DbSP.Components.OrderBy(x=>x.DisplayOrder))
                     {
                         Component SC = new Component(DbC);
                         SessionProtocol.Components.Add(SC);
@@ -289,7 +289,7 @@ namespace SquintScript
                         }
                         if (DbC.Constraints != null)
                         {
-                            foreach (DbSessionConstraint DbCon in DbC.Constraints)
+                            foreach (DbSessionConstraint DbCon in DbC.Constraints.OrderBy(x=>x.DisplayOrder))
                             {
                                 var primaryStructure = SessionProtocol.Structures.FirstOrDefault(x => x.ID == DbCon.PrimaryStructureID);
                                 var referenceStructure = SessionProtocol.Structures.FirstOrDefault(x => x.ID == DbCon.ReferenceStructureId);
@@ -443,6 +443,18 @@ namespace SquintScript
                         DbA.HU = A.RefHU.Value;
                         DbA.ToleranceHU = A.ToleranceHU.Value;
                         DbA.DbProtocolChecklist = DbPC;
+                    }
+                    foreach (string CTDeviceId in C.CTDeviceIds)
+                    {
+                        DbCTDeviceId DbCTDI = Context.DbCTDeviceIds.FirstOrDefault(x=>x.CTDeviceId.ToUpper() == CTDeviceId.ToUpper());
+                        if (DbCTDI == null)
+                        {
+                            DbCTDI = Context.DbCTDeviceIds.Create();
+                            DbCTDI.CTDeviceId = CTDeviceId;
+                            DbCTDI.ProtocolChecklist = new List<DbProtocolChecklist>() { DbPC };
+                        }
+                        else
+                            DbCTDI.ProtocolChecklist.Add(DbPC);
                     }
                 }
                 // structures
@@ -877,6 +889,18 @@ namespace SquintScript
                 Context.DbProtocolChecklists.Add(DbPC);
                 DbPC.ID = IDGenerator.GetUniqueId();
                 DbPC.DbProtocol = DbP;
+            }
+            DbPC.CTDeviceIds.Clear();
+            foreach (string CTDeviceId in Ctr.CurrentProtocol.Checklist.CTDeviceIds)
+            {
+                DbCTDeviceId DBCTId = Context.DbCTDeviceIds.FirstOrDefault(x => x.CTDeviceId.ToUpper() == CTDeviceId.ToUpper());
+                if (DBCTId == null)
+                {
+                    DBCTId = Context.DbCTDeviceIds.Create();
+                    DBCTId.CTDeviceId = CTDeviceId;
+                    Context.DbCTDeviceIds.Add(DBCTId);
+                }
+                DbPC.CTDeviceIds.Add(DBCTId);
             }
 
 

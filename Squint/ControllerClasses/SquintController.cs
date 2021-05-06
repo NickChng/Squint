@@ -389,6 +389,15 @@ namespace SquintScript
                 return await P.GetStudyId();
             else return "";
         }
+
+        public async static Task<string> GetCTDeviceId(string CourseId, string PlanId)
+        {
+            AsyncPlan P = await GetAsyncPlan(CourseId, PlanId);
+            if (P.ComponentType == ComponentTypes.Phase)
+                return await P.GetCTDeviceId();
+            else return "";
+        }
+
         public async static Task<string> GetSeriesId(string CourseId, string PlanId)
         {
             AsyncPlan P = await GetAsyncPlan(CourseId, PlanId);
@@ -931,12 +940,6 @@ namespace SquintScript
                 _XMLProtocol.Constraints = new SquintProtocolXML.ConstraintListDefinition();
                 _XMLProtocol.Constraints.ConstraintList = new List<SquintProtocolXML.ConstraintDefinition>();
             }
-            //if (ReferenceEquals(null, _XMLProtocol.ConformityIndexConstraints))
-            //{
-            //    _XMLProtocol.ConformityIndexConstraints = new SquintProtocolXML.ConformityIndexConstraintListDefinition();
-            //    _XMLProtocol.ConformityIndexConstraints.ConformityIndexConstraintList = new List<SquintProtocolXML.ConformityIndexConstraintDefinition>();
-            //}
-            //Assign TEMPORARY primary keys to each constraint, since these are not defined in the XML protocol
             foreach (SquintProtocolXML.ComponentDefinition cd in _XMLProtocol.Components.Component)
             {
                 cd.ID = ComponentPKiterator; // assign primary keys
@@ -1031,15 +1034,16 @@ namespace SquintScript
                 {
                     P.DbProtocolType = LocalContext.DbProtocolTypes.Where(x => x.ProtocolType == (int)ProtocolTypes.Unset).Single();
                 }
-                if (_XMLProtocol.ProtocolMetaData.Intent != null)
+
+                if (_XMLProtocol.TreatmentIntents != null)
                 {
-                    TreatmentIntents Intent;
-                    if (Enum.TryParse(_XMLProtocol.ProtocolMetaData.Intent, true, out Intent))
+                    foreach (var TxIntent in _XMLProtocol.TreatmentIntents.Intent)
                     {
-                        P.TreatmentIntent = (int)Intent;
+                        DbTreatmentIntent TI = LocalContext.DbTreatmentIntents.FirstOrDefault(x => x.Intent.ToUpper() == TxIntent.Id.ToUpper());
+                        if (P.TreatmentIntents == null)
+                            P.TreatmentIntents = new List<DbTreatmentIntent>();
+                        P.TreatmentIntents.Add(TI);
                     }
-                    else
-                        P.TreatmentIntent = (int)TreatmentIntents.Unset; // unset
                 }
                 if (_XMLProtocol.ProtocolMetaData.ApprovalStatus != null)
                 {
@@ -1210,7 +1214,6 @@ namespace SquintScript
                             Checklist.FieldNormalizationMode = (int)FieldNormalizationTypes.Unset;
                         Checklist.HeterogeneityOn = string.IsNullOrEmpty(_XMLProtocol.ProtocolChecklist.Calculation.HeterogeneityOn) ? null : (bool?)bool.Parse(_XMLProtocol.ProtocolChecklist.Calculation.HeterogeneityOn);
                         Checklist.AlgorithmResolution = string.IsNullOrEmpty(_XMLProtocol.ProtocolChecklist.Calculation.AlgorithmResolution) ? null : (double?)double.Parse(_XMLProtocol.ProtocolChecklist.Calculation.AlgorithmResolution);
-
                         AlgorithmVMATOptimizationTypes VMATOptimizationType;
                         if (Enum.TryParse(_XMLProtocol.ProtocolChecklist.Calculation.VMATOptimizationAlgorithm, true, out VMATOptimizationType))
                             Checklist.AlgorithmVMATOptimization = (int)VMATOptimizationType;
@@ -1242,6 +1245,24 @@ namespace SquintScript
                     if (_XMLProtocol.ProtocolChecklist.Simulation != null)
                     {
                         Checklist.SliceSpacing = string.IsNullOrEmpty(_XMLProtocol.ProtocolChecklist.Simulation.SliceSpacing) ? null : (double?)double.Parse(_XMLProtocol.ProtocolChecklist.Simulation.SliceSpacing);
+                        if (_XMLProtocol.ProtocolChecklist.Simulation.CTDeviceIds != null)
+                        {
+                            foreach (var CTDeviceId in _XMLProtocol.ProtocolChecklist.Simulation.CTDeviceIds.CTDeviceId)
+                            {
+                                DbCTDeviceId DbCTID = LocalContext.DbCTDeviceIds.FirstOrDefault(x => x.CTDeviceId.ToUpper() == CTDeviceId.Id.ToUpper());
+                                if (DbCTID == null)
+                                {
+                                    DbCTID = LocalContext.DbCTDeviceIds.Create();
+                                    DbCTID.CTDeviceId = CTDeviceId.Id;
+                                    LocalContext.DbCTDeviceIds.Add(DbCTID); 
+                                }
+                                if (Checklist.CTDeviceIds == null)
+                                {
+                                    Checklist.CTDeviceIds = new List<DbCTDeviceId>();
+                                }
+                                Checklist.CTDeviceIds.Add(DbCTID);
+                            }
+                        }
                     }
 
                     if (_XMLProtocol.ProtocolChecklist.Artifacts != null)
@@ -1584,14 +1605,19 @@ namespace SquintScript
             XMLProtocol.ProtocolMetaData = new SquintProtocolXML.ProtocolMetaDataDefinition()
             {
                 ApprovalStatus = CurrentProtocol.ApprovalLevel.ToString(),
-                DiseaseSite = CurrentProtocol.TreatmentSite.ToString(),
+                DiseaseSite = CurrentProtocol.TreatmentSite.Value.ToString(),
                 Author = CurrentProtocol.Author,
-                Intent = CurrentProtocol.TreatmentIntent.ToString(),
                 ProtocolDate = DateTime.Now.ToShortDateString(),
                 ProtocolName = CurrentProtocol.ProtocolName,
                 ProtocolType = CurrentProtocol.ProtocolType.ToString(),
-                TreatmentCentre = CurrentProtocol.TreatmentCentre.ToString()
+                TreatmentCentre = CurrentProtocol.TreatmentCentre.Value.ToString()
             };
+            XMLProtocol.TreatmentIntents = new SquintProtocolXML.TreatmentIntentsDefinition();
+            foreach (var TI in CurrentProtocol.TreatmentIntents)
+            {
+                var TreatmentIntent = new SquintProtocolXML.TreatmentIntentDefinition() { Id = TI.ToString() };
+                XMLProtocol.TreatmentIntents.Intent.Add(TreatmentIntent);
+            }
             XMLProtocol.Structures = new SquintProtocolXML.StructuresDefinition();
             foreach (var S in CurrentProtocol.Structures.OrderBy(x => x.DisplayOrder))
             {
@@ -1635,11 +1661,16 @@ namespace SquintScript
             XMLProtocol.ProtocolChecklist.Calculation.AlgorithmResolution = CurrentProtocol.Checklist.AlgorithmResolution.Value.ToString();
             XMLProtocol.ProtocolChecklist.Calculation.FieldNormalizationMode = CurrentProtocol.Checklist.FieldNormalizationMode.Value.ToString();
             XMLProtocol.ProtocolChecklist.Calculation.HeterogeneityOn = CurrentProtocol.Checklist.HeterogeneityOn.Value.ToString();
-
+            XMLProtocol.ProtocolChecklist.Calculation.VMATAirCavityCorrection = CurrentProtocol.Checklist.AirCavityCorrectionVMAT.Value;
+            XMLProtocol.ProtocolChecklist.Calculation.IMRTAirCavityCorrection = CurrentProtocol.Checklist.AirCavityCorrectionIMRT.Value;
             XMLProtocol.ProtocolChecklist.Simulation.SliceSpacing = CurrentProtocol.Checklist.SliceSpacing.Value.ToString();
             XMLProtocol.ProtocolChecklist.Supports.CouchInterior = CurrentProtocol.Checklist.CouchInterior.Value.ToString();
             XMLProtocol.ProtocolChecklist.Supports.CouchSurface = CurrentProtocol.Checklist.CouchSurface.Value.ToString();
             XMLProtocol.ProtocolChecklist.Supports.Indication = CurrentProtocol.Checklist.SupportIndication.Value.ToString();
+            foreach (var CTDeviceId in CurrentProtocol.Checklist.CTDeviceIds)
+            {
+                XMLProtocol.ProtocolChecklist.Simulation.CTDeviceIds.CTDeviceId.Add(new SquintProtocolXML.CTDeviceIdDefinition() { Id = CTDeviceId });
+            }
 
 
             foreach (var C in CurrentProtocol.Components)
@@ -1966,12 +1997,9 @@ namespace SquintScript
         public async static void UpdateConstraint(int ConId)
         {
             Constraint Con = GetAllConstraints().FirstOrDefault(x => x.ID == ConId);
-            foreach (var PA in CurrentSession.PlanAssociations)
+            foreach (var PA in CurrentSession.PlanAssociations.Where(x => x.ComponentID == Con.ComponentID))
             {
-                if (PA.Linked)
-                {
-                    await Con.EvaluateConstraint(PA);
-                }
+                await Con.EvaluateConstraint(PA);
             }
         }
         public async static void UpdateConstraints()

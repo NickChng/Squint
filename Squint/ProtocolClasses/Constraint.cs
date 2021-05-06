@@ -39,7 +39,11 @@ namespace SquintScript
         public Component parentComponent
         {
             get { return _parentComponent.Value; }
-            set { _parentComponent.Value = value; }
+            set 
+            { 
+                _parentComponent.Value = value;
+                NotifyPropertyChanged(nameof(parentComponent));
+            }
         }
         private ProtocolStructure referenceStructure
         {
@@ -817,7 +821,7 @@ namespace SquintScript
             }
         }
         public bool LowerConstraintDoseScalesWithComponent = true;
-        private async void ApplyBEDScaling()
+        private async void ApplyBEDScaling(int prevFractions)
         {
             Component SC = parentComponent;
             ProtocolStructure E = primaryStructure;
@@ -833,11 +837,11 @@ namespace SquintScript
                 {
                     if (ConstraintScale == UnitScale.Relative)
                     {
-                        ConstraintValue = DoseFunctions.BED(_NumFractions.ReferenceValue, SC.NumFractions, _ConstraintValue.ReferenceValue / 100 * SC.TotalDose, abRatio) * 100 / SC.TotalDose;
+                        ConstraintValue = DoseFunctions.BED(prevFractions, SC.NumFractions, _ConstraintValue.Value / 100 * SC.TotalDose, abRatio) * 100 / SC.TotalDose;
                     }
                     else
                     {
-                        ConstraintValue = Math.Round(DoseFunctions.BED(_NumFractions.ReferenceValue, SC.NumFractions, _ConstraintValue.ReferenceValue, abRatio) / 100) * 100;
+                        ConstraintValue = Math.Round(DoseFunctions.BED(prevFractions, SC.NumFractions, _ConstraintValue.Value, abRatio) / 100) * 100;
                     }
                 }
                 else if (isReferenceValueDose())
@@ -845,20 +849,22 @@ namespace SquintScript
                     if (ReferenceScale == UnitScale.Relative)
                     {
                         if (_ThresholdCalculator.MajorViolation != null && _ThresholdCalculator.MajorViolation != null)
-                            MajorViolation = Math.Round(DoseFunctions.BED(_NumFractions.ReferenceValue, SC.NumFractions, (double)_ThresholdCalculator.ReferenceMajorViolation / 100 * SC.TotalDose, abRatio)) * 100 / SC.TotalDose;
+                            _ThresholdCalculator.MajorViolation = Math.Round(DoseFunctions.BED(prevFractions, SC.NumFractions, (double)_ThresholdCalculator.MajorViolation / 100 * SC.TotalDose, abRatio)) * 100 / SC.TotalDose;
                         if (_ThresholdCalculator.MinorViolation != null && _ThresholdCalculator.MinorViolation != null)
-                            MinorViolation = Math.Round(DoseFunctions.BED(_NumFractions.ReferenceValue, SC.NumFractions, (double)_ThresholdCalculator.ReferenceMinorViolation / 100 * SC.TotalDose, abRatio)) * 100 / SC.TotalDose;
+                            _ThresholdCalculator.MinorViolation = Math.Round(DoseFunctions.BED(prevFractions, SC.NumFractions, (double)_ThresholdCalculator.MinorViolation / 100 * SC.TotalDose, abRatio)) * 100 / SC.TotalDose;
                         if (_ThresholdCalculator.Stop != null && _ThresholdCalculator.Stop != null)
-                            Stop = Math.Round(DoseFunctions.BED(_NumFractions.ReferenceValue, SC.NumFractions, (double)_ThresholdCalculator.ReferenceStop / 100 * SC.TotalDose, abRatio)) * 100 / SC.TotalDose;
+                            _ThresholdCalculator.Stop = Math.Round(DoseFunctions.BED(prevFractions, SC.NumFractions, (double)_ThresholdCalculator.Stop / 100 * SC.TotalDose, abRatio)) * 100 / SC.TotalDose;
                     }
                     else
                     {
                         if (_ThresholdCalculator.MajorViolation != null && _ThresholdCalculator.MajorViolation != null)
-                            MajorViolation = Math.Round(DoseFunctions.BED(_NumFractions.ReferenceValue, SC.NumFractions, (double)_ThresholdCalculator.ReferenceMajorViolation, abRatio) / 100) * 100;
+                        {
+                            _ThresholdCalculator.MajorViolation = Math.Round(DoseFunctions.BED(prevFractions, SC.NumFractions, (double)_ThresholdCalculator.MajorViolation, abRatio) / 100) * 100;
+                        }
                         if (_ThresholdCalculator.MinorViolation != null && _ThresholdCalculator.MinorViolation != null)
-                            MinorViolation = Math.Round(DoseFunctions.BED(_NumFractions.ReferenceValue, SC.NumFractions, (double)_ThresholdCalculator.ReferenceMinorViolation, abRatio) / 100) * 100;
+                            _ThresholdCalculator.MinorViolation = Math.Round(DoseFunctions.BED(prevFractions, SC.NumFractions, (double)_ThresholdCalculator.MinorViolation, abRatio) / 100) * 100;
                         if (_ThresholdCalculator.Stop != null && _ThresholdCalculator.Stop != null)
-                            Stop = Math.Round(DoseFunctions.BED(_NumFractions.ReferenceValue, SC.NumFractions, (double)_ThresholdCalculator.ReferenceStop, abRatio) / 100) * 100;
+                            _ThresholdCalculator.Stop = Math.Round(DoseFunctions.BED(prevFractions, SC.NumFractions, (double)_ThresholdCalculator.Stop, abRatio) / 100) * 100;
                     }
                 }
             }
@@ -884,8 +890,9 @@ namespace SquintScript
         public void ChangePrimaryStructure(ProtocolStructure primaryStructure_in)
         {
             primaryStructure.PropertyChanged -= OnProtocolStructureChanged;
-            _primaryStructure.Value = primaryStructure_in;
             primaryStructure_in.PropertyChanged += OnProtocolStructureChanged;
+            _primaryStructure.Value = primaryStructure_in;
+            NotifyPropertyChanged(nameof(PrimaryStructureId));
         }
         public void ChangeComponent(Component newParentComponent)
         {
@@ -923,13 +930,7 @@ namespace SquintScript
                     ConstraintEvaluated?.Raise(new ConstraintResultViewModel(CR), PA.AssessmentID); // this notifies the view class, no need to raise to UI
                     return;
                 }
-                if (PA == null)
-                {
-                    CR.AddStatusCode(ConstraintResultStatusCodes.NotLinked);
-                    CR.isCalculating = false;
-                    ConstraintEvaluated?.Raise(new ConstraintResultViewModel(CR), PA.AssessmentID); // this notifies the view class, no need to raise to UI
-                    return;
-                }
+               
                 if (PA.LoadWarning)
                 {
                     CR.AddStatusCode(ConstraintResultStatusCodes.NotLinked);
@@ -990,7 +991,7 @@ namespace SquintScript
                 }
                 else
                 {
-                    doseQuery = new DoseValue(ConstraintValue, DoseValue.DoseUnit.Percent);
+                    doseQuery = new DoseValue(ConstraintValue/100 * parentComponent.TotalDose, DoseValue.DoseUnit.cGy);
                     volPresentationQuery = VolumePresentation.Relative;
                 }
                 if (ReferenceScale == UnitScale.Absolute)
@@ -1133,7 +1134,9 @@ namespace SquintScript
         }
         private ReferenceThresholdTypes ThresholdStatus(ConstraintResult CR)
         {
-            if (CR.StatusCodes.Where(x => x != ConstraintResultStatusCodes.LabelMismatch).Count() > 0)
+            if (CR.StatusCodes.Where(x => x != ConstraintResultStatusCodes.LabelMismatch 
+                && x != ConstraintResultStatusCodes.RelativeDoseForSum 
+                && x != ConstraintResultStatusCodes.Loaded).Count() > 0)
                 return ReferenceThresholdTypes.Unset;
             if (ReferenceType == ReferenceTypes.Upper)
             {
@@ -1332,6 +1335,7 @@ namespace SquintScript
         }
         public void OnComponentDoseChanging(object sender, EventArgs e)
         {
+            double oldDose = (double)sender;
             if (isConstraintValueDose())
             {
                 if (ConstraintScale == UnitScale.Relative)
@@ -1340,7 +1344,12 @@ namespace SquintScript
                 }
                 else if (ConstraintScale == UnitScale.Absolute && ReferenceType == ReferenceTypes.Lower && LowerConstraintDoseScalesWithComponent)
                 {
-                    ConstraintValue = _ConstraintValue.ReferenceValue * parentComponent.TotalDose / parentComponent.TotalDoseReference;
+                    if (_ConstraintScale.Value == UnitScale.Absolute)
+                        ConstraintValue = _ConstraintValue.Value * parentComponent.TotalDose / oldDose;
+                    else if (_ConstraintScale.Value == UnitScale.Relative)
+                    {
+                        ConstraintValue = _ConstraintValue.Value/100 * parentComponent.TotalDose;
+                    }
                     NotifyPropertyChanged("ConstraintValue");
                 }
             }
@@ -1352,17 +1361,22 @@ namespace SquintScript
                 }
                 else if (ReferenceScale == UnitScale.Absolute && ReferenceType == ReferenceTypes.Lower && LowerConstraintDoseScalesWithComponent)
                 {
-
-                    if (ReferenceType == ReferenceTypes.Upper)
+                    if (_ReferenceScale.Value == UnitScale.Absolute)
                     {
-                        _ThresholdCalculator.MajorViolation = _ThresholdCalculator.ReferenceMajorViolation * parentComponent.TotalDose / parentComponent.TotalDoseReference;
-                        _ThresholdCalculator.MinorViolation = _ThresholdCalculator.ReferenceMinorViolation * parentComponent.TotalDose / parentComponent.TotalDoseReference;
-                        _ThresholdCalculator.Stop = _ThresholdCalculator.ReferenceStop * parentComponent.TotalDose / parentComponent.TotalDoseReference;
-                        NotifyPropertyChanged(nameof(IReferenceThreshold.MajorViolation));
-                        NotifyPropertyChanged(nameof(IReferenceThreshold.MinorViolation));
-                        NotifyPropertyChanged(nameof(IReferenceThreshold.Stop));
-                        NotifyPropertyChanged(nameof(IReferenceThreshold.ReferenceValue));
+                        _ThresholdCalculator.MajorViolation = _ThresholdCalculator.MajorViolation * parentComponent.TotalDose / oldDose;
+                        _ThresholdCalculator.MinorViolation = _ThresholdCalculator.MinorViolation * parentComponent.TotalDose / oldDose;
+                        _ThresholdCalculator.Stop = _ThresholdCalculator.Stop * parentComponent.TotalDose / oldDose;
                     }
+                    else
+                    {
+                        _ThresholdCalculator.MajorViolation = _ThresholdCalculator.MajorViolation/100 * parentComponent.TotalDose;
+                        _ThresholdCalculator.MinorViolation = _ThresholdCalculator.MinorViolation/100 * parentComponent.TotalDose;
+                        _ThresholdCalculator.Stop = _ThresholdCalculator.Stop/100 * parentComponent.TotalDose;
+                    }
+                    NotifyPropertyChanged(nameof(IReferenceThreshold.MajorViolation));
+                    NotifyPropertyChanged(nameof(IReferenceThreshold.MinorViolation));
+                    NotifyPropertyChanged(nameof(IReferenceThreshold.Stop));
+                    NotifyPropertyChanged(nameof(IReferenceThreshold.ReferenceValue));
                 }
             }
         }
@@ -1370,11 +1384,11 @@ namespace SquintScript
         {
             if (ReferenceType == ReferenceTypes.Upper)
             {
-                ApplyBEDScaling();
+                ApplyBEDScaling((int)sender);
             }
             else
             {
-                NumFractions = (sender as Component).NumFractions;
+                NumFractions = parentComponent.NumFractions;
             }
             //UpdateProgress();
         }

@@ -10,6 +10,7 @@
              d:DesignHeight="450" d:DesignWidth="800">
     <UserControl.Resources>
         <converters:ReferenceEditConverter x:Key="ReferenceEditConverter"/>
+        <converters:DoubleToStringConverter x:Key="DoubleToStringConverter"/>
         <converters:VisibilityTextBoxModeConverter x:Key="VisibilityTextBoxModeConverter"/>
         <converters:VisibilitySelectionModeConverter x:Key="VisibilitySelectionModeConverter"/>
         <converters:CollimatorAngleCheckConverter x:Key="CollimatorAngleCheckConverter"/>
@@ -144,7 +145,7 @@
                                         <ColumnDefinition Width="*"/>
                                     </Grid.ColumnDefinitions>
                                     <TextBlock Grid.Column="0" Text="{Binding Id, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" FontWeight="Bold" VerticalAlignment="Center"/>
-                                    <TextBlock Grid.Column="1" Text="{Binding HU, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Center"/>
+                                    <TextBlock Grid.Column="1" Text="{Binding HU, Mode=OneWay, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource DoubleToStringConverter}, ConverterParameter=1}" VerticalAlignment="Center"/>
                                 </Grid>
                             </DataTemplate>
                         </ListView.ItemTemplate>

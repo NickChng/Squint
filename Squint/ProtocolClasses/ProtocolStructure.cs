@@ -9,6 +9,7 @@ using System.Data;
 using SquintScript.Extensions;
 using System.Collections.ObjectModel;
 using SquintScript.ViewModels;
+using VMS.TPS.Common.Model.Types;
 
 namespace SquintScript
 {
@@ -187,6 +188,14 @@ namespace SquintScript
             if (AS == null)
                 return -1;
             return await AS.GetVMS_NumParts();
+        }
+
+        public async Task<Tuple<double, VVector>> GetMinArea(string SSUID)
+        {
+            var AS = Ctr.GetStructureSet(SSUID).GetStructure(AssignedStructureId);
+            if (AS == null)
+                return null;
+            return await AS.GetMinArea();
         }
 
         public double? Volume(string SSUID)

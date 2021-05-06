@@ -441,7 +441,7 @@ namespace SquintScript.ViewModels
             ParentView.isLoading = true;
             if (await Task.Run(() => Ctr.LoadProtocolFromDb(PS.ProtocolName)))
             {
-                UpdateProtocolView();
+                //UpdateProtocolView();
                 isProtocolLoaded = true;
                 if (Ctr.PatientOpen)
                 {
@@ -462,6 +462,14 @@ namespace SquintScript.ViewModels
             RaisePropertyChangedEvent(nameof(ProtocolType));
             RaisePropertyChangedEvent(nameof(ApprovalLevel));
             RaisePropertyChangedEvent(nameof(Comments));
+            foreach (var CS in Constraints)
+            {
+                CS.Unsubscribe();
+            }
+            foreach (var SS in Structures)
+            {
+                SS.Unsubscribe();
+            }
             List<StructureSelector> SSList = new List<StructureSelector>();
             List<ConstraintSelector> ConList = new List<ConstraintSelector>();
             List<ComponentSelector> CompList = new List<ComponentSelector>();

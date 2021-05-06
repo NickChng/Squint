@@ -56,12 +56,48 @@ namespace SquintScript.Converters
                 return Visibility.Hidden;
                 //throw new Exception(@"Error casting inputs to VisibilityOptionalIconConverter");
             }
-            
+
         }
         public object[] ConvertBack(object value, Type[] targetTypes,
                object parameter, System.Globalization.CultureInfo culture)
         {
             throw new NotImplementedException();
+        }
+    }
+
+    public class DoubleToStringConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType,
+               object parameter, System.Globalization.CultureInfo culture)
+        {
+            if (double.TryParse(value.ToString(), out double input))
+            {
+                if (int.TryParse(parameter.ToString(), out int precision))
+                {
+                    switch (precision)
+                    {
+                        case 0:
+                            return string.Format("{0}", input);
+                        case 1:
+                            return string.Format("{0:0.#}", input);
+                        case 2:
+                            return string.Format("{0:0.##}", input);
+                        case 3:
+                            return string.Format("{0:0.###}", input);
+                        default:
+                            return input.ToString();
+                    }
+                }
+                else
+                    return string.Format("{0.###}", input);
+            }
+            else
+                return "-";
+        }
+        public object ConvertBack(object value, Type targetTypes,
+               object parameter, System.Globalization.CultureInfo culture)
+        {
+            return "";
         }
     }
     public class ToStringConverter : IValueConverter
@@ -1229,9 +1265,9 @@ namespace SquintScript.Converters
         public object Convert(object[] value, Type targetType,
               object parameter, System.Globalization.CultureInfo culture)
         {
-            foreach (bool v in value)
+            foreach (bool? v in value)
             {
-                if (v)
+                if (v == true)
                     return Visibility.Visible;
             }
             return Visibility.Collapsed;

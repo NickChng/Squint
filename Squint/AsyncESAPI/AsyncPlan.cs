@@ -55,7 +55,7 @@ namespace SquintScript
 
                     StructureIds.Add(s.Id);
                     _Structures.Add(s.Id, s);
-                    var AS = new AsyncStructure(ACurrent, s, p.StructureSet.Id, p.StructureSet.UID);
+                    var AS = new AsyncStructure(ACurrent, s, p.StructureSet.Id, p.StructureSet.UID, p.StructureSet.Image.ZSize, p.StructureSet.Image.UserOrigin);
                     Structures.Add(s.Id, AS);
                 }
             }
@@ -83,7 +83,7 @@ namespace SquintScript
                 {
                     StructureIds.Add(s.Id);
                     _Structures.Add(s.Id, s);
-                    Structures.Add(s.Id, new AsyncStructure(ACurrent, s, ps.StructureSet.Id, ps.StructureSet.UID));
+                    Structures.Add(s.Id, new AsyncStructure(ACurrent, s, ps.StructureSet.Id, ps.StructureSet.UID, ps.StructureSet.Image.ZSize, ps.StructureSet.Image.UserOrigin));
                 }
             }
             foreach (PlanSetup p in ps.PlanSetups.OrderBy(x => x.UID))
@@ -116,12 +116,25 @@ namespace SquintScript
                     var Boluses = new List<AsyncStructure>();
                     foreach (Structure s in p.StructureSet.Structures.Where(x => x.DicomType == "BOLUS"))
                     {
-                        var Bolus = new AsyncStructure(A, s, p.StructureSet.Id, p.StructureSet.UID);
+                        var Bolus = new AsyncStructure(A, s, p.StructureSet.Id, p.StructureSet.UID, p.StructureSet.Image.ZSize, p.StructureSet.Image.UserOrigin);
                         Boluses.Add(Bolus);
                     }
                     return Boluses;
                 }
                 else return new List<AsyncStructure>();
+            }));
+        }
+        public async Task<string> GetCTDeviceId()
+        {
+            return await A.ExecuteAsync(new Func<EApp, string>((app) =>
+            {
+                if (p.StructureSet != null)
+                {
+                    if (p.StructureSet.Image != null)
+                        return p.StructureSet.Image.Series.ImagingDeviceId;
+                    else return "";
+                }
+                else return "";
             }));
         }
         public async Task<string> GetStudyId()
@@ -323,8 +336,9 @@ namespace SquintScript
                 {
                     if (p.Dose != null)
                     {
-                        Double.TryParse(p.PhotonCalculationOptions.Where(x => x.Key == "CalculationGridSizeInCM").FirstOrDefault().Value, out returnVal);
-                        return returnVal * 10;
+                        return p.Dose.XRes;
+                        //Double.TryParse(p.PhotonCalculationOptions.Where(x => x.Key == "CalculationGridSizeInCM").FirstOrDefault().Value, out returnVal);
+                        //return returnVal * 10;
                     }
                     else return returnVal;
                 }
@@ -475,7 +489,7 @@ namespace SquintScript
                 var SeriesUID = p.StructureSet.Image.Series.UID;
                 var CT = p.StructureSet.Image.Series.Images.Where(x => x.Id == p.StructureSet.Image.Id).FirstOrDefault();
                 var zIso = Math.Abs(Math.Round((Iso.z - CT.Origin.z) / CT.ZRes));
-                var BODYContour = p.StructureSet.Structures.First(x => x.Id == "BODY").GetContoursOnImagePlane((int)zIso);
+                var BODYContour = p.StructureSet.Structures.First(x => x.DicomType == "EXTERNAL").GetContoursOnImagePlane((int)zIso);
                 double x0 = BODYContour.SelectMany(x => x.Select(y => y.x)).Average();
                 double y0 = BODYContour.SelectMany(x => x.Select(y => y.y)).Average();
                 double z0 = BODYContour.SelectMany(x => x.Select(y => y.z)).Average();
@@ -549,7 +563,7 @@ namespace SquintScript
                     return A.ExecuteAsync(new Func<PlanSetup, double>((p) =>
                     {
                         return (p.GetDoseAtVolume(_Structures[StructureId], ConstraintValue, VP, DVP)).Dose;
-                        
+
                     }), p);
                 case ComponentTypes.Sum:
                     return A.ExecuteAsync(new Func<PlanSum, double>((ps) =>

@@ -11,15 +11,18 @@ namespace SquintScript
         private AsyncESAPI A;
         public string Id { get; private set; }
         public string UID { get; private set; }
+
+        public int NumSlices { get; set; }
         private Dictionary<string, AsyncStructure> _Structures = new Dictionary<string, AsyncStructure>();
         public AsyncStructureSet(AsyncESAPI _A, StructureSet structureSet)
         {
             A = _A;
             Id = structureSet.Id;
             UID = structureSet.UID;
+            NumSlices = structureSet.Image.ZSize;
             foreach (Structure S in structureSet.Structures)
             {
-                _Structures.Add(S.Id, new AsyncStructure(A, S, structureSet.Id, structureSet.UID));
+                _Structures.Add(S.Id, new AsyncStructure(A, S, structureSet.Id, structureSet.UID, NumSlices, structureSet.Image.UserOrigin));
             }
         }
         public IEnumerable<string> GetStructureIds()

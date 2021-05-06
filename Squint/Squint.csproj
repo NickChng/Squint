@@ -187,6 +187,9 @@
     <Compile Include="XAML\DensityOverrides.xaml.cs">
       <DependentUpon>DensityOverrides.xaml</DependentUpon>
     </Compile>
+    <Compile Include="XAML\PointCheckView.xaml.cs">
+      <DependentUpon>PointCheckView.xaml</DependentUpon>
+    </Compile>
     <Compile Include="XAML\WaitSpinner.xaml.cs">
       <DependentUpon>WaitSpinner.xaml</DependentUpon>
     </Compile>
@@ -311,6 +314,10 @@
       <SubType>Designer</SubType>
     </Page>
     <Page Include="XAML\DensityOverrides.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="XAML\PointCheckView.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>

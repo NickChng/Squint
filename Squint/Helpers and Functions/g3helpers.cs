@@ -119,11 +119,11 @@ namespace SquintScript.Helpers
             return DMesh3Builder.Build(vertices, triangles, normals);
         }
 
-        public static List<double> Volumes(MeshGeometry3D mesh)
+        public static List<Tuple<double, VMS.TPS.Common.Model.Types.VVector>> Volumes(MeshGeometry3D mesh)
         {
             DMesh3 m3 = MeshGeometryToDMesh(mesh);
             DMesh3[] mC = MeshConnectedComponents.Separate(m3);
-            List<double> ListVol = new List<double>();
+            List<Tuple<double, VMS.TPS.Common.Model.Types.VVector>> ListVol = new List<Tuple<double, VMS.TPS.Common.Model.Types.VVector>>();
             foreach (DMesh3 m in mC)
             {
                 var triangles = m.TriangleIndices();
@@ -132,8 +132,15 @@ namespace SquintScript.Helpers
                     Vector3d V = m.GetVertex(a);
                     return V;
                 };
-                Vector2d Vol = MeshMeasurements.VolumeArea(m, triangles, getVertexF);
-                ListVol.Add(Vol.x / 1000);
+                var Cen = MeshMeasurements.Centroid(m.Vertices());
+                var RepairHandler = new gs.MeshAutoRepair(m);
+                RepairHandler.Apply();  // attempt to close mesh
+                if (m.IsClosed())
+                {
+                    Vector2d Vol = MeshMeasurements.VolumeArea(m, triangles, getVertexF);
+                    var result = new Tuple<double, VMS.TPS.Common.Model.Types.VVector>(Vol.x / 1000, new VMS.TPS.Common.Model.Types.VVector(Cen.x, Cen.y, Cen.z));
+                    ListVol.Add(result);
+                }
             }
             return ListVol;
         }

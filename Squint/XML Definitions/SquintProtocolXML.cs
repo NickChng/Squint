@@ -16,6 +16,7 @@ namespace SquintScript
         public SquintProtocolXML()
         {
             ProtocolMetaData = new ProtocolMetaDataDefinition();
+            TreatmentIntents = new TreatmentIntentsDefinition();
             Structures = new StructuresDefinition();
             Components = new ComponentsDefinition();
             Constraints = new ConstraintListDefinition();
@@ -55,8 +56,36 @@ namespace SquintScript
             public string TreatmentCentre;
             [XmlAttribute]
             public string ProtocolType;
+        }
+
+        public class CTDeviceIdsDefinition
+        {
+            public CTDeviceIdsDefinition()
+            {
+                CTDeviceId = new List<CTDeviceIdDefinition>();
+            }
+            [XmlElement("CTDeviceId")]
+            public List<CTDeviceIdDefinition> CTDeviceId { get; set; }
+        }
+
+        public class CTDeviceIdDefinition
+        {
             [XmlAttribute]
-            public string Intent;
+            public string Id { get; set; }
+        }
+        public class TreatmentIntentsDefinition
+        {
+            public TreatmentIntentsDefinition()
+            {
+                Intent = new List<TreatmentIntentDefinition>();
+            }
+            [XmlElement("Intent")]
+            public List<TreatmentIntentDefinition> Intent { get; set; }
+        }
+        public class TreatmentIntentDefinition
+        {
+            [XmlAttribute]
+            public string Id { get; set; }
         }
         public class ImagingProtocolDefinition
         {
@@ -221,6 +250,9 @@ namespace SquintScript
         {
             [XmlAttribute]
             public string SliceSpacing;
+
+            [XmlElement("CTDeviceIds")]
+            public CTDeviceIdsDefinition CTDeviceIds { get; set; } = new CTDeviceIdsDefinition();
         }
         public class PrescriptionDefinition
         {
@@ -489,6 +521,10 @@ namespace SquintScript
         public ProtocolMetaDataDefinition ProtocolMetaData { get; set; } = new ProtocolMetaDataDefinition();
         [XmlElement("ImagingProtocols")]
         public ImagingProtocolsDefinition ImagingProtocols { get; set; } = new ImagingProtocolsDefinition();
+
+        [XmlElement("TreatmentIntents")]
+        public TreatmentIntentsDefinition TreatmentIntents { get; set; } = new TreatmentIntentsDefinition();
+
         [XmlElement("Structures")]
         public StructuresDefinition Structures { get; set; } = new StructuresDefinition();
         [XmlElement("ProtocolChecklist")]
