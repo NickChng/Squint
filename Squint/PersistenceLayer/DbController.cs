@@ -798,7 +798,12 @@ namespace SquintScript
             DbC.ComponentType = (int)comp.ComponentType.Value;
             DbC.NumFractions = comp.NumFractions;
             DbC.ReferenceDose = comp.TotalDose;
+            
+            //Update beams
             Save_UpdateBeamDefinition(Context, DbC, comp.ID, createCopy);
+
+            //Update imaging protocols
+            Save_UpdateImagingDefinitions(Context, DbC, comp.ID, createCopy);
 
             // Update checklist parameters
             DbC.MaxBeams = comp.MaxBeams.Value;
@@ -890,7 +895,8 @@ namespace SquintScript
                 DbPC.ID = IDGenerator.GetUniqueId();
                 DbPC.DbProtocol = DbP;
             }
-            DbPC.CTDeviceIds.Clear();
+            if (DbPC.CTDeviceIds != null)
+                DbPC.CTDeviceIds.Clear();
             foreach (string CTDeviceId in Ctr.CurrentProtocol.Checklist.CTDeviceIds)
             {
                 DbCTDeviceId DBCTId = Context.DbCTDeviceIds.FirstOrDefault(x => x.CTDeviceId.ToUpper() == CTDeviceId.ToUpper());
@@ -1093,6 +1099,159 @@ namespace SquintScript
             //        MessageBox.Show("Error in Save_UpdateBeamDefinition, component not found");
             //}
         }
+
+        private static void Save_UpdateImagingDefinitions(SquintDBModel Context, DbComponent DbC, int sourceComponentID, bool createCopy)
+        {
+            var ImagingProtocols = Ctr.CurrentProtocol.Components.FirstOrDefault(x => x.ID == sourceComponentID).ImagingProtocols;
+            if (DbC.ImagingProtocols != null)
+            {
+                foreach (DbComponentImaging DbCI in DbC.ImagingProtocols)
+                {
+                    foreach (DbImaging DbI in DbCI.Imaging)
+                    {
+                        if (!ImagingProtocols.Contains((ImagingProtocols)DbI.ImagingProtocol))
+                            Context.DbImagings.Remove(DbI);
+                    }
+                }
+            }
+
+            foreach (ImagingProtocols IP in Ctr.CurrentProtocol.Components.FirstOrDefault(x => x.ID == sourceComponentID).ImagingProtocols)
+            {
+                DbComponentImaging DbCI = DbC.ImagingProtocols.FirstOrDefault();
+                if (DbCI == null || createCopy)
+                {
+                    DbCI = Context.DbComponentImagings.Create();
+                    DbCI.ID = IDGenerator.GetUniqueId();
+                    DbCI.DbComponent = DbC;
+                    DbCI.Imaging = new List<DbImaging>();
+                }
+                if (!DbC.ImagingProtocols.FirstOrDefault().Imaging.Select(x=>x.ImagingProtocol).Contains((int)IP)) // if imaging protocols don't contain IP
+                {
+                    DbImaging DbI = Context.DbImagings.Create();
+                    DbI.ImagingProtocol = (int)IP;
+                    DbI.DbComponentImaging = DbCI;
+                    DbI.ImagingProtocolName = IP.ToString();
+                }
+
+            }
+            
+            foreach (Beam B in Ctr.CurrentProtocol.Components.FirstOrDefault(x => x.ID == sourceComponentID).Beams.ToList())
+            {
+                DbBeam DbB = null;
+                if (DbC.DbBeams != null)
+                    DbB = DbC.DbBeams.FirstOrDefault(x => x.ID == B.ID);
+                if (B.ToRetire)
+                {
+                    if (DbB != null && !createCopy) // don't delete if creating copy, just exclude from duplication
+                    {
+                        Context.DbBeams.Remove(DbB);
+                    }
+                    continue;
+                }
+                if (DbB == null || createCopy)
+                {
+                    DbB = Context.DbBeams.Create();
+                    if (createCopy)
+                        DbB.ID = IDGenerator.GetUniqueId();
+                    else
+                        DbB.ID = B.ID;
+                    Context.DbBeams.Add(DbB);
+                    DbB.DbComponent = DbC;
+                    DbB.DbBoluses = new List<DbBolus>();
+                    DbB.DbEnergies = new List<DbEnergy>();
+                    DbB.DbBeamAliases = new List<DbBeamAlias>();
+                    DbB.DbBeamGeometries = new List<DbBeamGeometry>();
+                }
+
+                if (B.Boluses.FirstOrDefault() != null)
+                {
+                    DbBolus DbBol = DbB.DbBoluses.FirstOrDefault();
+                    if (DbBol == null)
+                    {
+                        DbBol = Context.DbBoluses.Create();
+                        Context.DbBoluses.Add(DbBol);
+                        DbBol.ID = IDGenerator.GetUniqueId();
+                        DbBol.BeamId = DbB.ID;
+                    }
+                    DbBol.HU = B.Boluses.FirstOrDefault().HU.Value;
+                    B.Boluses.FirstOrDefault().HU.AcceptChanges();
+                    DbBol.Thickness = B.Boluses.FirstOrDefault().Thickness.Value;
+                    B.Boluses.FirstOrDefault().Thickness.AcceptChanges();
+                    DbBol.ToleranceHU = B.Boluses.FirstOrDefault().ToleranceHU.Value;
+                    B.Boluses.FirstOrDefault().ToleranceHU.AcceptChanges();
+                    DbBol.ToleranceThickness = B.Boluses.FirstOrDefault().ToleranceThickness.Value;
+                    B.Boluses.FirstOrDefault().ToleranceThickness.AcceptChanges();
+                    DbBol.Indication = (int)B.Boluses.FirstOrDefault().Indication.Value;
+                    B.Boluses.FirstOrDefault().Indication.AcceptChanges();
+                }
+                DbB.CouchRotation = B.CouchRotation.Value == null ? double.NaN : (double)B.CouchRotation.Value;
+                B.CouchRotation.AcceptChanges();
+                DbB.DbEnergies.Clear();
+                foreach (var energy in B.ValidEnergies)
+                    DbB.DbEnergies.Add(Context.DbEnergies.Find((int)energy));
+                DbB.DbBeamGeometries.Clear();
+                foreach (var geometry in B.ValidGeometries)
+                {
+                    if (geometry.Definition != null)
+                        DbB.DbBeamGeometries.Add(Context.DbBeamGeometries.Find(geometry.Definition.Id));
+                }
+                DbB.JawTracking_Indication = (int)B.JawTracking_Indication.Value;
+                B.JawTracking_Indication.AcceptChanges();
+                DbB.MaxColRotation = B.MaxColRotation.Value == null ? double.NaN : (double)B.MaxColRotation.Value;
+                B.MaxColRotation.AcceptChanges();
+                DbB.MaxMUWarning = B.MaxMUWarning.Value == null ? double.NaN : (double)B.MaxMUWarning.Value;
+                B.MaxMUWarning.AcceptChanges();
+                DbB.MinMUWarning = B.MinMUWarning.Value == null ? double.NaN : (double)B.MinMUWarning.Value;
+                B.MinMUWarning.AcceptChanges();
+                DbB.MaxX = B.MaxX.Value == null ? double.NaN : (double)B.MaxX.Value;
+                B.MaxX.AcceptChanges();
+                DbB.MinX = B.MinX.Value == null ? double.NaN : (double)B.MinX.Value;
+                B.MinX.AcceptChanges();
+                DbB.MaxY = B.MaxY.Value == null ? double.NaN : (double)B.MaxY.Value;
+                B.MaxY.AcceptChanges();
+                DbB.MinY = B.MinY.Value == null ? double.NaN : (double)B.MinY.Value;
+                B.MinY.AcceptChanges();
+                DbB.ProtocolBeamName = B.ProtocolBeamName;
+                DbB.Technique = (int)B.Technique;
+                DbB.ToleranceTable = B.ToleranceTable.Value;
+                B.ToleranceTable.AcceptChanges();
+
+                List<string> newAliases = new List<string>(B.EclipseAliases);
+                if (DbB.DbBeamAliases != null)
+                {
+                    foreach (DbBeamAlias DbBA in DbB.DbBeamAliases.ToList())
+                    {
+                        if (newAliases.Contains(DbBA.EclipseFieldId))
+                            newAliases.Remove(DbBA.EclipseFieldId);
+                        else
+                            Context.DbBeamAliases.Remove(DbBA);
+                    }
+                    foreach (string newAlias in newAliases)
+                    {
+                        DbBeamAlias DbA = Context.DbBeamAliases.Create();
+                        DbA.EclipseFieldId = newAlias;
+                        DbA.DbBeam = DbB;
+                        Context.DbBeamAliases.Add(DbA);
+                    }
+
+
+                }
+            }
+
+            //foreach (DbBeam DbB in DbC.DbBeams)
+            //{
+            //    if (_Beams.ContainsKey(DbB.ID))
+            //    {
+            //        var B = _Beams[DbB.ID];
+
+
+            //    }
+            //    else
+            //        MessageBox.Show("Error in Save_UpdateBeamDefinition, component not found");
+            //}
+        }
+
+        
     }
 
 }

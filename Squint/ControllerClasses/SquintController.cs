@@ -1739,6 +1739,12 @@ namespace SquintScript
                         });
                     }
                 }
+                cd.ImagingProtocols = new SquintProtocolXML.ImagingProtocolsDefinition(); 
+                foreach (var I in C.ImagingProtocols)
+                {
+                    cd.ImagingProtocols.ImagingProtocol.Add(new SquintProtocolXML.ImagingProtocolDefinition() { Id = I.ToString() });
+                }
+                
                 XMLProtocol.Components.Component.Add(cd);
 
                 // Constraints

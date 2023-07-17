@@ -1087,6 +1087,7 @@ namespace SquintScript.ViewModels
     {
         public MainViewModel()
         {
+            SquintIsInitializing = true;
             InitializingMessages = "Initializing Squint, please wait...";
             Ctr.Initialized += Ctr_Initialized;
             Ctr.ESAPIInitializing += Ctr_ESAPIInitialized;
@@ -1129,7 +1130,7 @@ namespace SquintScript.ViewModels
         public AssessmentsView AssessmentsVM { get; set; }
         public EclipseProtocolPopupViewModel EclipseProtocolPopupVM { get; set; }
         public bool AdminOptionsToggle { get; set; } = false;
-        public bool SquintIsInitializing { get; set; } = true;
+        public bool SquintIsInitializing { get; set; } = false;
         public string InitializingMessages { get; set; } = "Squint is initializing, please wait...";
         public bool SquintIsBusy { get; set; } = false;
         public int NumAdminButtons { get; private set; } = 8;

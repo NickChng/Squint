@@ -70,6 +70,7 @@ namespace SquintScript
                 Tuple<double, VVector> MinArea = new Tuple<double, VVector>(0.0, new VVector());
                 if (S != null)
                 {
+                    bool foundPointOutsideSegment = false;
                     var test = Ctr.CurrentStructureSet;
                     double Area = double.PositiveInfinity;
                     for (int z = 1; z < NumSlices; z++)
@@ -81,15 +82,12 @@ namespace SquintScript
                         foreach (VVector[] C in contours)
                         {
                             var contA = GetArea(C);
-                            if (Math.Abs( C.First().z + 97.5 ) < 1E-5)
-                            {
-                                string debugme = "hi";
-                            }
                             if (contA < Area)
                             {
                                 var Testpoint = new VVector(C.Average(x => x.x)+0.5, C.Average(x => x.y)+0.5, C.Average(x => x.z));
                                 if (!S.IsPointInsideSegment(Testpoint))
                                 {
+                                    foundPointOutsideSegment = true;
                                     Area = contA;
                                     Centroid.x = (C.Average(x => x.x) - Origin.x) / 10; // convert to cm
                                     Centroid.y = (C.Average(x => x.y) - Origin.y) / 10;
@@ -99,7 +97,10 @@ namespace SquintScript
                             }
                         }
                     }
-                    return MinArea;
+                    if (foundPointOutsideSegment)
+                        return MinArea;
+                    else
+                        return null;
                 }
                 else
                 {

@@ -550,20 +550,25 @@ namespace SquintScript.ViewModels
                                         {
 
                                             var Result = await E.GetMinArea(p.StructureSetUID);
-                                            if (Result.Item1 < 50)
+                                            if (Result != null)
                                             {
-                                                PO.MinSubVolume = @"< 0.1";
-                                                PO.Warning = true;
-                                                PO.WarningString = "Small 2D contour";
-                                                PO.Centroid_x = string.Format("{0:0.#}", Result.Item2.x);
-                                                PO.Centroid_y = string.Format("{0:0.#}", Result.Item2.y);
-                                                PO.Centroid_z = string.Format("{0:0.#}", Result.Item2.z);
+                                                if (Result.Item1 < 50)
+                                                {
+                                                    PO.MinSubVolume = @"< 0.1";
+                                                    PO.Warning = true;
+                                                    PO.WarningString = "Small 2D contour";
+                                                    PO.Centroid_x = string.Format("{0:0.#}", Result.Item2.x);
+                                                    PO.Centroid_y = string.Format("{0:0.#}", Result.Item2.y);
+                                                    PO.Centroid_z = string.Format("{0:0.#}", Result.Item2.z);
+                                                }
+                                                else
+                                                {
+                                                    PO.Warning = false;
+                                                    //PO.WarningString = "Uncertainty in volume measurements";
+                                                }
                                             }
                                             else
-                                            {
                                                 PO.Warning = false;
-                                                //PO.WarningString = "Uncertainty in volume measurements";
-                                            }
                                         }
                                         else
                                         {

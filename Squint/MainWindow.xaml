@@ -15,7 +15,7 @@
         xmlns:Views ="clr-namespace:SquintScript.Views"
         x:Name="SquintWindow"
         Icon="/Resources/squint_icon.ico"
-        Title="Squint v0.7" Height="900" Width="1450" Closing="OnClosing" MinWidth="1250" Loaded="OnLoaded">
+        Title="Squint v0.8" Height="900" Width="1450" Closing="OnClosing" MinWidth="1250" Loaded="OnLoaded">
     <Window.DataContext>
         <local:MainViewModel/>
     </Window.DataContext>

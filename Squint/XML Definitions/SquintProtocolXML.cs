@@ -87,20 +87,7 @@ namespace SquintScript
             [XmlAttribute]
             public string Id { get; set; }
         }
-        public class ImagingProtocolDefinition
-        {
-            [XmlAttribute]
-            public string Id { get; set; }
-        }
-        public class ImagingProtocolsDefinition
-        {
-            public ImagingProtocolsDefinition()
-            {
-                ImagingProtocol = new List<ImagingProtocolDefinition>();
-            }
-            [XmlElement("ImagingProtocol")]
-            public List<ImagingProtocolDefinition> ImagingProtocol { get; set; }
-        }
+       
         public class BeamsDefinition
         {
             public BeamsDefinition()
@@ -459,10 +446,23 @@ namespace SquintScript
             [XmlElement("Component")]
             public List<ComponentDefinition> Component { get; set; }
         }
+
+        public class ImagingProtocolDefinition
+        {
+            [XmlAttribute]
+            public string Id { get; set; }
+        }
+        public class ImagingProtocolsDefinition
+        {
+            public ImagingProtocolsDefinition()
+            {
+                ImagingProtocol = new List<ImagingProtocolDefinition>();
+            }
+            [XmlElement("ImagingProtocol")]
+            public List<ImagingProtocolDefinition> ImagingProtocol { get; set; }
+        }
         public class ComponentDefinition
         {
-            //public event EventHandler ComponentBeingDisposed;
-            //public event EventHandler<ComponentChangedEventArgs> ComponentChanged;
             public class ComponentChangedEventArgs : EventArgs
             {
                 public int ComponentID;
@@ -519,9 +519,7 @@ namespace SquintScript
 
         [XmlElement("ProtocolMetaData")]
         public ProtocolMetaDataDefinition ProtocolMetaData { get; set; } = new ProtocolMetaDataDefinition();
-        [XmlElement("ImagingProtocols")]
-        public ImagingProtocolsDefinition ImagingProtocols { get; set; } = new ImagingProtocolsDefinition();
-
+        
         [XmlElement("TreatmentIntents")]
         public TreatmentIntentsDefinition TreatmentIntents { get; set; } = new TreatmentIntentsDefinition();
 

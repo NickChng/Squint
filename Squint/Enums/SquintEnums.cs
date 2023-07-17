@@ -42,7 +42,7 @@ namespace SquintScript
         [Description("Number of fractions")] NumFractions,
         [Description("Course intent")] CourseIntent,
         [Description("Plan normalization value range")] PNVRange,
-        [Description("Prescribed percentage")] PrescribedPercentage,
+        [Description("Treatment percentage")] PrescribedPercentage,
         [Description("VMAT Air Cavity Correction")] AirCavityCorrectionVMAT,
         [Description("IMRT Air Cavity Correction")] AirCavityCorrectionIMRT,
         [Description("Min. subvolume")] MinSubvolume,
