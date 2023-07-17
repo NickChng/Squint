@@ -1,7 +1,7 @@
-﻿using SquintScript.ViewModels;
-using SquintScript.Extensions;
+﻿using Squint.ViewModels;
+using Squint.Extensions;
 
-namespace SquintScript.TestFramework
+namespace Squint.TestFramework
 {
     public abstract class TestListItem<T> : ObservableObject
     {

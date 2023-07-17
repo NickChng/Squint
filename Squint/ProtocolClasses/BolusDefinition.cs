@@ -1,6 +1,6 @@
 ﻿using PropertyChanged;
 
-namespace SquintScript
+namespace Squint
 {
 
         [AddINotifyPropertyChangedInterface]

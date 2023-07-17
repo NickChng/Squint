@@ -1,7 +1,7 @@
 ﻿using System.Collections.ObjectModel;
-using SquintScript.ViewModels;
+using Squint.ViewModels;
 
-namespace SquintScript
+namespace Squint
 {
     public class ObjectiveItem : ObservableObject
     {

@@ -6,12 +6,12 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using PropertyChanged;
-using SquintScript.Interfaces;
-using SquintScript.TestFramework;
-using SquintScript.Extensions;
-using SquintScript.Views;
+using Squint.Interfaces;
+using Squint.TestFramework;
+using Squint.Extensions;
+using Squint.Views;
 
-namespace SquintScript.ViewModels
+namespace Squint.ViewModels
 {
     [AddINotifyPropertyChangedInterface]
     public class PointCheck_ViewModel : ObservableObject

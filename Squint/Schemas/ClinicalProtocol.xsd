@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema elementFormDefault="qualified" attributeFormDefault="qualified" version="1.12" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+	<!-- 		
+			Filename:			ClinicalProtocol.xsd
+			Copyright, Varian Medical systems, Inc., 2004
+			All Rights Reserved
+			Varian Proprietary
+-->
+	<!-- Common protocol types -->
+	<xsd:include schemaLocation="ProtocolTypes.xsd"/>
+	<!-- Schema for structures -->
+	<xsd:include schemaLocation="StructureTemplate.xsd"/>
+	<!-- Schema for plan geometry -->
+	<xsd:include schemaLocation="PlanTemplate.xsd"/>
+	<!-- Schema for objectives -->
+	<xsd:include schemaLocation="ObjectiveTemplate.xsd"/>
+	<!-- Clinical protocol schema elements -->
+	<xsd:element name="Item">
+		<xsd:complexType>
+			<xsd:sequence>
+				<xsd:element name="Type" type="xsd:nonNegativeInteger"/>
+				<xsd:element name="Modifier" type="xsd:nonNegativeInteger" nillable="true"/>
+				<xsd:element name="Parameter" type="xsd:double" nillable="true"/>
+				<xsd:element name="Dose" type="xsd:double" nillable="true"/>
+				<xsd:element name="TotalDose" type="xsd:double" nillable="true"/>
+			</xsd:sequence>
+			<xsd:attribute name="ID" type="ID"/>
+			<xsd:attribute name="Primary" type="xsd:boolean"/>
+		</xsd:complexType>
+	</xsd:element>
+	<xsd:element name="MeasureItem">
+		<xsd:complexType>
+			<xsd:sequence>
+				<xsd:element name="Type" type="xsd:nonNegativeInteger"/>
+				<xsd:element name="Modifier" type="xsd:nonNegativeInteger" nillable="true"/>
+				<xsd:element name="Value" type="xsd:double" nillable="true"/>
+				<xsd:element name="TypeSpecifier" type="xsd:double" nillable="true" minOccurs="0" maxOccurs="1"/>
+				<xsd:element name="ReportDQPValueInAbsoluteUnits" type="xsd:boolean" nillable="true"  minOccurs="0" maxOccurs="1"/>
+			</xsd:sequence>
+			<xsd:attribute name="ID" type="ID"/>
+		</xsd:complexType>
+	</xsd:element>
+	<xsd:element name="Phase">
+		<xsd:complexType>
+			<xsd:sequence>
+				<xsd:element name="Mode" type="xsd:string"/>
+				<xsd:element name="DefaultEnergyKV" type="xsd:integer" nillable="true"/>
+				<xsd:element name="FractionCount" type="xsd:nonNegativeInteger" nillable="true"/>
+				<xsd:element name="FractionsPerWeek" type="xsd:nonNegativeInteger" nillable="true"/>
+				<xsd:element name="FractionsPerDay" type="xsd:nonNegativeInteger" nillable="true"/>
+				<xsd:element name="TreatmentUnit" type="xsd:string"/>
+				<xsd:element name="TreatmentStyle" type="xsd:string"/>
+				<xsd:element name="ImmobilizationDevice" type="xsd:string" minOccurs="0"/>
+				<xsd:element name="LocalizationTechnique" type="xsd:string" minOccurs="0"/>
+				<xsd:element ref="Prescription"/>
+				<xsd:element ref="PlanTemplate"/>
+				<xsd:element ref="ObjectiveTemplate" minOccurs="0"/>
+			</xsd:sequence>
+			<xsd:attribute name="ID" type="ID" use="required"/>
+		</xsd:complexType>
+	</xsd:element>
+	<xsd:element name="Phases">
+		<xsd:complexType>
+			<xsd:sequence>
+				<xsd:element ref="Phase" minOccurs="0" maxOccurs="unbounded"/>
+			</xsd:sequence>
+		</xsd:complexType>
+		<xsd:unique name="UniquePhaseId">
+			<xsd:selector xpath="Phase"/>
+			<xsd:field xpath="@ID"/>
+		</xsd:unique>
+	</xsd:element>
+	<xsd:element name="Prescription">
+		<xsd:complexType>
+			<xsd:sequence>
+				<xsd:element ref="Item" minOccurs="0" maxOccurs="unbounded"/>
+				<xsd:element ref="MeasureItem" minOccurs="0" maxOccurs="unbounded"/>
+			</xsd:sequence>
+      <!--Version number for Prescription element must be updated in TPS Core (XMLTemplate.h) if the XML instance of Prescription is changed-->
+      <xsd:attribute name="Version" type="VersionNumber" use="optional"/>
+		</xsd:complexType>
+	</xsd:element>
+	<xsd:element name="Protocol">
+		<xsd:complexType>
+			<xsd:sequence>
+				<xsd:element name="Preview" type="Status"/>
+				<xsd:element ref="StructureTemplate"/>
+				<xsd:element name="FieldAlignmentRules" type="xsd:string"/>
+				<xsd:element ref="Phases"/>
+				<xsd:element ref="Review"/>
+			</xsd:sequence>
+			<xsd:attribute name="Hash" type="xsd:string" use="optional"/>
+			<xsd:attribute name="Version" type="VersionNumber" use="required"/>
+			<xsd:attribute name="Key" type="xsd:integer" use="optional"/>
+		</xsd:complexType>
+	</xsd:element>
+	<xsd:element name="Review">
+		<xsd:complexType>
+			<xsd:sequence>
+				<xsd:element ref="ReviewStructures" minOccurs="0"/>
+			</xsd:sequence>
+			<xsd:attribute name="ShowMin" type="xsd:boolean"/>
+			<xsd:attribute name="ShowMax" type="xsd:boolean"/>
+			<xsd:attribute name="ShowMean" type="xsd:boolean"/>
+			<xsd:attribute name="ShowModal" type="xsd:boolean"/>
+			<xsd:attribute name="ShowMedian" type="xsd:boolean"/>
+			<xsd:attribute name="ShowStdDev" type="xsd:boolean"/>
+			<xsd:attribute name="ShowEUD" type="xsd:boolean"/>
+			<xsd:attribute name="ShowTCP" type="xsd:boolean"/>
+			<xsd:attribute name="ShowNTCP" type="xsd:boolean"/>
+			<xsd:attribute name="ShowNDR" type="xsd:boolean"/>
+			<xsd:attribute name="ShowEquivalentSphereDiameter" type="xsd:boolean"/>
+			<xsd:attribute name="ShowConformityIndex" type="xsd:boolean"/>
+			<xsd:attribute name="ShowGradientMeasure" type="xsd:boolean"/>
+		</xsd:complexType>
+	</xsd:element>
+	<xsd:element name="ReviewStructure">
+		<xsd:complexType>
+			<xsd:sequence>
+				<xsd:element name="Type" type="ReviewType"/>
+				<xsd:element name="Item" type="xsd:string"/>
+			</xsd:sequence>
+			<xsd:attribute name="Selected" type="xsd:boolean" use="optional"/>
+		</xsd:complexType>
+	</xsd:element>
+	<xsd:element name="ReviewStructures">
+		<xsd:complexType>
+			<xsd:sequence>
+				<xsd:element ref="ReviewStructure" minOccurs="0" maxOccurs="unbounded"/>
+			</xsd:sequence>
+		</xsd:complexType>
+		<xsd:unique name="UniqueItem">
+			<xsd:selector xpath="ReviewStructure"/>
+			<xsd:field xpath="@Item"/>
+		</xsd:unique>
+	</xsd:element>
+</xsd:schema>

@@ -19,10 +19,10 @@ using VMS.TPS.Common.Model.API;
 using System.IO;
 using System.Windows.Controls.Primitives;
 using ESAPI = VMS.TPS.Common.Model.API.Application;
-using SquintScript.ViewModels;
+using Squint.ViewModels;
 using System.Windows.Threading;
 
-namespace SquintScript.Views
+namespace Squint.Views
 {
     /// <summary>
     /// Interaction logic for MainWindow.xaml

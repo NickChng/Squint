@@ -1,7 +1,7 @@
 ﻿using PropertyChanged;
 //using System.Windows.Forms;
 
-namespace SquintScript.ViewModels
+namespace Squint.ViewModels
 {
 
     [AddINotifyPropertyChangedInterface]

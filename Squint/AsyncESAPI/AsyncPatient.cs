@@ -7,7 +7,7 @@ using VMS.TPS.Common.Model.API;
 using EApp = VMS.TPS.Common.Model.API.Application;
 
 
-namespace SquintScript
+namespace Squint
 {
     public class AsyncPatient
     {

@@ -1,6 +1,6 @@
 ﻿//using System.Windows.Forms;
 
-namespace SquintScript.ViewModels
+namespace Squint.ViewModels
 {
 
     public class AssessmentPreviewViewModel

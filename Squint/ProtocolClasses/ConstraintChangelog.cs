@@ -1,7 +1,7 @@
 ﻿using System;
 using PropertyChanged;
 
-namespace SquintScript
+namespace Squint
 {
 
         [AddINotifyPropertyChangedInterface]

@@ -1,9 +1,9 @@
 ﻿using System.Collections.ObjectModel;
 using PropertyChanged;
-using SquintScript.Interfaces;
+using Squint.Interfaces;
 
 
-namespace SquintScript.ViewModels
+namespace Squint.ViewModels
 {
     [AddINotifyPropertyChangedInterface]
     public class TestList_ViewModel : ObservableObject

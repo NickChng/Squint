@@ -16,7 +16,7 @@ using ESAPI = VMS.TPS.Common.Model.API.Application;
 using VMSAPI = VMS.TPS.Common.Model.API;
 using PropertyChanged;
 
-namespace SquintScript.ViewModels
+namespace Squint.ViewModels
 {
     [AddINotifyPropertyChangedInterface]
     public class OptimizationCheckViewModel

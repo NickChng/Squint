@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace SquintScript
+namespace Squint
 {
     public static class LevenshteinDistance
     {

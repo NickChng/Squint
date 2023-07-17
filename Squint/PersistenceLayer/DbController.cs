@@ -9,7 +9,7 @@ using System.Windows;
 using System.Data.Common;
 using Npgsql;
 
-namespace SquintScript
+namespace Squint
 {
     public static class DbController
     {

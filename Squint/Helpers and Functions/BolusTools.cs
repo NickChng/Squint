@@ -20,7 +20,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Media.Media3D;
 using g3;
 
-namespace SquintScript
+namespace Squint
 {
     public static class BolusTools
     {

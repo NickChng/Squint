@@ -8,7 +8,7 @@ using VMS.TPS.Common.Model.Types;
 using EApp = VMS.TPS.Common.Model.API.Application;
 
 
-namespace SquintScript
+namespace Squint
 {
     public class AsyncPlan
     {

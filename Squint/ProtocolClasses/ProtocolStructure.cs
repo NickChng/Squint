@@ -6,12 +6,12 @@ using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using PropertyChanged;
 using System.Data;
-using SquintScript.Extensions;
+using Squint.Extensions;
 using System.Collections.ObjectModel;
-using SquintScript.ViewModels;
+using Squint.ViewModels;
 using VMS.TPS.Common.Model.Types;
 
-namespace SquintScript
+namespace Squint
 {
 
     [AddINotifyPropertyChangedInterface]

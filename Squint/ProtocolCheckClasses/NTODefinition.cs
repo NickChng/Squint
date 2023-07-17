@@ -1,6 +1,6 @@
-﻿using SquintScript.ViewModels;
+﻿using Squint.ViewModels;
 
-namespace SquintScript
+namespace Squint
 {
     public class NTODefinition : ObservableObject
     {

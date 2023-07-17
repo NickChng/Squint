@@ -4,7 +4,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Windows.Documents;
 
-namespace SquintScript
+namespace Squint
 {
     public class Protocol
     {

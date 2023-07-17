@@ -7,7 +7,7 @@ using System.Windows.Media;
 using System.Windows.Media.Media3D;
 using g3;
 
-namespace SquintScript.Helpers
+namespace Squint.Helpers
 {
     public static class MeshHelper
     {

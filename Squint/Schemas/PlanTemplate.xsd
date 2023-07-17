@@ -1,0 +1,400 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema elementFormDefault="qualified" attributeFormDefault="qualified" version="1.6" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <!-- 		
+			Filename:			PlanTemplate.xsd
+			Copyright, Varian Medical systems, Inc., 2004
+			All Rights Reserved
+			Varian Proprietary
+-->
+  <!-- Common plan protocol types -->
+  <xsd:include schemaLocation="ProtocolTypes.xsd"/>
+  <!-- Plan geometry schema elements -->
+  <xsd:element name="Applicators">
+    <xsd:complexType>
+      <xsd:sequence>
+        <xsd:element ref="Applicator" minOccurs="0" maxOccurs="unbounded"/>
+      </xsd:sequence>
+    </xsd:complexType>
+  </xsd:element>
+  <xsd:element name="Applicator">
+    <xsd:complexType>
+      <xsd:sequence>
+        <xsd:element name="XSize" type="xsd:double"/>
+        <xsd:element name="YSize" type="xsd:double"/>
+        <xsd:element name="Slot" type="xsd:integer"/>
+      </xsd:sequence>
+    </xsd:complexType>
+  </xsd:element>
+  <xsd:element name="Block">
+    <xsd:complexType>
+      <xsd:sequence>
+        <xsd:element name="Type" type="xsd:string"/>
+        <xsd:element name="Tray" type="xsd:string"/>
+        <xsd:element name="Material" type="xsd:string"/>
+        <xsd:element name="BlockMargin" type="Margin" nillable="true"/>
+        <xsd:element name="Target" type="Volume"/>
+      </xsd:sequence>
+      <xsd:attribute name="AboveTrayFlag" type="xsd:boolean"/>
+      <xsd:attribute name="DivergingFlag" type="xsd:boolean"/>
+      <xsd:attribute name="ID" type="ID" use="required"/>
+    </xsd:complexType>
+  </xsd:element>
+  <xsd:element name="Blocks">
+    <xsd:complexType>
+      <xsd:sequence>
+        <xsd:element ref="Block" minOccurs="0" maxOccurs="unbounded"/>
+      </xsd:sequence>
+    </xsd:complexType>
+    <xsd:unique name="UniqueBlockId">
+      <xsd:selector xpath="Block"/>
+      <xsd:field xpath="@ID"/>
+    </xsd:unique>
+  </xsd:element>
+  <xsd:element name="Bolus">
+    <xsd:complexType>
+      <xsd:sequence>
+        <xsd:element name="Thickness" type="xsd:double" nillable="true"/>
+      </xsd:sequence>
+      <xsd:attribute name="ID" type="ID" use="required"/>
+    </xsd:complexType>
+  </xsd:element>
+  <xsd:element name="Boluses">
+    <xsd:complexType>
+      <xsd:sequence>
+        <xsd:element ref="Bolus" minOccurs="0" maxOccurs="unbounded"/>
+      </xsd:sequence>
+    </xsd:complexType>
+    <xsd:unique name="UniqueBolusId">
+      <xsd:selector xpath="Bolus"/>
+      <xsd:field xpath="@ID"/>
+    </xsd:unique>
+  </xsd:element>
+  <xsd:element name="BrachyField">
+    <xsd:complexType>
+      <xsd:sequence>
+        <xsd:element name="ApplicatorID" type="xsd:string"/>
+        <xsd:element name="ChannelID" type="xsd:string"/>
+        <xsd:element name="TreatmentUnit" type="xsd:string"/>
+        <xsd:element name="Transformation" type="Matrix" nillable="true"/>
+        <xsd:element name="NeedleLength" type="xsd:double"/>
+        <xsd:element name="DeadSpaceLength" type="xsd:double" minOccurs="0"/>
+        <xsd:element ref="SourcePositions"/>
+        <xsd:element ref="RefLines"/>
+        <xsd:element ref="RefPoints"/>
+        <xsd:element ref="Contour" minOccurs="0" maxOccurs="unbounded"/>
+        <xsd:element name="ApplicatorPartChannelUID" type="xsd:string" minOccurs="0"/>
+        <xsd:element name="BrachySolidApplicatorId" type="xsd:string" minOccurs="0"/>
+        <xsd:element name="ApplicatorLength" type="xsd:double" minOccurs="0"/>
+      </xsd:sequence>
+      <xsd:attribute name="ID" type="ID" use="required"/>
+    </xsd:complexType>
+  </xsd:element>
+  <xsd:element name="BrachySeedCollection">
+    <xsd:complexType>
+      <xsd:sequence>
+        <xsd:element name="RadioactiveSourceModelId" type="xsd:string"/>
+        <xsd:element ref="SeedPositions"/>
+        <xsd:element ref="RefLines"/>
+        <xsd:element ref="RefPoints"/>
+      </xsd:sequence>
+      <xsd:attribute name="ID" type="ID" use="required"/>
+    </xsd:complexType>
+  </xsd:element>
+  <xsd:element name="BrachySolidApplicator">
+    <xsd:complexType>
+      <xsd:sequence>
+        <xsd:element name="Transformation" type="Matrix" nillable="true"/>
+      </xsd:sequence>
+      <xsd:attribute name="ID" type="ID" use="required"/>
+      <xsd:attribute name="ApplicatorPartUID" type="xsd:string" use="required"/>
+      <xsd:attribute name="ApplicatorPartFileName" type="xsd:string" use="required"/>
+    </xsd:complexType>
+  </xsd:element>
+  <xsd:element name="Collimator">
+		<xsd:complexType>
+			<xsd:sequence>
+				<xsd:element name="Rtn" type="xsd:double"/>
+				<xsd:element name="Mode" type="xsd:string"/>
+				<xsd:element name="X1" type="XCoordinate" nillable="true"/>
+				<xsd:element name="X2" type="XCoordinate" nillable="true"/>
+				<xsd:element name="Y1" type="YCoordinate" nillable="true"/>
+				<xsd:element name="Y2" type="YCoordinate" nillable="true"/>
+			</xsd:sequence>
+		</xsd:complexType>
+	</xsd:element>
+	<xsd:element name="Energy">
+		<xsd:complexType>
+			<xsd:sequence>
+				<xsd:element name="Type" type="EnergyType"/>
+				<xsd:element name="EnergyKV" type="xsd:integer"/>
+				<xsd:element name="MaxEnergyKV" type="xsd:integer" nillable="true"/>
+			</xsd:sequence>
+		</xsd:complexType>
+	</xsd:element>
+	<xsd:element name="Field">
+		<xsd:complexType>
+			<xsd:sequence>
+				<xsd:element name="Type" type="FieldType"/>
+        <xsd:element name="SessionProcedureTemplate" type="xsd:string" minOccurs="0"/>
+        <xsd:element ref="Proton" minOccurs="0"/>
+				<xsd:element name="Target" type="Volume"/>
+				<xsd:element name="TreatmentUnit" type="xsd:string"/>
+				<xsd:element name="Technique" type="xsd:string"/>
+				<xsd:element ref="Energy" minOccurs="0"/>
+				<xsd:element name="PrimaryFluenceMode" type="xsd:string" minOccurs="0"/>
+				<xsd:element name="DRRTemplate" type="xsd:string"/>
+				<xsd:element name="DoseRate" type="xsd:nonNegativeInteger" nillable="true"/>
+        <xsd:element name="Meterset" type="xsd:double" nillable="true" minOccurs="0"/>
+        <xsd:element name="SFED" type="xsd:double" nillable="true"/>
+        <xsd:element ref="Gantry"/>
+        <xsd:element ref="Collimator"/>
+        <xsd:element name="TableRtn" type="xsd:double"/>
+        <xsd:element name="ToleranceTableID" type="xsd:string"/>
+        <xsd:element name="Weight" type="xsd:double" nillable="true"/>
+        <xsd:element name="FieldMargin" type="Margin"/>
+        <xsd:element name="SkinFlashMargin" type="xsd:double" nillable="true"/>
+        <xsd:element name="FieldBoluses" type="xsd:string"/>
+        <xsd:element name="Isocenter" type="Isocenter"/>
+        <xsd:element ref="Blocks"/>
+        <xsd:element ref="MLCPlans"/>
+        <xsd:element ref="Wedges"/>
+        <xsd:element ref="Applicators"/>
+      </xsd:sequence>
+      <xsd:attribute name="ID" type="ID" use="required"/>
+      <xsd:attribute name="UsingMLC" type="xsd:boolean"/>
+      <xsd:attribute name="UsingCompensator" type="xsd:boolean"/>
+      <xsd:attribute name="FixedSSD" type="xsd:boolean"/>
+      <xsd:attribute name="Setup" type="xsd:boolean"/>
+      <xsd:attribute name="DRRVisible" type="xsd:boolean"/>
+      <!-- Pending XSD 1.1 support: <xsd:assert test="@Setup = true or count(./Field/Energy) = 1"> -->
+    </xsd:complexType>
+  </xsd:element>
+  <xsd:element name="Fields">
+    <xsd:complexType>
+      <xsd:sequence>
+        <xsd:choice>
+          <xsd:element ref="Field" minOccurs="0" maxOccurs="unbounded"/>
+          <xsd:element ref="BrachyField" minOccurs="0" maxOccurs="unbounded"/>
+        </xsd:choice>
+        <xsd:element ref="BrachySeedCollection" minOccurs="0" maxOccurs="unbounded"/>
+      </xsd:sequence>
+    </xsd:complexType>
+    <xsd:unique name="UniqueFieldId">
+      <xsd:selector xpath="Field"/>
+      <xsd:field xpath="@ID"/>
+    </xsd:unique>
+    <xsd:unique name="UniqueBrachyFieldId">
+      <xsd:selector xpath="BrachyField"/>
+      <xsd:field xpath="@ID"/>
+    </xsd:unique>
+    <xsd:unique name="UniqueBrachySeedCollectionId">
+      <xsd:selector xpath="BrachySeedCollection"/>
+      <xsd:field xpath="@ID"/>
+    </xsd:unique>
+  </xsd:element>
+  <xsd:element name="BrachySolidApplicators">
+    <xsd:complexType>
+      <xsd:sequence>
+        <xsd:element ref="BrachySolidApplicator" minOccurs="1" maxOccurs="unbounded"/>
+      </xsd:sequence>
+    </xsd:complexType>
+  </xsd:element>
+  <xsd:element name="Gantry">
+    <xsd:complexType>
+      <xsd:sequence>
+        <xsd:element name="Rtn" type="xsd:double"/>
+        <xsd:element name="StopRtn" type="xsd:double" nillable="true"/>
+        <xsd:element name="RtnDirection" type="xsd:string"/>
+      </xsd:sequence>
+    </xsd:complexType>
+  </xsd:element>
+  <xsd:element name="MLCPlans">
+    <xsd:complexType>
+      <xsd:sequence>
+        <xsd:element ref="MLCPlan" minOccurs="0" maxOccurs="unbounded"/>
+      </xsd:sequence>
+    </xsd:complexType>
+    <xsd:unique name="UniqueMLCId">
+      <xsd:selector xpath="MLCPlan"/>
+      <xsd:field xpath="@ID"/>
+    </xsd:unique>
+  </xsd:element>
+  <xsd:element name="MLCPlan">
+    <xsd:complexType>
+      <xsd:sequence>
+        <xsd:element name="ModelName" type="xsd:string"/>
+        <xsd:element name="SegmentCount" type="xsd:nonNegativeInteger"/>
+        <xsd:element name="MLCMargin" type="Margin"/>
+        <xsd:element name="ContourMeetPoint" type="xsd:string"/>
+        <xsd:element name="ClosedMeetPoint" type="xsd:string"/>
+        <xsd:element name="Target" type="Volume"/>
+      </xsd:sequence>
+      <xsd:attribute name="ID" type="ID" use="required"/>
+      <xsd:attribute name="DynamicFlag" type="xsd:boolean"/>
+    </xsd:complexType>
+  </xsd:element>
+  <xsd:element name="PatientSupportDevice">
+    <xsd:complexType>
+      <xsd:sequence>
+        <xsd:element name="Type" type="xsd:string"/>
+      </xsd:sequence>
+      <xsd:attribute name="ID" type="ID" use="required"/>
+    </xsd:complexType>
+  </xsd:element>
+  <xsd:element name="PlanTemplate">
+    <xsd:complexType>
+      <xsd:sequence>
+        <xsd:element name="Preview" type="Status" minOccurs="0"/>
+        <xsd:element name="PrescribedPercentage" type="xsd:double" nillable="true"/>
+        <xsd:element name="DosePerFraction" type="xsd:double" nillable="true"/>
+        <xsd:element name="FractionCount" type="xsd:nonNegativeInteger" nillable="true"/>
+        <xsd:element name="FieldAlignmentRules" type="xsd:string"/>
+        <xsd:element name="TreatmentTechnique" type="xsd:string" minOccurs="0"/>
+        <xsd:element name="DefaultSessionProcedureTemplate" type="xsd:string" minOccurs="0"/>
+        <xsd:element ref="PatientSupportDevice" minOccurs="0"/>
+        <xsd:element name="PrescriptionSite" type="Volume"/>
+        <xsd:element ref="Boluses"/>
+        <xsd:element ref="Fields"/>
+        <xsd:element ref="BrachySolidApplicators" minOccurs="0"/>
+      </xsd:sequence>
+      <xsd:attribute name="Hash" type="xsd:string" use="optional"/>
+      <xsd:attribute name="Version" type="VersionNumber" use="optional"/>
+    </xsd:complexType>
+  </xsd:element>
+  <xsd:element name="Proton">
+    <xsd:complexType>
+      <xsd:sequence>
+        <xsd:element name="SkinMargin" type="xsd:double" nillable="true"/>
+        <xsd:element ref="UncertaintyMargin"/>
+        <xsd:element name="DistalMargin" type="xsd:double"/>
+        <xsd:element name="ProximalMargin" type="xsd:double"/>
+        <xsd:element name="GantryPitch" type="xsd:double" minOccurs="0"/>
+        <xsd:element name="VirtualSADX" type="xsd:double" minOccurs="0"/>
+        <xsd:element name="VirtualSADY" type="xsd:double" minOccurs="0"/>
+        <xsd:element name="SnoutID" type="xsd:string"/>
+        <xsd:element name="CalculationTargetStructure" type="Volume" minOccurs="0"/>
+      </xsd:sequence>
+      <xsd:attribute name="IsocenterMarginFlag" type="xsd:boolean"/>
+    </xsd:complexType>
+  </xsd:element>
+  <xsd:element name="Contour">
+    <xsd:complexType>
+      <xsd:sequence>
+        <xsd:element name="ContourPoint" type="CoordinatePoint" minOccurs="0" maxOccurs="unbounded"/>
+      </xsd:sequence>
+    </xsd:complexType>
+  </xsd:element>
+  <xsd:element name="RefLine">
+    <xsd:complexType>
+      <xsd:sequence>
+        <xsd:element name="RefLinePoint" type="CoordinatePoint" minOccurs="0" maxOccurs="unbounded"/>
+      </xsd:sequence>
+      <xsd:attribute name="ID" type="ID" use="required"/>
+    </xsd:complexType>
+    <xsd:unique name="UniqueRefLineId">
+      <xsd:selector xpath="RefLine"/>
+      <xsd:field xpath="@ID"/>
+    </xsd:unique>
+  </xsd:element>
+  <xsd:element name="RefLines">
+    <xsd:complexType>
+      <xsd:sequence>
+        <xsd:element ref="RefLine" minOccurs="0" maxOccurs="unbounded"/>
+      </xsd:sequence>
+    </xsd:complexType>
+  </xsd:element>
+  <xsd:element name="RefPoint">
+    <xsd:complexType>
+      <xsd:sequence>
+        <xsd:element name="TotalDosePlanned" type="xsd:double" nillable="true"/>
+        <xsd:element name="TotalDoseLimit" type="xsd:double" nillable="true"/>
+        <xsd:element name="DailyDoseLimit" type="xsd:double" nillable="true"/>
+        <xsd:element name="SessionDoseLimit" type="xsd:double" nillable="true"/>
+        <xsd:element name="Location" type="CoordinatePoint" nillable="true"/>
+      </xsd:sequence>
+      <xsd:attribute name="ID" type="ID" use="required"/>
+    </xsd:complexType>
+  </xsd:element>
+  <xsd:element name="RefPoints">
+    <xsd:complexType>
+      <xsd:sequence>
+        <xsd:element ref="RefPoint" minOccurs="0" maxOccurs="unbounded"/>
+      </xsd:sequence>
+    </xsd:complexType>
+    <xsd:unique name="UniqueRefPointId">
+      <xsd:selector xpath="RefPoint"/>
+      <xsd:field xpath="@ID"/>
+    </xsd:unique>
+  </xsd:element>
+  <xsd:element name="SourcePosition">
+    <xsd:complexType>
+      <xsd:sequence>
+        <xsd:element name="Position" type="xsd:double"/>
+        <xsd:element name="Time" type="xsd:double"/>
+        <xsd:element name="TimeLocked" type="xsd:boolean" minOccurs="0"/>
+        <xsd:element name="CurrentStrength" type="xsd:double" nillable="true"/>
+      </xsd:sequence>
+    </xsd:complexType>
+  </xsd:element>
+  <xsd:element name="SourcePositions">
+    <xsd:complexType>
+      <xsd:sequence>
+        <xsd:element name="StepSize" type="xsd:double" minOccurs="0" maxOccurs="1"/>
+        <xsd:element name="FirstSourcePlace" type="xsd:double" minOccurs="0" maxOccurs="1"/>
+        <xsd:element name="LastSourcePlace" type="xsd:double" minOccurs="0" maxOccurs="1"/>
+        <xsd:element ref="SourcePosition" minOccurs="0" maxOccurs="unbounded"/>
+      </xsd:sequence>
+    </xsd:complexType>
+  </xsd:element>
+  <xsd:element name="SeedPosition">
+    <xsd:complexType>
+      <xsd:sequence>
+        <xsd:element name="Tip" type="CoordinatePoint"/>
+        <xsd:element name="Tail" type="CoordinatePoint"/>
+        <xsd:element name="CurrentStrength" type="xsd:double"/>
+        <xsd:element name="Time" type="xsd:double"/>
+      </xsd:sequence>
+    </xsd:complexType>
+  </xsd:element>
+  <xsd:element name="SeedPositions">
+    <xsd:complexType>
+      <xsd:sequence>
+        <xsd:element name="DefaultStrength" type="xsd:double"/>
+        <xsd:element name="DefaultTime" type="xsd:double"/>
+        <xsd:element ref="SeedPosition" minOccurs="0" maxOccurs="unbounded"/>
+      </xsd:sequence>
+    </xsd:complexType>
+  </xsd:element>
+  <xsd:element name="UncertaintyMargin">
+    <xsd:complexType>
+      <xsd:sequence>
+        <xsd:element name="X1" type="xsd:double" nillable="true"/>
+        <xsd:element name="X2" type="xsd:double" nillable="true"/>
+        <xsd:element name="Y1" type="xsd:double" nillable="true"/>
+        <xsd:element name="Y2" type="xsd:double" nillable="true"/>
+      </xsd:sequence>
+    </xsd:complexType>
+  </xsd:element>
+  <xsd:element name="Wedge">
+    <xsd:complexType>
+      <xsd:sequence>
+        <xsd:element name="Slot" type="xsd:integer" nillable="true"/>
+        <xsd:element name="Type" type="xsd:string"/>
+        <xsd:element name="ThinEdgeJaw" type="xsd:string"/>
+        <xsd:element name="AngleDeg" type="xsd:double"/>
+        <xsd:element name="MinCollX" type="xsd:double"/>
+        <xsd:element name="MaxCollX" type="xsd:double"/>
+        <xsd:element name="MinCollY" type="xsd:double"/>
+        <xsd:element name="MaxCollY" type="xsd:double"/>
+        <xsd:element name="MotoWeight" type="xsd:double" nillable="true"/>
+      </xsd:sequence>
+    </xsd:complexType>
+  </xsd:element>
+  <xsd:element name="Wedges">
+    <xsd:complexType>
+      <xsd:sequence>
+        <xsd:element ref="Wedge" minOccurs="0" maxOccurs="unbounded"/>
+      </xsd:sequence>
+    </xsd:complexType>
+  </xsd:element>
+</xsd:schema>

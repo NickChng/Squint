@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace SquintScript.Properties {
+namespace Squint.Properties {
     using System;
     
     

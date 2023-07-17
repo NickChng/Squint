@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using SquintScript.Interfaces;
+using Squint.Interfaces;
 using PropertyChanged;
 
-namespace SquintScript
+namespace Squint
 {
     [AddINotifyPropertyChangedInterface]
     public class Beam

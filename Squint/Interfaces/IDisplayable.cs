@@ -1,4 +1,4 @@
-﻿namespace SquintScript.Interfaces
+﻿namespace Squint.Interfaces
 {
     public interface IDisplayable
     {

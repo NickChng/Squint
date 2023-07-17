@@ -1,7 +1,7 @@
 ﻿using System.Collections.ObjectModel;
 using PropertyChanged;
 
-namespace SquintScript.ViewModels
+namespace Squint.ViewModels
 {
     [AddINotifyPropertyChangedInterface]
     public class Beam_ViewModel

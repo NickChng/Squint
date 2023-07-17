@@ -1,10 +1,10 @@
-﻿<UserControl x:Class="SquintScript.Views.SavePopup"
+﻿<UserControl x:Class="Squint.Views.SavePopup"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
-             xmlns:main="clr-namespace:SquintScript"
-             xmlns:local="clr-namespace:SquintScript.Views"
+             xmlns:main="clr-namespace:Squint"
+             xmlns:local="clr-namespace:Squint.Views"
              mc:Ignorable="d" 
              x:Name="SavePopupControl"
              Height="Auto" Width="AUto">

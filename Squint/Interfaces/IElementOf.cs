@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace SquintScript.Interfaces
+namespace Squint.Interfaces
 {
     interface IContains<T>
     {

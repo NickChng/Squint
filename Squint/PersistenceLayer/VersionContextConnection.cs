@@ -1,6 +1,6 @@
 ﻿using System.Data.Common;
 
-namespace SquintScript
+namespace Squint
 {
     public static class VersionContextConnection
     {

@@ -3,9 +3,9 @@ using System.Collections.ObjectModel;
 using PropertyChanged;
 using System.Windows;
 using wpfcolor = System.Windows.Media.Color;
-using SquintScript.Extensions;
+using Squint.Extensions;
 
-namespace SquintScript.ViewModels
+namespace Squint.ViewModels
 {
     [AddINotifyPropertyChangedInterface]
     public class AssessmentView : ObservableObject

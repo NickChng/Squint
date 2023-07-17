@@ -5,12 +5,12 @@ using System.Threading.Tasks;
 using System.Windows.Input;
 using System.Collections.ObjectModel;
 using PropertyChanged;
-using SquintScript.TestFramework;
-using SquintScript.ViewModels;
-using SquintScript.Extensions;
-using SquintScript.Interfaces;
+using Squint.TestFramework;
+using Squint.ViewModels;
+using Squint.Extensions;
+using Squint.Interfaces;
 
-namespace SquintScript
+namespace Squint
 {
     [AddINotifyPropertyChangedInterface]
     public class BeamListItem :ObservableObject

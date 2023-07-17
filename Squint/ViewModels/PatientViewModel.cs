@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using PropertyChanged;
 using wpfcolors = System.Windows.Media.Colors;
 
-namespace SquintScript.ViewModels
+namespace Squint.ViewModels
 {
     [AddINotifyPropertyChangedInterface]
     public class PatientViewModel : ObservableObject
@@ -99,7 +99,7 @@ namespace SquintScript.ViewModels
                 if (!StructureSets.Select(x => x.StructureSetUID).Contains(SS.StructureSetUID))
                 {
                     NewSSS = new StructureSetSelector(SS);
-                    await SquintScript.App.Current.Dispatcher.BeginInvoke((Action)(() =>
+                    await Squint.App.Current.Dispatcher.BeginInvoke((Action)(() =>
                     {
                         StructureSets.Add(NewSSS);
                     }));
@@ -111,7 +111,7 @@ namespace SquintScript.ViewModels
             {
                 if (!A.Select(x => x.StructureSetUID).Contains(SSS.StructureSetUID))
                 {
-                    await SquintScript.App.Current.Dispatcher.BeginInvoke((Action)(() =>
+                    await Squint.App.Current.Dispatcher.BeginInvoke((Action)(() =>
                     {
                         StructureSets.Remove(SSS);
                     }));

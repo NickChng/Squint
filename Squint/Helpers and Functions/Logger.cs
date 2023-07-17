@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace SquintScript.Helpers
+namespace Squint.Helpers
 {
     public static class Logger
     {

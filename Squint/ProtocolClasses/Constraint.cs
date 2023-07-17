@@ -7,11 +7,11 @@ using System.ComponentModel;
 using VMS.TPS.Common.Model.Types;
 using System.Runtime.CompilerServices;
 using System.Data;
-using SquintScript.Extensions;
+using Squint.Extensions;
 using System.Runtime.InteropServices;
 using System.Windows.Markup;
 
-namespace SquintScript
+namespace Squint
 {
 
     public partial class Constraint : INotifyPropertyChanged
@@ -186,7 +186,7 @@ namespace SquintScript
             parentComponent.ReferenceFractionsChanged += OnComponentFractionsChanging;
         }
 
-        public Constraint(Component parentComponent_in, ProtocolStructure primaryStructure_in, VMSTemplates.ProtocolPhasePrescriptionMeasureItem MI)
+        public Constraint(Component parentComponent_in, ProtocolStructure primaryStructure_in, VMS_XML.MeasureItem MI)
         {
             // This constructor creates a constraint from an Eclipse Clinical Protocol MeasureItem
             ID = IDGenerator.GetUniqueId();
@@ -202,7 +202,7 @@ namespace SquintScript
             parentComponent.ReferenceFractionsChanged += OnComponentFractionsChanging;
 
             DisplayOrder = new TrackedValue<int>(parentComponent.Constraints.Count + 1);
-            if (MI.Modifier == 5)
+            if (MI.Modifier.Equals("5", StringComparison.OrdinalIgnoreCase))
                 return; // this is a reference point which is ignored by Squint
                         //_DbO = DataCache.SquintDb.Context.DbSessionConstraints.Create();
                         //DataCache.SquintDb.Context.DbConstraints.Add(_DbO);
@@ -210,7 +210,7 @@ namespace SquintScript
                         //_DbO.SecondaryStructureID = 1; // temp.. need to set this for Eclipse CI
                         //_DbO.PrimaryStructureId = ProtocolStructures.Values.Where(x => x.EclipseStructureName == Item.ID).SingleOrDefault().ID;
                         // Reference TYpe
-            switch (MI.Modifier)
+            switch (Convert.ToInt32(MI.Modifier))
             {
                 case 0: // lower constraint
                     _ReferenceType = new TrackedValue<ReferenceTypes>(ReferenceTypes.Lower);
@@ -237,7 +237,7 @@ namespace SquintScript
                 _ReferenceScale = new TrackedValue<UnitScale>(UnitScale.Relative);
             if (MI != null)
             {
-                switch (MI.Type) // type of DVH constraint
+                switch (Convert.ToInt32(MI.Type)) // type of DVH constraint
                 {
                     case 0: // Conformity Index less than
                         _ConstraintScale = new TrackedValue<UnitScale>(UnitScale.Relative);
@@ -258,7 +258,7 @@ namespace SquintScript
                         else
                         {
                             var val = (double)MI.Value;
-                            if (MI.ReportDQPValueInAbsoluteUnits)
+                            if ((bool)MI.ReportDQPValueInAbsoluteUnits)
                                 val = val / 1000; // convert to cc
                             _ThresholdCalculator = (new FixedThreshold(val));
                         }
@@ -278,7 +278,7 @@ namespace SquintScript
                         else
                         {
                             var val = (double)MI.Value;
-                            if (MI.ReportDQPValueInAbsoluteUnits)
+                            if ((bool)MI.ReportDQPValueInAbsoluteUnits)
                                 val = val / 1000; // convert to cc
                             _ThresholdCalculator = (new FixedThreshold(val));
                         }
@@ -295,7 +295,7 @@ namespace SquintScript
                         else
                         {
                             var val = (double)MI.Value;
-                            if (MI.ReportDQPValueInAbsoluteUnits)
+                            if ((bool)MI.ReportDQPValueInAbsoluteUnits)
                                 val = val * 100; // convert to cGy
                             _ThresholdCalculator = (new FixedThreshold(val));
                         }
@@ -312,7 +312,7 @@ namespace SquintScript
                         else
                         {
                             var val = (double)MI.Value;
-                            if (MI.ReportDQPValueInAbsoluteUnits)
+                            if ((bool)MI.ReportDQPValueInAbsoluteUnits)
                                 val = val * 100; // convert to cGy
                             _ThresholdCalculator = (new FixedThreshold(val));
                         }
@@ -334,7 +334,7 @@ namespace SquintScript
                 }
             }
         }
-        public Constraint(Component parentComponent_in, ProtocolStructure primaryStructure_in, VMSTemplates.ProtocolPhasePrescriptionItem PI)
+        public Constraint(Component parentComponent_in, ProtocolStructure primaryStructure_in, VMS_XML.Item PI)
         {
             // This constructor creates a constraint from an Eclipse Clinical Protocol MeasureItem
             ID = IDGenerator.GetUniqueId();
@@ -352,7 +352,7 @@ namespace SquintScript
 
             if (PI != null) // is RxItem
             {
-                switch (PI.Modifier)
+                switch (Convert.ToInt32(PI.Modifier))
                 {
                     case 0: // Dx% > y cGy
                         _ConstraintScale = new TrackedValue<UnitScale>(UnitScale.Relative);

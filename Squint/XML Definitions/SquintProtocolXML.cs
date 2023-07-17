@@ -6,9 +6,9 @@ using System.Xml;
 using System.Xml.Serialization;
 using System.ComponentModel;
 using VMS.TPS.Common.Model.API;
-using SquintScript.Extensions;
+using Squint.Extensions;
 
-namespace SquintScript
+namespace Squint
 {
     [XmlRoot("SquintProtocol")]
     public class SquintProtocolXML

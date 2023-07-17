@@ -10,7 +10,7 @@ using EApp = VMS.TPS.Common.Model.API.Application;
 using System.Collections.Concurrent;
 
 
-namespace SquintScript
+namespace Squint
 {
     public class AsyncESAPI : IDisposable
     {

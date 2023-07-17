@@ -8,7 +8,7 @@ using System.Reflection;
 using System.ComponentModel.DataAnnotations;
 using System.Runtime.CompilerServices;
 
-namespace SquintScript.Extensions
+namespace Squint.Extensions
 {
     public static class Extensions
     {

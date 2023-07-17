@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel;
 
-namespace SquintScript
+namespace Squint
 {
     public class StructureLabel : INotifyPropertyChanged
     {

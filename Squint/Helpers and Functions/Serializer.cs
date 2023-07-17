@@ -3,7 +3,7 @@ using System.Xml;
 using System.Text;
 using System.IO;
 
-namespace SquintScript
+namespace Squint
 {
     public class Serializer
     {

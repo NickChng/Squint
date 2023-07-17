@@ -1,17 +1,17 @@
 ﻿using PropertyChanged;
-using SquintScript.Interfaces;
+using Squint.Interfaces;
 using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
-using SquintScript;
+using Squint;
 using System.Windows.Markup;
-using SquintScript.Extensions;
+using Squint.Extensions;
 using g3;
 using System.ComponentModel;
 using System.Windows.Media.Converters;
 
-namespace SquintScript.TestFramework
+namespace Squint.TestFramework
 {
 
     [AddINotifyPropertyChangedInterface]

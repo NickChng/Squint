@@ -1,4 +1,4 @@
-﻿namespace SquintScript
+﻿namespace Squint
 {
     public interface IReferenceThreshold : ITrackedValue
     {

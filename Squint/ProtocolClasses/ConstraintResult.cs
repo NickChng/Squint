@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.ComponentModel;
-using SquintScript.Extensions;
+using Squint.Extensions;
 
-namespace SquintScript
+namespace Squint
 {
     public class ConstraintResult : INotifyPropertyChanged
         {

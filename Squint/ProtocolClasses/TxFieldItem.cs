@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using VMS.TPS.Common.Model.API;
 using VMS.TPS.Common.Model.Types;
-using SquintScript.Extensions;
+using Squint.Extensions;
 
 
-namespace SquintScript
+namespace Squint
 {
     public class TxFieldItem
     {

@@ -1,12 +1,12 @@
 ﻿using PropertyChanged;
-using SquintScript.Interfaces;
+using Squint.Interfaces;
 using System;
 using System.Collections.ObjectModel;
 using System.Linq;
-using SquintScript.Extensions;
-using SquintScript.ViewModels;
+using Squint.Extensions;
+using Squint.ViewModels;
 
-namespace SquintScript.TestFramework
+namespace Squint.TestFramework
 {
     [AddINotifyPropertyChangedInterface]
     public class TestContainsItem<T> : TestListItem<T>, ITestListItem<T>

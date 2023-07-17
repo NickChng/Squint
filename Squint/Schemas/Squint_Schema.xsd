@@ -1,0 +1,279 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xs:schema xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xs="http://www.w3.org/2001/XMLSchema" attributeFormDefault="unqualified" elementFormDefault="qualified">
+  <xsd:element name="SquintProtocol">
+    <xsd:complexType>
+      <xsd:sequence>
+        <xsd:element name="ProtocolID" type="xs:unsignedByte" />
+        <xsd:element name="version" type="xsd:unsignedByte" />
+        <xsd:element name="ProtocolMetaData">
+          <xsd:complexType>
+            <xsd:attribute name="ProtocolName" type="xsd:string" use="required" />
+            <xsd:attribute name="ProtocolType" type="xsd:string" use="required" />
+            <xsd:attribute name="NumComponents" type="xsd:unsignedByte" use="required" />
+            <xsd:attribute name="ProtocolDate" type="xsd:string" use="required" />
+            <xsd:attribute name="Author" type="xsd:string" use="optional"/>
+            <xsd:attribute name="ApprovalStatus" type="xsd:string" use="required" />
+            <xsd:attribute name="DiseaseSite" type="xsd:string" use="required" />
+            <xsd:attribute name="TreatmentCentre" type="xsd:string" use="required" />
+          </xsd:complexType>
+        </xsd:element>
+        <xsd:element name="TreatmentIntents">
+          <xsd:complexType>
+            <xsd:sequence>
+              <xsd:element maxOccurs="unbounded" name="Intent">
+                <xsd:complexType>
+                  <xsd:attribute name="Id" type="xsd:string" use="required" />
+                </xsd:complexType>
+              </xsd:element>
+            </xsd:sequence>
+          </xsd:complexType>
+        </xsd:element>
+        <xsd:element name="Structures">
+          <xsd:complexType>
+            <xsd:sequence>
+              <xsd:element maxOccurs="unbounded" name="Structure">
+                <xsd:complexType>
+                  <xsd:sequence>
+                    <xsd:element minOccurs="0" name="StructureChecklist">
+                      <xsd:complexType>
+                        <xsd:sequence>
+                          <xsd:element name="PointContourCheck">
+                            <xsd:complexType>
+                              <xsd:attribute name="Threshold" type="xsd:decimal" use="required" />
+                            </xsd:complexType>
+                          </xsd:element>
+                        </xsd:sequence>
+                      </xsd:complexType>
+                    </xsd:element>
+                    <xsd:element name="EclipseAliases">
+                      <xsd:complexType>
+                        <xsd:sequence>
+                          <xsd:element maxOccurs="unbounded" name="EclipseId">
+                            <xsd:complexType>
+                              <xsd:attribute name="Id" type="xsd:string" use="required" />
+                            </xsd:complexType>
+                          </xsd:element>
+                        </xsd:sequence>
+                      </xsd:complexType>
+                    </xsd:element>
+                  </xsd:sequence>
+                  <xsd:attribute name="Label" type="xsd:string" use="required" />
+                  <xsd:attribute name="ProtocolStructureName" type="xsd:string" use="required" />
+                </xsd:complexType>
+              </xsd:element>
+            </xsd:sequence>
+          </xsd:complexType>
+        </xsd:element>
+        <xsd:element name="ProtocolChecklist">
+          <xsd:complexType>
+            <xsd:all>
+              <xsd:element name="Artifacts">
+                <xsd:complexType>
+                  <xsd:sequence>
+                    <xsd:element name="Artifact">
+                      <xsd:complexType>
+                        <xsd:attribute name="HU" type="xsd:unsignedByte" use="required" />
+                        <xsd:attribute name="ToleranceHU" type="xsd:decimal" use="required" />
+                        <xsd:attribute name="ProtocolStructureName" type="xsd:string" use="required" />
+                      </xsd:complexType>
+                    </xsd:element>
+                  </xsd:sequence>
+                </xsd:complexType>
+              </xsd:element>
+              <xsd:element name="Supports">
+                <xsd:complexType>
+                  <xsd:attribute name="CouchSurface" type="xsd:short" use="optional" />
+                  <xsd:attribute name="CouchInterior" type="xsd:short" use="optional" />
+                  <xsd:attribute name="Indication" type="xsd:string" use="optional" />
+                </xsd:complexType>
+              </xsd:element>
+              <xsd:element name="Calculation">
+                <xsd:complexType>
+                  <xsd:attribute name="Algorithm" type="xsd:string" use="optional" />
+                  <xsd:attribute name="AlgorithmResolution" type="xsd:decimal" use="optional" />
+                  <xsd:attribute name="HeterogeneityOn" type="xsd:boolean" use="optional" />
+                  <xsd:attribute name="FieldNormalizationMode" type="xsd:string" use="optional" />
+                  <xsd:attribute name="VMATOptimizationAlgorithm" type="xsd:string" use="optional" />
+                </xsd:complexType>
+              </xsd:element>
+              <xsd:element name="Simulation">
+                <xsd:complexType>
+                  <xsd:sequence>
+                    <xsd:element name="CTDeviceIds">
+                      <xsd:complexType>
+                        <xsd:sequence>
+                          <xsd:element name="CTDeviceId">
+                            <xsd:complexType>
+                              <xsd:attribute name="Id" type="xsd:string" use="required" />
+                            </xsd:complexType>
+                          </xsd:element>
+                        </xsd:sequence>
+                      </xsd:complexType>
+                    </xsd:element>
+                  </xsd:sequence>
+                  <xsd:attribute name="SliceSpacing" type="xsd:decimal" use="required" />
+                </xsd:complexType>
+              </xsd:element>
+            </xsd:all>
+          </xsd:complexType>
+        </xsd:element>
+        <xsd:element name="Components">
+          <xsd:complexType>
+            <xsd:sequence>
+              <xsd:element maxOccurs="unbounded" name="Component">
+                <xsd:complexType>
+                  <xsd:sequence>
+                    <xsd:element name="Prescription">
+                      <xsd:complexType>
+                        <xsd:attribute name="NumFractions" type="xsd:unsignedByte" use="required" />
+                        <xsd:attribute name="ReferenceDose" type="xsd:unsignedShort" use="required" />
+                        <xsd:attribute name="PNVMin" type="xsd:unsignedByte" use="optional" />
+                        <xsd:attribute name="PNVMax" type="xsd:unsignedByte" use="optional" />
+                        <xsd:attribute name="PrescribedPercentage" type="xsd:unsignedByte" use="optional" />
+                      </xsd:complexType>
+                    </xsd:element>
+                    <xsd:element minOccurs="0" name="ImagingProtocols">
+                      <xsd:complexType>
+                        <xsd:sequence>
+                          <xsd:element name="ImagingProtocol" maxOccurs="unbounded">
+                            <xsd:complexType>
+                              <xsd:attribute name="Id" type="xsd:string" use="required" />
+                            </xsd:complexType>
+                          </xsd:element>
+                        </xsd:sequence>
+                      </xsd:complexType>
+                    </xsd:element>
+                    <xsd:element minOccurs="0" name="Constituents">
+                      <xsd:complexType>
+                        <xsd:sequence>
+                          <xsd:element name="Constituent" maxOccurs="unbounded">
+                            <xsd:complexType>
+                              <xsd:attribute name="ComponentName" type="xsd:string" use="required" />
+                            </xsd:complexType>
+                          </xsd:element>
+                        </xsd:sequence>
+                      </xsd:complexType>
+                    </xsd:element>
+                    <xsd:element minOccurs="0" name="Beams">
+                      <xsd:complexType>
+                        <xsd:sequence>
+                          <xsd:element maxOccurs="unbounded" name="Beam">
+                            <xsd:complexType>
+                              <xsd:sequence>
+                                <xsd:choice maxOccurs="unbounded">
+                                  <xsd:element name="EclipseAliases">
+                                    <xsd:complexType>
+                                      <xsd:sequence>
+                                        <xsd:element maxOccurs="unbounded" name="EclipseId">
+                                          <xsd:complexType>
+                                            <xsd:attribute name="Id" type="xsd:string" use="required" />
+                                          </xsd:complexType>
+                                        </xsd:element>
+                                      </xsd:sequence>
+                                    </xsd:complexType>
+                                  </xsd:element>
+                                  <xsd:element name="BolusDefinitions">
+                                    <xsd:complexType>
+                                      <xsd:sequence>
+                                        <xsd:element name="Bolus">
+                                          <xsd:complexType>
+                                            <xsd:attribute name="HU" type="xsd:unsignedByte" use="optional" />
+                                            <xsd:attribute name="Thickness" type="xsd:decimal" use="optional" />
+                                            <xsd:attribute name="Indication" type="xsd:string" use="required" />
+                                            <xsd:attribute name="ToleranceHU" type="xsd:decimal" use="optional" />
+                                            <xsd:attribute name="ToleranceThickness" type="xsd:decimal" use="optional" />
+                                          </xsd:complexType>
+                                        </xsd:element>
+                                      </xsd:sequence>
+                                    </xsd:complexType>
+                                  </xsd:element>
+                                  <xsd:element name="ValidGeometries">
+                                    <xsd:complexType>
+                                      <xsd:sequence>
+                                        <xsd:element name="Geometry" maxOccurs="unbounded">
+                                          <xsd:complexType>
+                                            <xsd:attribute name="GeometryName" type="xsd:string" use="required" />
+                                            <xsd:attribute name="StartAngle" type="xsd:decimal" use="optional" />
+                                            <xsd:attribute name="StartAngleTolerance" type="xsd:decimal" use="optional" />
+                                            <xsd:attribute name="EndAngle" type="xsd:decimal" use="optional" />
+                                            <xsd:attribute name="EndAngleTolerance" type="xsd:decimal" use="optional" />
+                                            <xsd:attribute name="Trajectory" type="xsd:string" use="optional" />
+                                          </xsd:complexType>
+                                        </xsd:element>
+                                      </xsd:sequence>
+                                    </xsd:complexType>
+                                  </xsd:element>
+                                  <xsd:element name="ValidEnergies">
+                                    <xsd:complexType>
+                                      <xsd:sequence>
+                                        <xsd:element name="Energy" maxOccurs="unbounded">
+                                          <xsd:complexType>
+                                            <xsd:attribute name="Mode" type="xsd:string" use="required" />
+                                          </xsd:complexType>
+                                        </xsd:element>
+                                      </xsd:sequence>
+                                    </xsd:complexType>
+                                  </xsd:element>
+                                </xsd:choice>
+                              </xsd:sequence>
+                              <xsd:attribute name="ProtocolBeamName" type="xsd:string" use="required" />
+                              <xsd:attribute name="Technique" type="xsd:string" use="required" />
+                              <xsd:attribute name="MinMUWarning" type="xsd:unsignedShort" use="optional" />
+                              <xsd:attribute name="MaxMUWarning" type="xsd:unsignedShort" use="optional" />
+                              <xsd:attribute name="StartAngle" type="xsd:unsignedByte" use="optional" />
+                              <xsd:attribute name="EndAngle" type="xsd:unsignedByte" use="optional" />
+                              <xsd:attribute name="ToleranceTable" type="xsd:string" use="optional" />
+                              <xsd:attribute name="MinColRotation" type="xsd:unsignedByte" use="optional" />
+                              <xsd:attribute name="CouchRotation" type="xsd:unsignedByte" use="optional" />
+                              <xsd:attribute name="MinX" type="xsd:unsignedByte" use="optional" />
+                              <xsd:attribute name="MaxX" type="xsd:unsignedByte" use="optional" />
+                              <xsd:attribute name="MinY" type="xsd:unsignedByte" use="optional" />
+                              <xsd:attribute name="MaxY" type="xsd:unsignedByte" use="optional" />
+                              <xsd:attribute name="JawTracking_Indication" type="xsd:string" use="optional" />
+                              <xsd:attribute name="MaxColRotation" type="xsd:unsignedByte" use="optional" />
+                            </xsd:complexType>
+                          </xsd:element>
+                        </xsd:sequence>
+                      </xsd:complexType>
+                    </xsd:element>
+                  </xsd:sequence>
+                  <xsd:attribute name="ComponentName" type="xsd:string" use="required" />
+                  <xsd:attribute name="Type" type="xsd:string" use="required" />
+                  <xsd:attribute name="NumFractions" type="xsd:unsignedByte" use="optional" />
+                  <xsd:attribute name="ReferenceDose" type="xsd:unsignedShort" use="optional" />
+                  <xsd:attribute name="MinBeams" type="xsd:unsignedShort" use="optional" />
+                  <xsd:attribute name="MinColOffset" type="xsd:unsignedShort" use="optional" />
+                  <xsd:attribute name="MaxBeams" type="xsd:unsignedShort" use="optional" />
+                  <xsd:attribute name="NumIso" type="xsd:unsignedShort" use="optional" />
+                </xsd:complexType>
+              </xsd:element>
+            </xsd:sequence>
+          </xsd:complexType>
+        </xsd:element>
+        <xsd:element name="Constraints">
+          <xsd:complexType>
+            <xsd:sequence>
+              <xsd:element maxOccurs="unbounded" name="Constraint">
+                <xsd:complexType>
+                  <xsd:attribute name="ComponentName" type="xsd:string" use="required" />
+                  <xsd:attribute name="ProtocolStructureName" type="xsd:string" use="required" />
+                  <xsd:attribute name="ConstraintType" type="xsd:string" use="required" />
+                  <xsd:attribute name="ConstraintValue" type="xsd:decimal" use="required" />
+                  <xsd:attribute name="ConstraintUnit" type="xsd:string" use="required" />
+                  <xsd:attribute name="ReferenceType" type="xsd:string" use="required" />
+                  <xsd:attribute name="MajorViolation" type="xsd:decimal" use="required" />
+                  <xsd:attribute name="MinorViolation" type="xsd:decimal" use="optional" />
+                  <xsd:attribute name="ReferenceUnit" type="xsd:string" use="required" />
+                  <xsd:attribute name="Stop" type="xsd:decimal" use="optional"/>
+                  <xsd:attribute name="Description" type="xsd:string" use="optional"/>
+                  <xsd:attribute name="DataTablePath" type="xsd:string" use="optional"/>
+                  <xsd:attribute name="ReferenceStructureName" type="xsd:string" use="optional"/>
+                </xsd:complexType>
+              </xsd:element>
+            </xsd:sequence>
+          </xsd:complexType>
+        </xsd:element>
+      </xsd:sequence>
+    </xsd:complexType>
+  </xsd:element>
+</xs:schema>

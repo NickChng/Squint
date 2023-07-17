@@ -6,7 +6,7 @@ using PropertyChanged;
 using System.Data;
 using g3;
 
-namespace SquintScript
+namespace Squint
 {
 
     [AddINotifyPropertyChangedInterface]

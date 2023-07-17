@@ -16,14 +16,14 @@ using System.Windows;
 using wpfcolors = System.Windows.Media.Colors;
 using wpfcolor = System.Windows.Media.Color;
 using wpfbrush = System.Windows.Media.SolidColorBrush;
-using Controls = SquintScript.Views;
-using SquintScript.TestFramework;
-using SquintScript.Interfaces;
-using SquintScript.Extensions;
+using Controls = Squint.Views;
+using Squint.TestFramework;
+using Squint.Interfaces;
+using Squint.Extensions;
 using System.Windows.Threading;
 using Npgsql;
 
-namespace SquintScript.ViewModels
+namespace Squint.ViewModels
 {
     [AddINotifyPropertyChangedInterface]
     public class ProtocolViewModel : ObservableObject

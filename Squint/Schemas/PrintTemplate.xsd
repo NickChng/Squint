@@ -1,0 +1,262 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+	<xs:element name="Zoom" nillable="true">
+		<xs:complexType>
+			<xs:attribute name="mode" use="required">
+				<xs:simpleType>
+					<xs:restriction base="xs:string">
+						<xs:whiteSpace value="collapse"/>
+						<xs:enumeration value="fit-to-page"/>
+						<xs:enumeration value="user-defined"/>
+						<xs:enumeration value="ssd"/>
+						<xs:enumeration value="sad"/>
+						<xs:enumeration value="sbd"/>
+					</xs:restriction>
+				</xs:simpleType>
+			</xs:attribute>
+			<xs:attribute name="distance" type="xs:decimal" use="optional" default="1.0"/>
+		</xs:complexType>
+	</xs:element>
+	<xs:element name="TurnImageBackgroundWhite" type="xs:boolean" default="false" nillable="true"/>
+	<xs:element name="TurnAllLinesBlack" type="xs:boolean" default="false" nillable="true"/>
+	<xs:element name="TrueTypeOption" type="xs:integer" nillable="true"/>
+	<xs:element name="TopMargin" type="xs:integer" nillable="true"/>
+	<xs:element name="Template">
+		<xs:simpleType>
+			<xs:restriction base="xs:string">
+				<xs:whiteSpace value="preserve"/>
+			</xs:restriction>
+		</xs:simpleType>
+	</xs:element>
+	<xs:element name="StructureOutlines" type="xs:boolean" default="false" nillable="true"/>
+	<xs:element name="StartImageFromEmptyPage" type="xs:boolean" default="false" nillable="true"/>
+	<xs:element name="Slices">
+		<xs:complexType>
+			<xs:attribute name="range" use="required">
+				<xs:simpleType>
+					<xs:restriction base="xs:string">
+						<xs:enumeration value="selected"/>
+						<xs:enumeration value="all-displayed"/>
+						<xs:enumeration value="all"/>
+						<xs:enumeration value="user-defined"/>
+						<xs:enumeration value=""/>
+					</xs:restriction>
+				</xs:simpleType>
+			</xs:attribute>
+		</xs:complexType>
+	</xs:element>
+	<xs:element name="Scale" type="xs:integer" nillable="true"/>
+	<xs:element name="Ruler" type="xs:boolean" default="false" nillable="true"/>
+	<xs:element name="RightMargin" type="xs:integer" nillable="true"/>
+	<xs:element name="Resolution" nillable="true">
+		<xs:complexType>
+			<xs:attribute name="y" use="optional">
+				<xs:simpleType>
+					<xs:restriction base="xs:short"/>
+				</xs:simpleType>
+			</xs:attribute>
+			<xs:attribute name="x" use="optional">
+				<xs:simpleType>
+					<xs:restriction base="xs:short"/>
+				</xs:simpleType>
+			</xs:attribute>
+		</xs:complexType>
+	</xs:element>
+	<xs:element name="Quality" type="xs:integer" nillable="true"/>
+	<xs:element name="PrinterProperties">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element ref="PrinterName"/>
+				<xs:element ref="DriverVersion"/>
+				<xs:element ref="Copies"/>
+				<xs:element ref="Collate"/>
+				<xs:element ref="Color"/>
+				<xs:element ref="PaperSize"/>
+				<xs:element ref="PaperLength"/>
+				<xs:element ref="PaperWidth"/>
+				<xs:element ref="PaperOrientation"/>
+				<xs:element ref="Quality"/>
+				<xs:element ref="Scale"/>
+				<xs:element ref="DefaultSource"/>
+				<xs:element ref="Duplex"/>
+				<xs:element ref="Resolution"/>
+				<xs:element ref="TrueTypeOption"/>
+				<xs:element ref="Nup"/>
+				<xs:element ref="IcmMethod"/>
+				<xs:element ref="IcmIntent"/>
+				<xs:element ref="MediaType"/>
+				<xs:element ref="DitherType"/>
+				<xs:element ref="LeftMargin"/>
+				<xs:element ref="RightMargin"/>
+				<xs:element ref="TopMargin"/>
+				<xs:element ref="BottomMargin"/>
+				<xs:element ref="DevModeExtra"/>
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+	<xs:element name="PrinterName" default="" nillable="true">
+		<xs:simpleType>
+			<xs:restriction base="xs:string"/>
+		</xs:simpleType>
+	</xs:element>
+	<xs:element name="PrintSetups">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element ref="PrintSetup" maxOccurs="unbounded"/>
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+	<xs:element name="PrintSetup">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element ref="PrinterProperties"/>
+				<xs:element ref="PrintOptions"/>
+			</xs:sequence>
+			<xs:attribute name="print" type="xs:boolean" use="required"/>
+			<xs:attribute name="name" use="required">
+				<xs:simpleType>
+					<xs:restriction base="xs:string">
+						<xs:enumeration value="bev"/>
+						<xs:enumeration value="dicom"/>
+						<xs:enumeration value="dvh"/>
+						<xs:enumeration value="model-view"/>
+						<xs:enumeration value="plan-report"/>
+						<xs:enumeration value="slice"/>
+						<xs:enumeration value="brachy-qa"/>
+						<xs:enumeration value="apv"/>
+					</xs:restriction>
+				</xs:simpleType>
+			</xs:attribute>
+			<xs:attribute name="id" use="required">
+				<xs:simpleType>
+					<xs:restriction base="xs:integer">
+						<xs:totalDigits value="6"/>
+					</xs:restriction>
+				</xs:simpleType>
+			</xs:attribute>
+		</xs:complexType>
+	</xs:element>
+	<xs:element name="PrintOptions" nillable="true">
+		<xs:complexType>
+			<xs:choice>
+				<xs:sequence>
+					<xs:element ref="Fields"/>
+					<xs:element ref="Aperture"/>
+					<xs:element ref="TurnAllLinesBlack"/>
+					<xs:element ref="IncludeFieldSummary"/>
+					<xs:element ref="Graticule"/>
+					<xs:element ref="Jaws"/>
+					<xs:element ref="TurnImageBackgroundWhite"/>
+					<xs:element ref="PlanInfo"/>
+					<xs:element ref="StartImageFromEmptyPage"/>
+					<xs:element ref="IncludeImage"/>
+					<xs:element ref="Ruler"/>
+					<xs:element ref="StructureOutlines"/>
+					<xs:element ref="Pages"/>
+					<xs:element ref="Zoom"/>
+					<xs:element ref="Comment"/>
+				</xs:sequence>
+				<xs:sequence>
+					<xs:element ref="Comment"/>
+					<xs:element ref="Template"/>
+					<xs:choice minOccurs="0">
+					         <xs:element ref="CouchShift"/>
+                                        </xs:choice> 
+				</xs:sequence>
+				<xs:sequence>
+					<xs:element ref="TurnAllLinesBlack"/>
+					<xs:element ref="IncludeFieldSummary"/>
+					<xs:element ref="TurnImageBackgroundWhite"/>
+					<xs:element ref="StartImageFromEmptyPage"/>
+					<xs:element ref="IncludeImage"/>
+					<xs:element ref="Pages"/>
+					<xs:element ref="Zoom"/>
+					<xs:element ref="Comment"/>
+					<xs:choice minOccurs="0">
+						<xs:element ref="Fields"/>
+						<xs:element ref="Slices"/>
+					</xs:choice>
+				</xs:sequence>
+			</xs:choice>
+		</xs:complexType>
+	</xs:element>
+	<xs:element name="PrintConfiguration">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element ref="PrintSetups"/>
+			</xs:sequence>
+			<xs:attribute name="version" use="required">
+				<xs:simpleType>
+					<xs:restriction base="xs:decimal">
+						<xs:enumeration value="1.0"/>
+						<xs:enumeration value="1.1"/>
+					</xs:restriction>
+				</xs:simpleType>
+			</xs:attribute>
+			<xs:attribute name="user-comments" type="xs:string" use="optional" default=""/>
+			<xs:attribute name="display-name" use="optional" default="">
+				<xs:simpleType>
+					<xs:restriction base="xs:string"/>
+				</xs:simpleType>
+			</xs:attribute>
+			<xs:attribute name="computer" use="optional" default="">
+				<xs:simpleType>
+					<xs:restriction base="xs:string"/>
+				</xs:simpleType>
+			</xs:attribute>
+			<xs:attribute name="treatment-type" use="optional" default="">
+				<xs:simpleType>
+					<xs:restriction base="xs:string"/>
+				</xs:simpleType>
+			</xs:attribute>
+		</xs:complexType>
+	</xs:element>
+	<xs:element name="PlanInfo" type="xs:boolean" default="false" nillable="true"/>
+	<xs:element name="PaperWidth" type="xs:integer" nillable="true"/>
+	<xs:element name="PaperSize" type="xs:integer" nillable="true"/>
+	<xs:element name="PaperOrientation" type="xs:integer" nillable="true"/>
+	<xs:element name="PaperLength" type="xs:integer" nillable="true"/>
+	<xs:element name="Pages" nillable="true">
+		<xs:complexType>
+			<xs:attribute name="n" type="xs:integer" use="optional" default="1"/>
+			<xs:attribute name="m" type="xs:integer" use="optional" default="1"/>
+			<xs:attribute name="auto-arrange" type="xs:boolean" use="optional" default="false"/>
+		</xs:complexType>
+	</xs:element>
+	<xs:element name="Nup" type="xs:integer" nillable="true"/>
+	<xs:element name="MediaType" type="xs:integer" nillable="true"/>
+	<xs:element name="LeftMargin" type="xs:integer" nillable="true"/>
+	<xs:element name="Jaws" type="xs:boolean" default="false" nillable="true"/>
+	<xs:element name="IncludeImage" type="xs:boolean" default="false" nillable="true"/>
+	<xs:element name="IncludeFieldSummary" type="xs:boolean" default="false" nillable="true"/>
+	<xs:element name="IcmMethod" type="xs:integer" nillable="true"/>
+	<xs:element name="IcmIntent" type="xs:integer" nillable="true"/>
+	<xs:element name="Graticule" type="xs:boolean" default="false" nillable="true"/>
+	<xs:element name="Fields">
+		<xs:complexType>
+			<xs:attribute name="range" use="required">
+				<xs:simpleType>
+					<xs:restriction base="xs:string">
+						<xs:enumeration value="selected"/>
+						<xs:enumeration value="all"/>
+						<xs:enumeration value="all-displayed"/>
+						<xs:enumeration value="user-defined"/>
+						<xs:enumeration value=""/>
+					</xs:restriction>
+				</xs:simpleType>
+			</xs:attribute>
+		</xs:complexType>
+	</xs:element>
+	<xs:element name="DriverVersion" type="xs:integer" default="0" nillable="true"/>
+	<xs:element name="Duplex" type="xs:integer" nillable="true"/>
+	<xs:element name="DitherType" type="xs:integer" default="1" nillable="true"/>
+	<xs:element name="DevModeExtra" type="xs:string"/>
+	<xs:element name="DefaultSource" type="xs:integer" nillable="true"/>
+	<xs:element name="Copies" type="xs:integer" default="1" nillable="true"/>
+	<xs:element name="Comment" type="xs:string" default="" nillable="true"/>
+	<xs:element name="Color" type="xs:integer" nillable="true"/>
+	<xs:element name="Collate" type="xs:integer" nillable="true"/>
+	<xs:element name="BottomMargin" type="xs:integer" nillable="true"/>
+	<xs:element name="Aperture" type="xs:boolean" default="false" nillable="true"/>
+	<xs:element name="CouchShift" type="xs:boolean" default="false" nillable="true"/>
+</xs:schema>

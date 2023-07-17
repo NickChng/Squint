@@ -5,10 +5,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using PropertyChanged;
-using SquintScript.Extensions;
-using SquintScript.ViewModels;
+using Squint.Extensions;
+using Squint.ViewModels;
 
-namespace SquintScript
+namespace Squint
 {
     public interface ITrackedValue
     {

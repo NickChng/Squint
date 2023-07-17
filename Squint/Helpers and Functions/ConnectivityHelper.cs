@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using System.Windows.Media;
 using System.Windows.Media.Media3D;
 
-namespace SquintScript.Helpers
+namespace Squint.Helpers
 {
     
     static class ConnectivityHelper

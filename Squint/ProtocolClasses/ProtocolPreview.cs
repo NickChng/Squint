@@ -1,6 +1,6 @@
 ﻿//using System.Windows.Forms;
 
-namespace SquintScript
+namespace Squint
 {
 
     public class ProtocolPreview

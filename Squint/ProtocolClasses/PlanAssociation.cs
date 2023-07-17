@@ -4,9 +4,9 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.ComponentModel;
 using PropertyChanged;
-using SquintScript.Extensions;
+using Squint.Extensions;
 
-namespace SquintScript
+namespace Squint
 {
     [AddINotifyPropertyChangedInterface]
     public class PlanAssociation

@@ -1,4 +1,4 @@
-﻿using SquintScript.Interfaces;
+﻿using Squint.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -15,7 +15,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 
-namespace SquintScript.Views
+namespace Squint.Views
 {
     /// <summary>
     /// Interaction logic for TestEditView.xaml

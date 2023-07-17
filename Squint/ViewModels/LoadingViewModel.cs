@@ -1,6 +1,6 @@
 ﻿using PropertyChanged;
 
-namespace SquintScript.ViewModels
+namespace Squint.ViewModels
 {
     [AddINotifyPropertyChangedInterface]
     public class LoadingViewModel

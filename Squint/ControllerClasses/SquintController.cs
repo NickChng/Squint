@@ -14,16 +14,15 @@ using System.Xml.Serialization;
 using VMSTypes = VMS.TPS.Common.Model.Types;
 using ESAPI = VMS.TPS.Common.Model.API.Application;
 using System.Data.Entity;
-using SquintScript.ViewModels;
-using SquintScript.Extensions;
+using Squint.ViewModels;
+using Squint.Extensions;
 using System.Windows.Threading;
 using System.Runtime.Remoting.Contexts;
-using VMSTemplates;
 using System.Reflection;
 using AutoMapper;
 //using System.Windows.Forms;
 
-namespace SquintScript
+namespace Squint
 {
     public static partial class Ctr
     {
@@ -736,7 +735,7 @@ namespace SquintScript
             // ConstraintThreshold CT = new ConstraintThreshold(Name, ConstraintID, ThresholdValue);
         }
 
-        public static async Task<bool> ImportEclipseProtocol(VMSTemplates.Protocol P)
+        public static async Task<bool> ImportEclipseProtocol(VMS_XML.Protocol P)
         {
             // Reset adjusted protocol flag
             ClosePatient();
@@ -748,7 +747,7 @@ namespace SquintScript
                 Protocol EclipseProtocol = new Protocol();
                 EclipseProtocol.ProtocolName = P.Preview.ID;
                 var EclipseStructureIdToSquintStructureIdMapping = new Dictionary<string, int>();
-                foreach (VMSTemplates.ProtocolStructureTemplateStructure ECPStructure in P.StructureTemplate.Structures)
+                foreach (var ECPStructure in P.StructureTemplate.Structures)
                 {
                     StructureLabel SL = await DbController.GetStructureLabel(1);
                     var S = new ProtocolStructure(SL, ECPStructure.ID);
@@ -757,16 +756,16 @@ namespace SquintScript
                     EclipseStructureIdToSquintStructureIdMapping.Add(ECPStructure.ID.ToLower(), S.ID);
                 }
                 int ComponentDisplayOrder = 1;
-                foreach (ProtocolPhase Ph in P.Phases)
+                foreach (var Ph in P.Phases)
                 {
 
-                    int numFractions = (int)Ph.FractionCount;
+                    int numFractions = Convert.ToInt32(Ph.FractionCount);
                     double totalDose = (double)Ph.PlanTemplate.DosePerFraction * numFractions * 100; // convert to cGy;
                     Component SC = new Component(EclipseProtocol.ID, Ph.ID, ComponentDisplayOrder++, numFractions, totalDose);
                     EclipseProtocol.Components.Add(SC);
                     if (Ph.Prescription.Item != null)
                     {
-                        foreach (ProtocolPhasePrescriptionItem Item in Ph.Prescription.Item)
+                        foreach (var Item in Ph.Prescription.Item)
                         {
                             int structureId = 1;
                             if (Item.Primary)
@@ -780,7 +779,7 @@ namespace SquintScript
                     }
                     if (Ph.Prescription.MeasureItem != null)
                     {
-                        foreach (ProtocolPhasePrescriptionMeasureItem MI in Ph.Prescription.MeasureItem)
+                        foreach (var MI in Ph.Prescription.MeasureItem)
                         {
                             int structureId = 1;
                             if (EclipseStructureIdToSquintStructureIdMapping.ContainsKey(MI.ID.ToLower()))

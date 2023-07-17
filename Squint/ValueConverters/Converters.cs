@@ -9,11 +9,11 @@ using System.Linq;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using wpfcolor = System.Windows.Media.Colors;
-using SquintScript.ViewModels;
-using SquintScript.Extensions;
-using SquintScript.Views;
+using Squint.ViewModels;
+using Squint.Extensions;
+using Squint.Views;
 
-namespace SquintScript.Converters
+namespace Squint.Converters
 {
     public class VisibilityStructureEditorConverter : IValueConverter
     {

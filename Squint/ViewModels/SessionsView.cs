@@ -5,7 +5,7 @@ using System.Windows.Input;
 using System.Threading.Tasks;
 using System.Windows;
 
-namespace SquintScript.ViewModels
+namespace Squint.ViewModels
 {
     [AddINotifyPropertyChangedInterface]
     public class SessionsViewModel

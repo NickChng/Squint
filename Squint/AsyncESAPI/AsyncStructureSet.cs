@@ -4,7 +4,7 @@ using System.Data;
 using VMS.TPS.Common.Model.API;
 
 
-namespace SquintScript
+namespace Squint
 {
     public class AsyncStructureSet
     {

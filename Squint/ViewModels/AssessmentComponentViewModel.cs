@@ -4,10 +4,10 @@ using System.Collections.ObjectModel;
 using System.Collections.Generic;
 using PropertyChanged;
 using System.Windows;
-using SquintScript.Extensions;
+using Squint.Extensions;
 using System.Threading.Tasks;
 
-namespace SquintScript.ViewModels
+namespace Squint.ViewModels
 {
     [AddINotifyPropertyChangedInterface]
     public class AssessmentComponentViewModel : ObservableObject, IDisposable

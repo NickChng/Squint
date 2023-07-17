@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema elementFormDefault="qualified" attributeFormDefault="qualified" version="1.9" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+	<!-- 		
+			Filename:			ObjectiveTemplate.xsd
+			Copyright, Varian Medical systems, Inc., 2004
+			All Rights Reserved
+			Varian Proprietary
+-->
+	<!-- Common clinical protocol types -->
+	<xsd:include schemaLocation="ProtocolTypes.xsd"/>
+	<xsd:element name="NormalTissueObjective">
+		<xsd:complexType>
+			<xsd:sequence>
+				<xsd:element name="Use" type="xsd:boolean" minOccurs="0"/>
+				<xsd:element name="Priority" type="xsd:double"/>
+				<xsd:element name="DistanceFromTargetBorder" type="xsd:double"/>
+				<xsd:element name="StartDose" type="xsd:double"/>
+				<xsd:element name="EndDose" type="xsd:double"/>
+				<xsd:element name="FallOff" type="xsd:double"/>
+        <xsd:element name="Mode" type="xsd:string" minOccurs="0"/>
+        <xsd:element name="Auto" type="xsd:boolean" minOccurs="0"/>
+			</xsd:sequence>
+		</xsd:complexType>
+	</xsd:element>
+	<!-- Objective template schema elements -->
+	<xsd:element name="Objective">
+		<xsd:complexType>
+			<xsd:sequence>
+				<xsd:element name="Type" type="xsd:nonNegativeInteger"/>
+				<xsd:element name="Operator" type="xsd:nonNegativeInteger"/>
+				<xsd:element name="Dose" type="xsd:double"/>
+				<xsd:element name="Volume" type="xsd:double" nillable="true"/>
+				<xsd:element name="Priority" type="xsd:double"/>
+				<xsd:element name="ParameterA" type="xsd:double" minOccurs="0" maxOccurs="1" nillable="true"/>
+				<xsd:element name="Group" type="xsd:nonNegativeInteger"/>
+			</xsd:sequence>
+		</xsd:complexType>
+	</xsd:element>
+	<xsd:element name="ObjectiveTemplate">
+		<xsd:complexType>
+			<xsd:sequence>
+				<xsd:element name="Preview" type="Status" minOccurs="0"/>
+				<xsd:element name="Type" type="OptimizationType"/>
+				<xsd:choice>
+					<xsd:element ref="Helios"/>
+					<xsd:element ref="Brachy"/>
+				</xsd:choice>
+				<xsd:element ref="ObjectivesAllStructures"/>
+			</xsd:sequence>
+			<xsd:attribute name="Hash" type="xsd:string" use="optional"/>
+			<xsd:attribute name="Version" type="VersionNumber" use="optional"/>
+		</xsd:complexType>
+	</xsd:element>
+	<xsd:element name="Helios">
+		<xsd:complexType>
+			<xsd:sequence>
+				<xsd:element name="DefaultSmoothingX" type="xsd:double" nillable="true"/>
+				<xsd:element name="DefaultSmoothingY" type="xsd:double" nillable="true"/>
+				<xsd:element name="DefaultMinimizeDose" type="xsd:double" nillable="true"/>
+				<xsd:element name="DefaultOptimizationType" type="DefaultOptimizationType"/>
+				<xsd:element name="MaxIterations" type="xsd:nonNegativeInteger" nillable="true"/>
+				<xsd:element name="MaxTime" type="xsd:double" nillable="true"/> <!-- Maximum optimization time in minutes -->
+				<xsd:element ref="NormalTissueObjective" minOccurs="0"/>
+				<xsd:element name="Geos" minOccurs="0">
+					<xsd:complexType>
+						<xsd:sequence>
+							<xsd:element name="InitialFieldDistribution" type="xsd:string" nillable="true"/>
+							<xsd:element name="MinimumNumberOfFields" type="xsd:positiveInteger" nillable="true"/>
+							<xsd:element name="MaximumNumberOfFields" type="xsd:positiveInteger" nillable="true"/>
+							<xsd:element name="MaximumElevationAngleForNonCoplanarFields" type="xsd:double" nillable="true"/>
+							<xsd:element name="MaximumCollimatorVariation" type="xsd:double" nillable="true"/>
+							<xsd:element name="LocalGeometricOptimizationMode" type="xsd:string" nillable="true"/>
+						</xsd:sequence>
+					</xsd:complexType>
+				</xsd:element>
+				<xsd:element name="Imat" minOccurs="0">
+					<xsd:complexType>
+						<xsd:sequence>
+							<xsd:element name="MUWeight" type="xsd:double" nillable="true"/>
+							<xsd:element name="MinMU" type="xsd:double" nillable="true"/>
+							<xsd:element name="MaxMU" type="xsd:double" nillable="true"/>
+						</xsd:sequence>
+						<xsd:attribute name="UseMU" type="xsd:boolean"/>
+						<xsd:attribute name="JawTracking" type="xsd:boolean"/>
+					</xsd:complexType>
+				</xsd:element>
+			</xsd:sequence>
+			<xsd:attribute name="DefaultFixedJaws" type="xsd:boolean"/>
+			<xsd:attribute name="Interpolate" type="xsd:boolean"/>
+			<xsd:attribute name="UseColors" type="xsd:boolean"/>
+			<xsd:attribute name="TargetAutocrop" type="xsd:boolean"/>
+      <xsd:attribute name="Aldo" type="xsd:boolean"/>
+    </xsd:complexType>
+	</xsd:element>
+	<xsd:element name="Brachy">
+		<xsd:complexType>
+			<xsd:sequence>
+				<xsd:element name="Iterations" type="xsd:nonNegativeInteger" nillable="true"/>
+				<xsd:element name="MaxDwellTime" type="xsd:double" nillable="true"/>
+				<xsd:element name="MinAllowedDwellTime" type="xsd:double" minOccurs="0" maxOccurs="1" nillable="true"/>
+				<xsd:element name="TimeConstraintWeight" type="xsd:double" minOccurs="0" maxOccurs="1" nillable="true"/>
+				<xsd:element name="OvertimePower" type="xsd:double" minOccurs="0" maxOccurs="1" nillable="true"/>
+				<xsd:element name="SmoothPower" type="xsd:double" minOccurs="0" maxOccurs="1" nillable="true"/>
+				<xsd:element name="HotspotConstraintWeight" type="xsd:double" minOccurs="0" maxOccurs="1" nillable="true"/>
+				<xsd:element name="BasalDesiredGy" type="xsd:double" minOccurs="0" maxOccurs="1" nillable="true"/>
+        <xsd:element name="ClearDoseInApplicator" type="xsd:boolean" minOccurs="0" maxOccurs="1" nillable="true"/>
+        <xsd:element name="CalculationMedium" type="xsd:string" minOccurs="0" maxOccurs="1" nillable="true"/>
+        <xsd:element name="ReportDoseToMedium" type="xsd:boolean" minOccurs="0" maxOccurs="1" nillable="true"/>
+        <xsd:element name="MassDensityCutOff" type="xsd:double" minOccurs="0" maxOccurs="1" nillable="true"/>
+			</xsd:sequence>
+			<xsd:attribute name="HotspotEnabled" type="xsd:boolean" use="optional"/>
+      <xsd:attribute name="TouchedByAcurosBV" type="xsd:boolean" use="optional"/>
+		</xsd:complexType>
+	</xsd:element>
+	<xsd:element name="ObjectivesAllStructures">
+		<xsd:complexType>
+			<xsd:sequence>
+				<xsd:element ref="ObjectivesOneStructure" minOccurs="0" maxOccurs="unbounded"/>
+			</xsd:sequence>
+		</xsd:complexType>
+		<!-- The ID is same as structure ID. Must be unique. -->
+		<xsd:unique name="UniqueObjectivesOneStructureId">
+      <xsd:selector xpath="ObjectivesOneStructure"/>
+      <xsd:field xpath="@ID"/>
+    </xsd:unique>
+	</xsd:element>
+	<xsd:element name="ObjectivesOneStructure">
+		<xsd:complexType>
+			<xsd:sequence>
+				<xsd:element name="StructureTarget" type="Volume"/>
+				<xsd:element name="Distance" type="xsd:double" nillable="true"/>
+				<xsd:element name="SamplePoints" type="xsd:nonNegativeInteger" nillable="true"/>
+				<xsd:element name="Color" type="xsd:integer" nillable="true"/>
+				<xsd:element name="AvoidanceStructureMode" type="xsd:string" minOccurs="0"/>
+				<xsd:element ref="StructureObjectives"/>
+			</xsd:sequence>
+			<xsd:attribute name="ID" type="ID"/>
+			<xsd:attribute name="SurfaceOnly" type="xsd:boolean"/>
+			<xsd:attribute name="NAME" type="xsd:string"/>
+		</xsd:complexType>
+	</xsd:element>
+	<xsd:element name="StructureObjectives">
+		<xsd:complexType>
+			<xsd:sequence>
+				<xsd:element ref="Objective" minOccurs="0" maxOccurs="unbounded"/>
+			</xsd:sequence>
+		</xsd:complexType>
+	</xsd:element>
+</xsd:schema>

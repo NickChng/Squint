@@ -8,7 +8,7 @@ using System.Reflection;
 using System.ComponentModel.DataAnnotations;
 
 
-namespace SquintScript
+namespace Squint
 {
     //Type Definitions
 

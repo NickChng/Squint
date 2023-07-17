@@ -4,7 +4,7 @@ using System.Linq;
 using PropertyChanged;
 using System.Data;
 
-namespace SquintScript
+namespace Squint
 {
  
         [AddINotifyPropertyChangedInterface]

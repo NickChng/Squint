@@ -1,4 +1,4 @@
-namespace SquintScript
+namespace Squint
 {
     using System;
     using System.Windows;
@@ -16,7 +16,7 @@ namespace SquintScript
     using NpgsqlTypes;
     using Extensions;
     using System.Reflection;
-    using SquintScript.XML_Definitions;
+    using Squint.XML_Definitions;
 
     public class SquintDBModel : DbContext
     {

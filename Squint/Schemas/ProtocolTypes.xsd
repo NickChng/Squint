@@ -1,0 +1,192 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema elementFormDefault="qualified" attributeFormDefault="qualified" version="1.2" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+	<!-- 		
+			Filename:			ProtocolTypes.xsd
+			Copyright, Varian Medical systems, Inc., 2004 - 2005
+			All Rights Reserved
+			Varian Proprietary
+-->
+	<xsd:simpleType name="XCoordinate">
+		<xsd:restriction base="xsd:double"/>
+	</xsd:simpleType>
+	<xsd:simpleType name="YCoordinate">
+		<xsd:restriction base="xsd:double"/>
+	</xsd:simpleType>
+	<xsd:simpleType name="ZCoordinate">
+		<xsd:restriction base="xsd:double"/>
+	</xsd:simpleType>
+	<xsd:complexType name="CoordinatePoint">
+		<xsd:attribute name="X" type="XCoordinate" use="required"/>
+		<xsd:attribute name="Y" type="YCoordinate" use="required"/>
+		<xsd:attribute name="Z" type="ZCoordinate" use="required"/>
+	</xsd:complexType>
+	<xsd:simpleType name="IsocenterPlacement">
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="None"/>
+			<xsd:enumeration value="RFTS"/>
+			<xsd:enumeration value="AFTS"/>
+			<xsd:enumeration value="RIO"/>
+			<xsd:enumeration value="AIO"/>
+			<xsd:enumeration value="RIC"/>
+			<xsd:enumeration value="AIC"/>
+			<xsd:enumeration value="RVPI"/>
+			<xsd:enumeration value="AVPI"/>
+		</xsd:restriction>
+	</xsd:simpleType>
+	<xsd:complexType name="Isocenter">
+		<xsd:attribute name="Placement" type="IsocenterPlacement" use="optional"/>
+		<xsd:attribute name="X" type="XCoordinate" use="optional"/>
+		<xsd:attribute name="Y" type="YCoordinate" use="optional"/>
+		<xsd:attribute name="Z" type="ZCoordinate" use="optional"/>
+	</xsd:complexType>
+	<xsd:complexType name="Matrix">
+		<xsd:sequence>
+			<xsd:element name="UnitAxisX" type="CoordinatePoint"/>
+			<xsd:element name="UnitAxisY" type="CoordinatePoint"/>
+			<xsd:element name="UnitAxisZ" type="CoordinatePoint"/>
+			<xsd:element name="Translation" type="CoordinatePoint"/>
+		</xsd:sequence>
+		<xsd:attribute name="Scale" type="xsd:double"/>
+	</xsd:complexType>
+	<xsd:complexType name="StructureCode">
+		<xsd:attribute name="Code" type="xsd:string"/>
+		<xsd:attribute name="CodeScheme" type="xsd:string"/>
+		<xsd:attribute name="CodeSchemeVersion" type="xsd:string"/>
+	</xsd:complexType>
+	<xsd:complexType name="Volume">
+		<xsd:sequence>
+			<xsd:element name="VolumeID" type="xsd:string"/>
+			<xsd:element name="VolumeCode" type="xsd:string"/>
+			<xsd:element name="VolumeType" type="xsd:string"/>
+			<xsd:element name="VolumeCodeTable" type="xsd:string"/>
+			<xsd:element name="StructureCode" type="StructureCode" minOccurs="0" maxOccurs="unbounded"/>
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:complexType name="Margin">
+		<xsd:sequence>
+			<xsd:element name="Left" type="xsd:double" nillable="true"/>
+			<xsd:element name="Right" type="xsd:double" nillable="true"/>
+			<xsd:element name="Top" type="xsd:double" nillable="true"/>
+			<xsd:element name="Bottom" type="xsd:double" nillable="true"/>
+		</xsd:sequence>
+		<xsd:attribute name="EllipticalMarginFlag" type="xsd:boolean"/>
+		<xsd:attribute name="BEVMarginFlag" type="xsd:boolean"/>
+		<xsd:attribute name="OptimizeCollRtnFlag" type="xsd:boolean"/>
+		<xsd:attribute name="OptimizeJawsFlag" type="xsd:boolean"/>
+		<xsd:attribute name="JawFittingMode" type="xsd:integer" use="optional"/>
+	</xsd:complexType>
+	<xsd:simpleType name="EnergyType">
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="E"/>
+			<xsd:enumeration value="P"/>
+			<xsd:enumeration value="X"/>
+		</xsd:restriction>
+	</xsd:simpleType>
+	<xsd:simpleType name="ID">
+		<xsd:restriction base="xsd:string"/>
+	</xsd:simpleType>
+	<xsd:simpleType name="OptimizationType">
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="Brachy"/>
+			<xsd:enumeration value="Helios"/>
+		</xsd:restriction>
+	</xsd:simpleType>
+	<xsd:simpleType name="DefaultOptimizationType">
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value=""/>
+			<xsd:enumeration value="None"/>
+			<xsd:enumeration value="Beamlet"/>
+			<xsd:enumeration value="Field weight"/>
+		</xsd:restriction>
+	</xsd:simpleType>
+	<xsd:simpleType name="FieldType">
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="BeamProton"/>
+			<xsd:enumeration value="BeamLinac"/>
+		</xsd:restriction>
+	</xsd:simpleType>
+	<xsd:simpleType name="TemplateType">
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="Objective"/>
+			<xsd:enumeration value="Protocol"/>
+			<xsd:enumeration value="Plan"/>
+			<xsd:enumeration value="Structure"/>
+		</xsd:restriction>
+	</xsd:simpleType>
+	<xsd:simpleType name="ReviewType">
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="Structure"/>
+			<xsd:enumeration value="Expr"/>
+		</xsd:restriction>
+	</xsd:simpleType>
+	<xsd:simpleType name="ApprovalStatus">
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="Approved"/>
+			<xsd:enumeration value="Unapproved"/>
+			<xsd:enumeration value="Reviewed"/>
+			<xsd:enumeration value="Retired"/>
+			<!--German-->
+			<xsd:enumeration value="Abgezeichnet"/>
+			<xsd:enumeration value="Nicht abgezeichnet"/>
+			<xsd:enumeration value="Gesichtet:"/>
+			<xsd:enumeration value="Zurückgezogen"/>
+			<!--French-->
+			<xsd:enumeration value="Approuvé"/>
+			<xsd:enumeration value="Non approuvé(e)"/>
+			<xsd:enumeration value="Revue"/>
+			<xsd:enumeration value="Retiré(e)"/>
+			<!--Italian-->
+			<xsd:enumeration value="Approvato"/>
+			<xsd:enumeration value="Non approvato"/>
+			<xsd:enumeration value="Controllato"/>
+			<xsd:enumeration value="Ritirato"/>
+			<!--Swedish-->
+			<xsd:enumeration value="Godkänd"/>
+			<xsd:enumeration value="Ej godkänd"/>
+			<xsd:enumeration value="Granskad:"/>
+			<xsd:enumeration value="Tillbakadragen"/>
+			<!--Spanish-->
+			<xsd:enumeration value="Aprobado"/>
+			<xsd:enumeration value="No aprobado"/>
+			<xsd:enumeration value="Revisado:"/>
+			<xsd:enumeration value="Retirado"/>
+			<!--Brazil Portuguese-->
+			<xsd:enumeration value="Aprovado"/>
+			<xsd:enumeration value="Desaprovado"/>
+			<xsd:enumeration value="Revisado"/>
+			<xsd:enumeration value="Aposentado"/>
+			<!--Japanese-->
+			<xsd:enumeration value="承認済み"/>
+			<xsd:enumeration value="未承認"/>
+			<xsd:enumeration value="レビュー済み"/>
+			<xsd:enumeration value="リタイヤ"/>
+			<!--Chinese-->
+			<xsd:enumeration value="已确认"/>
+			<xsd:enumeration value="未经确认"/>
+			<xsd:enumeration value="已审核"/>
+			<xsd:enumeration value="已中断"/>
+		</xsd:restriction>
+	</xsd:simpleType>
+  <xsd:simpleType name="VersionNumber">
+    <xsd:restriction base="xsd:string">
+      <!--Major is always 1, as long as there is no breaking changes-->
+      <xsd:pattern value="1+\.([0-9])+"/>
+    </xsd:restriction>
+  </xsd:simpleType>
+	<xsd:complexType name="Status">
+    <!--Version number for Preview element must be updated in TPS Core (XMLTemplate.h) if the Status is changed-->
+    <xsd:attribute name="Version" type="VersionNumber" use="optional"/>
+    <xsd:attribute name="ID" type="xsd:string" use="required"/>
+    <xsd:attribute name="Name" type="xsd:string" use="optional"/>
+    <xsd:attribute name="Type" type="TemplateType" use="required"/>		
+		<xsd:attribute name="ApprovalStatus" type="ApprovalStatus" use="required"/>
+		<xsd:attribute name="Diagnosis" type="xsd:string" use="optional"/>
+		<xsd:attribute name="TreatmentSite" type="xsd:string" use="optional"/>
+		<xsd:attribute name="AssignedUsers" type="xsd:string" use="optional"/>
+		<xsd:attribute name="Description" type="xsd:string" use="optional"/>				
+		<xsd:attribute name="Mode" type="xsd:string" use="optional"/>
+		<xsd:attribute name="TreatmentStyle" type="xsd:string" use="optional"/>
+		<xsd:attribute name="LastModified" type="xsd:string" use="optional"/>
+		<xsd:attribute name="ApprovalHistory" type="xsd:string" use="required"/>
+	</xsd:complexType>
+</xsd:schema>

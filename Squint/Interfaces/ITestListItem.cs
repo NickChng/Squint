@@ -7,7 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 
-namespace SquintScript.Interfaces
+namespace Squint.Interfaces
 {
     public interface ITestListItem
     {

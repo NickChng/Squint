@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using PropertyChanged;
 
-namespace SquintScript.ViewModels
+namespace Squint.ViewModels
 {
     [AddINotifyPropertyChangedInterface]
     public class ProtocolImagingViewModel

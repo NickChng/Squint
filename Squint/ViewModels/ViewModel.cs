@@ -1,5 +1,5 @@
 ﻿using PropertyChanged;
-using SquintScript.Extensions;
+using Squint.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -14,7 +14,7 @@ using wpfbrush = System.Windows.Media.SolidColorBrush;
 using wpfcolor = System.Windows.Media.Color;
 using wpfcolors = System.Windows.Media.Colors;
 
-namespace SquintScript.ViewModels
+namespace Squint.ViewModels
 {
     public abstract class ObservableObject : INotifyPropertyChanged
     {
@@ -1405,9 +1405,10 @@ namespace SquintScript.ViewModels
                     isPlanCheckCalculating = false;
                 }
             }
-            catch (Exception Ex)
+            catch (Exception ex)
             {
-                string debugme = "hi";
+                Helpers.Logger.AddLog(ex.Message);
+                MessageBox.Show("Error in ViewPlanCheck");
             }
         }
         public ICommand ToggleChecklistViewCommand

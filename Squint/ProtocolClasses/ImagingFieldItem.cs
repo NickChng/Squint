@@ -1,10 +1,10 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
-using SquintScript.Extensions;
+using Squint.Extensions;
 //using System.Windows.Forms;
 
-namespace SquintScript
+namespace Squint
 {
     public class ImagingFieldItem
     {

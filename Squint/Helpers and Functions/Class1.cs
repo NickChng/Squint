@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 using System.Globalization;
 using System.CodeDom;
 
-namespace SquintScript
+namespace Squint
 {
     //public abstract class ValueConverter<TSourceTarget> : ValueConverter<TSourceTarget, TSourceTarget> { }
     //public abstract class ValueConverter<TSource, TTarget> : ValueConverter<TSource, TTarget, object> { }

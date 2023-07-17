@@ -10,12 +10,12 @@ using VMS.TPS.Common.Model.Types;
 using System.Runtime.CompilerServices;
 using System.Data.Entity;
 using System.Data;
-using SquintScript.Interfaces;
-using SquintScript.Extensions;
+using Squint.Interfaces;
+using Squint.Extensions;
 using System.Windows.Media;
 using AutoMapper;
 
-namespace SquintScript
+namespace Squint
 {
 
     public class BeamGeometryInstance : IDisplayable

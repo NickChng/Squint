@@ -4,7 +4,7 @@ using System.Data;
 using System.Xml.Serialization;
 using System.IO;
 
-namespace SquintScript
+namespace Squint
 {
      public partial class Constraint
         {

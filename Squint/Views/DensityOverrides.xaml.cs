@@ -1,10 +1,10 @@
-﻿using SquintScript.Interfaces;
+﻿using Squint.Interfaces;
 using System.Collections.ObjectModel;
 using System.Windows;
 using System.Windows.Controls;
 
 
-namespace SquintScript.Views
+namespace Squint.Views
 {
     /// <summary>
     /// Interaction logic for CalculationView.xaml

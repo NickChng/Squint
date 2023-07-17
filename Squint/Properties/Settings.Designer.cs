@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace SquintScript.Properties {
+namespace Squint.Properties {
     
     
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]

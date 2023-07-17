@@ -7,10 +7,10 @@ using System.Windows.Controls;
 using System.Windows;
 using wpfcolors = System.Windows.Media.Colors;
 using wpfcolor = System.Windows.Media.Color;
-using SquintScript.Views;
+using Squint.Views;
 using System.Linq;
 
-namespace SquintScript.ViewModels
+namespace Squint.ViewModels
 {
     [AddINotifyPropertyChangedInterface]
     public class AssessmentsView : ObservableObject

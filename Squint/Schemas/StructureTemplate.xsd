@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema elementFormDefault="qualified" attributeFormDefault="qualified" version="1.2" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+	<!-- 		
+			Filename:			StructureTemplate.xsd
+			Copyright, Varian Medical systems, Inc., 2004
+			All Rights Reserved
+			Varian Proprietary
+-->
+	<!-- Common plan protocol types -->
+	<xsd:include schemaLocation="ProtocolTypes.xsd"/>
+	<!-- Structure template schema elements -->
+	<xsd:element name="StructureTemplate">
+		<xsd:complexType>
+			<xsd:sequence>
+				<xsd:element name="Preview" type="Status" minOccurs="0"/>
+				<xsd:element ref="Structures" minOccurs="0"/>
+			</xsd:sequence>
+			<xsd:attribute name="Hash" type="xsd:string" use="optional"/>
+      <xsd:attribute name="Version" type="VersionNumber" use="optional"/>
+		</xsd:complexType>
+	</xsd:element>
+	<xsd:element name="Structure">
+		<xsd:complexType>
+			<xsd:sequence>
+				<xsd:element name="Identification" type="Volume"/>
+				<xsd:element name="TypeIndex" type="xsd:nonNegativeInteger"/>
+				<xsd:element name="ColorAndStyle" type="xsd:string"/>
+				<xsd:element name="SearchCTLow" type="xsd:double" nillable="true"/>
+				<xsd:element name="SearchCTHigh" type="xsd:double" nillable="true"/>
+				<xsd:element name="DVHLineStyle" type="xsd:integer" nillable="true"/>
+				<xsd:element name="DVHLineColor" type="xsd:integer" nillable="true"/>
+				<xsd:element name="DVHLineWidth" type="xsd:double" nillable="true"/>
+				<xsd:element name="EUDAlpha" type="xsd:double" nillable="true"/>
+				<xsd:element name="TCPAlpha" type="xsd:double" nillable="true"/>
+				<xsd:element name="TCPBeta" type="xsd:double" nillable="true"/>
+				<xsd:element name="TCPGamma" type="xsd:double" nillable="true"/>
+			</xsd:sequence>
+			<xsd:attribute name="ID" type="ID" use="required"/>
+			<xsd:attribute name="Name" type="xsd:string"/>
+		</xsd:complexType>
+	</xsd:element>
+	<xsd:element name="Structures">
+		<xsd:complexType>
+			<xsd:sequence>
+				<xsd:element ref="Structure" minOccurs="0" maxOccurs="unbounded"/>
+			</xsd:sequence>
+		</xsd:complexType>
+		<xsd:unique name="UniqueStructureId">
+			<xsd:selector xpath="Structure"/>
+			<xsd:field xpath="@ID"/>
+		</xsd:unique>
+	</xsd:element>
+</xsd:schema>

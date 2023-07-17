@@ -7,7 +7,7 @@ using VMS.TPS.Common.Model.API;
 using EApp = VMS.TPS.Common.Model.API.Application;
 using System.Collections.Concurrent;
 
-namespace SquintScript
+namespace Squint
 {
     public static class PlanSumUIDGenerator
     {

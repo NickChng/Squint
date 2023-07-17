@@ -2,7 +2,7 @@
 using System.Collections.ObjectModel;
 using PropertyChanged;
 
-namespace SquintScript
+namespace Squint
 {
     [AddINotifyPropertyChangedInterface]
     public class ProtocolChecklist
