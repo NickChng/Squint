@@ -21,7 +21,7 @@ namespace Squint
     public class BeamGeometryInstance : IDisplayable
     {
 
-        public Trajectories Trajectory { get; private set; } = Trajectories.Unset;
+        public TrajectoryTypes Trajectory { get; private set; } = TrajectoryTypes.Unset;
         public double StartAngle { get; private set; } = double.NaN;
         public double EndAngle { get; private set; } = double.NaN;
         public string DisplayName { get; private set; } = "Undefined geometry";
@@ -32,6 +32,11 @@ namespace Squint
             return Equals(obj as BeamGeometryInstance);
         }
 
+        public override int GetHashCode()
+        {
+            return GetHashCode();
+        }
+           
         public bool Equals(BeamGeometryInstance that)
         {
             if (that == null)
@@ -56,7 +61,7 @@ namespace Squint
 
         }
 
-        public BeamGeometryInstance(double startAngle, double endAngle, Trajectories trajectory)
+        public BeamGeometryInstance(double startAngle, double endAngle, TrajectoryTypes trajectory)
         {
             StartAngle = startAngle;
             EndAngle = endAngle;
@@ -73,7 +78,7 @@ namespace Squint
     public class BeamGeometryDefinition : IDisplayable, IContains<BeamGeometryInstance>
     {
         public int Id { get; set; }
-        public Trajectories Trajectory { get; set; } = Trajectories.Unset;
+        public TrajectoryTypes Trajectory { get; set; } = TrajectoryTypes.Unset;
         public double StartAngle { get; set; } = double.NaN;
         public double EndAngle { get; set; } = double.NaN;
         public double StartAngleTolerance { get; set; } = 1;
@@ -87,7 +92,7 @@ namespace Squint
         {
             //Automapper.SquintMapper.Map(DbBG, this);  // unable to get this to work globally due to limitations with ConvertUsing in the version of Automapper that supports .net 4.5
             Id = DbBG.ID;
-            Trajectory = (Trajectories)DbBG.Trajectory;
+            Trajectory = (TrajectoryTypes)DbBG.Trajectory;
             StartAngle = DbBG.StartAngle;
             EndAngle = DbBG.EndAngle;
             StartAngleTolerance = DbBG.StartAngleTolerance;
@@ -99,12 +104,12 @@ namespace Squint
         {
             switch (Trajectory)
             {
-                case Trajectories.CW:
+                case TrajectoryTypes.CW:
                     if (A > 180)
                         return A - 180;
                     else
                         return A + 180;
-                case Trajectories.CCW:
+                case TrajectoryTypes.CCW:
                     if (A > 180)
                         return 540 -A;
                     else
@@ -119,7 +124,7 @@ namespace Squint
             var endAngle = beamGeometryInstance.EndAngle;
             var trajectory = beamGeometryInstance.Trajectory;
 
-            if (Trajectory == Trajectories.Static && trajectory == Trajectory)
+            if (Trajectory == TrajectoryTypes.Static && trajectory == Trajectory)
             {
                 if (StartAngle.CloseEnough(startAngle, StartAngleTolerance))
                 {

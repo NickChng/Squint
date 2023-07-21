@@ -512,7 +512,7 @@ namespace Squint
                             OD.Dose = OPO.Dose.Dose;
                             OD.Priority = OPO.Priority;
                             OD.Volume = OPO.Volume;
-                            OD.DvhType = Dvh_Types.V;
+                            OD.DvhType = DvhTypes.V;
                             if (p.IsDoseValid)
                             {
                                 OD.ResultDose = p.GetDoseAtVolume(OPO.Structure, OD.Volume, VolumePresentation.Relative, DoseValuePresentation.Absolute).Dose;
@@ -536,7 +536,7 @@ namespace Squint
                         case OptimizationMeanDoseObjective OMO:
                             OD.StructureId = OMO.StructureId;
                             OD.Type = ReferenceTypes.Upper;
-                            OD.DvhType = Dvh_Types.M;
+                            OD.DvhType = DvhTypes.M;
                             OD.Dose = OMO.Dose.Dose;
                             OD.Priority = OMO.Priority;
                             OD.Volume = double.NaN;

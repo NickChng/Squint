@@ -135,19 +135,23 @@ namespace Squint {
         
         private string protocolNameField;
         
-        private string protocolTypeField;
+        private ProtocolTypes protocolTypeField;
         
-        private byte numComponentsField;
+        private int numComponentsField;
         
         private string protocolDateField;
         
         private string authorField;
         
-        private string approvalStatusField;
+        private ApprovalLevels approvalStatusField;
         
-        private string diseaseSiteField;
+        private TreatmentSites diseaseSiteField;
         
-        private string treatmentCentreField;
+        private TreatmentCentres treatmentCentreField;
+        
+        public SquintProtocolProtocolMetaData() {
+            this.approvalStatusField = ApprovalLevels.Unapproved;
+        }
         
         /// <remarks/>
         [System.Xml.Serialization.XmlAttributeAttribute()]
@@ -162,7 +166,7 @@ namespace Squint {
         
         /// <remarks/>
         [System.Xml.Serialization.XmlAttributeAttribute()]
-        public string ProtocolType {
+        public ProtocolTypes ProtocolType {
             get {
                 return this.protocolTypeField;
             }
@@ -173,7 +177,7 @@ namespace Squint {
         
         /// <remarks/>
         [System.Xml.Serialization.XmlAttributeAttribute()]
-        public byte NumComponents {
+        public int NumComponents {
             get {
                 return this.numComponentsField;
             }
@@ -206,7 +210,8 @@ namespace Squint {
         
         /// <remarks/>
         [System.Xml.Serialization.XmlAttributeAttribute()]
-        public string ApprovalStatus {
+        [System.ComponentModel.DefaultValueAttribute(ApprovalLevels.Unapproved)]
+        public ApprovalLevels ApprovalStatus {
             get {
                 return this.approvalStatusField;
             }
@@ -217,7 +222,7 @@ namespace Squint {
         
         /// <remarks/>
         [System.Xml.Serialization.XmlAttributeAttribute()]
-        public string DiseaseSite {
+        public TreatmentSites DiseaseSite {
             get {
                 return this.diseaseSiteField;
             }
@@ -228,7 +233,7 @@ namespace Squint {
         
         /// <remarks/>
         [System.Xml.Serialization.XmlAttributeAttribute()]
-        public string TreatmentCentre {
+        public TreatmentCentres TreatmentCentre {
             get {
                 return this.treatmentCentreField;
             }
@@ -241,16 +246,136 @@ namespace Squint {
     /// <remarks/>
     [System.CodeDom.Compiler.GeneratedCodeAttribute("xsd", "4.8.3928.0")]
     [System.SerializableAttribute()]
+    public enum ProtocolTypes {
+        
+        /// <remarks/>
+        Unset,
+        
+        /// <remarks/>
+        All,
+        
+        /// <remarks/>
+        Clinical,
+        
+        /// <remarks/>
+        Trial,
+        
+        /// <remarks/>
+        Research,
+        
+        /// <remarks/>
+        Development,
+    }
+    
+    /// <remarks/>
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("xsd", "4.8.3928.0")]
+    [System.SerializableAttribute()]
+    public enum ApprovalLevels {
+        
+        /// <remarks/>
+        Unset,
+        
+        /// <remarks/>
+        All,
+        
+        /// <remarks/>
+        Unapproved,
+        
+        /// <remarks/>
+        Reviewed,
+        
+        /// <remarks/>
+        Approved,
+        
+        /// <remarks/>
+        Retired,
+    }
+    
+    /// <remarks/>
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("xsd", "4.8.3928.0")]
+    [System.SerializableAttribute()]
+    public enum TreatmentSites {
+        
+        /// <remarks/>
+        Unset,
+        
+        /// <remarks/>
+        All,
+        
+        /// <remarks/>
+        GU,
+        
+        /// <remarks/>
+        GI,
+        
+        /// <remarks/>
+        Lung,
+        
+        /// <remarks/>
+        HN,
+        
+        /// <remarks/>
+        CNS,
+        
+        /// <remarks/>
+        Sarcoma,
+        
+        /// <remarks/>
+        Breast,
+        
+        /// <remarks/>
+        Lymphoma,
+        
+        /// <remarks/>
+        Palliative,
+    }
+    
+    /// <remarks/>
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("xsd", "4.8.3928.0")]
+    [System.SerializableAttribute()]
+    public enum TreatmentCentres {
+        
+        /// <remarks/>
+        Unset,
+        
+        /// <remarks/>
+        All,
+        
+        /// <remarks/>
+        Provincial,
+        
+        /// <remarks/>
+        CN,
+        
+        /// <remarks/>
+        VCC,
+        
+        /// <remarks/>
+        VIC,
+        
+        /// <remarks/>
+        AC,
+        
+        /// <remarks/>
+        FVCC,
+        
+        /// <remarks/>
+        CSI,
+    }
+    
+    /// <remarks/>
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("xsd", "4.8.3928.0")]
+    [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
     [System.Xml.Serialization.XmlTypeAttribute(AnonymousType=true)]
     public partial class SquintProtocolIntent {
         
-        private string idField;
+        private TreatmentIntents idField;
         
         /// <remarks/>
         [System.Xml.Serialization.XmlAttributeAttribute()]
-        public string Id {
+        public TreatmentIntents Id {
             get {
                 return this.idField;
             }
@@ -258,6 +383,27 @@ namespace Squint {
                 this.idField = value;
             }
         }
+    }
+    
+    /// <remarks/>
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("xsd", "4.8.3928.0")]
+    [System.SerializableAttribute()]
+    public enum TreatmentIntents {
+        
+        /// <remarks/>
+        Unset,
+        
+        /// <remarks/>
+        Curative,
+        
+        /// <remarks/>
+        Adjuvant,
+        
+        /// <remarks/>
+        NeoAdjuvant,
+        
+        /// <remarks/>
+        Palliative,
     }
     
     /// <remarks/>
@@ -349,11 +495,11 @@ namespace Squint {
     [System.Xml.Serialization.XmlTypeAttribute(AnonymousType=true)]
     public partial class SquintProtocolStructureStructureChecklistPointContourCheck {
         
-        private decimal thresholdField;
+        private double thresholdField;
         
         /// <remarks/>
         [System.Xml.Serialization.XmlAttributeAttribute()]
-        public decimal Threshold {
+        public double Threshold {
             get {
                 return this.thresholdField;
             }
@@ -393,7 +539,7 @@ namespace Squint {
     [System.Xml.Serialization.XmlTypeAttribute(AnonymousType=true)]
     public partial class SquintProtocolProtocolChecklist {
         
-        private SquintProtocolProtocolChecklistArtifacts artifactsField;
+        private SquintProtocolProtocolChecklistArtifact[] artifactsField;
         
         private SquintProtocolProtocolChecklistSupports supportsField;
         
@@ -402,7 +548,8 @@ namespace Squint {
         private SquintProtocolProtocolChecklistSimulation simulationField;
         
         /// <remarks/>
-        public SquintProtocolProtocolChecklistArtifacts Artifacts {
+        [System.Xml.Serialization.XmlArrayItemAttribute("Artifact", IsNullable=false)]
+        public SquintProtocolProtocolChecklistArtifact[] Artifacts {
             get {
                 return this.artifactsField;
             }
@@ -448,38 +595,17 @@ namespace Squint {
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
     [System.Xml.Serialization.XmlTypeAttribute(AnonymousType=true)]
-    public partial class SquintProtocolProtocolChecklistArtifacts {
+    public partial class SquintProtocolProtocolChecklistArtifact {
         
-        private SquintProtocolProtocolChecklistArtifactsArtifact artifactField;
+        private double huField;
         
-        /// <remarks/>
-        public SquintProtocolProtocolChecklistArtifactsArtifact Artifact {
-            get {
-                return this.artifactField;
-            }
-            set {
-                this.artifactField = value;
-            }
-        }
-    }
-    
-    /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("xsd", "4.8.3928.0")]
-    [System.SerializableAttribute()]
-    [System.Diagnostics.DebuggerStepThroughAttribute()]
-    [System.ComponentModel.DesignerCategoryAttribute("code")]
-    [System.Xml.Serialization.XmlTypeAttribute(AnonymousType=true)]
-    public partial class SquintProtocolProtocolChecklistArtifactsArtifact {
-        
-        private byte huField;
-        
-        private decimal toleranceHUField;
+        private double toleranceHUField;
         
         private string protocolStructureNameField;
         
         /// <remarks/>
         [System.Xml.Serialization.XmlAttributeAttribute()]
-        public byte HU {
+        public double HU {
             get {
                 return this.huField;
             }
@@ -490,7 +616,7 @@ namespace Squint {
         
         /// <remarks/>
         [System.Xml.Serialization.XmlAttributeAttribute()]
-        public decimal ToleranceHU {
+        public double ToleranceHU {
             get {
                 return this.toleranceHUField;
             }
@@ -519,19 +645,22 @@ namespace Squint {
     [System.Xml.Serialization.XmlTypeAttribute(AnonymousType=true)]
     public partial class SquintProtocolProtocolChecklistSupports {
         
-        private short couchSurfaceField;
+        private double couchSurfaceField;
         
-        private bool couchSurfaceFieldSpecified;
+        private double couchInteriorField;
         
-        private short couchInteriorField;
+        private ParameterOptions indicationField;
         
-        private bool couchInteriorFieldSpecified;
-        
-        private string indicationField;
+        public SquintProtocolProtocolChecklistSupports() {
+            this.couchSurfaceField = -300D;
+            this.couchInteriorField = 0D;
+            this.indicationField = ParameterOptions.Optional;
+        }
         
         /// <remarks/>
         [System.Xml.Serialization.XmlAttributeAttribute()]
-        public short CouchSurface {
+        [System.ComponentModel.DefaultValueAttribute(-300D)]
+        public double CouchSurface {
             get {
                 return this.couchSurfaceField;
             }
@@ -541,19 +670,9 @@ namespace Squint {
         }
         
         /// <remarks/>
-        [System.Xml.Serialization.XmlIgnoreAttribute()]
-        public bool CouchSurfaceSpecified {
-            get {
-                return this.couchSurfaceFieldSpecified;
-            }
-            set {
-                this.couchSurfaceFieldSpecified = value;
-            }
-        }
-        
-        /// <remarks/>
         [System.Xml.Serialization.XmlAttributeAttribute()]
-        public short CouchInterior {
+        [System.ComponentModel.DefaultValueAttribute(0D)]
+        public double CouchInterior {
             get {
                 return this.couchInteriorField;
             }
@@ -563,19 +682,9 @@ namespace Squint {
         }
         
         /// <remarks/>
-        [System.Xml.Serialization.XmlIgnoreAttribute()]
-        public bool CouchInteriorSpecified {
-            get {
-                return this.couchInteriorFieldSpecified;
-            }
-            set {
-                this.couchInteriorFieldSpecified = value;
-            }
-        }
-        
-        /// <remarks/>
         [System.Xml.Serialization.XmlAttributeAttribute()]
-        public string Indication {
+        [System.ComponentModel.DefaultValueAttribute(ParameterOptions.Optional)]
+        public ParameterOptions Indication {
             get {
                 return this.indicationField;
             }
@@ -588,14 +697,34 @@ namespace Squint {
     /// <remarks/>
     [System.CodeDom.Compiler.GeneratedCodeAttribute("xsd", "4.8.3928.0")]
     [System.SerializableAttribute()]
+    public enum ParameterOptions {
+        
+        /// <remarks/>
+        Unset,
+        
+        /// <remarks/>
+        Optional,
+        
+        /// <remarks/>
+        Required,
+        
+        /// <remarks/>
+        None,
+    }
+    
+    /// <remarks/>
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("xsd", "4.8.3928.0")]
+    [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
     [System.Xml.Serialization.XmlTypeAttribute(AnonymousType=true)]
     public partial class SquintProtocolProtocolChecklistCalculation {
         
-        private string algorithmField;
+        private AlgorithmVolumeDoseTypes algorithmField;
         
-        private decimal algorithmResolutionField;
+        private bool algorithmFieldSpecified;
+        
+        private double algorithmResolutionField;
         
         private bool algorithmResolutionFieldSpecified;
         
@@ -603,13 +732,26 @@ namespace Squint {
         
         private bool heterogeneityOnFieldSpecified;
         
-        private string fieldNormalizationModeField;
+        private string vMATAirCavityCorrectionField;
         
-        private string vMATOptimizationAlgorithmField;
+        private string iMRTAirCavityCorrectionField;
+        
+        private FieldNormalizationTypes fieldNormalizationModeField;
+        
+        private bool fieldNormalizationModeFieldSpecified;
+        
+        private AlgorithmVMATOptimizationTypes vMATOptimizationAlgorithmField;
+        
+        private AlgorithmIMRTOptimizationTypes iMRTOptimizationAlgorithmField;
+        
+        public SquintProtocolProtocolChecklistCalculation() {
+            this.vMATOptimizationAlgorithmField = AlgorithmVMATOptimizationTypes.Unset;
+            this.iMRTOptimizationAlgorithmField = AlgorithmIMRTOptimizationTypes.Unset;
+        }
         
         /// <remarks/>
         [System.Xml.Serialization.XmlAttributeAttribute()]
-        public string Algorithm {
+        public AlgorithmVolumeDoseTypes Algorithm {
             get {
                 return this.algorithmField;
             }
@@ -619,8 +761,19 @@ namespace Squint {
         }
         
         /// <remarks/>
+        [System.Xml.Serialization.XmlIgnoreAttribute()]
+        public bool AlgorithmSpecified {
+            get {
+                return this.algorithmFieldSpecified;
+            }
+            set {
+                this.algorithmFieldSpecified = value;
+            }
+        }
+        
+        /// <remarks/>
         [System.Xml.Serialization.XmlAttributeAttribute()]
-        public decimal AlgorithmResolution {
+        public double AlgorithmResolution {
             get {
                 return this.algorithmResolutionField;
             }
@@ -664,7 +817,29 @@ namespace Squint {
         
         /// <remarks/>
         [System.Xml.Serialization.XmlAttributeAttribute()]
-        public string FieldNormalizationMode {
+        public string VMATAirCavityCorrection {
+            get {
+                return this.vMATAirCavityCorrectionField;
+            }
+            set {
+                this.vMATAirCavityCorrectionField = value;
+            }
+        }
+        
+        /// <remarks/>
+        [System.Xml.Serialization.XmlAttributeAttribute()]
+        public string IMRTAirCavityCorrection {
+            get {
+                return this.iMRTAirCavityCorrectionField;
+            }
+            set {
+                this.iMRTAirCavityCorrectionField = value;
+            }
+        }
+        
+        /// <remarks/>
+        [System.Xml.Serialization.XmlAttributeAttribute()]
+        public FieldNormalizationTypes FieldNormalizationMode {
             get {
                 return this.fieldNormalizationModeField;
             }
@@ -674,8 +849,20 @@ namespace Squint {
         }
         
         /// <remarks/>
+        [System.Xml.Serialization.XmlIgnoreAttribute()]
+        public bool FieldNormalizationModeSpecified {
+            get {
+                return this.fieldNormalizationModeFieldSpecified;
+            }
+            set {
+                this.fieldNormalizationModeFieldSpecified = value;
+            }
+        }
+        
+        /// <remarks/>
         [System.Xml.Serialization.XmlAttributeAttribute()]
-        public string VMATOptimizationAlgorithm {
+        [System.ComponentModel.DefaultValueAttribute(AlgorithmVMATOptimizationTypes.Unset)]
+        public AlgorithmVMATOptimizationTypes VMATOptimizationAlgorithm {
             get {
                 return this.vMATOptimizationAlgorithmField;
             }
@@ -683,6 +870,93 @@ namespace Squint {
                 this.vMATOptimizationAlgorithmField = value;
             }
         }
+        
+        /// <remarks/>
+        [System.Xml.Serialization.XmlAttributeAttribute()]
+        [System.ComponentModel.DefaultValueAttribute(AlgorithmIMRTOptimizationTypes.Unset)]
+        public AlgorithmIMRTOptimizationTypes IMRTOptimizationAlgorithm {
+            get {
+                return this.iMRTOptimizationAlgorithmField;
+            }
+            set {
+                this.iMRTOptimizationAlgorithmField = value;
+            }
+        }
+    }
+    
+    /// <remarks/>
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("xsd", "4.8.3928.0")]
+    [System.SerializableAttribute()]
+    public enum AlgorithmVolumeDoseTypes {
+        
+        /// <remarks/>
+        Unset,
+        
+        /// <remarks/>
+        AAA_11031,
+        
+        /// <remarks/>
+        AAA_13623,
+        
+        /// <remarks/>
+        AAA_15606,
+    }
+    
+    /// <remarks/>
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("xsd", "4.8.3928.0")]
+    [System.SerializableAttribute()]
+    public enum FieldNormalizationTypes {
+        
+        /// <remarks/>
+        Unset,
+        
+        /// <remarks/>
+        ISO,
+        
+        /// <remarks/>
+        CAX,
+        
+        /// <remarks/>
+        field,
+        
+        /// <remarks/>
+        None,
+    }
+    
+    /// <remarks/>
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("xsd", "4.8.3928.0")]
+    [System.SerializableAttribute()]
+    public enum AlgorithmVMATOptimizationTypes {
+        
+        /// <remarks/>
+        Unset,
+        
+        /// <remarks/>
+        PRO_13623,
+        
+        /// <remarks/>
+        PO_13623,
+        
+        /// <remarks/>
+        PO_15606,
+    }
+    
+    /// <remarks/>
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("xsd", "4.8.3928.0")]
+    [System.SerializableAttribute()]
+    public enum AlgorithmIMRTOptimizationTypes {
+        
+        /// <remarks/>
+        Unset,
+        
+        /// <remarks/>
+        PRO_13623,
+        
+        /// <remarks/>
+        PO_13623,
+        
+        /// <remarks/>
+        PO_15606,
     }
     
     /// <remarks/>
@@ -693,12 +967,17 @@ namespace Squint {
     [System.Xml.Serialization.XmlTypeAttribute(AnonymousType=true)]
     public partial class SquintProtocolProtocolChecklistSimulation {
         
-        private SquintProtocolProtocolChecklistSimulationCTDeviceIds cTDeviceIdsField;
+        private SquintProtocolProtocolChecklistSimulationCTDeviceId[] cTDeviceIdsField;
         
-        private decimal sliceSpacingField;
+        private double sliceSpacingField;
+        
+        public SquintProtocolProtocolChecklistSimulation() {
+            this.sliceSpacingField = double.NaN;
+        }
         
         /// <remarks/>
-        public SquintProtocolProtocolChecklistSimulationCTDeviceIds CTDeviceIds {
+        [System.Xml.Serialization.XmlArrayItemAttribute("CTDeviceId", IsNullable=false)]
+        public SquintProtocolProtocolChecklistSimulationCTDeviceId[] CTDeviceIds {
             get {
                 return this.cTDeviceIdsField;
             }
@@ -709,7 +988,8 @@ namespace Squint {
         
         /// <remarks/>
         [System.Xml.Serialization.XmlAttributeAttribute()]
-        public decimal SliceSpacing {
+        [System.ComponentModel.DefaultValueAttribute(double.NaN)]
+        public double SliceSpacing {
             get {
                 return this.sliceSpacingField;
             }
@@ -725,28 +1005,7 @@ namespace Squint {
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
     [System.Xml.Serialization.XmlTypeAttribute(AnonymousType=true)]
-    public partial class SquintProtocolProtocolChecklistSimulationCTDeviceIds {
-        
-        private SquintProtocolProtocolChecklistSimulationCTDeviceIdsCTDeviceId cTDeviceIdField;
-        
-        /// <remarks/>
-        public SquintProtocolProtocolChecklistSimulationCTDeviceIdsCTDeviceId CTDeviceId {
-            get {
-                return this.cTDeviceIdField;
-            }
-            set {
-                this.cTDeviceIdField = value;
-            }
-        }
-    }
-    
-    /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("xsd", "4.8.3928.0")]
-    [System.SerializableAttribute()]
-    [System.Diagnostics.DebuggerStepThroughAttribute()]
-    [System.ComponentModel.DesignerCategoryAttribute("code")]
-    [System.Xml.Serialization.XmlTypeAttribute(AnonymousType=true)]
-    public partial class SquintProtocolProtocolChecklistSimulationCTDeviceIdsCTDeviceId {
+    public partial class SquintProtocolProtocolChecklistSimulationCTDeviceId {
         
         private string idField;
         
@@ -776,35 +1035,23 @@ namespace Squint {
         
         private SquintProtocolComponentConstituent[] constituentsField;
         
-        private SquintProtocolComponentBeam[] beamsField;
+        private SquintProtocolComponentBeams beamsField;
         
         private string componentNameField;
         
-        private string typeField;
+        private int idField;
         
-        private byte numFractionsField;
+        private bool idFieldSpecified;
+        
+        private ComponentTypes typeField;
+        
+        private int numFractionsField;
         
         private bool numFractionsFieldSpecified;
         
-        private ushort referenceDoseField;
+        private double referenceDoseField;
         
         private bool referenceDoseFieldSpecified;
-        
-        private ushort minBeamsField;
-        
-        private bool minBeamsFieldSpecified;
-        
-        private ushort minColOffsetField;
-        
-        private bool minColOffsetFieldSpecified;
-        
-        private ushort maxBeamsField;
-        
-        private bool maxBeamsFieldSpecified;
-        
-        private ushort numIsoField;
-        
-        private bool numIsoFieldSpecified;
         
         /// <remarks/>
         public SquintProtocolComponentPrescription Prescription {
@@ -839,8 +1086,7 @@ namespace Squint {
         }
         
         /// <remarks/>
-        [System.Xml.Serialization.XmlArrayItemAttribute("Beam", IsNullable=false)]
-        public SquintProtocolComponentBeam[] Beams {
+        public SquintProtocolComponentBeams Beams {
             get {
                 return this.beamsField;
             }
@@ -862,7 +1108,29 @@ namespace Squint {
         
         /// <remarks/>
         [System.Xml.Serialization.XmlAttributeAttribute()]
-        public string Type {
+        public int Id {
+            get {
+                return this.idField;
+            }
+            set {
+                this.idField = value;
+            }
+        }
+        
+        /// <remarks/>
+        [System.Xml.Serialization.XmlIgnoreAttribute()]
+        public bool IdSpecified {
+            get {
+                return this.idFieldSpecified;
+            }
+            set {
+                this.idFieldSpecified = value;
+            }
+        }
+        
+        /// <remarks/>
+        [System.Xml.Serialization.XmlAttributeAttribute()]
+        public ComponentTypes Type {
             get {
                 return this.typeField;
             }
@@ -873,7 +1141,7 @@ namespace Squint {
         
         /// <remarks/>
         [System.Xml.Serialization.XmlAttributeAttribute()]
-        public byte NumFractions {
+        public int NumFractions {
             get {
                 return this.numFractionsField;
             }
@@ -895,7 +1163,7 @@ namespace Squint {
         
         /// <remarks/>
         [System.Xml.Serialization.XmlAttributeAttribute()]
-        public ushort ReferenceDose {
+        public double ReferenceDose {
             get {
                 return this.referenceDoseField;
             }
@@ -914,94 +1182,6 @@ namespace Squint {
                 this.referenceDoseFieldSpecified = value;
             }
         }
-        
-        /// <remarks/>
-        [System.Xml.Serialization.XmlAttributeAttribute()]
-        public ushort MinBeams {
-            get {
-                return this.minBeamsField;
-            }
-            set {
-                this.minBeamsField = value;
-            }
-        }
-        
-        /// <remarks/>
-        [System.Xml.Serialization.XmlIgnoreAttribute()]
-        public bool MinBeamsSpecified {
-            get {
-                return this.minBeamsFieldSpecified;
-            }
-            set {
-                this.minBeamsFieldSpecified = value;
-            }
-        }
-        
-        /// <remarks/>
-        [System.Xml.Serialization.XmlAttributeAttribute()]
-        public ushort MinColOffset {
-            get {
-                return this.minColOffsetField;
-            }
-            set {
-                this.minColOffsetField = value;
-            }
-        }
-        
-        /// <remarks/>
-        [System.Xml.Serialization.XmlIgnoreAttribute()]
-        public bool MinColOffsetSpecified {
-            get {
-                return this.minColOffsetFieldSpecified;
-            }
-            set {
-                this.minColOffsetFieldSpecified = value;
-            }
-        }
-        
-        /// <remarks/>
-        [System.Xml.Serialization.XmlAttributeAttribute()]
-        public ushort MaxBeams {
-            get {
-                return this.maxBeamsField;
-            }
-            set {
-                this.maxBeamsField = value;
-            }
-        }
-        
-        /// <remarks/>
-        [System.Xml.Serialization.XmlIgnoreAttribute()]
-        public bool MaxBeamsSpecified {
-            get {
-                return this.maxBeamsFieldSpecified;
-            }
-            set {
-                this.maxBeamsFieldSpecified = value;
-            }
-        }
-        
-        /// <remarks/>
-        [System.Xml.Serialization.XmlAttributeAttribute()]
-        public ushort NumIso {
-            get {
-                return this.numIsoField;
-            }
-            set {
-                this.numIsoField = value;
-            }
-        }
-        
-        /// <remarks/>
-        [System.Xml.Serialization.XmlIgnoreAttribute()]
-        public bool NumIsoSpecified {
-            get {
-                return this.numIsoFieldSpecified;
-            }
-            set {
-                this.numIsoFieldSpecified = value;
-            }
-        }
     }
     
     /// <remarks/>
@@ -1012,25 +1192,25 @@ namespace Squint {
     [System.Xml.Serialization.XmlTypeAttribute(AnonymousType=true)]
     public partial class SquintProtocolComponentPrescription {
         
-        private byte numFractionsField;
+        private int numFractionsField;
         
-        private ushort referenceDoseField;
+        private double referenceDoseField;
         
-        private byte pNVMinField;
+        private double pNVMinField;
         
         private bool pNVMinFieldSpecified;
         
-        private byte pNVMaxField;
+        private double pNVMaxField;
         
         private bool pNVMaxFieldSpecified;
         
-        private byte prescribedPercentageField;
+        private double prescribedPercentageField;
         
         private bool prescribedPercentageFieldSpecified;
         
         /// <remarks/>
         [System.Xml.Serialization.XmlAttributeAttribute()]
-        public byte NumFractions {
+        public int NumFractions {
             get {
                 return this.numFractionsField;
             }
@@ -1041,7 +1221,7 @@ namespace Squint {
         
         /// <remarks/>
         [System.Xml.Serialization.XmlAttributeAttribute()]
-        public ushort ReferenceDose {
+        public double ReferenceDose {
             get {
                 return this.referenceDoseField;
             }
@@ -1052,7 +1232,7 @@ namespace Squint {
         
         /// <remarks/>
         [System.Xml.Serialization.XmlAttributeAttribute()]
-        public byte PNVMin {
+        public double PNVMin {
             get {
                 return this.pNVMinField;
             }
@@ -1074,7 +1254,7 @@ namespace Squint {
         
         /// <remarks/>
         [System.Xml.Serialization.XmlAttributeAttribute()]
-        public byte PNVMax {
+        public double PNVMax {
             get {
                 return this.pNVMaxField;
             }
@@ -1096,7 +1276,7 @@ namespace Squint {
         
         /// <remarks/>
         [System.Xml.Serialization.XmlAttributeAttribute()]
-        public byte PrescribedPercentage {
+        public double PrescribedPercentage {
             get {
                 return this.prescribedPercentageField;
             }
@@ -1125,11 +1305,13 @@ namespace Squint {
     [System.Xml.Serialization.XmlTypeAttribute(AnonymousType=true)]
     public partial class SquintProtocolComponentImagingProtocol {
         
-        private string idField;
+        private ImagingProtocolTypes idField;
+        
+        private string imagingProtocolDisplayNameField;
         
         /// <remarks/>
         [System.Xml.Serialization.XmlAttributeAttribute()]
-        public string Id {
+        public ImagingProtocolTypes Id {
             get {
                 return this.idField;
             }
@@ -1137,6 +1319,47 @@ namespace Squint {
                 this.idField = value;
             }
         }
+        
+        /// <remarks/>
+        [System.Xml.Serialization.XmlAttributeAttribute()]
+        public string ImagingProtocolDisplayName {
+            get {
+                return this.imagingProtocolDisplayNameField;
+            }
+            set {
+                this.imagingProtocolDisplayNameField = value;
+            }
+        }
+    }
+    
+    /// <remarks/>
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("xsd", "4.8.3928.0")]
+    [System.SerializableAttribute()]
+    public enum ImagingProtocolTypes {
+        
+        /// <remarks/>
+        Unset,
+        
+        /// <remarks/>
+        kV,
+        
+        /// <remarks/>
+        kV_2D,
+        
+        /// <remarks/>
+        Bolus,
+        
+        /// <remarks/>
+        PreCBCT,
+        
+        /// <remarks/>
+        PostCBCT,
+        
+        /// <remarks/>
+        MidTxCBCT,
+        
+        /// <remarks/>
+        Home,
     }
     
     /// <remarks/>
@@ -1167,73 +1390,181 @@ namespace Squint {
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
     [System.Xml.Serialization.XmlTypeAttribute(AnonymousType=true)]
-    public partial class SquintProtocolComponentBeam {
+    public partial class SquintProtocolComponentBeams {
         
-        private object[] itemsField;
+        private SquintProtocolComponentBeamsBeam[] beamField;
+        
+        private int minBeamsField;
+        
+        private double minColOffsetField;
+        
+        private int maxBeamsField;
+        
+        private int numIsoField;
+        
+        public SquintProtocolComponentBeams() {
+            this.minBeamsField = -1;
+            this.minColOffsetField = double.NaN;
+            this.maxBeamsField = -1;
+            this.numIsoField = 1;
+        }
+        
+        /// <remarks/>
+        [System.Xml.Serialization.XmlElementAttribute("Beam")]
+        public SquintProtocolComponentBeamsBeam[] Beam {
+            get {
+                return this.beamField;
+            }
+            set {
+                this.beamField = value;
+            }
+        }
+        
+        /// <remarks/>
+        [System.Xml.Serialization.XmlAttributeAttribute()]
+        [System.ComponentModel.DefaultValueAttribute(-1)]
+        public int MinBeams {
+            get {
+                return this.minBeamsField;
+            }
+            set {
+                this.minBeamsField = value;
+            }
+        }
+        
+        /// <remarks/>
+        [System.Xml.Serialization.XmlAttributeAttribute()]
+        [System.ComponentModel.DefaultValueAttribute(double.NaN)]
+        public double MinColOffset {
+            get {
+                return this.minColOffsetField;
+            }
+            set {
+                this.minColOffsetField = value;
+            }
+        }
+        
+        /// <remarks/>
+        [System.Xml.Serialization.XmlAttributeAttribute()]
+        [System.ComponentModel.DefaultValueAttribute(-1)]
+        public int MaxBeams {
+            get {
+                return this.maxBeamsField;
+            }
+            set {
+                this.maxBeamsField = value;
+            }
+        }
+        
+        /// <remarks/>
+        [System.Xml.Serialization.XmlAttributeAttribute()]
+        [System.ComponentModel.DefaultValueAttribute(1)]
+        public int NumIso {
+            get {
+                return this.numIsoField;
+            }
+            set {
+                this.numIsoField = value;
+            }
+        }
+    }
+    
+    /// <remarks/>
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("xsd", "4.8.3928.0")]
+    [System.SerializableAttribute()]
+    [System.Diagnostics.DebuggerStepThroughAttribute()]
+    [System.ComponentModel.DesignerCategoryAttribute("code")]
+    [System.Xml.Serialization.XmlTypeAttribute(AnonymousType=true)]
+    public partial class SquintProtocolComponentBeamsBeam {
+        
+        private SquintProtocolComponentBeamsBeamEclipseId[] eclipseAliasesField;
+        
+        private SquintProtocolComponentBeamsBeamBolus[] bolusDefinitionsField;
+        
+        private SquintProtocolComponentBeamsBeamGeometry[] validGeometriesField;
+        
+        private SquintProtocolComponentBeamsBeamEnergy[] validEnergiesField;
         
         private string protocolBeamNameField;
         
-        private string techniqueField;
+        private FieldTechniqueType techniqueField;
         
-        private ushort minMUWarningField;
+        private double minMUWarningField;
         
-        private bool minMUWarningFieldSpecified;
-        
-        private ushort maxMUWarningField;
-        
-        private bool maxMUWarningFieldSpecified;
-        
-        private byte startAngleField;
-        
-        private bool startAngleFieldSpecified;
-        
-        private byte endAngleField;
-        
-        private bool endAngleFieldSpecified;
+        private double maxMUWarningField;
         
         private string toleranceTableField;
         
-        private byte minColRotationField;
+        private double minColRotationField;
         
-        private bool minColRotationFieldSpecified;
+        private double couchRotationField;
         
-        private byte couchRotationField;
+        private double minXField;
         
-        private bool couchRotationFieldSpecified;
+        private double maxXField;
         
-        private byte minXField;
+        private double minYField;
         
-        private bool minXFieldSpecified;
+        private double maxYField;
         
-        private byte maxXField;
+        private ParameterOptions jawTracking_IndicationField;
         
-        private bool maxXFieldSpecified;
+        private double maxColRotationField;
         
-        private byte minYField;
-        
-        private bool minYFieldSpecified;
-        
-        private byte maxYField;
-        
-        private bool maxYFieldSpecified;
-        
-        private string jawTracking_IndicationField;
-        
-        private byte maxColRotationField;
-        
-        private bool maxColRotationFieldSpecified;
+        public SquintProtocolComponentBeamsBeam() {
+            this.minMUWarningField = double.NaN;
+            this.maxMUWarningField = double.NaN;
+            this.minColRotationField = double.NaN;
+            this.couchRotationField = double.NaN;
+            this.minXField = double.NaN;
+            this.maxXField = double.NaN;
+            this.minYField = double.NaN;
+            this.maxYField = double.NaN;
+            this.jawTracking_IndicationField = ParameterOptions.Optional;
+            this.maxColRotationField = double.NaN;
+        }
         
         /// <remarks/>
-        [System.Xml.Serialization.XmlElementAttribute("BolusDefinitions", typeof(SquintProtocolComponentBeamBolusDefinitions))]
-        [System.Xml.Serialization.XmlElementAttribute("EclipseAliases", typeof(SquintProtocolComponentBeamEclipseAliases))]
-        [System.Xml.Serialization.XmlElementAttribute("ValidEnergies", typeof(SquintProtocolComponentBeamValidEnergies))]
-        [System.Xml.Serialization.XmlElementAttribute("ValidGeometries", typeof(SquintProtocolComponentBeamValidGeometries))]
-        public object[] Items {
+        [System.Xml.Serialization.XmlArrayItemAttribute("EclipseId", IsNullable=false)]
+        public SquintProtocolComponentBeamsBeamEclipseId[] EclipseAliases {
             get {
-                return this.itemsField;
+                return this.eclipseAliasesField;
             }
             set {
-                this.itemsField = value;
+                this.eclipseAliasesField = value;
+            }
+        }
+        
+        /// <remarks/>
+        [System.Xml.Serialization.XmlArrayItemAttribute("Bolus", IsNullable=false)]
+        public SquintProtocolComponentBeamsBeamBolus[] BolusDefinitions {
+            get {
+                return this.bolusDefinitionsField;
+            }
+            set {
+                this.bolusDefinitionsField = value;
+            }
+        }
+        
+        /// <remarks/>
+        [System.Xml.Serialization.XmlArrayItemAttribute("Geometry", IsNullable=false)]
+        public SquintProtocolComponentBeamsBeamGeometry[] ValidGeometries {
+            get {
+                return this.validGeometriesField;
+            }
+            set {
+                this.validGeometriesField = value;
+            }
+        }
+        
+        /// <remarks/>
+        [System.Xml.Serialization.XmlArrayItemAttribute("Energy", IsNullable=false)]
+        public SquintProtocolComponentBeamsBeamEnergy[] ValidEnergies {
+            get {
+                return this.validEnergiesField;
+            }
+            set {
+                this.validEnergiesField = value;
             }
         }
         
@@ -1250,7 +1581,7 @@ namespace Squint {
         
         /// <remarks/>
         [System.Xml.Serialization.XmlAttributeAttribute()]
-        public string Technique {
+        public FieldTechniqueType Technique {
             get {
                 return this.techniqueField;
             }
@@ -1261,7 +1592,8 @@ namespace Squint {
         
         /// <remarks/>
         [System.Xml.Serialization.XmlAttributeAttribute()]
-        public ushort MinMUWarning {
+        [System.ComponentModel.DefaultValueAttribute(double.NaN)]
+        public double MinMUWarning {
             get {
                 return this.minMUWarningField;
             }
@@ -1271,79 +1603,14 @@ namespace Squint {
         }
         
         /// <remarks/>
-        [System.Xml.Serialization.XmlIgnoreAttribute()]
-        public bool MinMUWarningSpecified {
-            get {
-                return this.minMUWarningFieldSpecified;
-            }
-            set {
-                this.minMUWarningFieldSpecified = value;
-            }
-        }
-        
-        /// <remarks/>
         [System.Xml.Serialization.XmlAttributeAttribute()]
-        public ushort MaxMUWarning {
+        [System.ComponentModel.DefaultValueAttribute(double.NaN)]
+        public double MaxMUWarning {
             get {
                 return this.maxMUWarningField;
             }
             set {
                 this.maxMUWarningField = value;
-            }
-        }
-        
-        /// <remarks/>
-        [System.Xml.Serialization.XmlIgnoreAttribute()]
-        public bool MaxMUWarningSpecified {
-            get {
-                return this.maxMUWarningFieldSpecified;
-            }
-            set {
-                this.maxMUWarningFieldSpecified = value;
-            }
-        }
-        
-        /// <remarks/>
-        [System.Xml.Serialization.XmlAttributeAttribute()]
-        public byte StartAngle {
-            get {
-                return this.startAngleField;
-            }
-            set {
-                this.startAngleField = value;
-            }
-        }
-        
-        /// <remarks/>
-        [System.Xml.Serialization.XmlIgnoreAttribute()]
-        public bool StartAngleSpecified {
-            get {
-                return this.startAngleFieldSpecified;
-            }
-            set {
-                this.startAngleFieldSpecified = value;
-            }
-        }
-        
-        /// <remarks/>
-        [System.Xml.Serialization.XmlAttributeAttribute()]
-        public byte EndAngle {
-            get {
-                return this.endAngleField;
-            }
-            set {
-                this.endAngleField = value;
-            }
-        }
-        
-        /// <remarks/>
-        [System.Xml.Serialization.XmlIgnoreAttribute()]
-        public bool EndAngleSpecified {
-            get {
-                return this.endAngleFieldSpecified;
-            }
-            set {
-                this.endAngleFieldSpecified = value;
             }
         }
         
@@ -1360,7 +1627,8 @@ namespace Squint {
         
         /// <remarks/>
         [System.Xml.Serialization.XmlAttributeAttribute()]
-        public byte MinColRotation {
+        [System.ComponentModel.DefaultValueAttribute(double.NaN)]
+        public double MinColRotation {
             get {
                 return this.minColRotationField;
             }
@@ -1370,19 +1638,9 @@ namespace Squint {
         }
         
         /// <remarks/>
-        [System.Xml.Serialization.XmlIgnoreAttribute()]
-        public bool MinColRotationSpecified {
-            get {
-                return this.minColRotationFieldSpecified;
-            }
-            set {
-                this.minColRotationFieldSpecified = value;
-            }
-        }
-        
-        /// <remarks/>
         [System.Xml.Serialization.XmlAttributeAttribute()]
-        public byte CouchRotation {
+        [System.ComponentModel.DefaultValueAttribute(double.NaN)]
+        public double CouchRotation {
             get {
                 return this.couchRotationField;
             }
@@ -1392,19 +1650,9 @@ namespace Squint {
         }
         
         /// <remarks/>
-        [System.Xml.Serialization.XmlIgnoreAttribute()]
-        public bool CouchRotationSpecified {
-            get {
-                return this.couchRotationFieldSpecified;
-            }
-            set {
-                this.couchRotationFieldSpecified = value;
-            }
-        }
-        
-        /// <remarks/>
         [System.Xml.Serialization.XmlAttributeAttribute()]
-        public byte MinX {
+        [System.ComponentModel.DefaultValueAttribute(double.NaN)]
+        public double MinX {
             get {
                 return this.minXField;
             }
@@ -1414,19 +1662,9 @@ namespace Squint {
         }
         
         /// <remarks/>
-        [System.Xml.Serialization.XmlIgnoreAttribute()]
-        public bool MinXSpecified {
-            get {
-                return this.minXFieldSpecified;
-            }
-            set {
-                this.minXFieldSpecified = value;
-            }
-        }
-        
-        /// <remarks/>
         [System.Xml.Serialization.XmlAttributeAttribute()]
-        public byte MaxX {
+        [System.ComponentModel.DefaultValueAttribute(double.NaN)]
+        public double MaxX {
             get {
                 return this.maxXField;
             }
@@ -1436,19 +1674,9 @@ namespace Squint {
         }
         
         /// <remarks/>
-        [System.Xml.Serialization.XmlIgnoreAttribute()]
-        public bool MaxXSpecified {
-            get {
-                return this.maxXFieldSpecified;
-            }
-            set {
-                this.maxXFieldSpecified = value;
-            }
-        }
-        
-        /// <remarks/>
         [System.Xml.Serialization.XmlAttributeAttribute()]
-        public byte MinY {
+        [System.ComponentModel.DefaultValueAttribute(double.NaN)]
+        public double MinY {
             get {
                 return this.minYField;
             }
@@ -1458,19 +1686,9 @@ namespace Squint {
         }
         
         /// <remarks/>
-        [System.Xml.Serialization.XmlIgnoreAttribute()]
-        public bool MinYSpecified {
-            get {
-                return this.minYFieldSpecified;
-            }
-            set {
-                this.minYFieldSpecified = value;
-            }
-        }
-        
-        /// <remarks/>
         [System.Xml.Serialization.XmlAttributeAttribute()]
-        public byte MaxY {
+        [System.ComponentModel.DefaultValueAttribute(double.NaN)]
+        public double MaxY {
             get {
                 return this.maxYField;
             }
@@ -1480,19 +1698,9 @@ namespace Squint {
         }
         
         /// <remarks/>
-        [System.Xml.Serialization.XmlIgnoreAttribute()]
-        public bool MaxYSpecified {
-            get {
-                return this.maxYFieldSpecified;
-            }
-            set {
-                this.maxYFieldSpecified = value;
-            }
-        }
-        
-        /// <remarks/>
         [System.Xml.Serialization.XmlAttributeAttribute()]
-        public string JawTracking_Indication {
+        [System.ComponentModel.DefaultValueAttribute(ParameterOptions.Optional)]
+        public ParameterOptions JawTracking_Indication {
             get {
                 return this.jawTracking_IndicationField;
             }
@@ -1503,7 +1711,8 @@ namespace Squint {
         
         /// <remarks/>
         [System.Xml.Serialization.XmlAttributeAttribute()]
-        public byte MaxColRotation {
+        [System.ComponentModel.DefaultValueAttribute(double.NaN)]
+        public double MaxColRotation {
             get {
                 return this.maxColRotationField;
             }
@@ -1511,17 +1720,6 @@ namespace Squint {
                 this.maxColRotationField = value;
             }
         }
-        
-        /// <remarks/>
-        [System.Xml.Serialization.XmlIgnoreAttribute()]
-        public bool MaxColRotationSpecified {
-            get {
-                return this.maxColRotationFieldSpecified;
-            }
-            set {
-                this.maxColRotationFieldSpecified = value;
-            }
-        }
     }
     
     /// <remarks/>
@@ -1530,176 +1728,7 @@ namespace Squint {
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
     [System.Xml.Serialization.XmlTypeAttribute(AnonymousType=true)]
-    public partial class SquintProtocolComponentBeamBolusDefinitions {
-        
-        private SquintProtocolComponentBeamBolusDefinitionsBolus bolusField;
-        
-        /// <remarks/>
-        public SquintProtocolComponentBeamBolusDefinitionsBolus Bolus {
-            get {
-                return this.bolusField;
-            }
-            set {
-                this.bolusField = value;
-            }
-        }
-    }
-    
-    /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("xsd", "4.8.3928.0")]
-    [System.SerializableAttribute()]
-    [System.Diagnostics.DebuggerStepThroughAttribute()]
-    [System.ComponentModel.DesignerCategoryAttribute("code")]
-    [System.Xml.Serialization.XmlTypeAttribute(AnonymousType=true)]
-    public partial class SquintProtocolComponentBeamBolusDefinitionsBolus {
-        
-        private byte huField;
-        
-        private bool huFieldSpecified;
-        
-        private decimal thicknessField;
-        
-        private bool thicknessFieldSpecified;
-        
-        private string indicationField;
-        
-        private decimal toleranceHUField;
-        
-        private bool toleranceHUFieldSpecified;
-        
-        private decimal toleranceThicknessField;
-        
-        private bool toleranceThicknessFieldSpecified;
-        
-        /// <remarks/>
-        [System.Xml.Serialization.XmlAttributeAttribute()]
-        public byte HU {
-            get {
-                return this.huField;
-            }
-            set {
-                this.huField = value;
-            }
-        }
-        
-        /// <remarks/>
-        [System.Xml.Serialization.XmlIgnoreAttribute()]
-        public bool HUSpecified {
-            get {
-                return this.huFieldSpecified;
-            }
-            set {
-                this.huFieldSpecified = value;
-            }
-        }
-        
-        /// <remarks/>
-        [System.Xml.Serialization.XmlAttributeAttribute()]
-        public decimal Thickness {
-            get {
-                return this.thicknessField;
-            }
-            set {
-                this.thicknessField = value;
-            }
-        }
-        
-        /// <remarks/>
-        [System.Xml.Serialization.XmlIgnoreAttribute()]
-        public bool ThicknessSpecified {
-            get {
-                return this.thicknessFieldSpecified;
-            }
-            set {
-                this.thicknessFieldSpecified = value;
-            }
-        }
-        
-        /// <remarks/>
-        [System.Xml.Serialization.XmlAttributeAttribute()]
-        public string Indication {
-            get {
-                return this.indicationField;
-            }
-            set {
-                this.indicationField = value;
-            }
-        }
-        
-        /// <remarks/>
-        [System.Xml.Serialization.XmlAttributeAttribute()]
-        public decimal ToleranceHU {
-            get {
-                return this.toleranceHUField;
-            }
-            set {
-                this.toleranceHUField = value;
-            }
-        }
-        
-        /// <remarks/>
-        [System.Xml.Serialization.XmlIgnoreAttribute()]
-        public bool ToleranceHUSpecified {
-            get {
-                return this.toleranceHUFieldSpecified;
-            }
-            set {
-                this.toleranceHUFieldSpecified = value;
-            }
-        }
-        
-        /// <remarks/>
-        [System.Xml.Serialization.XmlAttributeAttribute()]
-        public decimal ToleranceThickness {
-            get {
-                return this.toleranceThicknessField;
-            }
-            set {
-                this.toleranceThicknessField = value;
-            }
-        }
-        
-        /// <remarks/>
-        [System.Xml.Serialization.XmlIgnoreAttribute()]
-        public bool ToleranceThicknessSpecified {
-            get {
-                return this.toleranceThicknessFieldSpecified;
-            }
-            set {
-                this.toleranceThicknessFieldSpecified = value;
-            }
-        }
-    }
-    
-    /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("xsd", "4.8.3928.0")]
-    [System.SerializableAttribute()]
-    [System.Diagnostics.DebuggerStepThroughAttribute()]
-    [System.ComponentModel.DesignerCategoryAttribute("code")]
-    [System.Xml.Serialization.XmlTypeAttribute(AnonymousType=true)]
-    public partial class SquintProtocolComponentBeamEclipseAliases {
-        
-        private SquintProtocolComponentBeamEclipseAliasesEclipseId[] eclipseIdField;
-        
-        /// <remarks/>
-        [System.Xml.Serialization.XmlElementAttribute("EclipseId")]
-        public SquintProtocolComponentBeamEclipseAliasesEclipseId[] EclipseId {
-            get {
-                return this.eclipseIdField;
-            }
-            set {
-                this.eclipseIdField = value;
-            }
-        }
-    }
-    
-    /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("xsd", "4.8.3928.0")]
-    [System.SerializableAttribute()]
-    [System.Diagnostics.DebuggerStepThroughAttribute()]
-    [System.ComponentModel.DesignerCategoryAttribute("code")]
-    [System.Xml.Serialization.XmlTypeAttribute(AnonymousType=true)]
-    public partial class SquintProtocolComponentBeamEclipseAliasesEclipseId {
+    public partial class SquintProtocolComponentBeamsBeamEclipseId {
         
         private string idField;
         
@@ -1721,62 +1750,79 @@ namespace Squint {
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
     [System.Xml.Serialization.XmlTypeAttribute(AnonymousType=true)]
-    public partial class SquintProtocolComponentBeamValidEnergies {
+    public partial class SquintProtocolComponentBeamsBeamBolus {
         
-        private SquintProtocolComponentBeamValidEnergiesEnergy[] energyField;
+        private double huField;
         
-        /// <remarks/>
-        [System.Xml.Serialization.XmlElementAttribute("Energy")]
-        public SquintProtocolComponentBeamValidEnergiesEnergy[] Energy {
-            get {
-                return this.energyField;
-            }
-            set {
-                this.energyField = value;
-            }
+        private double thicknessField;
+        
+        private ParameterOptions indicationField;
+        
+        private double toleranceHUField;
+        
+        private double toleranceThicknessField;
+        
+        public SquintProtocolComponentBeamsBeamBolus() {
+            this.thicknessField = 0.5D;
+            this.toleranceHUField = double.NaN;
+            this.toleranceThicknessField = double.NaN;
         }
-    }
-    
-    /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("xsd", "4.8.3928.0")]
-    [System.SerializableAttribute()]
-    [System.Diagnostics.DebuggerStepThroughAttribute()]
-    [System.ComponentModel.DesignerCategoryAttribute("code")]
-    [System.Xml.Serialization.XmlTypeAttribute(AnonymousType=true)]
-    public partial class SquintProtocolComponentBeamValidEnergiesEnergy {
-        
-        private string modeField;
         
         /// <remarks/>
         [System.Xml.Serialization.XmlAttributeAttribute()]
-        public string Mode {
+        public double HU {
             get {
-                return this.modeField;
+                return this.huField;
             }
             set {
-                this.modeField = value;
+                this.huField = value;
             }
         }
-    }
-    
-    /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("xsd", "4.8.3928.0")]
-    [System.SerializableAttribute()]
-    [System.Diagnostics.DebuggerStepThroughAttribute()]
-    [System.ComponentModel.DesignerCategoryAttribute("code")]
-    [System.Xml.Serialization.XmlTypeAttribute(AnonymousType=true)]
-    public partial class SquintProtocolComponentBeamValidGeometries {
-        
-        private SquintProtocolComponentBeamValidGeometriesGeometry[] geometryField;
         
         /// <remarks/>
-        [System.Xml.Serialization.XmlElementAttribute("Geometry")]
-        public SquintProtocolComponentBeamValidGeometriesGeometry[] Geometry {
+        [System.Xml.Serialization.XmlAttributeAttribute()]
+        [System.ComponentModel.DefaultValueAttribute(0.5D)]
+        public double Thickness {
             get {
-                return this.geometryField;
+                return this.thicknessField;
             }
             set {
-                this.geometryField = value;
+                this.thicknessField = value;
+            }
+        }
+        
+        /// <remarks/>
+        [System.Xml.Serialization.XmlAttributeAttribute()]
+        public ParameterOptions Indication {
+            get {
+                return this.indicationField;
+            }
+            set {
+                this.indicationField = value;
+            }
+        }
+        
+        /// <remarks/>
+        [System.Xml.Serialization.XmlAttributeAttribute()]
+        [System.ComponentModel.DefaultValueAttribute(double.NaN)]
+        public double ToleranceHU {
+            get {
+                return this.toleranceHUField;
+            }
+            set {
+                this.toleranceHUField = value;
+            }
+        }
+        
+        /// <remarks/>
+        [System.Xml.Serialization.XmlAttributeAttribute()]
+        [System.ComponentModel.DefaultValueAttribute(double.NaN)]
+        public double ToleranceThickness {
+            get {
+                return this.toleranceThicknessField;
+            }
+            set {
+                this.toleranceThicknessField = value;
             }
         }
     }
@@ -1787,27 +1833,24 @@ namespace Squint {
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
     [System.Xml.Serialization.XmlTypeAttribute(AnonymousType=true)]
-    public partial class SquintProtocolComponentBeamValidGeometriesGeometry {
+    public partial class SquintProtocolComponentBeamsBeamGeometry {
         
         private string geometryNameField;
         
-        private decimal startAngleField;
+        private double startAngleField;
         
-        private bool startAngleFieldSpecified;
+        private double startAngleToleranceField;
         
-        private decimal startAngleToleranceField;
+        private double endAngleField;
         
-        private bool startAngleToleranceFieldSpecified;
+        private double endAngleToleranceField;
         
-        private decimal endAngleField;
+        private TrajectoryTypes trajectoryField;
         
-        private bool endAngleFieldSpecified;
-        
-        private decimal endAngleToleranceField;
-        
-        private bool endAngleToleranceFieldSpecified;
-        
-        private string trajectoryField;
+        public SquintProtocolComponentBeamsBeamGeometry() {
+            this.startAngleToleranceField = double.NaN;
+            this.endAngleToleranceField = double.NaN;
+        }
         
         /// <remarks/>
         [System.Xml.Serialization.XmlAttributeAttribute()]
@@ -1822,7 +1865,7 @@ namespace Squint {
         
         /// <remarks/>
         [System.Xml.Serialization.XmlAttributeAttribute()]
-        public decimal StartAngle {
+        public double StartAngle {
             get {
                 return this.startAngleField;
             }
@@ -1832,19 +1875,9 @@ namespace Squint {
         }
         
         /// <remarks/>
-        [System.Xml.Serialization.XmlIgnoreAttribute()]
-        public bool StartAngleSpecified {
-            get {
-                return this.startAngleFieldSpecified;
-            }
-            set {
-                this.startAngleFieldSpecified = value;
-            }
-        }
-        
-        /// <remarks/>
         [System.Xml.Serialization.XmlAttributeAttribute()]
-        public decimal StartAngleTolerance {
+        [System.ComponentModel.DefaultValueAttribute(double.NaN)]
+        public double StartAngleTolerance {
             get {
                 return this.startAngleToleranceField;
             }
@@ -1854,19 +1887,8 @@ namespace Squint {
         }
         
         /// <remarks/>
-        [System.Xml.Serialization.XmlIgnoreAttribute()]
-        public bool StartAngleToleranceSpecified {
-            get {
-                return this.startAngleToleranceFieldSpecified;
-            }
-            set {
-                this.startAngleToleranceFieldSpecified = value;
-            }
-        }
-        
-        /// <remarks/>
         [System.Xml.Serialization.XmlAttributeAttribute()]
-        public decimal EndAngle {
+        public double EndAngle {
             get {
                 return this.endAngleField;
             }
@@ -1876,19 +1898,9 @@ namespace Squint {
         }
         
         /// <remarks/>
-        [System.Xml.Serialization.XmlIgnoreAttribute()]
-        public bool EndAngleSpecified {
-            get {
-                return this.endAngleFieldSpecified;
-            }
-            set {
-                this.endAngleFieldSpecified = value;
-            }
-        }
-        
-        /// <remarks/>
         [System.Xml.Serialization.XmlAttributeAttribute()]
-        public decimal EndAngleTolerance {
+        [System.ComponentModel.DefaultValueAttribute(double.NaN)]
+        public double EndAngleTolerance {
             get {
                 return this.endAngleToleranceField;
             }
@@ -1898,19 +1910,8 @@ namespace Squint {
         }
         
         /// <remarks/>
-        [System.Xml.Serialization.XmlIgnoreAttribute()]
-        public bool EndAngleToleranceSpecified {
-            get {
-                return this.endAngleToleranceFieldSpecified;
-            }
-            set {
-                this.endAngleToleranceFieldSpecified = value;
-            }
-        }
-        
-        /// <remarks/>
         [System.Xml.Serialization.XmlAttributeAttribute()]
-        public string Trajectory {
+        public TrajectoryTypes Trajectory {
             get {
                 return this.trajectoryField;
             }
@@ -1923,6 +1924,129 @@ namespace Squint {
     /// <remarks/>
     [System.CodeDom.Compiler.GeneratedCodeAttribute("xsd", "4.8.3928.0")]
     [System.SerializableAttribute()]
+    public enum TrajectoryTypes {
+        
+        /// <remarks/>
+        Unset,
+        
+        /// <remarks/>
+        Static,
+        
+        /// <remarks/>
+        CW,
+        
+        /// <remarks/>
+        CCW,
+    }
+    
+    /// <remarks/>
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("xsd", "4.8.3928.0")]
+    [System.SerializableAttribute()]
+    [System.Diagnostics.DebuggerStepThroughAttribute()]
+    [System.ComponentModel.DesignerCategoryAttribute("code")]
+    [System.Xml.Serialization.XmlTypeAttribute(AnonymousType=true)]
+    public partial class SquintProtocolComponentBeamsBeamEnergy {
+        
+        private Energies modeField;
+        
+        /// <remarks/>
+        [System.Xml.Serialization.XmlAttributeAttribute()]
+        public Energies Mode {
+            get {
+                return this.modeField;
+            }
+            set {
+                this.modeField = value;
+            }
+        }
+    }
+    
+    /// <remarks/>
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("xsd", "4.8.3928.0")]
+    [System.SerializableAttribute()]
+    public enum Energies {
+        
+        /// <remarks/>
+        Unset,
+        
+        /// <remarks/>
+        [System.Xml.Serialization.XmlEnumAttribute("6X")]
+        Item6X,
+        
+        /// <remarks/>
+        [System.Xml.Serialization.XmlEnumAttribute("10X")]
+        Item10X,
+        
+        /// <remarks/>
+        [System.Xml.Serialization.XmlEnumAttribute("15X")]
+        Item15X,
+        
+        /// <remarks/>
+        [System.Xml.Serialization.XmlEnumAttribute("10XFFF")]
+        Item10XFFF,
+        
+        /// <remarks/>
+        [System.Xml.Serialization.XmlEnumAttribute("6XFFF")]
+        Item6XFFF,
+    }
+    
+    /// <remarks/>
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("xsd", "4.8.3928.0")]
+    [System.SerializableAttribute()]
+    public enum FieldTechniqueType {
+        
+        /// <remarks/>
+        Unset,
+        
+        /// <remarks/>
+        BolusSetup,
+        
+        /// <remarks/>
+        LL_kv,
+        
+        /// <remarks/>
+        RL_kv,
+        
+        /// <remarks/>
+        CBCT,
+        
+        /// <remarks/>
+        Ant_kv,
+        
+        /// <remarks/>
+        Post_kv,
+        
+        /// <remarks/>
+        STATIC,
+        
+        /// <remarks/>
+        ARC,
+        
+        /// <remarks/>
+        Unload,
+        
+        /// <remarks/>
+        Home,
+    }
+    
+    /// <remarks/>
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("xsd", "4.8.3928.0")]
+    [System.SerializableAttribute()]
+    public enum ComponentTypes {
+        
+        /// <remarks/>
+        Unset,
+        
+        /// <remarks/>
+        Phase,
+        
+        /// <remarks/>
+        Sum,
+    }
+    
+    /// <remarks/>
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("xsd", "4.8.3928.0")]
+    [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
     [System.Xml.Serialization.XmlTypeAttribute(AnonymousType=true)]
@@ -1930,33 +2054,38 @@ namespace Squint {
         
         private string componentNameField;
         
+        private int componentIdField;
+        
+        private bool componentIdFieldSpecified;
+        
         private string protocolStructureNameField;
         
-        private string constraintTypeField;
+        private ConstraintTypes constraintTypeField;
         
-        private decimal constraintValueField;
+        private double constraintValueField;
         
-        private string constraintUnitField;
+        private UnitScale constraintUnitField;
         
-        private string referenceTypeField;
+        private ReferenceTypes referenceTypeField;
         
-        private decimal majorViolationField;
+        private double majorViolationField;
         
-        private decimal minorViolationField;
+        private double minorViolationField;
         
-        private bool minorViolationFieldSpecified;
+        private UnitScale referenceUnitField;
         
-        private string referenceUnitField;
-        
-        private decimal stopField;
-        
-        private bool stopFieldSpecified;
+        private double stopField;
         
         private string descriptionField;
         
         private string dataTablePathField;
         
         private string referenceStructureNameField;
+        
+        public SquintProtocolConstraint() {
+            this.minorViolationField = double.NaN;
+            this.stopField = double.NaN;
+        }
         
         /// <remarks/>
         [System.Xml.Serialization.XmlAttributeAttribute()]
@@ -1966,6 +2095,28 @@ namespace Squint {
             }
             set {
                 this.componentNameField = value;
+            }
+        }
+        
+        /// <remarks/>
+        [System.Xml.Serialization.XmlAttributeAttribute()]
+        public int ComponentId {
+            get {
+                return this.componentIdField;
+            }
+            set {
+                this.componentIdField = value;
+            }
+        }
+        
+        /// <remarks/>
+        [System.Xml.Serialization.XmlIgnoreAttribute()]
+        public bool ComponentIdSpecified {
+            get {
+                return this.componentIdFieldSpecified;
+            }
+            set {
+                this.componentIdFieldSpecified = value;
             }
         }
         
@@ -1982,7 +2133,7 @@ namespace Squint {
         
         /// <remarks/>
         [System.Xml.Serialization.XmlAttributeAttribute()]
-        public string ConstraintType {
+        public ConstraintTypes ConstraintType {
             get {
                 return this.constraintTypeField;
             }
@@ -1993,7 +2144,7 @@ namespace Squint {
         
         /// <remarks/>
         [System.Xml.Serialization.XmlAttributeAttribute()]
-        public decimal ConstraintValue {
+        public double ConstraintValue {
             get {
                 return this.constraintValueField;
             }
@@ -2004,7 +2155,7 @@ namespace Squint {
         
         /// <remarks/>
         [System.Xml.Serialization.XmlAttributeAttribute()]
-        public string ConstraintUnit {
+        public UnitScale ConstraintUnit {
             get {
                 return this.constraintUnitField;
             }
@@ -2015,7 +2166,7 @@ namespace Squint {
         
         /// <remarks/>
         [System.Xml.Serialization.XmlAttributeAttribute()]
-        public string ReferenceType {
+        public ReferenceTypes ReferenceType {
             get {
                 return this.referenceTypeField;
             }
@@ -2026,7 +2177,7 @@ namespace Squint {
         
         /// <remarks/>
         [System.Xml.Serialization.XmlAttributeAttribute()]
-        public decimal MajorViolation {
+        public double MajorViolation {
             get {
                 return this.majorViolationField;
             }
@@ -2037,7 +2188,8 @@ namespace Squint {
         
         /// <remarks/>
         [System.Xml.Serialization.XmlAttributeAttribute()]
-        public decimal MinorViolation {
+        [System.ComponentModel.DefaultValueAttribute(double.NaN)]
+        public double MinorViolation {
             get {
                 return this.minorViolationField;
             }
@@ -2047,19 +2199,8 @@ namespace Squint {
         }
         
         /// <remarks/>
-        [System.Xml.Serialization.XmlIgnoreAttribute()]
-        public bool MinorViolationSpecified {
-            get {
-                return this.minorViolationFieldSpecified;
-            }
-            set {
-                this.minorViolationFieldSpecified = value;
-            }
-        }
-        
-        /// <remarks/>
         [System.Xml.Serialization.XmlAttributeAttribute()]
-        public string ReferenceUnit {
+        public UnitScale ReferenceUnit {
             get {
                 return this.referenceUnitField;
             }
@@ -2070,23 +2211,13 @@ namespace Squint {
         
         /// <remarks/>
         [System.Xml.Serialization.XmlAttributeAttribute()]
-        public decimal Stop {
+        [System.ComponentModel.DefaultValueAttribute(double.NaN)]
+        public double Stop {
             get {
                 return this.stopField;
             }
             set {
                 this.stopField = value;
-            }
-        }
-        
-        /// <remarks/>
-        [System.Xml.Serialization.XmlIgnoreAttribute()]
-        public bool StopSpecified {
-            get {
-                return this.stopFieldSpecified;
-            }
-            set {
-                this.stopFieldSpecified = value;
             }
         }
         
@@ -2120,6 +2251,370 @@ namespace Squint {
             }
             set {
                 this.referenceStructureNameField = value;
+            }
+        }
+    }
+    
+    /// <remarks/>
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("xsd", "4.8.3928.0")]
+    [System.SerializableAttribute()]
+    public enum ConstraintTypes {
+        
+        /// <remarks/>
+        Unset,
+        
+        /// <remarks/>
+        D,
+        
+        /// <remarks/>
+        V,
+        
+        /// <remarks/>
+        M,
+        
+        /// <remarks/>
+        CV,
+        
+        /// <remarks/>
+        CI,
+    }
+    
+    /// <remarks/>
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("xsd", "4.8.3928.0")]
+    [System.SerializableAttribute()]
+    public enum UnitScale {
+        
+        /// <remarks/>
+        Unset,
+        
+        /// <remarks/>
+        Relative,
+        
+        /// <remarks/>
+        Absolute,
+    }
+    
+    /// <remarks/>
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("xsd", "4.8.3928.0")]
+    [System.SerializableAttribute()]
+    public enum ReferenceTypes {
+        
+        /// <remarks/>
+        Unset,
+        
+        /// <remarks/>
+        Upper,
+        
+        /// <remarks/>
+        Lower,
+    }
+    
+    /// <remarks/>
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("xsd", "4.8.3928.0")]
+    [System.SerializableAttribute()]
+    [System.Diagnostics.DebuggerStepThroughAttribute()]
+    [System.ComponentModel.DesignerCategoryAttribute("code")]
+    [System.Xml.Serialization.XmlTypeAttribute(AnonymousType=true)]
+    [System.Xml.Serialization.XmlRootAttribute(Namespace="", IsNullable=false)]
+    public partial class SquintConfiguration {
+        
+        private SquintConfigurationSite siteField;
+        
+        private SquintConfigurationDatabase[] databasesField;
+        
+        private SquintConfigurationPathDef[] beamGeometryDefinitionsField;
+        
+        private SquintConfigurationPathDef1[] structureCodesField;
+        
+        private SquintConfigurationPathDef2[] clinicalProtocolsField;
+        
+        private SquintConfigurationPathDef3[] squintProtocolsField;
+        
+        /// <remarks/>
+        public SquintConfigurationSite Site {
+            get {
+                return this.siteField;
+            }
+            set {
+                this.siteField = value;
+            }
+        }
+        
+        /// <remarks/>
+        [System.Xml.Serialization.XmlArrayItemAttribute("Database", IsNullable=false)]
+        public SquintConfigurationDatabase[] Databases {
+            get {
+                return this.databasesField;
+            }
+            set {
+                this.databasesField = value;
+            }
+        }
+        
+        /// <remarks/>
+        [System.Xml.Serialization.XmlArrayItemAttribute("PathDef", IsNullable=false)]
+        public SquintConfigurationPathDef[] BeamGeometryDefinitions {
+            get {
+                return this.beamGeometryDefinitionsField;
+            }
+            set {
+                this.beamGeometryDefinitionsField = value;
+            }
+        }
+        
+        /// <remarks/>
+        [System.Xml.Serialization.XmlArrayItemAttribute("PathDef", IsNullable=false)]
+        public SquintConfigurationPathDef1[] StructureCodes {
+            get {
+                return this.structureCodesField;
+            }
+            set {
+                this.structureCodesField = value;
+            }
+        }
+        
+        /// <remarks/>
+        [System.Xml.Serialization.XmlArrayItemAttribute("PathDef", IsNullable=false)]
+        public SquintConfigurationPathDef2[] ClinicalProtocols {
+            get {
+                return this.clinicalProtocolsField;
+            }
+            set {
+                this.clinicalProtocolsField = value;
+            }
+        }
+        
+        /// <remarks/>
+        [System.Xml.Serialization.XmlArrayItemAttribute("PathDef", IsNullable=false)]
+        public SquintConfigurationPathDef3[] SquintProtocols {
+            get {
+                return this.squintProtocolsField;
+            }
+            set {
+                this.squintProtocolsField = value;
+            }
+        }
+    }
+    
+    /// <remarks/>
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("xsd", "4.8.3928.0")]
+    [System.SerializableAttribute()]
+    [System.Diagnostics.DebuggerStepThroughAttribute()]
+    [System.ComponentModel.DesignerCategoryAttribute("code")]
+    [System.Xml.Serialization.XmlTypeAttribute(AnonymousType=true)]
+    public partial class SquintConfigurationSite {
+        
+        private string currentSiteField;
+        
+        /// <remarks/>
+        [System.Xml.Serialization.XmlAttributeAttribute()]
+        public string CurrentSite {
+            get {
+                return this.currentSiteField;
+            }
+            set {
+                this.currentSiteField = value;
+            }
+        }
+    }
+    
+    /// <remarks/>
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("xsd", "4.8.3928.0")]
+    [System.SerializableAttribute()]
+    [System.Diagnostics.DebuggerStepThroughAttribute()]
+    [System.ComponentModel.DesignerCategoryAttribute("code")]
+    [System.Xml.Serialization.XmlTypeAttribute(AnonymousType=true)]
+    public partial class SquintConfigurationDatabase {
+        
+        private string siteField;
+        
+        private string displayNameField;
+        
+        private string databaseNameField;
+        
+        /// <remarks/>
+        [System.Xml.Serialization.XmlAttributeAttribute()]
+        public string Site {
+            get {
+                return this.siteField;
+            }
+            set {
+                this.siteField = value;
+            }
+        }
+        
+        /// <remarks/>
+        [System.Xml.Serialization.XmlAttributeAttribute()]
+        public string DisplayName {
+            get {
+                return this.displayNameField;
+            }
+            set {
+                this.displayNameField = value;
+            }
+        }
+        
+        /// <remarks/>
+        [System.Xml.Serialization.XmlAttributeAttribute()]
+        public string DatabaseName {
+            get {
+                return this.databaseNameField;
+            }
+            set {
+                this.databaseNameField = value;
+            }
+        }
+    }
+    
+    /// <remarks/>
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("xsd", "4.8.3928.0")]
+    [System.SerializableAttribute()]
+    [System.Diagnostics.DebuggerStepThroughAttribute()]
+    [System.ComponentModel.DesignerCategoryAttribute("code")]
+    [System.Xml.Serialization.XmlTypeAttribute(AnonymousType=true)]
+    public partial class SquintConfigurationPathDef {
+        
+        private string siteField;
+        
+        private string pathField;
+        
+        /// <remarks/>
+        [System.Xml.Serialization.XmlAttributeAttribute()]
+        public string Site {
+            get {
+                return this.siteField;
+            }
+            set {
+                this.siteField = value;
+            }
+        }
+        
+        /// <remarks/>
+        [System.Xml.Serialization.XmlAttributeAttribute()]
+        public string Path {
+            get {
+                return this.pathField;
+            }
+            set {
+                this.pathField = value;
+            }
+        }
+    }
+    
+    /// <remarks/>
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("xsd", "4.8.3928.0")]
+    [System.SerializableAttribute()]
+    [System.Diagnostics.DebuggerStepThroughAttribute()]
+    [System.ComponentModel.DesignerCategoryAttribute("code")]
+    [System.Xml.Serialization.XmlTypeAttribute(AnonymousType=true)]
+    public partial class SquintConfigurationPathDef1 {
+        
+        private string siteField;
+        
+        private string pathField;
+        
+        /// <remarks/>
+        [System.Xml.Serialization.XmlAttributeAttribute()]
+        public string Site {
+            get {
+                return this.siteField;
+            }
+            set {
+                this.siteField = value;
+            }
+        }
+        
+        /// <remarks/>
+        [System.Xml.Serialization.XmlAttributeAttribute()]
+        public string Path {
+            get {
+                return this.pathField;
+            }
+            set {
+                this.pathField = value;
+            }
+        }
+    }
+    
+    /// <remarks/>
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("xsd", "4.8.3928.0")]
+    [System.SerializableAttribute()]
+    [System.Diagnostics.DebuggerStepThroughAttribute()]
+    [System.ComponentModel.DesignerCategoryAttribute("code")]
+    [System.Xml.Serialization.XmlTypeAttribute(AnonymousType=true)]
+    public partial class SquintConfigurationPathDef2 {
+        
+        private string siteField;
+        
+        private string pathField;
+        
+        /// <remarks/>
+        [System.Xml.Serialization.XmlAttributeAttribute()]
+        public string Site {
+            get {
+                return this.siteField;
+            }
+            set {
+                this.siteField = value;
+            }
+        }
+        
+        /// <remarks/>
+        [System.Xml.Serialization.XmlAttributeAttribute()]
+        public string Path {
+            get {
+                return this.pathField;
+            }
+            set {
+                this.pathField = value;
+            }
+        }
+    }
+    
+    /// <remarks/>
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("xsd", "4.8.3928.0")]
+    [System.SerializableAttribute()]
+    [System.Diagnostics.DebuggerStepThroughAttribute()]
+    [System.ComponentModel.DesignerCategoryAttribute("code")]
+    [System.Xml.Serialization.XmlTypeAttribute(AnonymousType=true)]
+    public partial class SquintConfigurationPathDef3 {
+        
+        private string siteField;
+        
+        private string pathField;
+        
+        private string exportPathField;
+        
+        /// <remarks/>
+        [System.Xml.Serialization.XmlAttributeAttribute()]
+        public string Site {
+            get {
+                return this.siteField;
+            }
+            set {
+                this.siteField = value;
+            }
+        }
+        
+        /// <remarks/>
+        [System.Xml.Serialization.XmlAttributeAttribute()]
+        public string Path {
+            get {
+                return this.pathField;
+            }
+            set {
+                this.pathField = value;
+            }
+        }
+        
+        /// <remarks/>
+        [System.Xml.Serialization.XmlAttributeAttribute()]
+        public string ExportPath {
+            get {
+                return this.exportPathField;
+            }
+            set {
+                this.exportPathField = value;
             }
         }
     }

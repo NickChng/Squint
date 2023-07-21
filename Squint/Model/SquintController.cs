@@ -20,6 +20,7 @@ using System.Windows.Threading;
 using System.Runtime.Remoting.Contexts;
 using System.Reflection;
 using AutoMapper;
+using Squint.Helpers;
 //using System.Windows.Forms;
 
 namespace Squint
@@ -80,7 +81,7 @@ namespace Squint
             try
             {
                 // Initialize automapper
-                
+
                 //Get configuration
                 XmlSerializer ConfigSer = new XmlSerializer(typeof(SquintConfiguration));
                 var AssemblyName = System.Diagnostics.Process.GetCurrentProcess().ProcessName;
@@ -121,7 +122,7 @@ namespace Squint
             _uiDispatcher.Invoke(ESAPIInitializing, new object[] { null, EventArgs.Empty });
             ESAPIContext = new AsyncESAPI();
             SquintUser = ESAPIContext.CurrentUserId(); // Get user from ESAPI;
-            
+
         }
         private static void InitializeDatabase()
         {
@@ -458,12 +459,12 @@ namespace Squint
                 var TxFields = await P.GetTxFields();
                 foreach (ImagingFieldItem I in ImagingFields)
                 {
-                    if (I.Type == FieldType.Ant_kv && ((Isocentre.x - PatientCentre.x) < -50 || TxFields.All(x => (x.GantryStart < 40 || x.GantryStart > 180) && (x.GantryEnd < 40 || x.GantryEnd > 180))))
+                    if (I.Type == FieldTechniqueType.Ant_kv && ((Isocentre.x - PatientCentre.x) < -50 || TxFields.All(x => (x.GantryStart < 40 || x.GantryStart > 180) && (x.GantryEnd < 40 || x.GantryEnd > 180))))
                     {
                         I.Warning = true;
                         I.WarningMessage = "Posterior preferred?";
                     }
-                    if (I.Type == FieldType.Post_kv && ((Isocentre.x - PatientCentre.x) > 50 || TxFields.All(x => (x.GantryStart > 320 || x.GantryStart < 180) && (x.GantryEnd > 320 || x.GantryEnd < 180))))
+                    if (I.Type == FieldTechniqueType.Post_kv && ((Isocentre.x - PatientCentre.x) > 50 || TxFields.All(x => (x.GantryStart > 320 || x.GantryStart < 180) && (x.GantryEnd > 320 || x.GantryEnd < 180))))
                     {
                         I.Warning = true;
                         I.WarningMessage = "Anterior preferred?";
@@ -472,36 +473,36 @@ namespace Squint
                 return ImagingFields;
             }
         }
-        public static Dictionary<ImagingProtocols, List<string>> CheckImagingProtocols(Component CV, List<ImagingFieldItem> IF)
+        public static Dictionary<ImagingProtocolTypes, List<string>> CheckImagingProtocols(Component CV, List<ImagingFieldItem> IF)
         {
-            Dictionary<ImagingProtocols, List<string>> Errors = new Dictionary<ImagingProtocols, List<string>>();
-            foreach (ImagingProtocols IP in CV.ImagingProtocols)
+            Dictionary<ImagingProtocolTypes, List<string>> Errors = new Dictionary<ImagingProtocolTypes, List<string>>();
+            foreach (ImagingProtocolTypes IP in CV.ImagingProtocols)
             {
                 if (!Errors.ContainsKey(IP))
                     Errors.Add(IP, new List<string>());
                 switch (IP)
                 {
-                    case ImagingProtocols.kV_2D:
-                        if (!(IF.Any(x => x.Type == FieldType.Ant_kv) && (IF.Any(x => x.Type == FieldType.LL_kv) || IF.Any(x => x.Type == FieldType.RL_kv))) &&
-                            !((IF.Any(x => x.Type == FieldType.Post_kv) && (IF.Any(x => x.Type == FieldType.LL_kv) || IF.Any(x => x.Type == FieldType.RL_kv)))))
+                    case ImagingProtocolTypes.kV_2D:
+                        if (!(IF.Any(x => x.Type == FieldTechniqueType.Ant_kv) && (IF.Any(x => x.Type == FieldTechniqueType.LL_kv) || IF.Any(x => x.Type == FieldTechniqueType.RL_kv))) &&
+                            !((IF.Any(x => x.Type == FieldTechniqueType.Post_kv) && (IF.Any(x => x.Type == FieldTechniqueType.LL_kv) || IF.Any(x => x.Type == FieldTechniqueType.RL_kv)))))
                             Errors[IP].Add("Cannot find kv-pair");
                         break;
-                    case ImagingProtocols.PreCBCT:
-                        if (!IF.Any(x => x.Type == FieldType.CBCT))
+                    case ImagingProtocolTypes.PreCBCT:
+                        if (!IF.Any(x => x.Type == FieldTechniqueType.CBCT))
                             Errors[IP].Add("Cannot find CBCT");
                         break;
-                    case ImagingProtocols.PostCBCT:
-                        if (!IF.Any(x => x.Type == FieldType.CBCT))
+                    case ImagingProtocolTypes.PostCBCT:
+                        if (!IF.Any(x => x.Type == FieldTechniqueType.CBCT))
                             Errors[IP].Add("Cannot find CBCT");
                         break;
                 }
             }
-            if (CV.ImagingProtocols.Contains(ImagingProtocols.PostCBCT) && CV.ImagingProtocols.Contains(ImagingProtocols.PreCBCT))
+            if (CV.ImagingProtocols.Contains(ImagingProtocolTypes.PostCBCT) && CV.ImagingProtocols.Contains(ImagingProtocolTypes.PreCBCT))
             {
-                if (IF.Where(x => x.Type == FieldType.CBCT).Count() < 2)
+                if (IF.Where(x => x.Type == FieldTechniqueType.CBCT).Count() < 2)
                 {
-                    Errors[ImagingProtocols.PostCBCT].Add("Insufficient CBCT fields for both pre and post imaging");
-                    Errors[ImagingProtocols.PreCBCT].Add("Insufficient CBCT fields for both pre and post imaging");
+                    Errors[ImagingProtocolTypes.PostCBCT].Add("Insufficient CBCT fields for both pre and post imaging");
+                    Errors[ImagingProtocolTypes.PreCBCT].Add("Insufficient CBCT fields for both pre and post imaging");
                 }
             }
             return Errors;
@@ -598,7 +599,7 @@ namespace Squint
         }
 
 
-        public static Constraint AddConstraint(ConstraintTypeCodes TypeCode, int ComponentID = 0, int StructureId = 1)
+        public static Constraint AddConstraint(ConstraintTypes TypeCode, int ComponentID = 0, int StructureId = 1)
         {
             if (!ProtocolLoaded)
                 return null;
@@ -718,7 +719,7 @@ namespace Squint
             else
             {
                 string NewStructureName = string.Format("{0}{1}", DefaultNewStructureName, _NewStructureCounter++);
-                while (CurrentProtocol.Structures.Select(x=>x.ProtocolStructureName).Any(x=> x.Equals(NewStructureName)))
+                while (CurrentProtocol.Structures.Select(x => x.ProtocolStructureName).Any(x => x.Equals(NewStructureName)))
                 {
                     NewStructureName = string.Format("{0}{1}", DefaultNewStructureName, _NewStructureCounter++);
                 }
@@ -730,10 +731,10 @@ namespace Squint
                 return newProtocolStructure;
             }
         }
-        public static void AddConstraintThreshold(ReferenceThresholdTypes Name, int ConstraintID, double ThresholdValue)
-        {
-            // ConstraintThreshold CT = new ConstraintThreshold(Name, ConstraintID, ThresholdValue);
-        }
+        //public static void AddConstraintThreshold(ReferenceThresholdTypes Name, int ConstraintID, double ThresholdValue)
+        //{
+        //    // ConstraintThreshold CT = new ConstraintThreshold(Name, ConstraintID, ThresholdValue);
+        //}
 
         public static async Task<bool> ImportEclipseProtocol(VMS_XML.Protocol P)
         {
@@ -913,7 +914,7 @@ namespace Squint
         //}
         public static bool ImportProtocolFromXML(string filename, bool refresh)
         {
-            SquintProtocolXML _XMLProtocol;
+            SquintProtocol _XMLProtocol;
             if (filename == "") // no file selected
                 return false;
             int ComponentPKiterator = 0;
@@ -925,7 +926,7 @@ namespace Squint
             Serializer ser = new Serializer();
             try
             {
-                _XMLProtocol = ser.Deserialize<SquintProtocolXML>(protocolInput);
+                _XMLProtocol = ser.Deserialize<SquintProtocol>(protocolInput);
             }
             catch (Exception ex)
             {
@@ -936,18 +937,17 @@ namespace Squint
             //XML error checking - if any required fields weren't populated, create them
             if (ReferenceEquals(null, _XMLProtocol.Constraints))
             {
-                _XMLProtocol.Constraints = new SquintProtocolXML.ConstraintListDefinition();
-                _XMLProtocol.Constraints.ConstraintList = new List<SquintProtocolXML.ConstraintDefinition>();
+                _XMLProtocol.Constraints = new List<SquintProtocolConstraint>().ToArray();
             }
-            foreach (SquintProtocolXML.ComponentDefinition cd in _XMLProtocol.Components.Component)
+            foreach (SquintProtocolComponent cd in _XMLProtocol.Components)
             {
-                cd.ID = ComponentPKiterator; // assign primary keys
+                cd.Id = ComponentPKiterator; // assign primary keys
                 bool ValidComponent = false;
                 if (cd.ComponentName != null)
                 {
                     if (cd.ComponentName != "")
                     {
-                        ComponentID2PK.Add(cd.ComponentName, cd.ID);
+                        ComponentID2PK.Add(cd.ComponentName, cd.Id);
                         ValidComponent = true;
                     }
                 }
@@ -960,7 +960,7 @@ namespace Squint
 
             }
             int ConstraintIndexCounter = 0;
-            foreach (SquintProtocolXML.ConstraintDefinition con in _XMLProtocol.Constraints.ConstraintList)
+            foreach (SquintProtocolConstraint con in _XMLProtocol.Constraints)
             {
                 if (con.ComponentName == null)
                 {
@@ -972,7 +972,7 @@ namespace Squint
                     MessageBox.Show(string.Format("DVH Constraint #{0} does not reference a valid component", ConstraintIndexCounter));
                     return false;
                 }
-                con.ComponentID = ComponentID2PK[con.ComponentName.Trim()];
+                con.ComponentId = ComponentID2PK[con.ComponentName.Trim()];
                 ConstraintIndexCounter++;
             }
             bool ProtocolSavedCorrectly = SaveXMLProtocolToDatabase(_XMLProtocol);
@@ -992,7 +992,7 @@ namespace Squint
             if (ESAPIContext != null)
                 ESAPIContext.Dispose();
         }
-        public static bool SaveXMLProtocolToDatabase(SquintProtocolXML _XMLProtocol)
+        public static bool SaveXMLProtocolToDatabase(SquintProtocol _XMLProtocol)
         {
             List<string> ExistingProtocolNames;
             using (SquintDBModel LocalContext = new SquintDBModel())
@@ -1036,70 +1036,18 @@ namespace Squint
 
                 if (_XMLProtocol.TreatmentIntents != null)
                 {
-                    foreach (var TxIntent in _XMLProtocol.TreatmentIntents.Intent)
+                    foreach (var TxIntent in _XMLProtocol.TreatmentIntents)
                     {
-                        DbTreatmentIntent TI = LocalContext.DbTreatmentIntents.FirstOrDefault(x => x.Intent.ToUpper() == TxIntent.Id.ToUpper());
+                        DbTreatmentIntent TI = LocalContext.DbTreatmentIntents.FirstOrDefault(x => x.Intent.Equals(TypeDisplay.Display(TxIntent.Id), StringComparison.OrdinalIgnoreCase));
                         if (P.TreatmentIntents == null)
                             P.TreatmentIntents = new List<DbTreatmentIntent>();
                         P.TreatmentIntents.Add(TI);
                     }
                 }
-                if (_XMLProtocol.ProtocolMetaData.ApprovalStatus != null)
-                {
-                    ApprovalLevels ApprovalLevel;
-                    if (Enum.TryParse(_XMLProtocol.ProtocolMetaData.ApprovalStatus, true, out ApprovalLevel))
-                    {
-                        P.DbApprovalLevel = LocalContext.DbApprovalLevels.Where(x => x.ApprovalLevel == (int)ApprovalLevel).Single();
-                    }
-                    else
-                        P.DbApprovalLevel = LocalContext.DbApprovalLevels.Where(x => x.ApprovalLevel == (int)ApprovalLevels.Unapproved).Single();
-                }
-                else
-                {
-                    P.DbApprovalLevel = LocalContext.DbApprovalLevels.Where(x => x.ApprovalLevel == (int)ApprovalLevels.Unapproved).Single();
-                }
-                if (_XMLProtocol.ProtocolMetaData.DiseaseSite != null)
-                {
-                    TreatmentSites DiseaseSite;
-                    if (Enum.TryParse(_XMLProtocol.ProtocolMetaData.DiseaseSite, true, out DiseaseSite))
-                    {
-                        P.DbTreatmentSite = LocalContext.DbTreatmentSites.Where(x => x.TreatmentSite == (int)DiseaseSite).Single();
-                    }
-                    else
-                        P.DbTreatmentSite = LocalContext.DbTreatmentSites.Where(x => x.TreatmentSite == (int)TreatmentSites.Unset).Single();
-                }
-                else
-                {
-                    P.DbTreatmentSite = LocalContext.DbTreatmentSites.Where(x => x.TreatmentSite == (int)TreatmentSites.Unset).Single();
-                }
-                if (_XMLProtocol.ProtocolMetaData.TreatmentCentre != null)
-                {
-                    TreatmentCentres TreatmentCentre;
-                    if (Enum.TryParse(_XMLProtocol.ProtocolMetaData.TreatmentCentre, true, out TreatmentCentre))
-                    {
-                        P.DbTreatmentCentre = LocalContext.DbTreatmentCentres.Where(x => x.TreatmentCentre == (int)TreatmentCentre).Single();
-                    }
-                    else
-                        P.DbTreatmentCentre = LocalContext.DbTreatmentCentres.Where(x => x.TreatmentCentre == (int)TreatmentCentres.Unset).Single();
-                }
-                else
-                {
-                    P.DbTreatmentCentre = LocalContext.DbTreatmentCentres.Where(x => x.TreatmentCentre == (int)TreatmentCentres.Unset).Single();
-                }
-                if (_XMLProtocol.ProtocolMetaData.ProtocolType != null)
-                {
-                    ProtocolTypes ProtocolType;
-                    if (Enum.TryParse(_XMLProtocol.ProtocolMetaData.ProtocolType, true, out ProtocolType))
-                    {
-                        P.DbProtocolType = LocalContext.DbProtocolTypes.Where(x => x.ProtocolType == (int)ProtocolType).Single();
-                    }
-                    else
-                        P.DbProtocolType = LocalContext.DbProtocolTypes.Where(x => x.ProtocolType == (int)ProtocolTypes.Unset).Single();
-                }
-                else
-                {
-                    P.DbProtocolType = LocalContext.DbProtocolTypes.Where(x => x.ProtocolType == (int)ProtocolTypes.Unset).Single();
-                }
+                P.DbApprovalLevel = LocalContext.DbApprovalLevels.Where(x => x.ApprovalLevel == (int)_XMLProtocol.ProtocolMetaData.ApprovalStatus).Single();
+                P.DbTreatmentSite = LocalContext.DbTreatmentSites.Where(x => x.TreatmentSite == (int)_XMLProtocol.ProtocolMetaData.DiseaseSite).Single();
+                P.DbTreatmentCentre = LocalContext.DbTreatmentCentres.Where(x => x.TreatmentCentre == (int)_XMLProtocol.ProtocolMetaData.TreatmentCentre).Single();
+                P.DbProtocolType = LocalContext.DbProtocolTypes.Where(x => x.ProtocolType == (int)_XMLProtocol.ProtocolMetaData.ProtocolType).Single();
                 P.ID = IDGenerator.GetUniqueId();
                 LocalContext.DbLibraryProtocols.Add(P);
                 try
@@ -1113,7 +1061,7 @@ namespace Squint
                 Dictionary<string, DbComponent> CompName2DB = new Dictionary<string, DbComponent>();
                 int DisplayOrder = 1;
                 Dictionary<string, int> ProtocolStructureNameToID = new Dictionary<string, int>();
-                foreach (SquintProtocolXML.StructureDefinition S in _XMLProtocol.Structures.Structure)
+                foreach (SquintProtocolStructure S in _XMLProtocol.Structures)
                 {
                     DbProtocolStructure ProtocolStructure = LocalContext.DbProtocolStructures.Create();
                     if (S.ProtocolStructureName == null)
@@ -1139,7 +1087,7 @@ namespace Squint
                     if (S.EclipseAliases != null)
                     {
                         int displayOrder = 1;
-                        foreach (SquintProtocolXML.EclipseAlias EA in S.EclipseAliases.EclipseId)
+                        foreach (var EA in S.EclipseAliases)
                         {
                             DbStructureAlias DbSA = LocalContext.DbStructureAliases.Create();
                             DbSA.DbProtocolStructure = ProtocolStructure;
@@ -1155,7 +1103,7 @@ namespace Squint
                         if (SC.PointContourCheck != null)
                         {
                             DbSC.isPointContourChecked = true;
-                            DbSC.PointContourThreshold = string.IsNullOrEmpty(SC.PointContourCheck.Threshold) ? double.NaN : double.Parse(SC.PointContourCheck.Threshold);
+                            DbSC.PointContourThreshold = SC.PointContourCheck.Threshold;
                             LocalContext.DbStructureChecklists.Add(DbSC);
                         }
                         ProtocolStructure.DbStructureChecklist = DbSC;
@@ -1201,59 +1149,35 @@ namespace Squint
                     Checklist.DbProtocol = P;
                     if (_XMLProtocol.ProtocolChecklist.Calculation != null)
                     {
-                        AlgorithmVolumeDoseTypes AlgorithmType;
-                        if (Enum.TryParse(_XMLProtocol.ProtocolChecklist.Calculation.Algorithm, true, out AlgorithmType))
-                            Checklist.AlgorithmVolumeDose = (int)AlgorithmType;
-                        else
-                            Checklist.AlgorithmVolumeDose = (int)AlgorithmVolumeDoseTypes.Unset;
-                        FieldNormalizationTypes FNM;
-                        if (Enum.TryParse(_XMLProtocol.ProtocolChecklist.Calculation.FieldNormalizationMode, true, out FNM))
-                            Checklist.FieldNormalizationMode = (int)FNM;
-                        else
-                            Checklist.FieldNormalizationMode = (int)FieldNormalizationTypes.Unset;
-                        Checklist.HeterogeneityOn = string.IsNullOrEmpty(_XMLProtocol.ProtocolChecklist.Calculation.HeterogeneityOn) ? null : (bool?)bool.Parse(_XMLProtocol.ProtocolChecklist.Calculation.HeterogeneityOn);
-                        Checklist.AlgorithmResolution = string.IsNullOrEmpty(_XMLProtocol.ProtocolChecklist.Calculation.AlgorithmResolution) ? null : (double?)double.Parse(_XMLProtocol.ProtocolChecklist.Calculation.AlgorithmResolution);
-                        AlgorithmVMATOptimizationTypes VMATOptimizationType;
-                        if (Enum.TryParse(_XMLProtocol.ProtocolChecklist.Calculation.VMATOptimizationAlgorithm, true, out VMATOptimizationType))
-                            Checklist.AlgorithmVMATOptimization = (int)VMATOptimizationType;
-                        else
-                            Checklist.AlgorithmVMATOptimization = (int)AlgorithmVMATOptimizationTypes.Unset;
 
-                        AlgorithmIMRTOptimizationTypes IMRTOptimizationType;
-                        if (Enum.TryParse(_XMLProtocol.ProtocolChecklist.Calculation.IMRTOptimizationAlgorithm, true, out IMRTOptimizationType))
-                            Checklist.AlgorithmIMRTOptimization = (int)IMRTOptimizationType;
-                        else
-                            Checklist.AlgorithmIMRTOptimization = (int)AlgorithmIMRTOptimizationTypes.Unset;
-
+                        Checklist.AlgorithmVolumeDose = (int)_XMLProtocol.ProtocolChecklist.Calculation.Algorithm;
+                        Checklist.FieldNormalizationMode = (int)_XMLProtocol.ProtocolChecklist.Calculation.FieldNormalizationMode;
+                        Checklist.HeterogeneityOn = _XMLProtocol.ProtocolChecklist.Calculation.HeterogeneityOn;
+                        Checklist.AlgorithmResolution = _XMLProtocol.ProtocolChecklist.Calculation.AlgorithmResolution;
+                        Checklist.AlgorithmVMATOptimization = (int)_XMLProtocol.ProtocolChecklist.Calculation.VMATOptimizationAlgorithm;
+                        Checklist.AlgorithmIMRTOptimization = (int)_XMLProtocol.ProtocolChecklist.Calculation.IMRTOptimizationAlgorithm;
                         Checklist.AirCavityCorrectionVMAT = _XMLProtocol.ProtocolChecklist.Calculation.VMATAirCavityCorrection;
                         Checklist.AirCavityCorrectionIMRT = _XMLProtocol.ProtocolChecklist.Calculation.IMRTAirCavityCorrection;
                     }
                     if (_XMLProtocol.ProtocolChecklist.Supports != null)
                     {
-                        ParameterOptions SupportIndication;
-                        if (Enum.TryParse(_XMLProtocol.ProtocolChecklist.Supports.Indication, true, out SupportIndication))
-                        {
-                            Checklist.SupportIndication = (int)SupportIndication;
-                        }
-                        else
-                            Checklist.SupportIndication = (int)ParameterOptions.Unset;
-
-                        Checklist.CouchInterior = string.IsNullOrEmpty(_XMLProtocol.ProtocolChecklist.Supports.CouchInterior) ? null : (double?)double.Parse(_XMLProtocol.ProtocolChecklist.Supports.CouchInterior);
-                        Checklist.CouchSurface = string.IsNullOrEmpty(_XMLProtocol.ProtocolChecklist.Supports.CouchSurface) ? null : (double?)double.Parse(_XMLProtocol.ProtocolChecklist.Supports.CouchSurface);
+                        Checklist.SupportIndication = (int)_XMLProtocol.ProtocolChecklist.Supports.Indication;
+                        Checklist.CouchInterior = _XMLProtocol.ProtocolChecklist.Supports.CouchInterior;
+                        Checklist.CouchSurface = _XMLProtocol.ProtocolChecklist.Supports.CouchSurface;
                     }
                     if (_XMLProtocol.ProtocolChecklist.Simulation != null)
                     {
-                        Checklist.SliceSpacing = string.IsNullOrEmpty(_XMLProtocol.ProtocolChecklist.Simulation.SliceSpacing) ? null : (double?)double.Parse(_XMLProtocol.ProtocolChecklist.Simulation.SliceSpacing);
+                        Checklist.SliceSpacing = _XMLProtocol.ProtocolChecklist.Simulation.SliceSpacing;
                         if (_XMLProtocol.ProtocolChecklist.Simulation.CTDeviceIds != null)
                         {
-                            foreach (var CTDeviceId in _XMLProtocol.ProtocolChecklist.Simulation.CTDeviceIds.CTDeviceId)
+                            foreach (var CTDeviceId in _XMLProtocol.ProtocolChecklist.Simulation.CTDeviceIds)
                             {
                                 DbCTDeviceId DbCTID = LocalContext.DbCTDeviceIds.FirstOrDefault(x => x.CTDeviceId.ToUpper() == CTDeviceId.Id.ToUpper());
                                 if (DbCTID == null)
                                 {
                                     DbCTID = LocalContext.DbCTDeviceIds.Create();
                                     DbCTID.CTDeviceId = CTDeviceId.Id;
-                                    LocalContext.DbCTDeviceIds.Add(DbCTID); 
+                                    LocalContext.DbCTDeviceIds.Add(DbCTID);
                                 }
                                 if (Checklist.CTDeviceIds == null)
                                 {
@@ -1266,12 +1190,12 @@ namespace Squint
 
                     if (_XMLProtocol.ProtocolChecklist.Artifacts != null)
                     {
-                        foreach (SquintProtocolXML.ArtifactDefinition A in _XMLProtocol.ProtocolChecklist.Artifacts.Artifact)
+                        foreach (SquintProtocolProtocolChecklistArtifact A in _XMLProtocol.ProtocolChecklist.Artifacts)
                         {
                             DbArtifact DbA = LocalContext.DbArtifacts.Create();
                             LocalContext.DbArtifacts.Add(DbA);
-                            DbA.HU = string.IsNullOrEmpty(A.HU) ? null : (double?)double.Parse(A.HU);
-                            DbA.ToleranceHU = string.IsNullOrEmpty(A.ToleranceHU) ? null : (double?)double.Parse(A.ToleranceHU);
+                            DbA.HU = A.HU;
+                            DbA.ToleranceHU = A.ToleranceHU;
                             DbA.DbProtocolChecklist = Checklist;
                             if (ProtocolStructureNameToID.ContainsKey(A.ProtocolStructureName))
                                 DbA.ProtocolStructure_ID = ProtocolStructureNameToID[A.ProtocolStructureName];
@@ -1285,7 +1209,7 @@ namespace Squint
                 }
 
                 int ComponentDisplayOrder = 1;
-                foreach (SquintProtocolXML.ComponentDefinition comp in _XMLProtocol.Components.Component)
+                foreach (SquintProtocolComponent comp in _XMLProtocol.Components)
                 {
                     DbComponent C = LocalContext.DbComponents.Create();
                     C.DisplayOrder = ComponentDisplayOrder++;
@@ -1299,87 +1223,66 @@ namespace Squint
                         C.ComponentName = comp.ComponentName;
                     if (comp.Prescription != null)
                     {
-                        int NumFractions;
-                        if (!int.TryParse(comp.Prescription.NumFractions, out NumFractions))
-                        {
-                            MessageBox.Show(string.Format("Components must have an integer value in the NumFractions attribute (Protocol: {0} Component: {1})", P.ProtocolName, comp.ComponentName));
-                            return false;
-                        }
-                        else
-                            C.NumFractions = NumFractions;
-                        double RefDose;
-                        if (!double.TryParse(comp.Prescription.ReferenceDose, out RefDose))
-                        {
-                            MessageBox.Show(string.Format("Components must have a value in the ReferenceDose attribute (Protocol: {0} Component: {1})", P.ProtocolName, comp.ComponentName));
-                            return false;
-                        }
-                        else
-                            C.ReferenceDose = RefDose;
-                        double PNVMax;
-                        if (double.TryParse(comp.Prescription.PNVMax, out PNVMax))
-                        {
-                            C.PNVMax = PNVMax;
-                        }
-                        double PNVMin;
-                        if (double.TryParse(comp.Prescription.PNVMin, out PNVMin))
-                        {
-                            C.PNVMin = PNVMin;
-                        }
-                        double RxPercentage;
-                        if (double.TryParse(comp.Prescription.PrescribedPercentage, out RxPercentage))
-                        {
-                            C.PrescribedPercentage = RxPercentage;
-                        }
+                        C.NumFractions = comp.Prescription.NumFractions;
+                        C.ReferenceDose = comp.Prescription.ReferenceDose;
+                        C.PNVMax = comp.Prescription.PNVMax;
+                        C.PNVMin = comp.Prescription.PNVMin;
+                        C.PrescribedPercentage = comp.Prescription.PrescribedPercentage;
                     }
 
+
                     ComponentTypes ComponentType;
-                    if (!Enum.TryParse(comp.Type, true, out ComponentType))
+                    if (comp.Type == ComponentTypes.Unset)
                     {
                         MessageBox.Show(string.Format("Components must must specify either Plan or Sum in the Type attribute (Protocol: {0} Component: {1})", P.ProtocolName, comp.ComponentName));
                         return false;
                     }
                     else
-                        C.ComponentType = (int)ComponentType;
+                        C.ComponentType = (int)comp.Type;
                     LocalContext.DbComponents.Add(C);
                     //LocalContext.SaveChanges(); // component Key available
                     CompName2DB.Add(comp.ComponentName, C);
                     //Add imaging
-                    if (comp.ImagingProtocols.ImagingProtocol != null)
+                    if (comp.ImagingProtocols != null)
                     {
-                        ImagingProtocols ProtocolType;
+                        ImagingProtocolTypes ProtocolType;
                         DbComponentImaging DbCI = LocalContext.DbComponentImagings.Create();
                         LocalContext.DbComponentImagings.Add(DbCI);
                         DbCI.ID = IDGenerator.GetUniqueId();
                         DbCI.DbComponent = C;
-                        foreach (var IP in comp.ImagingProtocols.ImagingProtocol)
+                        foreach (var IP in comp.ImagingProtocols)
                         {
                             DbImaging DbI = LocalContext.DbImagings.Create();
-                            if (Enum.TryParse(IP.Id, true, out ProtocolType))
-                            {
-                                DbI.ImagingProtocol = (int)ProtocolType;
-                                DbI.ImagingProtocolName = ProtocolType.Display();
-                                DbI.ComponentImagingID = DbCI.ID;
-                            }
+                            DbI.ImagingProtocol = (int)IP.Id;
+                            if (string.IsNullOrEmpty(IP.ImagingProtocolDisplayName))
+                                DbI.ImagingProtocolName = IP.Id.ToString();
                             else
-                            {
-                                DbI.ImagingProtocol = (int)ProtocolTypes.Unset;
-                                DbI.ImagingProtocolName = ProtocolTypes.Unset.Display();
-                                DbI.ComponentImagingID = DbCI.ID;
-                            }
+                                DbI.ImagingProtocolName = IP.ImagingProtocolDisplayName;
+                            DbI.ComponentImagingID = DbCI.ID;
                             LocalContext.DbImagings.Add(DbI);
                         }
                     }
-                    if (comp.Beams.Beam != null)
+                    if (comp.Beams != null)
                     {
-                        C.MinBeams = string.IsNullOrEmpty(comp.Beams.MinBeams) ? null : (int?)int.Parse(comp.Beams.MinBeams);
-                        C.MaxBeams = string.IsNullOrEmpty(comp.Beams.MaxBeams) ? null : (int?)int.Parse(comp.Beams.MaxBeams);
-                        C.NumIso = string.IsNullOrEmpty(comp.Beams.NumIso) ? null : (int?)int.Parse(comp.Beams.NumIso);
-                        C.MinColOffset = string.IsNullOrEmpty(comp.Beams.MinColOffset) ? null : (int?)int.Parse(comp.Beams.MinColOffset);
+                        if (comp.Beams.MinBeams == -1)
+                            C.MinBeams = null;
+                        else
+                            C.MinBeams = comp.Beams.MinBeams;
+                        if (comp.Beams.MaxBeams == -1)
+                            C.MaxBeams = null;
+                        else
+                            C.MaxBeams = comp.Beams.MaxBeams;
+                        if (comp.Beams.MinColOffset == -1) // -1 is default, which is interpreted as null, meaning no constraint
+                            C.MinColOffset = null;
+                        else
+                            C.MinColOffset = comp.Beams.MinColOffset;
+                        C.NumIso = comp.Beams.NumIso; // default is 1   
+
                         foreach (var b in comp.Beams.Beam)
                         {
                             DbBeam B = LocalContext.DbBeams.Create();
                             LocalContext.DbBeams.Add(B);
-                            foreach (var Alias in b.EclipseAliases.EclipseId)
+                            foreach (var Alias in b.EclipseAliases)
                             {
                                 DbBeamAlias DbBA = LocalContext.DbBeamAliases.Create();
                                 DbBA.EclipseFieldId = Alias.Id;
@@ -1387,40 +1290,39 @@ namespace Squint
                                 LocalContext.DbBeamAliases.Add(DbBA);
                             }
                             B.DbBeamGeometries = new List<DbBeamGeometry>();
-                            foreach (var G in b.ValidGeometries.Geometry)
+                            foreach (var G in b.ValidGeometries)
                             {
-                                DbBeamGeometry DbAG = LocalContext.DbBeamGeometries.FirstOrDefault(x => x.GeometryName == G.GeometryName);
+                                DbBeamGeometry DbAG = LocalContext.DbBeamGeometries.Create();
                                 if (DbAG != null)
+                                {
                                     B.DbBeamGeometries.Add(DbAG);
-                                //    DbAG.DbBeams = B;
-                                //DbAG.GeometryName = ArcG.GeometryName;
-                                //Trajectories T;
-                                //if (Enum.TryParse(ArcG.Trajectory, true, out T))
-                                //    DbAG.Trajectory = (int)T;
-                                //else
-                                //    DbAG.Trajectory = (int)Trajectories.Unset;
-                                //DbAG.StartAngle = ArcG.StartAngle;
-                                //DbAG.EndAngle = ArcG.EndAngle;
-                                //DbAG.StartAngleTolerance = ArcG.StartAngleTolerance;
-                                //DbAG.EndAngleTolerance = ArcG.EndAngleTolerance;
-                                //LocalContext.DbBeamGeometries.Add(DbAG);
+                                    DbAG.DbBeams.Add(B);
+                                    DbAG.GeometryName = G.GeometryName;
+                                    TrajectoryTypes T;
+                                    DbAG.Trajectory = (int)G.Trajectory;
+                                    DbAG.StartAngle = G.StartAngle;
+                                    DbAG.EndAngle = G.EndAngle;
+                                    DbAG.StartAngleTolerance = G.StartAngleTolerance;
+                                    DbAG.EndAngleTolerance = G.EndAngleTolerance;
+                                    LocalContext.DbBeamGeometries.Add(DbAG);
+                                }
                             }
                             B.DbComponent = C;
                             B.ProtocolBeamName = b.ProtocolBeamName;
-                            B.CouchRotation = string.IsNullOrEmpty(b.CouchRotation) ? null : (double?)double.Parse(b.CouchRotation);
-                            B.MaxColRotation = string.IsNullOrEmpty(b.MaxColRotation) ? null : (double?)double.Parse(b.MaxColRotation);
-                            B.MinColRotation = string.IsNullOrEmpty(b.MinColRotation) ? null : (double?)double.Parse(b.MinColRotation);
-                            B.MaxMUWarning = string.IsNullOrEmpty(b.MaxMUWarning) ? null : (double?)double.Parse(b.MaxMUWarning);
-                            B.MinMUWarning = string.IsNullOrEmpty(b.MinMUWarning) ? null : (double?)double.Parse(b.MinMUWarning);
-                            B.MinX = string.IsNullOrEmpty(b.MinX) ? null : (double?)double.Parse(b.MinX);
-                            B.MaxX = string.IsNullOrEmpty(b.MaxX) ? null : (double?)double.Parse(b.MaxX);
-                            B.MinY = string.IsNullOrEmpty(b.MinY) ? null : (double?)double.Parse(b.MinY);
-                            B.MaxY = string.IsNullOrEmpty(b.MaxY) ? null : (double?)double.Parse(b.MaxY);
+                            B.CouchRotation = b.CouchRotation;
+                            B.MaxColRotation = b.MaxColRotation;
+                            B.MinColRotation = b.MinColRotation;
+                            B.MaxMUWarning = b.MaxMUWarning;
+                            B.MinMUWarning = b.MinMUWarning;
+                            B.MinX = b.MinX;
+                            B.MaxX = b.MaxX;
+                            B.MinY = b.MinY;
+                            B.MaxY = b.MaxY;
                             B.ToleranceTable = b.ToleranceTable;
                             bool UnsetEnergyAdded = false;
-                            foreach (var E in b.Energies.Energy)
+                            foreach (var E in b.ValidEnergies)
                             {
-                                DbEnergy DbEn = LocalContext.DbEnergies.FirstOrDefault(x => x.EnergyString == E.Mode);
+                                DbEnergy DbEn = LocalContext.DbEnergies.FirstOrDefault(x => x.EnergyString == TypeDisplay.Display(E.Mode));
                                 if (DbEn != null)
                                 {
                                     if (B.DbEnergies == null)
@@ -1440,85 +1342,39 @@ namespace Squint
                                     }
                                 }
                             }
+                            B.Technique = (int)b.Technique;
+                            B.JawTracking_Indication = (int)b.JawTracking_Indication;
 
-                            FieldType Technique;
-                            if (Enum.TryParse(b.Technique, true, out Technique))
-                            {
-                                B.Technique = (int)Technique;
-                            }
-                            else
-                                B.Technique = (int)FieldType.Unset;
-                            ParameterOptions JawTracking_Indication;
-                            if (Enum.TryParse(b.JawTracking_Indication, true, out JawTracking_Indication))
-                            {
-                                B.JawTracking_Indication = (int)JawTracking_Indication;
-                            }
-                            else
-                                B.JawTracking_Indication = (int)ParameterOptions.Unset;
 
                             if (b.BolusDefinitions != null)
                             {
                                 foreach (var bolus in b.BolusDefinitions)
                                 {
-                                    if (bolus.HU == null)
+                                    if (double.IsNaN(bolus.HU))
                                         continue;
                                     DbBolus DbBolus = LocalContext.DbBoluses.Create();
                                     DbBolus.DbBeam = B;
-                                    DbBolus.HU = double.Parse(bolus.HU);
-                                    if (Enum.TryParse(bolus.Indication, true, out ParameterOptions BolusIndication))
-                                        DbBolus.Indication = (int)BolusIndication;
-                                    else
-                                        DbBolus.Indication = (int)ParameterOptions.Unset;
-                                    DbBolus.Thickness = string.IsNullOrEmpty(bolus.Thickness) ? double.NaN : double.Parse(bolus.Thickness);
-                                    DbBolus.ToleranceThickness = string.IsNullOrEmpty(bolus.ToleranceThickness) ? double.NaN : double.Parse(bolus.ToleranceThickness);
-                                    DbBolus.ToleranceHU = string.IsNullOrEmpty(bolus.ToleranceHU) ? double.NaN : double.Parse(bolus.ToleranceHU);
+                                    DbBolus.HU = bolus.HU;
+                                    DbBolus.Indication = (int)bolus.Indication;
+                                    DbBolus.Thickness = bolus.Thickness;
+                                    DbBolus.ToleranceThickness = bolus.ToleranceThickness;
+                                    DbBolus.ToleranceHU = bolus.ToleranceHU;
                                     LocalContext.DbBoluses.Add(DbBolus);
                                 }
                             }
                         }
                     }
-
                 }
                 int ConDisplayOrder = 1;
-                foreach (SquintProtocolXML.ConstraintDefinition con in _XMLProtocol.Constraints.ConstraintList)
+                foreach (SquintProtocolConstraint con in _XMLProtocol.Constraints)
                 {
                     // Input error checking
                     DbConstraint DbCon = LocalContext.DbConstraints.Create();
-                    ConstraintTypeCodes ConstraintTypeCode;
-                    if (!Enum.TryParse(con.ConstraintType, out ConstraintTypeCode))
-                    {
-                        MessageBox.Show(string.Format("Constraint number {0} in protocol {1} has an unrecognized ConstraintType", ConDisplayOrder, P.ProtocolName));
-                        return false;
-                    }
-                    DbCon.ConstraintType = (int)ConstraintTypeCode;
-                    UnitScale ConstraintUnitScale;
-                    if (!Enum.TryParse(con.ConstraintUnit, true, out ConstraintUnitScale))
-                    {
-                        MessageBox.Show(string.Format("Constraint number {0} in protocol {1} has an unrecognized ConstraintUnit", ConDisplayOrder, P.ProtocolName));
-                        return false;
-                    }
-                    DbCon.ConstraintScale = (int)ConstraintUnitScale;
-                    UnitScale ReferenceUnitScale;
-                    if (!Enum.TryParse(con.ReferenceUnit, true, out ReferenceUnitScale))
-                    {
-                        MessageBox.Show(string.Format("Constraint number {0} in protocol {1} has an unrecognized ReferenceUnit", ConDisplayOrder, P.ProtocolName));
-                        return false;
-                    }
-                    DbCon.ReferenceScale = (int)ReferenceUnitScale;
-                    ReferenceTypes ReferenceType;
-                    if (!Enum.TryParse(con.ReferenceType, true, out ReferenceType))
-                    {
-                        MessageBox.Show(string.Format("Constraint number {0} in protocol {1} has an unrecognized ReferenceType", ConDisplayOrder, P.ProtocolName));
-                        return false;
-                    }
-                    DbCon.ReferenceType = (int)ReferenceType;
-                    double ConstraintValue;
-                    if (!double.TryParse(con.ConstraintValue, out ConstraintValue))
-                    {
-                        MessageBox.Show(string.Format("Constraint number {0} in protocol {1} has an unrecognized ConstraintValue", ConDisplayOrder, P.ProtocolName));
-                        return false;
-                    }
-                    DbCon.ConstraintValue = ConstraintValue;
+                    DbCon.ConstraintType = (int)con.ConstraintType;
+                    DbCon.ConstraintScale = (int)con.ConstraintUnit;
+                    DbCon.ReferenceScale = (int)con.ReferenceUnit;
+                    DbCon.ReferenceType = (int)con.ReferenceType;
+                    DbCon.ConstraintValue = con.ConstraintValue;
                     if (!CompName2DB.ContainsKey(con.ComponentName))
                     {
                         MessageBox.Show(string.Format("Constraint number {0} in protocol {1} has an unrecognized ComponentName", ConDisplayOrder, P.ProtocolName));
@@ -1543,7 +1399,7 @@ namespace Squint
                     }
                     else
                     {
-                        if (ConstraintTypeCode == ConstraintTypeCodes.CI)
+                        if (con.ConstraintType == ConstraintTypes.CI)
                         {
                             MessageBox.Show(string.Format("Conformity constraint number {0} in protocol {1} does not have a ReferenceStructure", ConDisplayOrder, P.ProtocolName));
                             return false;
@@ -1559,25 +1415,15 @@ namespace Squint
                         DbCon.ThresholdDataPath = con.DataTablePath;
                     else
                     {
-                        double majorViolation;
-                        if (double.TryParse(con.MajorViolation, out majorViolation))
-                            DbCon.MajorViolation = majorViolation;
-                        else
-                        {
-                            MessageBox.Show(string.Format("Constraint number {0} in protocol {1} must have either a MajorViolation or DataTablePath with a MajorViolation defined", ConDisplayOrder, P.ProtocolName));
-                            return false;
-                        }
-                        DbCon.MinorViolation = string.IsNullOrEmpty(con.MinorViolation) ? null : (double?)double.Parse(con.MinorViolation);
-                        DbCon.Stop = string.IsNullOrEmpty(con.Stop) ? null : (double?)double.Parse(con.Stop);
+                        DbCon.MajorViolation = con.MajorViolation;
+                        DbCon.MinorViolation = con.MinorViolation;
+                        DbCon.Stop = con.Stop;
                     }
-
-
-
                     DbConstraintChangelog DbCC = LocalContext.DbConstraintChangelogs.Create();
 
                     LocalContext.DbConstraintChangelogs.Add(DbCC);
                     DbCC.ChangeDescription = con.Description;
-                    DbCC.ConstraintString = con.GetConstraintString();
+                    DbCC.ConstraintString = "";
                     DbCC.ChangeAuthor = Ctr.SquintUser;
                     DbCC.Date = DateTime.Now.ToBinary();
                     DbCC.DbConstraint = DbCon;
@@ -1599,189 +1445,204 @@ namespace Squint
 
         public static bool ExportProtocolAsXML(string filename)
         {
-            SquintProtocolXML XMLProtocol = new SquintProtocolXML();
+            SquintProtocol XMLProtocol = new SquintProtocol();
             //Assign TEMPORARY primary keys to each constraint, since these are not defined in the XML protocol
-            XMLProtocol.ProtocolMetaData = new SquintProtocolXML.ProtocolMetaDataDefinition()
+            XMLProtocol.ProtocolMetaData = new SquintProtocolProtocolMetaData
             {
-                ApprovalStatus = CurrentProtocol.ApprovalLevel.ToString(),
-                DiseaseSite = CurrentProtocol.TreatmentSite.Value.ToString(),
+                ApprovalStatus = CurrentProtocol.ApprovalLevel,
+                DiseaseSite = CurrentProtocol.TreatmentSite.Value,
                 Author = CurrentProtocol.Author,
                 ProtocolDate = DateTime.Now.ToShortDateString(),
                 ProtocolName = CurrentProtocol.ProtocolName,
-                ProtocolType = CurrentProtocol.ProtocolType.ToString(),
-                TreatmentCentre = CurrentProtocol.TreatmentCentre.Value.ToString()
+                ProtocolType = CurrentProtocol.ProtocolType,
+                TreatmentCentre = CurrentProtocol.TreatmentCentre.Value
             };
-            XMLProtocol.TreatmentIntents = new SquintProtocolXML.TreatmentIntentsDefinition();
+            var intentsToSerialize = new List<SquintProtocolIntent>();
             foreach (var TI in CurrentProtocol.TreatmentIntents)
             {
-                var TreatmentIntent = new SquintProtocolXML.TreatmentIntentDefinition() { Id = TI.ToString() };
-                XMLProtocol.TreatmentIntents.Intent.Add(TreatmentIntent);
+                var TreatmentIntent = new SquintProtocolIntent(){ Id = TI };
+                intentsToSerialize.Add(TreatmentIntent);
             }
-            XMLProtocol.Structures = new SquintProtocolXML.StructuresDefinition();
+            XMLProtocol.TreatmentIntents = intentsToSerialize.ToArray();
+            var structuresToSerialize = new List<SquintProtocolStructure>();
             foreach (var S in CurrentProtocol.Structures.OrderBy(x => x.DisplayOrder))
             {
-                var XMLStructure = new SquintProtocolXML.StructureDefinition
+                var XMLStructure = new SquintProtocolStructure
                 {
                     Label = S.StructureLabel.LabelName,
                     ProtocolStructureName = S.ProtocolStructureName,
                 };
+                var aliasesToSerialize = new List<SquintProtocolStructureEclipseId>();
                 foreach (string alias in S.DefaultEclipseAliases)
                 {
-                    XMLStructure.EclipseAliases.EclipseId.Add(new SquintProtocolXML.EclipseAlias()
+                    aliasesToSerialize.Add(new SquintProtocolStructureEclipseId()
                     {
                         Id = alias
                     });
                 }
+                XMLStructure.EclipseAliases = aliasesToSerialize.ToArray();
                 if (S.CheckList.isPointContourChecked.isDefined)
                 {
                     if ((bool)S.CheckList.isPointContourChecked.Value)
                     {
-                        XMLStructure.StructureChecklist = new SquintProtocolXML.StructureChecklistDefinition()
+                        XMLStructure.StructureChecklist = new SquintProtocolStructureStructureChecklist()
                         {
-                            PointContourCheck = new SquintProtocolXML.PointContourCheckDefinition()
+                            PointContourCheck = new SquintProtocolStructureStructureChecklistPointContourCheck()
                             {
-                                Threshold = S.CheckList.PointContourVolumeThreshold.Value.ToString()
+                                Threshold = (double)S.CheckList.PointContourVolumeThreshold.Value
                             }
                         };
                     }
                 }
-                XMLProtocol.Structures.Structure.Add(XMLStructure);
+                structuresToSerialize.Add(XMLStructure);
             }
+            XMLProtocol.Structures = structuresToSerialize.ToArray();
+            var artifactsToSerialize = new List<SquintProtocolProtocolChecklistArtifact>();
             foreach (var A in CurrentProtocol.Checklist.Artifacts)
             {
-                XMLProtocol.ProtocolChecklist.Artifacts.Artifact.Add(new SquintProtocolXML.ArtifactDefinition
+                artifactsToSerialize.Add(new SquintProtocolProtocolChecklistArtifact()
                 {
-                    HU = A.RefHU.Value.ToString(),
+                    HU = (double)A.RefHU.Value,
                     ProtocolStructureName = Ctr.GetProtocolStructure(A.ProtocolStructureId.Value).ProtocolStructureName,
-                    ToleranceHU = A.ToleranceHU.Value.ToString()
+                    ToleranceHU = (double)A.ToleranceHU.Value
                 });
             }
-            XMLProtocol.ProtocolChecklist.Calculation.Algorithm = CurrentProtocol.Checklist.Algorithm.Value.ToString();
-            XMLProtocol.ProtocolChecklist.Calculation.AlgorithmResolution = CurrentProtocol.Checklist.AlgorithmResolution.Value.ToString();
-            XMLProtocol.ProtocolChecklist.Calculation.FieldNormalizationMode = CurrentProtocol.Checklist.FieldNormalizationMode.Value.ToString();
-            XMLProtocol.ProtocolChecklist.Calculation.HeterogeneityOn = CurrentProtocol.Checklist.HeterogeneityOn.Value.ToString();
+            XMLProtocol.ProtocolChecklist.Artifacts = artifactsToSerialize.ToArray();
+            XMLProtocol.ProtocolChecklist.Calculation.Algorithm = CurrentProtocol.Checklist.Algorithm.Value;
+            XMLProtocol.ProtocolChecklist.Calculation.AlgorithmResolution = CurrentProtocol.Checklist.AlgorithmResolution.Value == null ? double.NaN : (double)CurrentProtocol.Checklist.AlgorithmResolution.Value;
+            XMLProtocol.ProtocolChecklist.Calculation.FieldNormalizationMode = CurrentProtocol.Checklist.FieldNormalizationMode.Value;
+            XMLProtocol.ProtocolChecklist.Calculation.HeterogeneityOn = CurrentProtocol.Checklist.HeterogeneityOn.Value == null ? true : (bool)CurrentProtocol.Checklist.HeterogeneityOn.Value;
+            XMLProtocol.ProtocolChecklist.Calculation.VMATOptimizationAlgorithm = CurrentProtocol.Checklist.AlgorithmVMATOptimization.Value;
+            XMLProtocol.ProtocolChecklist.Calculation.IMRTOptimizationAlgorithm = CurrentProtocol.Checklist.AlgorithmIMRTOptimization.Value;
             XMLProtocol.ProtocolChecklist.Calculation.VMATAirCavityCorrection = CurrentProtocol.Checklist.AirCavityCorrectionVMAT.Value;
             XMLProtocol.ProtocolChecklist.Calculation.IMRTAirCavityCorrection = CurrentProtocol.Checklist.AirCavityCorrectionIMRT.Value;
-            XMLProtocol.ProtocolChecklist.Simulation.SliceSpacing = CurrentProtocol.Checklist.SliceSpacing.Value.ToString();
-            XMLProtocol.ProtocolChecklist.Supports.CouchInterior = CurrentProtocol.Checklist.CouchInterior.Value.ToString();
-            XMLProtocol.ProtocolChecklist.Supports.CouchSurface = CurrentProtocol.Checklist.CouchSurface.Value.ToString();
-            XMLProtocol.ProtocolChecklist.Supports.Indication = CurrentProtocol.Checklist.SupportIndication.Value.ToString();
+            XMLProtocol.ProtocolChecklist.Simulation.SliceSpacing = CurrentProtocol.Checklist.SliceSpacing.Value == null ? double.NaN : (double)CurrentProtocol.Checklist.SliceSpacing.Value;
+            XMLProtocol.ProtocolChecklist.Supports.CouchInterior = CurrentProtocol.Checklist.CouchInterior.Value == null ? double.NaN : (double)CurrentProtocol.Checklist.CouchInterior.Value;
+            XMLProtocol.ProtocolChecklist.Supports.CouchSurface = CurrentProtocol.Checklist.CouchSurface.Value == null ? double.NaN : (double)CurrentProtocol.Checklist.CouchSurface.Value;
+            XMLProtocol.ProtocolChecklist.Supports.Indication = CurrentProtocol.Checklist.SupportIndication.Value;
+            var CTDevicesToSerialize = new List<SquintProtocolProtocolChecklistSimulationCTDeviceId>();
             foreach (var CTDeviceId in CurrentProtocol.Checklist.CTDeviceIds)
             {
-                XMLProtocol.ProtocolChecklist.Simulation.CTDeviceIds.CTDeviceId.Add(new SquintProtocolXML.CTDeviceIdDefinition() { Id = CTDeviceId });
+                CTDevicesToSerialize.Add(new SquintProtocolProtocolChecklistSimulationCTDeviceId { Id = CTDeviceId });
             }
+            XMLProtocol.ProtocolChecklist.Simulation.CTDeviceIds = CTDevicesToSerialize.ToArray();
 
-
+            var componentsToSerialize = new List<SquintProtocolComponent>();
             foreach (var C in CurrentProtocol.Components)
             {
-                SquintProtocolXML.ComponentDefinition cd = new SquintProtocolXML.ComponentDefinition()
+                SquintProtocolComponent cd = new SquintProtocolComponent()
                 {
                     ComponentName = C.ComponentName,
-                    Type = C.ComponentType.Value.ToString(),
+                    Type = C.ComponentType.Value
                 };
-                cd.Prescription.PNVMax = C.PNVMax.Value.ToString();
-                cd.Prescription.PNVMin = C.PNVMin.Value.ToString();
-                cd.Prescription.PrescribedPercentage = C.PrescribedPercentage.Value.ToString();
-                cd.Prescription.NumFractions = C.NumFractions.ToString();
-                cd.Prescription.ReferenceDose = C.TotalDose.ToString();
-                cd.Beams.MaxBeams = C.MaxBeams.Value.ToString();
-                cd.Beams.MinBeams = C.MinBeams.Value.ToString();
-                cd.Beams.NumIso = C.NumIso.Value.ToString();
-                cd.Beams.MinColOffset = C.MinColOffset.Value.ToString();
+                componentsToSerialize.Add(cd);
+                cd.Prescription.PNVMax = C.PNVMax.Value == null ? double.NaN : (double)C.PNVMax.Value;
+                cd.Prescription.PNVMin = C.PNVMin.Value == null ? double.NaN : (double)C.PNVMin.Value;
+                cd.Prescription.PrescribedPercentage = C.PrescribedPercentage.Value == null ? double.NaN : (double)C.PrescribedPercentage.Value;
+                cd.Prescription.NumFractions = C.NumFractions;
+                cd.Prescription.ReferenceDose = C.TotalDose;
+                cd.Beams.MaxBeams = C.MaxBeams.Value == null ? -1 : (int)C.MaxBeams.Value;
+                cd.Beams.MinBeams = C.MinBeams.Value == null ? -1 : (int)C.MinBeams.Value;
+                cd.Beams.NumIso = C.NumIso.Value == null ? 0 : (int)C.NumIso.Value;
+                cd.Beams.MinColOffset = C.MinColOffset.Value == null ? double.NaN : (double)C.MinColOffset.Value;
+                var beamsToSerialize = new List<SquintProtocolComponentBeamsBeam>();
                 foreach (var B in C.Beams)
                 {
-                    var bd = new SquintProtocolXML.BeamDefinition()
+                    var bd = new SquintProtocolComponentBeamsBeam
                     {
-                        CouchRotation = B.CouchRotation.Value.ToString(),
-                        JawTracking_Indication = B.JawTracking_Indication.Value.ToString(),
-                        MaxColRotation = B.MaxColRotation.Value.ToString(),
-                        MaxX = B.MaxX.Value.ToString(),
-                        MaxY = B.MaxY.Value.ToString(),
-                        MinX = B.MinX.Value.ToString(),
-                        MinY = B.MinY.Value.ToString(),
-                        MinMUWarning = B.MinMUWarning.Value.ToString(),
-                        MaxMUWarning = B.MaxMUWarning.Value.ToString(),
+                        CouchRotation = B.CouchRotation.Value == null ? double.NaN : (double)B.CouchRotation.Value,
+                        JawTracking_Indication = B.JawTracking_Indication.Value,
+                        MaxColRotation = B.MaxColRotation.Value == null ? double.NaN : (double)B.MaxColRotation.Value,
+                        MaxX = B.MaxX.Value == null ? double.NaN : (double)B.MaxX.Value,
+                        MaxY = B.MaxY.Value == null ? double.NaN : (double)B.MaxY.Value,
+                        MinX = B.MinX.Value == null ? double.NaN : (double)B.MinX.Value,
+                        MinY = B.MinY.Value == null ? double.NaN : (double)B.MinY.Value,
+                        MinMUWarning = B.MinMUWarning.Value == null ? double.NaN : (double)B.MinMUWarning.Value,
+                        MaxMUWarning = B.MaxMUWarning.Value == null ? double.NaN : (double)B.MaxMUWarning.Value,
                         ProtocolBeamName = B.ProtocolBeamName,
-                        Technique = B.Technique.ToString(),
+                        Technique = B.Technique,
                         ToleranceTable = B.ToleranceTable.Value.ToString(),
-                        MinColRotation = B.MinColRotation.Value.ToString(),
+                        MinColRotation = B.MinColRotation.Value == null ? double.NaN : (double)B.MinColRotation.Value,
                     };
-                    cd.Beams.Beam.Add(bd);
-                    bd.EclipseAliases = new SquintProtocolXML.EclipseAliases();
+                    beamsToSerialize.Add(bd);
+                    var aliasesToSerialize = new List<SquintProtocolComponentBeamsBeamEclipseId>();
                     foreach (string alias in B.EclipseAliases)
                     {
-                        bd.EclipseAliases.EclipseId.Add(new SquintProtocolXML.EclipseAlias() { Id = alias });
+                        aliasesToSerialize.Add(new SquintProtocolComponentBeamsBeamEclipseId { Id = alias });
                     }
-                    bd.Energies.Energy = new List<SquintProtocolXML.EnergyDefinition>();
+                    bd.EclipseAliases = aliasesToSerialize.ToArray();
+                    var EnergiesToSerialize = new List<SquintProtocolComponentBeamsBeamEnergy>();
                     foreach (Energies E in B.ValidEnergies)
                     {
-                        bd.Energies.Energy.Add(new SquintProtocolXML.EnergyDefinition() { Mode = E.Display() });
+                        EnergiesToSerialize.Add(new SquintProtocolComponentBeamsBeamEnergy { Mode = E });
                     }
-                    var bolusDefinitionList = new List<SquintProtocolXML.BolusDefinition>();
+                    bd.ValidEnergies = EnergiesToSerialize.ToArray();
+                    var bolusToSerialize = new List<SquintProtocolComponentBeamsBeamBolus>();
                     foreach (var Bol in B.Boluses)
                     {
-                        bolusDefinitionList.Add(new SquintProtocolXML.BolusDefinition()
+                        bolusToSerialize.Add(new SquintProtocolComponentBeamsBeamBolus()
                         {
-                            HU = Bol.HU.Value.ToString(),
-                            Indication = Bol.Indication.ToString(),
-                            Thickness = Bol.Thickness.Value.ToString(),
-                            ToleranceHU = Bol.ToleranceHU.Value.ToString(),
-                            ToleranceThickness = Bol.ToleranceThickness.Value.ToString()
+                            HU = Bol.HU.Value,
+                            Indication = Bol.Indication.Value,
+                            Thickness = Bol.Thickness.Value,
+                            ToleranceHU = Bol.ToleranceHU.Value,
+                            ToleranceThickness = Bol.ToleranceThickness.Value
                         });
                     }
-                    bd.ValidGeometries = new SquintProtocolXML.ValidGeometriesDefintiion();
+                    var geometriesToSerialize = new List<SquintProtocolComponentBeamsBeamGeometry>();
                     foreach (var vg in B.ValidGeometries)
                     {
-                        bd.ValidGeometries.Geometry.Add(new SquintProtocolXML.GeometryDefinition()
+                        geometriesToSerialize.Add(new SquintProtocolComponentBeamsBeamGeometry()
                         {
                             GeometryName = vg.DisplayName
                         });
                     }
+                    bd.ValidGeometries = geometriesToSerialize.ToArray();
                 }
-                cd.ImagingProtocols = new SquintProtocolXML.ImagingProtocolsDefinition(); 
+                cd.Beams.Beam = beamsToSerialize.ToArray();
+                var ImagingProtocolsToSerialize = new List<SquintProtocolComponentImagingProtocol>();
                 foreach (var I in C.ImagingProtocols)
                 {
-                    cd.ImagingProtocols.ImagingProtocol.Add(new SquintProtocolXML.ImagingProtocolDefinition() { Id = I.ToString() });
+                    ImagingProtocolsToSerialize.Add(new SquintProtocolComponentImagingProtocol() { Id = I });
                 }
-                
-                XMLProtocol.Components.Component.Add(cd);
+                cd.ImagingProtocols = ImagingProtocolsToSerialize.ToArray();
 
                 // Constraints
+                var constraintsToSerialize = new List<SquintProtocolConstraint>();
                 foreach (var Con in C.Constraints.OrderBy(x => x.DisplayOrder))
                 {
                     switch (Con.ConstraintType)
                     {
-                        case ConstraintTypeCodes.Unset:
+                        case ConstraintTypes.Unset:
                             continue;
                         default:
-                            SquintProtocolXML.ConstraintDefinition XMLCon = new SquintProtocolXML.ConstraintDefinition()
+                            SquintProtocolConstraint XMLCon = new SquintProtocolConstraint()
                             {
                                 ComponentName = Con.ComponentName,
-                                ReferenceType = Con.ReferenceType.ToString(),
-                                ReferenceUnit = Con.ReferenceScale.ToString(),
-                                ConstraintType = Con.ConstraintType.ToString(),
-                                ConstraintUnit = Con.ConstraintScale.ToString(),
-                                ConstraintValue = Con.ConstraintValue.ToString(),
-                                MajorViolation = Con.MajorViolation.ToString(),
-                                MinorViolation = Con.MinorViolation.ToString(),
+                                ReferenceType = Con.ReferenceType,
+                                ReferenceUnit = Con.ReferenceScale,
+                                ConstraintType = Con.ConstraintType,
+                                ConstraintUnit = Con.ConstraintScale,
+                                ConstraintValue = Con.ConstraintValue,
+                                MajorViolation = (double)Con.MajorViolation,
+                                MinorViolation = Con.MinorViolation == null ? double.NaN : (double)Con.MinorViolation,
                                 ReferenceStructureName = Con.ReferenceStructureName,
                                 DataTablePath = Con.ThresholdDataPath,
-                                Stop = Con.Stop.ToString(),
+                                Stop = Con.Stop == null ? double.NaN : (double)Con.Stop,
                                 ProtocolStructureName = Con.ProtocolStructureName
                             };
-                            XMLProtocol.Constraints.ConstraintList.Add(XMLCon);
+                            constraintsToSerialize.Add(XMLCon);
 
                             break;
                     }
                 }
+                XMLProtocol.Constraints = constraintsToSerialize.ToArray();
             }
-
-
 
             Serializer ser = new Serializer();
             try
             {
-                ser.Serialize<SquintProtocolXML>(XMLProtocol, filename);
+                ser.Serialize<SquintProtocol>(XMLProtocol, filename);
             }
             catch (Exception ex)
             {
@@ -1836,7 +1697,7 @@ namespace Squint
             {
                 if (CurrentProtocol.ID == Id)
                 {
-                    
+
                     StartNewSession();
                 }
             }
@@ -2200,6 +2061,6 @@ namespace Squint
             return new List<BeamGeometryDefinition>(_BeamGeometryDefinitions);
         }
 
-        
+
     }
 }

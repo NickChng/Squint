@@ -583,7 +583,7 @@ namespace Squint.ViewModels
                 }
             }
         }
-        public ConstraintTypeCodes ConstraintType
+        public ConstraintTypes ConstraintType
         {
             get { return Con.ConstraintType; }
             set
@@ -757,7 +757,7 @@ namespace Squint.ViewModels
             ConstraintUnitTypes.Clear();
             List<ConstraintUnits> ConUnitList = new List<ConstraintUnits>();
             List<ConstraintUnits> RefUnitList = new List<ConstraintUnits>();
-            if (ConstraintType == ConstraintTypeCodes.M)
+            if (ConstraintType == Squint.ConstraintTypes.M)
             {
                 ConUnitList.Add(ConstraintUnits.Unset);
                 RefUnitList.Add(ConstraintUnits.cGy);
@@ -792,7 +792,7 @@ namespace Squint.ViewModels
                     continue; // don't list this
                 AvailableReferenceTypes.Add(RT);
             }
-            if (Con.ConstraintType == ConstraintTypeCodes.CI)
+            if (Con.ConstraintType == Squint.ConstraintTypes.CI)
             {
                 RefUnitList.Add(ConstraintUnits.Multiple);
             }
@@ -822,9 +822,9 @@ namespace Squint.ViewModels
             Con = ConIn;
             SS = SSin;
             ConstraintTypes.Clear();
-            foreach (ConstraintTypeCodes T in Enum.GetValues(typeof(ConstraintTypeCodes)).Cast<ConstraintTypeCodes>())
+            foreach (ConstraintTypes T in Enum.GetValues(typeof(ConstraintTypes)).Cast<ConstraintTypes>())
             {
-                if (T == ConstraintTypeCodes.Unset)
+                if (T == Squint.ConstraintTypes.Unset)
                     continue;
                 ConstraintTypes.Add(T);
             }
@@ -895,7 +895,7 @@ namespace Squint.ViewModels
                     break;
             }
         }
-        public ObservableCollection<ConstraintTypeCodes> ConstraintTypes { get; private set; } = new ObservableCollection<ConstraintTypeCodes>() { ConstraintTypeCodes.Unset };
+        public ObservableCollection<ConstraintTypes> ConstraintTypes { get; private set; } = new ObservableCollection<ConstraintTypes>() { Squint.ConstraintTypes.Unset };
         public ObservableCollection<ConstraintUnits> ConstraintUnitTypes { get; private set; } = new ObservableCollection<ConstraintUnits>() { ConstraintUnits.Unset };
         public ObservableCollection<ReferenceTypes> AvailableReferenceTypes { get; private set; } = new ObservableCollection<ReferenceTypes>() { ReferenceTypes.Unset };
         public ObservableCollection<ConstraintUnits> AvailableReferenceUnitTypes { get; private set; } = new ObservableCollection<ConstraintUnits>() { ConstraintUnits.Unset };
@@ -907,7 +907,7 @@ namespace Squint.ViewModels
         }
         private void SetV95(object param = null)
         {
-            ConstraintType = ConstraintTypeCodes.V;
+            ConstraintType = Squint.ConstraintTypes.V;
             Con.ReferenceType = ReferenceTypes.Lower;
             Con.MajorViolation = 98;
             Con.ReferenceScale = UnitScale.Relative;
@@ -922,7 +922,7 @@ namespace Squint.ViewModels
         }
         private void SetD0035(object param = null)
         {
-            ConstraintType = ConstraintTypeCodes.D;
+            ConstraintType = Squint.ConstraintTypes.D;
             Con.ReferenceType = ReferenceTypes.Upper;
             Con.MajorViolation = 0;
             Con.ReferenceScale = UnitScale.Absolute;
@@ -938,7 +938,7 @@ namespace Squint.ViewModels
         }
         private void SetDMin(object param = null)
         {
-            ConstraintType = ConstraintTypeCodes.D;
+            ConstraintType = Squint.ConstraintTypes.D;
             Con.ReferenceType = ReferenceTypes.Lower;
             Con.MajorViolation = 95;
             Con.ReferenceScale = UnitScale.Relative;
@@ -953,7 +953,7 @@ namespace Squint.ViewModels
         }
         private void SetMeanDose(object param = null)
         {
-            ConstraintType = ConstraintTypeCodes.M;
+            ConstraintType = Squint.ConstraintTypes.M;
             Con.ReferenceType = ReferenceTypes.Upper;
             Con.MajorViolation = 0;
             Con.ReferenceScale = UnitScale.Absolute;

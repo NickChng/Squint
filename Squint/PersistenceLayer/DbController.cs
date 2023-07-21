@@ -203,7 +203,7 @@ namespace Squint
                         {
                             foreach (DbImaging I in DbCI.Imaging)
                             {
-                                SC.ImagingProtocols.Add((ImagingProtocols)I.ImagingProtocol);
+                                SC.ImagingProtocols.Add((ImagingProtocolTypes)I.ImagingProtocol);
                             }
                         }
                         foreach (DbBeam DbB in DbC.DbBeams)
@@ -284,7 +284,7 @@ namespace Squint
                         {
                             foreach (DbImaging I in DbCI.Imaging)
                             {
-                                SC.ImagingProtocols.Add((ImagingProtocols)I.ImagingProtocol);
+                                SC.ImagingProtocols.Add((ImagingProtocolTypes)I.ImagingProtocol);
                             }
                         }
                         if (DbC.Constraints != null)
@@ -1109,13 +1109,13 @@ namespace Squint
                 {
                     foreach (DbImaging DbI in DbCI.Imaging)
                     {
-                        if (!ImagingProtocols.Contains((ImagingProtocols)DbI.ImagingProtocol))
+                        if (!ImagingProtocols.Contains((ImagingProtocolTypes)DbI.ImagingProtocol))
                             Context.DbImagings.Remove(DbI);
                     }
                 }
             }
 
-            foreach (ImagingProtocols IP in Ctr.CurrentProtocol.Components.FirstOrDefault(x => x.ID == sourceComponentID).ImagingProtocols)
+            foreach (ImagingProtocolTypes IP in Ctr.CurrentProtocol.Components.FirstOrDefault(x => x.ID == sourceComponentID).ImagingProtocols)
             {
                 DbComponentImaging DbCI = DbC.ImagingProtocols.FirstOrDefault();
                 if (DbCI == null || createCopy)

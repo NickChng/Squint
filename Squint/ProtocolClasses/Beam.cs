@@ -17,7 +17,7 @@ namespace Squint
         public bool ToRetire { get; set; } = false;
         //Properties
         public string ProtocolBeamName { get; set; } = "unset";
-        public FieldType Technique { get; set; } = FieldType.Unset;
+        public FieldTechniqueType Technique { get; set; } = FieldTechniqueType.Unset;
         public ObservableCollection<Energies> ValidEnergies { get; set; } = new ObservableCollection<Energies>();
         public TrackedValue<string> ToleranceTable { get; private set; }
         public TrackedValue<double?> MinMUWarning { get; private set; }
@@ -48,7 +48,7 @@ namespace Squint
             ID = DbO.ID;
             ComponentID = DbO.ComponentID;
             ProtocolBeamName = DbO.ProtocolBeamName;
-            Technique = (FieldType)DbO.Technique;
+            Technique = (FieldTechniqueType)DbO.Technique;
             foreach (var E in DbO.DbEnergies)
                 ValidEnergies.Add((Energies)E.ID);
             foreach (var A in DbO.DbBeamAliases)
@@ -78,7 +78,7 @@ namespace Squint
             ID = IDGenerator.GetUniqueId();
             ComponentID = ComponentId;
             ProtocolBeamName = "New beam";
-            Technique = FieldType.Unset;
+            Technique = FieldTechniqueType.Unset;
             foreach (Energies E in Enum.GetValues(typeof(Energies)))
                 ValidEnergies.Add(E);
             EclipseAliases.Add(@"Field1");

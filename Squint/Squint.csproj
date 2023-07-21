@@ -150,6 +150,7 @@
     <Compile Include="Helpers and Functions\Class1.cs" />
     <Compile Include="Helpers and Functions\IDGenerator.cs" />
     <Compile Include="Helpers and Functions\PlanSumUIDGenerator.cs" />
+    <Compile Include="Helpers and Functions\TypeDisplay.cs" />
     <Compile Include="Interfaces\IDisplayable.cs" />
     <Compile Include="Interfaces\IBeamGeometry.cs" />
     <Compile Include="Interfaces\IElementOf.cs" />
@@ -200,7 +201,6 @@
     <Compile Include="ViewModels\ConstraintResultViewModel.cs" />
     <Compile Include="ViewModels\SessionView.cs" />
     <Compile Include="XML Definitions\ClinicalProtocol.cs" />
-    <Compile Include="XML Definitions\ConfigXML.cs" />
     <Compile Include="Views\EditStructurePopup.xaml.cs">
       <DependentUpon>EditStructurePopup.xaml</DependentUpon>
     </Compile>
@@ -304,7 +304,6 @@
     <Compile Include="Enums\SquintEnums.cs" />
     <Compile Include="ProtocolClasses\BeamGeometry.cs" />
     <Compile Include="XML Definitions\GeometryDefintionsXML.cs" />
-    <Compile Include="XML Definitions\SquintProtocolXML.cs" />
     <Compile Include="XML Definitions\Squint_Schema.cs" />
     <Compile Include="XML Definitions\StructureLabelXML.cs">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
@@ -438,16 +437,37 @@
       <SubType>Designer</SubType>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
+    <None Include="Schemas\ClinicalProtocol.xsd">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="Schemas\ObjectiveTemplate.xsd">
+      <SubType>Designer</SubType>
+    </None>
     <None Include="packages.config" />
+    <None Include="Schemas\PlanTemplate.xsd">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="Schemas\PrintTemplate.xsd">
+      <SubType>Designer</SubType>
+    </None>
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
+    </None>
+    <None Include="Schemas\Squint_Schema.xsd">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="Schemas\StructureTemplate.xsd">
+      <SubType>Designer</SubType>
     </None>
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="Schemas\ProtocolTypes.xsd">
+      <SubType>Designer</SubType>
+    </None>
     <None Include="Resources\SquintIcon2.png" />
   </ItemGroup>
   <ItemGroup>

@@ -25,28 +25,28 @@ namespace Squint
                 switch (Field.Technique.Id)
                 {
                     case "ARC":
-                        Type = FieldType.ARC;
+                        Type = FieldTechniqueType.ARC;
                         break;
                     case "SRS_ARC":
-                        Type = FieldType.ARC;
+                        Type = FieldTechniqueType.ARC;
                         break;
                     case "STATIC":
-                        Type = FieldType.STATIC;
+                        Type = FieldTechniqueType.STATIC;
                         break;
                 }
                 switch (Field.EnergyModeDisplayName)
                 {
                     case "6X":
-                        Energy = Energies.Photons6;
+                        Energy = Energies.Item6X;
                         break;
                     case "10X-FFF":
-                        Energy = Energies.Photons10FFF;
+                        Energy = Energies.Item10XFFF;
                         break;
                     case "15X":
-                        Energy = Energies.Photons15;
+                        Energy = Energies.Item15X;
                         break;
                     case "10X":
-                        Energy = Energies.Photons10;
+                        Energy = Energies.Item10X;
                         break;
                 }
                 GantryDirection = Field.GantryDirection;
@@ -90,14 +90,14 @@ namespace Squint
                 }
 
             }
-            if (Type == FieldType.Unset)
+            if (Type == FieldTechniqueType.Unset)
             {
                 Warning = true;
                 WarningMessage = "Name / angle mismatch";
             }
 
         }
-        public FieldType Type { get; private set; } = FieldType.Unset;
+        public FieldTechniqueType Type { get; private set; } = FieldTechniqueType.Unset;
         public string TypeString
         {
             get { return Type.Display(); }
@@ -106,15 +106,15 @@ namespace Squint
         public string PlanId;
         public GantryDirection GantryDirection { get; set; }
 
-        public Trajectories Trajectory
+        public TrajectoryTypes Trajectory
         {
             get
             {
                 if (GantryDirection == GantryDirection.Clockwise)
-                    return Trajectories.CW;
+                    return TrajectoryTypes.CW;
                 if (GantryDirection == GantryDirection.CounterClockwise)
-                    return Trajectories.CCW;
-                return Trajectories.Unset;
+                    return TrajectoryTypes.CCW;
+                return TrajectoryTypes.Unset;
             }
         }
         public Energies Energy { get; set; }

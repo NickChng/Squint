@@ -19,84 +19,84 @@ namespace Squint
                 Orientation = O;
                 Type = IdentifyFieldType();
             }
-            if (Type == FieldType.Unset)
+            if (Type == FieldTechniqueType.Unset)
             {
                 Warning = true;
                 WarningMessage = "Name / angle mismatch";
             }
-            if (Type == FieldType.BolusSetup && ImagingField.MLC == null)
+            if (Type == FieldTechniqueType.BolusSetup && ImagingField.MLC == null)
             {
                 Warning = true;
                 WarningMessage = "Confirm no MLC needed";
             }
 
         }
-        private FieldType IdentifyFieldType()
+        private FieldTechniqueType IdentifyFieldType()
         {
             if (Bolus.Match(Id.ToUpper()).Success)
             {
-                return FieldType.BolusSetup;
+                return FieldTechniqueType.BolusSetup;
             }
             switch (GantryAngle)
             {
                 case 0:
                     if (CBCT.Match(Id.ToUpper()).Success)
                     {
-                        return FieldType.CBCT;
+                        return FieldTechniqueType.CBCT;
                     }
                     else
                     {
                         if (Unload.Match(Id.ToUpper()).Success)
-                            return FieldType.Unload;
+                            return FieldTechniqueType.Unload;
                         else
                         {
                             if (Orientation == VMS.TPS.Common.Model.Types.PatientOrientation.HeadFirstSupine && AntField.Match(Id.ToUpper()).Success)
-                                return FieldType.Ant_kv;
+                                return FieldTechniqueType.Ant_kv;
                             if (Orientation == VMS.TPS.Common.Model.Types.PatientOrientation.FeetFirstSupine && AntField.Match(Id.ToUpper()).Success)
-                                return FieldType.Ant_kv;
+                                return FieldTechniqueType.Ant_kv;
                             if (Orientation == VMS.TPS.Common.Model.Types.PatientOrientation.HeadFirstProne && PostField.Match(Id.ToUpper()).Success)
-                                return FieldType.Post_kv;
+                                return FieldTechniqueType.Post_kv;
                             if (Orientation == VMS.TPS.Common.Model.Types.PatientOrientation.FeetFirstProne && PostField.Match(Id.ToUpper()).Success)
-                                return FieldType.Post_kv;
+                                return FieldTechniqueType.Post_kv;
                         }
                     }
-                    return FieldType.Unset;
+                    return FieldTechniqueType.Unset;
                 case 90:
                     {
                         if (Orientation == VMS.TPS.Common.Model.Types.PatientOrientation.HeadFirstSupine && LeftField.Match(Id.ToUpper()).Success)
-                            return FieldType.LL_kv;
+                            return FieldTechniqueType.LL_kv;
                         if (Orientation == VMS.TPS.Common.Model.Types.PatientOrientation.FeetFirstSupine && RightField.Match(Id.ToUpper()).Success)
-                            return FieldType.RL_kv;
+                            return FieldTechniqueType.RL_kv;
                         if (Orientation == VMS.TPS.Common.Model.Types.PatientOrientation.HeadFirstProne && RightField.Match(Id.ToUpper()).Success)
-                            return FieldType.RL_kv;
+                            return FieldTechniqueType.RL_kv;
                         if (Orientation == VMS.TPS.Common.Model.Types.PatientOrientation.FeetFirstProne && LeftField.Match(Id.ToUpper()).Success)
-                            return FieldType.LL_kv;
-                        return FieldType.Unset;
+                            return FieldTechniqueType.LL_kv;
+                        return FieldTechniqueType.Unset;
                     }
                 case 270:
                     {
                         if (Orientation == VMS.TPS.Common.Model.Types.PatientOrientation.HeadFirstSupine && RightField.Match(Id.ToUpper()).Success)
-                            return FieldType.RL_kv;
+                            return FieldTechniqueType.RL_kv;
                         if (Orientation == VMS.TPS.Common.Model.Types.PatientOrientation.FeetFirstSupine && LeftField.Match(Id.ToUpper()).Success)
-                            return FieldType.LL_kv;
+                            return FieldTechniqueType.LL_kv;
                         if (Orientation == VMS.TPS.Common.Model.Types.PatientOrientation.HeadFirstProne && LeftField.Match(Id.ToUpper()).Success)
-                            return FieldType.LL_kv;
+                            return FieldTechniqueType.LL_kv;
                         if (Orientation == VMS.TPS.Common.Model.Types.PatientOrientation.FeetFirstProne && RightField.Match(Id.ToUpper()).Success)
-                            return FieldType.RL_kv;
-                        return FieldType.Unset;
+                            return FieldTechniqueType.RL_kv;
+                        return FieldTechniqueType.Unset;
                     }
                 case 180:
                     if (Orientation == VMS.TPS.Common.Model.Types.PatientOrientation.HeadFirstSupine && PostField.Match(Id.ToUpper()).Success)
-                        return FieldType.Post_kv;
+                        return FieldTechniqueType.Post_kv;
                     if (Orientation == VMS.TPS.Common.Model.Types.PatientOrientation.FeetFirstSupine && PostField.Match(Id.ToUpper()).Success)
-                        return FieldType.Post_kv;
+                        return FieldTechniqueType.Post_kv;
                     if (Orientation == VMS.TPS.Common.Model.Types.PatientOrientation.HeadFirstProne && AntField.Match(Id.ToUpper()).Success)
-                        return FieldType.Ant_kv;
+                        return FieldTechniqueType.Ant_kv;
                     if (Orientation == VMS.TPS.Common.Model.Types.PatientOrientation.FeetFirstProne && AntField.Match(Id.ToUpper()).Success)
-                        return FieldType.Ant_kv;
-                    return FieldType.Unset;
+                        return FieldTechniqueType.Ant_kv;
+                    return FieldTechniqueType.Unset;
                 default:
-                    return FieldType.Unset;
+                    return FieldTechniqueType.Unset;
             }
         }
         private VMS.TPS.Common.Model.Types.PatientOrientation Orientation = VMS.TPS.Common.Model.Types.PatientOrientation.NoOrientation;
@@ -107,7 +107,7 @@ namespace Squint
         private Regex Bolus = new Regex("BOLUS");
         private Regex CBCT = new Regex("CBCT");
         private Regex Unload = new Regex("UNLOAD");
-        public FieldType Type { get; private set; } = FieldType.Unset;
+        public FieldTechniqueType Type { get; private set; } = FieldTechniqueType.Unset;
         public string TypeString
         {
             get { return Type.Display(); }

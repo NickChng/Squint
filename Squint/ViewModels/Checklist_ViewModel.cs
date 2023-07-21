@@ -287,7 +287,7 @@ namespace Squint.ViewModels
             Component Comp = Ctr.CurrentProtocol.Components.FirstOrDefault(x => x.ComponentName == p.ACV.ComponentName);
             var ImageProtocolCheck = Ctr.CheckImagingProtocols(Comp, ImagingFields);
             Imaging_ViewModel.ImagingProtocols.Clear();
-            foreach (ImagingProtocols IP in Comp.ImagingProtocols)
+            foreach (ImagingProtocolTypes IP in Comp.ImagingProtocols)
             {
                 ProtocolImagingViewModel PIV = new ProtocolImagingViewModel() { ImagingProtocolName = IP.Display() };
                 if (ImageProtocolCheck.ContainsKey(IP))

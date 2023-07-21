@@ -278,7 +278,7 @@ namespace Squint.ViewModels
         {
             if (Ctr.ProtocolLoaded)
             {
-                var Con = Ctr.AddConstraint(ConstraintTypeCodes.Unset, Components.FirstOrDefault().Id, Structures.FirstOrDefault().Id);
+                var Con = Ctr.AddConstraint(ConstraintTypes.Unset, Components.FirstOrDefault().Id, Structures.FirstOrDefault().Id);
                 Constraints.Add(new ConstraintSelector(Con, Structures.LastOrDefault()));
                 Con.ConstraintFlaggedForDeletion += Con_ConstraintFlaggedForDeletion;
             }

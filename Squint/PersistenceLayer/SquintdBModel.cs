@@ -17,6 +17,7 @@ namespace Squint
     using Extensions;
     using System.Reflection;
     using Squint.XML_Definitions;
+    using Squint.Helpers;
 
     public class SquintDBModel : DbContext
     {
@@ -63,7 +64,7 @@ namespace Squint
                 {
                     DbTreatmentCentre TC = new DbTreatmentCentre()
                     {
-                        TreatmentCentreName = item.Display(),
+                        TreatmentCentreName = TypeDisplay.Display(item),
                         TreatmentCentre = (int)item
                     };
                     context.DbTreatmentCentres.Add(TC);
@@ -73,7 +74,7 @@ namespace Squint
                 {
                     DbPermission PER = new DbPermission()
                     {
-                        Name = p.Display(),
+                        Name = TypeDisplay.Display(p),
                         PermissionID = (int)p
                     };
                     context.DbPermissions.Add(PER);
@@ -137,45 +138,54 @@ namespace Squint
                             DbEnergy = new DbEnergy()
                             {
                                 ID = (int)Energies.Unset,
-                                Energy = Energies.Unset.Display(),
+                                Energy = TypeDisplay.Display(Energies.Unset),
                                 EnergyString = @"Unset"
 
                             };
                             context.DbEnergies.Add(DbEnergy);
                             break;
-                        case Energies.Photons6:
+                        case Energies.Item6X:
                             DbEnergy = new DbEnergy()
                             {
-                                ID = (int)Energies.Photons6,
-                                Energy = Energies.Photons6.Display(),
+                                ID = (int)Energies.Item6X,
+                                Energy = TypeDisplay.Display(Energies.Item6X),
                                 EnergyString = @"6X"
 
                             };
                             context.DbEnergies.Add(DbEnergy);
                             break;
-                        case Energies.Photons10:
+                        case Energies.Item10X:
                             DbEnergy = new DbEnergy()
                             {
-                                ID = (int)Energies.Photons10,
-                                Energy = Energies.Photons10.Display(),
+                                ID = (int)Energies.Item10X,
+                                Energy = TypeDisplay.Display(Energies.Item10X),
                                 EnergyString = @"10X"
                             };
                             context.DbEnergies.Add(DbEnergy);
                             break;
-                        case Energies.Photons10FFF:
+                        case Energies.Item6XFFF:
                             DbEnergy = new DbEnergy()
                             {
-                                ID = (int)Energies.Photons10FFF,
-                                Energy = Energies.Photons10FFF.Display(),
+                                ID = (int)Energies.Item6XFFF,
+                                Energy = TypeDisplay.Display(Energies.Item6XFFF),
+                                EnergyString = @"6XFFF"
+                            };
+                            context.DbEnergies.Add(DbEnergy);
+                            break;
+                        case Energies.Item10XFFF:
+                            DbEnergy = new DbEnergy()
+                            {
+                                ID = (int)Energies.Item10XFFF,
+                                Energy = TypeDisplay.Display(Energies.Item10XFFF),
                                 EnergyString = @"10XFFF"
                             };
                             context.DbEnergies.Add(DbEnergy);
                             break;
-                        case Energies.Photons15:
+                        case Energies.Item15X:
                             DbEnergy = new DbEnergy()
                             {
-                                ID = (int)Energies.Photons15,
-                                Energy = Energies.Photons15.Display(),
+                                ID = (int)Energies.Item15X,
+                                Energy = TypeDisplay.Display(Energies.Item15X),
                                 EnergyString = @"15X"
                             };
                             context.DbEnergies.Add(DbEnergy);
@@ -187,7 +197,7 @@ namespace Squint
                 {
                     DbProtocolType DbO = new DbProtocolType()
                     {
-                        ProtocolTypeName = item.ToString(),
+                        ProtocolTypeName = TypeDisplay.Display(item),
                         ProtocolType = (int)item
                     };
                     context.DbProtocolTypes.Add(DbO);
@@ -196,7 +206,7 @@ namespace Squint
                 {
                     DbApprovalLevel DbO = new DbApprovalLevel()
                     {
-                        ApprovalLevelName = item.ToString(),
+                        ApprovalLevelName = TypeDisplay.Display(item),
                         ApprovalLevel = (int)item
                     };
                     context.DbApprovalLevels.Add(DbO);
@@ -205,7 +215,7 @@ namespace Squint
                 {
                     DbTreatmentSite DbO = new DbTreatmentSite()
                     {
-                        TreatmentSiteName = item.ToString(),
+                        TreatmentSiteName = TypeDisplay.Display(item),
                         TreatmentSite = (int)item
                     };
                     context.DbTreatmentSites.Add(DbO);
@@ -214,7 +224,7 @@ namespace Squint
                 {
                     DbTreatmentIntent DbO = new DbTreatmentIntent()
                     {
-                        Intent = item.ToString()
+                        Intent = TypeDisplay.Display(item)
                     };
                     context.DbTreatmentIntents.Add(DbO);
                 }
@@ -236,7 +246,7 @@ namespace Squint
                         GeometryDefinitions BeamGeometryDefinitions = ser.Deserialize<GeometryDefinitions>(BeamGeometryDefintionXMLFile);
                         foreach (var G in BeamGeometryDefinitions.Geometry)
                         {
-                            Trajectories T = Trajectories.Unset;
+                            TrajectoryTypes T = TrajectoryTypes.Unset;
                             Enum.TryParse(G.Trajectory, out T);
                             DbBeamGeometry DbBG = new DbBeamGeometry()
                             {

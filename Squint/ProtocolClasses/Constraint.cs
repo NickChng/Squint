@@ -23,7 +23,7 @@ namespace Squint
             public int ReferenceStructureId;
             public double ReferenceValue;
             public ReferenceTypes ReferenceType;
-            public ConstraintTypeCodes ConstraintType;
+            public ConstraintTypes ConstraintType;
             public UnitScale ConstraintScale;
             public UnitScale ReferenceScale;
             public double ConstraintValue;
@@ -80,9 +80,9 @@ namespace Squint
             if (DbOS != null) // set current session values
             {
 
-                _ConstraintType = new TrackedValue<ConstraintTypeCodes>((ConstraintTypeCodes)DbOS.OriginalConstraintType);
+                _ConstraintType = new TrackedValue<ConstraintTypes>((ConstraintTypes)DbOS.OriginalConstraintType);
                 if (DbOS.ConstraintType != DbOS.OriginalConstraintType)
-                    ConstraintType = (ConstraintTypeCodes)DbOS.ConstraintType;
+                    ConstraintType = (ConstraintTypes)DbOS.ConstraintType;
                 // Initialize thresholds
                 if (!string.IsNullOrEmpty(DbOS.ThresholdDataPath))
                     _ThresholdCalculator = new InterpolatedThreshold(DbOS.ThresholdDataPath);
@@ -106,7 +106,7 @@ namespace Squint
             }
             else
             {
-                _ConstraintType = new TrackedValue<ConstraintTypeCodes>((ConstraintTypeCodes)DbO.ConstraintType);
+                _ConstraintType = new TrackedValue<ConstraintTypes>((ConstraintTypes)DbO.ConstraintType);
                 //_ReferenceValue = new TrackedValueWithReferences<double>(DbO.ReferenceValue);
                 _ReferenceType = new TrackedValue<ReferenceTypes>((ReferenceTypes)DbO.ReferenceType);
                 _ReferenceScale = new TrackedValue<UnitScale>((UnitScale)DbO.ReferenceScale);
@@ -126,7 +126,7 @@ namespace Squint
             parentComponent.ReferenceFractionsChanged += OnComponentFractionsChanging;
 
         }
-        public Constraint(Component parentComponent_in, ProtocolStructure primaryStructure_in, ProtocolStructure referenceStructure_in, ConstraintTypeCodes TypeCode)
+        public Constraint(Component parentComponent_in, ProtocolStructure primaryStructure_in, ProtocolStructure referenceStructure_in, ConstraintTypes TypeCode)
         {
             // This method creates a new ad-hoc constraint
             isCreated = true;
@@ -137,7 +137,7 @@ namespace Squint
             _ConstraintScale = new TrackedValue<UnitScale>(UnitScale.Unset);
             _ConstraintValue = new TrackedValue<double>(0);
             _ReferenceType = new TrackedValue<ReferenceTypes>(ReferenceTypes.Unset);
-            _ConstraintType = new TrackedValue<ConstraintTypeCodes>(TypeCode);
+            _ConstraintType = new TrackedValue<ConstraintTypes>(TypeCode);
             //_ReferenceValue = new TrackedValueWithReferences<double>(0);
             _ReferenceScale = new TrackedValue<UnitScale>(UnitScale.Unset);
             DisplayOrder = new TrackedValue<int>(parentComponent.Constraints.Count() + 1);
@@ -149,7 +149,7 @@ namespace Squint
             parentComponent.ReferenceFractionsChanged += OnComponentFractionsChanging;
 
             // Initialize thresholds
-            if (ConstraintType == ConstraintTypeCodes.CI)
+            if (ConstraintType == ConstraintTypes.CI)
             {
                 _ThresholdCalculator = (new InterpolatedThreshold(""));
             }
@@ -241,7 +241,7 @@ namespace Squint
                 {
                     case 0: // Conformity Index less than
                         _ConstraintScale = new TrackedValue<UnitScale>(UnitScale.Relative);
-                        _ConstraintType = new TrackedValue<ConstraintTypeCodes>(ConstraintTypeCodes.CI);
+                        _ConstraintType = new TrackedValue<ConstraintTypes>(ConstraintTypes.CI);
                         _ConstraintValue = new TrackedValue<double>(100);
                         _ReferenceScale = new TrackedValue<UnitScale>(UnitScale.Absolute);
                         _ReferenceType = new TrackedValue<ReferenceTypes>(ReferenceTypes.Upper);
@@ -249,7 +249,7 @@ namespace Squint
                         _ThresholdCalculator = (new FixedThreshold(ReferenceValue));
                         break;
                     case 2: // this is a Vx[%] type constraint
-                        _ConstraintType = new TrackedValue<ConstraintTypeCodes>(ConstraintTypeCodes.V);
+                        _ConstraintType = new TrackedValue<ConstraintTypes>(ConstraintTypes.V);
                         _ConstraintScale = new TrackedValue<UnitScale>(UnitScale.Relative); // ConUnit = "%";
                         if (MI.Value == null)
                         {
@@ -270,7 +270,7 @@ namespace Squint
                         _ThresholdCalculator = (new FixedThreshold(ReferenceValue));
                         break;
                     case 3: // this is a Vx[Gy] type constraint
-                        _ConstraintType = new TrackedValue<ConstraintTypeCodes>(ConstraintTypeCodes.V);
+                        _ConstraintType = new TrackedValue<ConstraintTypes>(ConstraintTypes.V);
                         _ConstraintScale = new TrackedValue<UnitScale>(UnitScale.Absolute);
 
                         if (MI.Value == null)
@@ -288,7 +288,7 @@ namespace Squint
                             _ConstraintValue = new TrackedValue<double>((double)MI.TypeSpecifier * 100);
                         break;
                     case 4: // is is  Dx% type constraint
-                        _ConstraintType = new TrackedValue<ConstraintTypeCodes>(ConstraintTypeCodes.D);
+                        _ConstraintType = new TrackedValue<ConstraintTypes>(ConstraintTypes.D);
                         _ConstraintScale = new TrackedValue<UnitScale>(UnitScale.Relative);
                         if (MI.Value == null)
                             _ThresholdCalculator = (new FixedThreshold());
@@ -305,7 +305,7 @@ namespace Squint
                             _ConstraintValue = new TrackedValue<double>((double)MI.TypeSpecifier);
                         break;
                     case 5: // this is a Dx cc type constraint
-                        _ConstraintType = new TrackedValue<ConstraintTypeCodes>(ConstraintTypeCodes.D);
+                        _ConstraintType = new TrackedValue<ConstraintTypes>(ConstraintTypes.D);
                         _ConstraintScale = new TrackedValue<UnitScale>(UnitScale.Absolute);
                         if (MI.Value == null)
                             _ThresholdCalculator = (new FixedThreshold());
@@ -325,7 +325,7 @@ namespace Squint
                     default:
                         {
                             MessageBox.Show(string.Format("MI.Type = {0} not handled", MI.Type));
-                            _ConstraintType = new TrackedValue<ConstraintTypeCodes>(ConstraintTypeCodes.Unset);
+                            _ConstraintType = new TrackedValue<ConstraintTypes>(ConstraintTypes.Unset);
                             _ConstraintScale = new TrackedValue<UnitScale>(UnitScale.Unset);
                             _ThresholdCalculator = (new FixedThreshold(null));
                             _ConstraintValue = new TrackedValue<double>(double.NaN);
@@ -356,7 +356,7 @@ namespace Squint
                 {
                     case 0: // Dx% > y cGy
                         _ConstraintScale = new TrackedValue<UnitScale>(UnitScale.Relative);
-                        _ConstraintType = new TrackedValue<ConstraintTypeCodes>(ConstraintTypeCodes.D);
+                        _ConstraintType = new TrackedValue<ConstraintTypes>(ConstraintTypes.D);
                         _ConstraintValue = new TrackedValue<double>((double)PI.Parameter);
                         _ReferenceScale = new TrackedValue<UnitScale>(UnitScale.Absolute);
                         _ReferenceType = new TrackedValue<ReferenceTypes>(ReferenceTypes.Lower);
@@ -365,7 +365,7 @@ namespace Squint
                         break;
                     case 1: // Dx% < y cGy
                         _ConstraintScale = new TrackedValue<UnitScale>(UnitScale.Relative);
-                        _ConstraintType = new TrackedValue<ConstraintTypeCodes>(ConstraintTypeCodes.D);
+                        _ConstraintType = new TrackedValue<ConstraintTypes>(ConstraintTypes.D);
                         _ConstraintValue = new TrackedValue<double>((double)PI.Parameter);
                         _ReferenceScale = new TrackedValue<UnitScale>(UnitScale.Absolute);
                         _ReferenceType = new TrackedValue<ReferenceTypes>(ReferenceTypes.Upper);
@@ -375,7 +375,7 @@ namespace Squint
                     case 3: // Dx = y cGy
                         MessageBox.Show(string.Format(@"Squint does not support [Maximum dose is], replacing with [Maximum dose less than]", PI.Modifier));
                         _ConstraintScale = new TrackedValue<UnitScale>(UnitScale.Relative);
-                        _ConstraintType = new TrackedValue<ConstraintTypeCodes>(ConstraintTypeCodes.D);
+                        _ConstraintType = new TrackedValue<ConstraintTypes>(ConstraintTypes.D);
                         _ConstraintValue = new TrackedValue<double>((double)0);
                         _ReferenceScale = new TrackedValue<UnitScale>(UnitScale.Absolute);
                         _ReferenceType = new TrackedValue<ReferenceTypes>(ReferenceTypes.Upper);
@@ -385,7 +385,7 @@ namespace Squint
                     case 4: // Dx = y cGy
                         MessageBox.Show(string.Format(@"Squint does not support [Minimum dose is], replacing with [Minimum dose greater than]", PI.Modifier));
                         _ConstraintScale = new TrackedValue<UnitScale>(UnitScale.Relative);
-                        _ConstraintType = new TrackedValue<ConstraintTypeCodes>(ConstraintTypeCodes.D);
+                        _ConstraintType = new TrackedValue<ConstraintTypes>(ConstraintTypes.D);
                         _ConstraintValue = new TrackedValue<double>((double)100);
                         _ReferenceScale = new TrackedValue<UnitScale>(UnitScale.Absolute);
                         _ReferenceType = new TrackedValue<ReferenceTypes>(ReferenceTypes.Lower);
@@ -397,7 +397,7 @@ namespace Squint
                         break;
                     case 7: // Mean is more than cGy
                         _ConstraintScale = new TrackedValue<UnitScale>(UnitScale.Absolute);
-                        _ConstraintType = new TrackedValue<ConstraintTypeCodes>(ConstraintTypeCodes.M);
+                        _ConstraintType = new TrackedValue<ConstraintTypes>(ConstraintTypes.M);
                         //_ReferenceValue = new TrackedValue<double>((double)PI.TotalDose * 100);
                         _ThresholdCalculator = (new FixedThreshold((double)PI.TotalDose * 100));
                         _ReferenceScale = new TrackedValue<UnitScale>(UnitScale.Absolute);
@@ -406,7 +406,7 @@ namespace Squint
                         break;
                     case 8: // Mean is less than cGy
                         _ConstraintScale = new TrackedValue<UnitScale>(UnitScale.Absolute);
-                        _ConstraintType = new TrackedValue<ConstraintTypeCodes>(ConstraintTypeCodes.M);
+                        _ConstraintType = new TrackedValue<ConstraintTypes>(ConstraintTypes.M);
                         //_ReferenceValue = new TrackedValue<double>((double)PI.TotalDose * 100);
                         _ThresholdCalculator = (new FixedThreshold((double)PI.TotalDose * 100));
                         _ReferenceScale = new TrackedValue<UnitScale>(UnitScale.Absolute);
@@ -415,7 +415,7 @@ namespace Squint
                         break;
                     case 9: // Minimum is more than cGy
                         _ConstraintScale = new TrackedValue<UnitScale>(UnitScale.Relative);
-                        _ConstraintType = new TrackedValue<ConstraintTypeCodes>(ConstraintTypeCodes.D);
+                        _ConstraintType = new TrackedValue<ConstraintTypes>(ConstraintTypes.D);
                         //_ReferenceValue = new TrackedValue<double>((double)PI.TotalDose * 100);
                         _ThresholdCalculator = (new FixedThreshold((double)PI.TotalDose * 100));
                         _ReferenceScale = new TrackedValue<UnitScale>(UnitScale.Absolute);
@@ -424,7 +424,7 @@ namespace Squint
                         break;
                     case 10: // Maximum is less than cGy
                         _ConstraintScale = new TrackedValue<UnitScale>(UnitScale.Absolute);
-                        _ConstraintType = new TrackedValue<ConstraintTypeCodes>(ConstraintTypeCodes.D);
+                        _ConstraintType = new TrackedValue<ConstraintTypes>(ConstraintTypes.D);
                         //_ReferenceValue = new TrackedValue<double>((double)PI.TotalDose * 100);
                         _ThresholdCalculator = (new FixedThreshold((double)PI.TotalDose * 100));
                         _ReferenceScale = new TrackedValue<UnitScale>(UnitScale.Absolute);
@@ -433,7 +433,7 @@ namespace Squint
                         break;
                     default:
                         MessageBox.Show(string.Format("PI.Type = {0} not handled", PI.Modifier));
-                        _ConstraintType = new TrackedValue<ConstraintTypeCodes>(ConstraintTypeCodes.Unset);
+                        _ConstraintType = new TrackedValue<ConstraintTypes>(ConstraintTypes.Unset);
                         _ConstraintScale = new TrackedValue<UnitScale>(UnitScale.Unset);
                         _ThresholdCalculator = (new FixedThreshold(null));
                         _ConstraintValue = new TrackedValue<double>(double.NaN);
@@ -507,8 +507,8 @@ namespace Squint
         //private bool _wasSessionModified { get; set; } = false;  // this is true if the loaded constraint was modified in its session
         private TrackedValue<ReferenceTypes> _ReferenceType = new TrackedValue<ReferenceTypes>(ReferenceTypes.Unset);
         public ReferenceTypes ReferenceType { get { return _ReferenceType.Value; } set { _ReferenceType.Value = value; } }
-        private TrackedValue<ConstraintTypeCodes> _ConstraintType = new TrackedValue<ConstraintTypeCodes>(ConstraintTypeCodes.Unset);
-        public ConstraintTypeCodes ConstraintType { get { return _ConstraintType.Value; } set { _ConstraintType.Value = value; } }
+        private TrackedValue<ConstraintTypes> _ConstraintType = new TrackedValue<ConstraintTypes>(ConstraintTypes.Unset);
+        public ConstraintTypes ConstraintType { get { return _ConstraintType.Value; } set { _ConstraintType.Value = value; } }
         private TrackedValue<UnitScale> _ConstraintScale = new TrackedValue<UnitScale>(UnitScale.Unset);
         public UnitScale ConstraintScale { get { return _ConstraintScale.Value; } set { _ConstraintScale.Value = value; } }
         private TrackedValue<UnitScale> _ReferenceScale { get; set; } = new TrackedValue<UnitScale>(UnitScale.Unset);// the constraint unit 
@@ -537,13 +537,13 @@ namespace Squint
         }
         public bool isValid()
         {
-            if (ConstraintType == ConstraintTypeCodes.Unset)
+            if (ConstraintType == ConstraintTypes.Unset)
                 return false;
             else
             {
                 if (PrimaryStructureId != 1
-                       && (ConstraintScale != UnitScale.Unset || ConstraintType == ConstraintTypeCodes.M)
-                       && (ConstraintType != ConstraintTypeCodes.CI || ReferenceStructureId != 1)
+                       && (ConstraintScale != UnitScale.Unset || ConstraintType == ConstraintTypes.M)
+                       && (ConstraintType != ConstraintTypes.CI || ReferenceStructureId != 1)
                        && ConstraintValue >= 0
                        && (ReferenceValue >= 0 || (double.IsNaN(ReferenceValue) && _ThresholdCalculator is InterpolatedThreshold))
                        && ReferenceType != ReferenceTypes.Unset
@@ -587,34 +587,34 @@ namespace Squint
         //DVH constraint type properties and methods
         public bool isConstraintValueDose()
         {
-            if (ConstraintType == ConstraintTypeCodes.V
-                || ConstraintType == ConstraintTypeCodes.CV || ConstraintType == ConstraintTypeCodes.CI)
+            if (ConstraintType == ConstraintTypes.V
+                || ConstraintType == ConstraintTypes.CV || ConstraintType == ConstraintTypes.CI)
                 return true;
             else
                 return false;
         }
         public bool isReferenceValueDose()
         {
-            if (ConstraintType == ConstraintTypeCodes.D
-                || ConstraintType == ConstraintTypeCodes.M)
+            if (ConstraintType == ConstraintTypes.D
+                || ConstraintType == ConstraintTypes.M)
                 return true;
             else
                 return false;
         }
-        public Dvh_Types GetDvhConstraintType()
+        public DvhTypes GetDvhConstraintType()
         {
             switch (ConstraintType)
             {
-                case ConstraintTypeCodes.V:
-                    return Dvh_Types.V;
-                case ConstraintTypeCodes.D:
-                    return Dvh_Types.D;
-                case ConstraintTypeCodes.CV:
-                    return Dvh_Types.CV;
-                case ConstraintTypeCodes.M:
-                    return Dvh_Types.M;
+                case ConstraintTypes.V:
+                    return DvhTypes.V;
+                case ConstraintTypes.D:
+                    return DvhTypes.D;
+                case ConstraintTypes.CV:
+                    return DvhTypes.CV;
+                case ConstraintTypes.M:
+                    return DvhTypes.M;
                 default:
-                    return Dvh_Types.Unset;
+                    return DvhTypes.Unset;
             }
         }
         public ConstraintUnits GetConstraintUnit()
@@ -623,32 +623,32 @@ namespace Squint
                 return ConstraintUnits.Unset;
             switch (ConstraintType)
             {
-                case ConstraintTypeCodes.CV:
+                case ConstraintTypes.CV:
                     {
                         if (ConstraintScale == UnitScale.Relative)
                             return ConstraintUnits.Percent;
                         else
                             return ConstraintUnits.cGy;
                     }
-                case ConstraintTypeCodes.V:
+                case ConstraintTypes.V:
                     {
                         if (ConstraintScale == UnitScale.Relative)
                             return ConstraintUnits.Percent;
                         else
                             return ConstraintUnits.cGy;
                     }
-                case ConstraintTypeCodes.D:
+                case ConstraintTypes.D:
                     {
                         if (ConstraintScale == UnitScale.Relative)
                             return ConstraintUnits.Percent;
                         else
                             return ConstraintUnits.cc;
                     }
-                case ConstraintTypeCodes.M:
+                case ConstraintTypes.M:
                     return ConstraintUnits.Unset;
-                case ConstraintTypeCodes.Unset:
+                case ConstraintTypes.Unset:
                     return ConstraintUnits.Unset;
-                case ConstraintTypeCodes.CI:
+                case ConstraintTypes.CI:
                     {
                         if (ConstraintScale == UnitScale.Relative)
                             return ConstraintUnits.Percent;
@@ -666,37 +666,37 @@ namespace Squint
                 return ConstraintUnits.Unset;
             switch (ConstraintType)
             {
-                case ConstraintTypeCodes.CV:
+                case ConstraintTypes.CV:
                     {
                         if (ReferenceScale == UnitScale.Relative)
                             return ConstraintUnits.Percent;
                         else
                             return ConstraintUnits.cc;
                     }
-                case ConstraintTypeCodes.V:
+                case ConstraintTypes.V:
                     {
                         if (ReferenceScale == UnitScale.Relative)
                             return ConstraintUnits.Percent;
                         else
                             return ConstraintUnits.cc;
                     }
-                case ConstraintTypeCodes.D:
+                case ConstraintTypes.D:
                     {
                         if (ReferenceScale == UnitScale.Relative)
                             return ConstraintUnits.Percent;
                         else
                             return ConstraintUnits.cGy;
                     }
-                case ConstraintTypeCodes.M:
+                case ConstraintTypes.M:
                     {
                         if (ReferenceScale == UnitScale.Relative)
                             return ConstraintUnits.Percent;
                         else
                             return ConstraintUnits.cGy;
                     }
-                case ConstraintTypeCodes.Unset:
+                case ConstraintTypes.Unset:
                     return ConstraintUnits.Unset;
-                case ConstraintTypeCodes.CI:
+                case ConstraintTypes.CI:
                     {
                         if (ReferenceScale == UnitScale.Relative)
                             return ConstraintUnits.Percent;
@@ -734,16 +734,16 @@ namespace Squint
             //string ConString = null;
             switch (ConstraintType)
             {
-                case ConstraintTypeCodes.CV:
+                case ConstraintTypes.CV:
                     ReturnString = string.Format("CV{0:0.###} [{1}] {2} {3:0.###} [{4}]", ConstraintValue, GetConstraintUnit().Display(), ReferenceType.Display(), ReferenceValue, GetReferenceUnit().Display());
                     break;
-                case ConstraintTypeCodes.V:
+                case ConstraintTypes.V:
                     if (ConstraintScale == UnitScale.Relative)
                         ReturnString = string.Format("V{0:0.###} [{1}] {2} {3:0.###} [{4}]", ConstraintValue, GetConstraintUnit().Display(), ReferenceType.Display(), ReferenceValue, GetReferenceUnit().Display());
                     else
                         ReturnString = string.Format("V{0:0.#} [{1}] {2} {3:0.###} [{4}]", ConstraintValue, GetConstraintUnit().Display(), ReferenceType.Display(), ReferenceValue, GetReferenceUnit().Display());
                     break;
-                case ConstraintTypeCodes.D:
+                case ConstraintTypes.D:
                     //Exception for min and max dose
                     if (ConstraintValue < 1E-5)
                     { // max dose
@@ -770,10 +770,10 @@ namespace Squint
                             ReturnString = string.Format("D{0:0.###} [{1}] {2} {3:0} [{4}]", ConstraintValue, GetConstraintUnit().Display(), ReferenceType.Display(), ReferenceValue, GetReferenceUnit().Display());
                         break;
                     }
-                case ConstraintTypeCodes.M:
+                case ConstraintTypes.M:
                     ReturnString = string.Format("Mean Dose {0} {1:0} [{2}]", ReferenceType.Display(), ReferenceValue, GetReferenceUnit());
                     break;
-                case ConstraintTypeCodes.CI:
+                case ConstraintTypes.CI:
                     if (ConstraintValue == 0) // Display exception if it's the whole volume for readability
                         ReturnString = string.Format("Total volume is {0} {1} % of {2} volume", ReferenceType.Display(), ReferenceValue, ReferenceStructureName);
                     else
@@ -785,7 +785,7 @@ namespace Squint
                         break;
                     }
                     break;
-                case ConstraintTypeCodes.Unset:
+                case ConstraintTypes.Unset:
                     ReturnString = "Constraint definition incomplete";
                     break;
                 default:
@@ -1048,13 +1048,13 @@ namespace Squint
                 }
                 switch (ConstraintType)
                 {
-                    case ConstraintTypeCodes.CV: // critical volume
+                    case ConstraintTypes.CV: // critical volume
                         rawresult = p.Structures[targetId].Volume - await p.GetVolumeAtDose(targetId, doseQuery, VolumePresentation.AbsoluteCm3);
                         break;
-                    case ConstraintTypeCodes.V:
+                    case ConstraintTypes.V:
                         rawresult = await p.GetVolumeAtDose(targetId, doseQuery, volPresentationReturn);
                         break;
-                    case ConstraintTypeCodes.D:
+                    case ConstraintTypes.D:
                         {
                             rawresult = await p.GetDoseAtVolume(targetId, ConstraintValue, volPresentationQuery, dosePresentationReturn);
                             if (SumAndRefIsRelative)
@@ -1063,14 +1063,14 @@ namespace Squint
                             }
                             break;
                         }
-                    case ConstraintTypeCodes.M:
+                    case ConstraintTypes.M:
                         rawresult = await p.GetMeanDose(targetId, volPresentationReturn, dosePresentationReturn, binWidth);
                         if (SumAndRefIsRelative)
                         {
                             rawresult = rawresult / parentComponent.TotalDose * 100;
                         }
                         break;
-                    case ConstraintTypeCodes.CI:
+                    case ConstraintTypes.CI:
                         if (referenceStructure != null)
                         {
                             if (p.StructureIds.Contains(referenceStructure.AssignedStructureId))
@@ -1232,7 +1232,7 @@ namespace Squint
             get { return _ThresholdCalculator.Stop; }
             set
             {
-                if (ConstraintType != ConstraintTypeCodes.CI)
+                if (ConstraintType != ConstraintTypes.CI)
                 {
                     if (value != _ThresholdCalculator.Stop)
                     {
@@ -1274,7 +1274,7 @@ namespace Squint
             get { return _ThresholdCalculator.MinorViolation; }
             set
             {
-                if (ConstraintType != ConstraintTypeCodes.CI)
+                if (ConstraintType != ConstraintTypes.CI)
                 {
                     if (value != _ThresholdCalculator.MinorViolation)
                         if (double.IsNaN((double)value))
@@ -1298,7 +1298,7 @@ namespace Squint
             get { return _ThresholdCalculator.MajorViolation; }
             set
             {
-                if (ConstraintType != ConstraintTypeCodes.CI)
+                if (ConstraintType != ConstraintTypes.CI)
                 {
                     if (value != _ThresholdCalculator.MajorViolation)
                         if (ReferenceType == ReferenceTypes.Lower)

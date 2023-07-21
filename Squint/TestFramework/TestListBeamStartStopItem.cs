@@ -48,7 +48,7 @@ namespace Squint.TestFramework
             {
                 if (Check != null)
                 {
-                    if (Check.Trajectory == Trajectories.Static)
+                    if (Check.Trajectory == TrajectoryTypes.Static)
                         return string.Format("{0:0.###}", Check.StartAngle);
                     else // arc
                         return string.Format("Start: {0:0.###}  Stop: {1:0.###}", Check.StartAngle, Check.EndAngle);
@@ -90,7 +90,7 @@ namespace Squint.TestFramework
             if (Check != null && _ReferenceGeometryOptions != null)
                 foreach (var G in _ReferenceGeometryOptions)
                 {
-                    if (CV.Trajectory == Trajectories.Static)
+                    if (CV.Trajectory == TrajectoryTypes.Static)
                     {
                         if (CV.StartAngle.CloseEnough(G.StartAngle, G.StartAngleTolerance))
                             Reference.Value = G;

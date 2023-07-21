@@ -12,9 +12,9 @@ namespace Squint
             {
                 switch (DvhType)
                 {
-                    case Dvh_Types.M:
+                    case DvhTypes.M:
                         return string.Format("Mean Dose < {0:0.0} cGy", Dose);
-                    case Dvh_Types.V:
+                    case DvhTypes.V:
                         return string.Format("V{0:0.0} cGy {1} {2:0.0}%", Dose, Type.Display(), Volume);
                     default:
                         return "";
@@ -29,16 +29,16 @@ namespace Squint
             {
                 switch (DvhType)
                 {
-                    case Dvh_Types.M:
+                    case DvhTypes.M:
                         return string.Format("{0:0.#} cGy", ResultDose);
-                    case Dvh_Types.V:
+                    case DvhTypes.V:
                         return string.Format("{0:0.#} cGy, {1:0.#} %", ResultDose, ResultVolume);
                     default:
                         return "";
                 }
             }
         }
-        public Dvh_Types DvhType { get; set; } = Dvh_Types.Unset;
+        public DvhTypes DvhType { get; set; } = DvhTypes.Unset;
         public ReferenceTypes Type { get; set; } = ReferenceTypes.Unset;
         public double DoseDifference { get; set; } = 0;
         public double VolDifference { get; set; } = 0;
@@ -55,7 +55,7 @@ namespace Squint
             {
                 switch (DvhType)
                 {
-                    case Dvh_Types.V:
+                    case DvhTypes.V:
                         return string.Format(", {0:0.0} %", VolDifference);
                     default:
                         return "";

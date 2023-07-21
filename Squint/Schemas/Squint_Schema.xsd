@@ -1,5 +1,205 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <xs:schema xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xs="http://www.w3.org/2001/XMLSchema" attributeFormDefault="unqualified" elementFormDefault="qualified">
+  <xs:simpleType name="PositiveDouble">
+    <xs:restriction base="xs:double">
+      <xs:minInclusive value="0"/>
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:simpleType name="NullDouble">
+    <xs:union>
+      <xs:simpleType>
+        <xs:restriction base="xs:double"/>
+      </xs:simpleType>
+      <xs:simpleType>
+        <xs:restriction base="xs:string">
+          <xs:length value="0"/>
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:union>
+  </xs:simpleType>
+  <xs:simpleType name="TreatmentIntents">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="Unset"/>
+      <xs:enumeration value="Curative"/>
+      <xs:enumeration value="Adjuvant"/>
+      <xs:enumeration value="NeoAdjuvant"/>
+      <xs:enumeration value="Palliative"/>
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:simpleType name="ComponentTypes">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="Unset"/>
+      <xs:enumeration value="Phase"/>
+      <xs:enumeration value="Sum"/>
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:simpleType name="TrajectoryTypes">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="Unset"/>
+      <xs:enumeration value="Static"/>
+      <xs:enumeration value="CW"/>
+      <xs:enumeration value="CCW"/>
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:simpleType name="ImagingProtocolTypes">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="Unset"/>
+      <xs:enumeration value="kV"/>
+      <xs:enumeration value="kV_2D"/>
+      <xs:enumeration value="Bolus"/>
+      <xs:enumeration value="PreCBCT"/>
+      <xs:enumeration value="PostCBCT"/>
+      <xs:enumeration value="MidTxCBCT"/>
+      <xs:enumeration value="Home"/>
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:simpleType name="Energies">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="Unset"/>
+      <xs:enumeration value="6X"/>
+      <xs:enumeration value="10X"/>
+      <xs:enumeration value="15X"/>
+      <xs:enumeration value="10XFFF"/>
+      <xs:enumeration value="6XFFF"/>
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:simpleType name="ConstraintTypes">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="Unset"/>
+      <xs:enumeration value="D"/>
+      <xs:enumeration value="V"/>
+      <xs:enumeration value="M"/>
+      <xs:enumeration value="CV"/>
+      <xs:enumeration value="CI"/>
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:simpleType name="ConstraintUnits">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="Unset"/>
+      <xs:enumeration value="Percent"/>
+      <xs:enumeration value="cGy"/>
+      <xs:enumeration value="cc"/>
+      <xs:enumeration value="Multiple"/>
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:simpleType name="UnitScale">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="Unset"/>
+      <xs:enumeration value="Relative"/>
+      <xs:enumeration value="Absolute"/>
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:simpleType name="ReferenceTypes">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="Unset"/>
+      <xs:enumeration value="Upper"/>
+      <xs:enumeration value="Lower"/>
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:simpleType name="FieldTechniqueType">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="Unset"/>
+      <xs:enumeration value="BolusSetup"/>
+      <xs:enumeration value="LL_kv"/>
+      <xs:enumeration value="RL_kv"/>
+      <xs:enumeration value="CBCT"/>
+      <xs:enumeration value="Ant_kv"/>
+      <xs:enumeration value="Post_kv"/>
+      <xs:enumeration value="STATIC"/>
+      <xs:enumeration value="ARC"/>
+      <xs:enumeration value="Unload"/>
+      <xs:enumeration value="Home"/>
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:simpleType name="AlgorithmVolumeDoseTypes">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="Unset"/>
+      <xs:enumeration value="AAA_11031"/>
+      <xs:enumeration value="AAA_13623"/>
+      <xs:enumeration value="AAA_15606"/>
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:simpleType name="ApprovalLevels">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="Unset"/>
+      <xs:enumeration value="All"/>
+      <xs:enumeration value="Unapproved"/>
+      <xs:enumeration value="Reviewed"/>
+      <xs:enumeration value="Approved"/>
+      <xs:enumeration value="Retired"/>
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:simpleType name="TreatmentSites">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="Unset"/>
+      <xs:enumeration value="All"/>
+      <xs:enumeration value="GU"/>
+      <xs:enumeration value="GI"/>
+      <xs:enumeration value="Lung"/>
+      <xs:enumeration value="HN"/>
+      <xs:enumeration value="CNS"/>
+      <xs:enumeration value="Sarcoma"/>
+      <xs:enumeration value="Breast"/>
+      <xs:enumeration value="Lymphoma"/>
+      <xs:enumeration value="Palliative"/>
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:simpleType name="ProtocolTypes">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="Unset"/>
+      <xs:enumeration value="All"/>
+      <xs:enumeration value="Clinical"/>
+      <xs:enumeration value="Trial"/>
+      <xs:enumeration value="Research"/>
+      <xs:enumeration value="Development"/>
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:simpleType name="TreatmentCentres">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="Unset"/>
+      <xs:enumeration value="All"/>
+      <xs:enumeration value="Provincial"/>
+      <xs:enumeration value="CN"/>
+      <xs:enumeration value="VCC"/>
+      <xs:enumeration value="VIC"/>
+      <xs:enumeration value="AC"/>
+      <xs:enumeration value="FVCC"/>
+      <xs:enumeration value="CSI"/>
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:simpleType name="FieldNormalizationTypes">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="Unset"/>
+      <xs:enumeration value="ISO"/>
+      <xs:enumeration value="CAX"/>
+      <xs:enumeration value="field"/>
+      <xs:enumeration value="None"/>
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:simpleType name="ParameterOptions">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="Unset"/>
+      <xs:enumeration value="Optional"/>
+      <xs:enumeration value="Required"/>
+      <xs:enumeration value="None"/>
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:simpleType name="AlgorithmVMATOptimizationTypes">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="Unset"/>
+      <xs:enumeration value="PRO_13623"/>
+      <xs:enumeration value="PO_13623"/>
+      <xs:enumeration value="PO_15606"/>
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:simpleType name="AlgorithmIMRTOptimizationTypes">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="Unset"/>
+      <xs:enumeration value="PRO_13623"/>
+      <xs:enumeration value="PO_13623"/>
+      <xs:enumeration value="PO_15606"/>
+    </xs:restriction>
+  </xs:simpleType>
   <xsd:element name="SquintProtocol">
     <xsd:complexType>
       <xsd:sequence>
@@ -8,13 +208,13 @@
         <xsd:element name="ProtocolMetaData">
           <xsd:complexType>
             <xsd:attribute name="ProtocolName" type="xsd:string" use="required" />
-            <xsd:attribute name="ProtocolType" type="xsd:string" use="required" />
-            <xsd:attribute name="NumComponents" type="xsd:unsignedByte" use="required" />
+            <xsd:attribute name="ProtocolType" type="ProtocolTypes" use="required" />
+            <xsd:attribute name="NumComponents" type="xsd:int" use="required" />
             <xsd:attribute name="ProtocolDate" type="xsd:string" use="required" />
             <xsd:attribute name="Author" type="xsd:string" use="optional"/>
-            <xsd:attribute name="ApprovalStatus" type="xsd:string" use="required" />
-            <xsd:attribute name="DiseaseSite" type="xsd:string" use="required" />
-            <xsd:attribute name="TreatmentCentre" type="xsd:string" use="required" />
+            <xsd:attribute name="ApprovalStatus" type="ApprovalLevels" use="optional" default="Unapproved" />
+            <xsd:attribute name="DiseaseSite" type="TreatmentSites" use="required" />
+            <xsd:attribute name="TreatmentCentre" type="TreatmentCentres" use="required" />
           </xsd:complexType>
         </xsd:element>
         <xsd:element name="TreatmentIntents">
@@ -22,7 +222,7 @@
             <xsd:sequence>
               <xsd:element maxOccurs="unbounded" name="Intent">
                 <xsd:complexType>
-                  <xsd:attribute name="Id" type="xsd:string" use="required" />
+                  <xsd:attribute name="Id" type="TreatmentIntents" use="required" />
                 </xsd:complexType>
               </xsd:element>
             </xsd:sequence>
@@ -39,7 +239,7 @@
                         <xsd:sequence>
                           <xsd:element name="PointContourCheck">
                             <xsd:complexType>
-                              <xsd:attribute name="Threshold" type="xsd:decimal" use="required" />
+                              <xsd:attribute name="Threshold" type="xsd:double" use="required" />
                             </xsd:complexType>
                           </xsd:element>
                         </xsd:sequence>
@@ -70,10 +270,10 @@
               <xsd:element name="Artifacts">
                 <xsd:complexType>
                   <xsd:sequence>
-                    <xsd:element name="Artifact">
+                    <xsd:element name="Artifact" minOccurs="0" maxOccurs="unbounded">
                       <xsd:complexType>
-                        <xsd:attribute name="HU" type="xsd:unsignedByte" use="required" />
-                        <xsd:attribute name="ToleranceHU" type="xsd:decimal" use="required" />
+                        <xsd:attribute name="HU" type="xsd:double" use="required" />
+                        <xsd:attribute name="ToleranceHU" type="xsd:double" use="required" />
                         <xsd:attribute name="ProtocolStructureName" type="xsd:string" use="required" />
                       </xsd:complexType>
                     </xsd:element>
@@ -82,18 +282,21 @@
               </xsd:element>
               <xsd:element name="Supports">
                 <xsd:complexType>
-                  <xsd:attribute name="CouchSurface" type="xsd:short" use="optional" />
-                  <xsd:attribute name="CouchInterior" type="xsd:short" use="optional" />
-                  <xsd:attribute name="Indication" type="xsd:string" use="optional" />
+                  <xsd:attribute name="CouchSurface" type="xsd:double" use="optional" default ="-300"/>
+                  <xsd:attribute name="CouchInterior" type="xsd:double" use="optional" default="0"/>
+                  <xsd:attribute name="Indication" type="ParameterOptions" use="optional" default="Optional"/>
                 </xsd:complexType>
               </xsd:element>
               <xsd:element name="Calculation">
                 <xsd:complexType>
-                  <xsd:attribute name="Algorithm" type="xsd:string" use="optional" />
-                  <xsd:attribute name="AlgorithmResolution" type="xsd:decimal" use="optional" />
+                  <xsd:attribute name="Algorithm" type="AlgorithmVolumeDoseTypes" use="optional" />
+                  <xsd:attribute name="AlgorithmResolution" type="xsd:double" use="optional" />
                   <xsd:attribute name="HeterogeneityOn" type="xsd:boolean" use="optional" />
-                  <xsd:attribute name="FieldNormalizationMode" type="xsd:string" use="optional" />
-                  <xsd:attribute name="VMATOptimizationAlgorithm" type="xsd:string" use="optional" />
+                  <xsd:attribute name="VMATAirCavityCorrection" type="xsd:string" use="optional" />
+                  <xsd:attribute name="IMRTAirCavityCorrection" type="xsd:string" use="optional" />
+                  <xsd:attribute name="FieldNormalizationMode" type="FieldNormalizationTypes" use="optional" />
+                  <xsd:attribute name="VMATOptimizationAlgorithm" type="AlgorithmVMATOptimizationTypes" use="optional" default="Unset"/>
+                  <xsd:attribute name="IMRTOptimizationAlgorithm" type="AlgorithmIMRTOptimizationTypes" use="optional" default="Unset"/>
                 </xsd:complexType>
               </xsd:element>
               <xsd:element name="Simulation">
@@ -102,7 +305,7 @@
                     <xsd:element name="CTDeviceIds">
                       <xsd:complexType>
                         <xsd:sequence>
-                          <xsd:element name="CTDeviceId">
+                          <xsd:element name="CTDeviceId" maxOccurs="unbounded">
                             <xsd:complexType>
                               <xsd:attribute name="Id" type="xsd:string" use="required" />
                             </xsd:complexType>
@@ -111,7 +314,7 @@
                       </xsd:complexType>
                     </xsd:element>
                   </xsd:sequence>
-                  <xsd:attribute name="SliceSpacing" type="xsd:decimal" use="required" />
+                  <xsd:attribute name="SliceSpacing" type="PositiveDouble" use="optional" default="NaN" />
                 </xsd:complexType>
               </xsd:element>
             </xsd:all>
@@ -125,11 +328,11 @@
                   <xsd:sequence>
                     <xsd:element name="Prescription">
                       <xsd:complexType>
-                        <xsd:attribute name="NumFractions" type="xsd:unsignedByte" use="required" />
-                        <xsd:attribute name="ReferenceDose" type="xsd:unsignedShort" use="required" />
-                        <xsd:attribute name="PNVMin" type="xsd:unsignedByte" use="optional" />
-                        <xsd:attribute name="PNVMax" type="xsd:unsignedByte" use="optional" />
-                        <xsd:attribute name="PrescribedPercentage" type="xsd:unsignedByte" use="optional" />
+                        <xsd:attribute name="NumFractions" type="xsd:int" use="required" />
+                        <xsd:attribute name="ReferenceDose" type="PositiveDouble" use="required" />
+                        <xsd:attribute name="PNVMin" type="xsd:double" use="optional" />
+                        <xsd:attribute name="PNVMax" type="xsd:double" use="optional" />
+                        <xsd:attribute name="PrescribedPercentage" type="xsd:double" use="optional" />
                       </xsd:complexType>
                     </xsd:element>
                     <xsd:element minOccurs="0" name="ImagingProtocols">
@@ -137,7 +340,8 @@
                         <xsd:sequence>
                           <xsd:element name="ImagingProtocol" maxOccurs="unbounded">
                             <xsd:complexType>
-                              <xsd:attribute name="Id" type="xsd:string" use="required" />
+                              <xsd:attribute name="Id" type="ImagingProtocolTypes" use="required" />
+                              <xsd:attribute name="ImagingProtocolDisplayName" type="xsd:string" use="optional" />
                             </xsd:complexType>
                           </xsd:element>
                         </xsd:sequence>
@@ -159,92 +363,89 @@
                         <xsd:sequence>
                           <xsd:element maxOccurs="unbounded" name="Beam">
                             <xsd:complexType>
-                              <xsd:sequence>
-                                <xsd:choice maxOccurs="unbounded">
-                                  <xsd:element name="EclipseAliases">
-                                    <xsd:complexType>
-                                      <xsd:sequence>
-                                        <xsd:element maxOccurs="unbounded" name="EclipseId">
-                                          <xsd:complexType>
-                                            <xsd:attribute name="Id" type="xsd:string" use="required" />
-                                          </xsd:complexType>
-                                        </xsd:element>
-                                      </xsd:sequence>
-                                    </xsd:complexType>
-                                  </xsd:element>
-                                  <xsd:element name="BolusDefinitions">
-                                    <xsd:complexType>
-                                      <xsd:sequence>
-                                        <xsd:element name="Bolus">
-                                          <xsd:complexType>
-                                            <xsd:attribute name="HU" type="xsd:unsignedByte" use="optional" />
-                                            <xsd:attribute name="Thickness" type="xsd:decimal" use="optional" />
-                                            <xsd:attribute name="Indication" type="xsd:string" use="required" />
-                                            <xsd:attribute name="ToleranceHU" type="xsd:decimal" use="optional" />
-                                            <xsd:attribute name="ToleranceThickness" type="xsd:decimal" use="optional" />
-                                          </xsd:complexType>
-                                        </xsd:element>
-                                      </xsd:sequence>
-                                    </xsd:complexType>
-                                  </xsd:element>
-                                  <xsd:element name="ValidGeometries">
-                                    <xsd:complexType>
-                                      <xsd:sequence>
-                                        <xsd:element name="Geometry" maxOccurs="unbounded">
-                                          <xsd:complexType>
-                                            <xsd:attribute name="GeometryName" type="xsd:string" use="required" />
-                                            <xsd:attribute name="StartAngle" type="xsd:decimal" use="optional" />
-                                            <xsd:attribute name="StartAngleTolerance" type="xsd:decimal" use="optional" />
-                                            <xsd:attribute name="EndAngle" type="xsd:decimal" use="optional" />
-                                            <xsd:attribute name="EndAngleTolerance" type="xsd:decimal" use="optional" />
-                                            <xsd:attribute name="Trajectory" type="xsd:string" use="optional" />
-                                          </xsd:complexType>
-                                        </xsd:element>
-                                      </xsd:sequence>
-                                    </xsd:complexType>
-                                  </xsd:element>
-                                  <xsd:element name="ValidEnergies">
-                                    <xsd:complexType>
-                                      <xsd:sequence>
-                                        <xsd:element name="Energy" maxOccurs="unbounded">
-                                          <xsd:complexType>
-                                            <xsd:attribute name="Mode" type="xsd:string" use="required" />
-                                          </xsd:complexType>
-                                        </xsd:element>
-                                      </xsd:sequence>
-                                    </xsd:complexType>
-                                  </xsd:element>
-                                </xsd:choice>
-                              </xsd:sequence>
+                              <xsd:all>
+                                <xsd:element name="EclipseAliases">
+                                  <xsd:complexType>
+                                    <xsd:sequence>
+                                      <xsd:element maxOccurs="unbounded" name="EclipseId">
+                                        <xsd:complexType>
+                                          <xsd:attribute name="Id" type="xsd:string" use="required" />
+                                        </xsd:complexType>
+                                      </xsd:element>
+                                    </xsd:sequence>
+                                  </xsd:complexType>
+                                </xsd:element>
+                                <xsd:element name="BolusDefinitions">
+                                  <xsd:complexType>
+                                    <xsd:sequence>
+                                      <xsd:element name="Bolus" minOccurs="0" maxOccurs="unbounded">
+                                        <xsd:complexType>
+                                          <xsd:attribute name="HU" type="PositiveDouble" use="required" />
+                                          <xsd:attribute name="Thickness" type="PositiveDouble" use="optional" default="0.5" />
+                                          <xsd:attribute name="Indication" type="ParameterOptions" use="required" />
+                                          <xsd:attribute name="ToleranceHU" type="PositiveDouble" use="optional" default="NaN" />
+                                          <xsd:attribute name="ToleranceThickness" type="PositiveDouble" use="optional" default="NaN"/>
+                                        </xsd:complexType>
+                                      </xsd:element>
+                                    </xsd:sequence>
+                                  </xsd:complexType>
+                                </xsd:element>
+                                <xsd:element name="ValidGeometries">
+                                  <xsd:complexType>
+                                    <xsd:sequence>
+                                      <xsd:element name="Geometry" maxOccurs="unbounded" minOccurs="0">
+                                        <xsd:complexType>
+                                          <xsd:attribute name="GeometryName" type="xsd:string" use="required" />
+                                          <xsd:attribute name="StartAngle" type="xsd:double" use="required" />
+                                          <xsd:attribute name="StartAngleTolerance" type="PositiveDouble" use="optional" default="NaN"/>
+                                          <xsd:attribute name="EndAngle" type="xsd:double" use="required" />
+                                          <xsd:attribute name="EndAngleTolerance" type="PositiveDouble" use="optional" default="NaN" />
+                                          <xsd:attribute name="Trajectory" type="TrajectoryTypes" use="required" />
+                                        </xsd:complexType>
+                                      </xsd:element>
+                                    </xsd:sequence>
+                                  </xsd:complexType>
+                                </xsd:element>
+                                <xsd:element name="ValidEnergies">
+                                  <xsd:complexType>
+                                    <xsd:sequence>
+                                      <xsd:element name="Energy" maxOccurs="unbounded">
+                                        <xsd:complexType>
+                                          <xsd:attribute name="Mode" type="Energies" use="required" />
+                                        </xsd:complexType>
+                                      </xsd:element>
+                                    </xsd:sequence>
+                                  </xsd:complexType>
+                                </xsd:element>
+                              </xsd:all>
                               <xsd:attribute name="ProtocolBeamName" type="xsd:string" use="required" />
-                              <xsd:attribute name="Technique" type="xsd:string" use="required" />
-                              <xsd:attribute name="MinMUWarning" type="xsd:unsignedShort" use="optional" />
-                              <xsd:attribute name="MaxMUWarning" type="xsd:unsignedShort" use="optional" />
-                              <xsd:attribute name="StartAngle" type="xsd:unsignedByte" use="optional" />
-                              <xsd:attribute name="EndAngle" type="xsd:unsignedByte" use="optional" />
+                              <xsd:attribute name="Technique" type="FieldTechniqueType" use="required" />
+                              <xsd:attribute name="MinMUWarning" type="PositiveDouble" use="optional" default="NaN" />
+                              <xsd:attribute name="MaxMUWarning" type="PositiveDouble" use="optional" default="NaN" />
                               <xsd:attribute name="ToleranceTable" type="xsd:string" use="optional" />
-                              <xsd:attribute name="MinColRotation" type="xsd:unsignedByte" use="optional" />
-                              <xsd:attribute name="CouchRotation" type="xsd:unsignedByte" use="optional" />
-                              <xsd:attribute name="MinX" type="xsd:unsignedByte" use="optional" />
-                              <xsd:attribute name="MaxX" type="xsd:unsignedByte" use="optional" />
-                              <xsd:attribute name="MinY" type="xsd:unsignedByte" use="optional" />
-                              <xsd:attribute name="MaxY" type="xsd:unsignedByte" use="optional" />
-                              <xsd:attribute name="JawTracking_Indication" type="xsd:string" use="optional" />
-                              <xsd:attribute name="MaxColRotation" type="xsd:unsignedByte" use="optional" />
+                              <xsd:attribute name="MinColRotation" type="xsd:double" use="optional" default="NaN" />
+                              <xsd:attribute name="CouchRotation" type="xsd:double" use="optional" default="NaN"/>
+                              <xsd:attribute name="MinX" type="xsd:double" use="optional" default="NaN" />
+                              <xsd:attribute name="MaxX" type="xsd:double" use="optional" default="NaN" />
+                              <xsd:attribute name="MinY" type="xsd:double" use="optional" default="NaN"  />
+                              <xsd:attribute name="MaxY" type="xsd:double" use="optional" default="NaN" />
+                              <xsd:attribute name="JawTracking_Indication" type="ParameterOptions" use="optional" default="Optional" />
+                              <xsd:attribute name="MaxColRotation" type="xsd:double" use="optional" default="NaN" />
                             </xsd:complexType>
                           </xsd:element>
                         </xsd:sequence>
+                        <xsd:attribute name="MinBeams" type="xsd:int" use="optional" default="-1" />
+                        <xsd:attribute name="MinColOffset" type="PositiveDouble" use="optional" default="NaN" />
+                        <xsd:attribute name="MaxBeams" type="xsd:int" use="optional" default="-1"/>
+                        <xsd:attribute name="NumIso" type="xsd:int" use="optional" default="1"/>
                       </xsd:complexType>
                     </xsd:element>
                   </xsd:sequence>
                   <xsd:attribute name="ComponentName" type="xsd:string" use="required" />
-                  <xsd:attribute name="Type" type="xsd:string" use="required" />
-                  <xsd:attribute name="NumFractions" type="xsd:unsignedByte" use="optional" />
-                  <xsd:attribute name="ReferenceDose" type="xsd:unsignedShort" use="optional" />
-                  <xsd:attribute name="MinBeams" type="xsd:unsignedShort" use="optional" />
-                  <xsd:attribute name="MinColOffset" type="xsd:unsignedShort" use="optional" />
-                  <xsd:attribute name="MaxBeams" type="xsd:unsignedShort" use="optional" />
-                  <xsd:attribute name="NumIso" type="xsd:unsignedShort" use="optional" />
+                  <xsd:attribute name="Id" type="xsd:int" />
+                  <xsd:attribute name="Type" type="ComponentTypes" use="required" />
+                  <xsd:attribute name="NumFractions" type="xsd:int" use="optional" />
+                  <xsd:attribute name="ReferenceDose" type="xsd:double" use="optional" />
                 </xsd:complexType>
               </xsd:element>
             </xsd:sequence>
@@ -256,15 +457,16 @@
               <xsd:element maxOccurs="unbounded" name="Constraint">
                 <xsd:complexType>
                   <xsd:attribute name="ComponentName" type="xsd:string" use="required" />
+                  <xsd:attribute name="ComponentId" type="xsd:int"/>
                   <xsd:attribute name="ProtocolStructureName" type="xsd:string" use="required" />
-                  <xsd:attribute name="ConstraintType" type="xsd:string" use="required" />
-                  <xsd:attribute name="ConstraintValue" type="xsd:decimal" use="required" />
-                  <xsd:attribute name="ConstraintUnit" type="xsd:string" use="required" />
-                  <xsd:attribute name="ReferenceType" type="xsd:string" use="required" />
-                  <xsd:attribute name="MajorViolation" type="xsd:decimal" use="required" />
-                  <xsd:attribute name="MinorViolation" type="xsd:decimal" use="optional" />
-                  <xsd:attribute name="ReferenceUnit" type="xsd:string" use="required" />
-                  <xsd:attribute name="Stop" type="xsd:decimal" use="optional"/>
+                  <xsd:attribute name="ConstraintType" type="ConstraintTypes" use="required" />
+                  <xsd:attribute name="ConstraintValue" type="xsd:double" use="required" />
+                  <xsd:attribute name="ConstraintUnit" type="UnitScale" use="required" />
+                  <xsd:attribute name="ReferenceType" type="ReferenceTypes" use="required" />
+                  <xsd:attribute name="MajorViolation" type="xsd:double" use="required" />
+                  <xsd:attribute name="MinorViolation" type="xsd:double" use="optional" default="NaN"/>
+                  <xsd:attribute name="ReferenceUnit" type="UnitScale" use="required" />
+                  <xsd:attribute name="Stop" type="xsd:double" use="optional" default="NaN"/>
                   <xsd:attribute name="Description" type="xsd:string" use="optional"/>
                   <xsd:attribute name="DataTablePath" type="xsd:string" use="optional"/>
                   <xsd:attribute name="ReferenceStructureName" type="xsd:string" use="optional"/>
@@ -276,4 +478,77 @@
       </xsd:sequence>
     </xsd:complexType>
   </xsd:element>
+  <xs:element name="SquintConfiguration">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="Site">
+          <xs:complexType>
+            <xs:attribute name="CurrentSite" type="xs:string" use="required" />
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="Databases">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element maxOccurs="unbounded" name="Database">
+                <xs:complexType>
+                  <xs:attribute name="Site" type="xs:string" use="required" />
+                  <xs:attribute name="DisplayName" type="xs:string" use="required" />
+                  <xs:attribute name="DatabaseName" type="xs:string" use="required" />
+                </xs:complexType>
+              </xs:element>
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="BeamGeometryDefinitions">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element maxOccurs="unbounded" name="PathDef">
+                <xs:complexType>
+                  <xs:attribute name="Site" type="xs:string" use="required" />
+                  <xs:attribute name="Path" type="xs:string" use="required" />
+                </xs:complexType>
+              </xs:element>
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="StructureCodes">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element maxOccurs="unbounded" name="PathDef">
+                <xs:complexType>
+                  <xs:attribute name="Site" type="xs:string" use="required" />
+                  <xs:attribute name="Path" type="xs:string" use="required" />
+                </xs:complexType>
+              </xs:element>
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="ClinicalProtocols">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element maxOccurs="unbounded" name="PathDef">
+                <xs:complexType>
+                  <xs:attribute name="Site" type="xs:string" use="required" />
+                  <xs:attribute name="Path" type="xs:string" use="required" />
+                </xs:complexType>
+              </xs:element>
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="SquintProtocols">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element maxOccurs="unbounded" name="PathDef">
+                <xs:complexType>
+                  <xs:attribute name="Site" type="xs:string" use="required" />
+                  <xs:attribute name="Path" type="xs:string" use="required" />
+                  <xs:attribute name="ExportPath" type="xs:string" use="required" />
+                </xs:complexType>
+              </xs:element>
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
 </xs:schema>

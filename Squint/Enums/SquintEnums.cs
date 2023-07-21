@@ -65,28 +65,21 @@ namespace Squint
         [Description("Density Override")] DensityOverride,
         [Description("CT Device Id")] CTDeviceId
     }
-    public enum Energies
-    {
-        [Description("Unset")] Unset = 1,
-        [Description("6X")] Photons6 = 2,
-        [Description("10X")] Photons10 = 3,
-        [Description("15X")] Photons15 = 4,
-        [Description("10XFFF")] Photons10FFF =5
-    }
-    public enum Trajectories
-    {
-        [Description("Unset")] Unset = 1,
-        [Description("Static")] Static = 2,
-        [Description("Clockwise")] CW = 3,
-        [Description("Counterclockwise")] CCW = 4,
-    }
-    public enum ParameterOptions
-    {
-        [Description("Unset")] Unset,
-        [Description("Optional")] Optional,
-        [Description("Required")] Required,
-        [Description("None")] None,
-    }
+
+    //public enum TrajectoryTypes
+    //{
+    //    [Description("Unset")] Unset = 1,
+    //    [Description("Static")] Static = 2,
+    //    [Description("Clockwise")] CW = 3,
+    //    [Description("Counterclockwise")] CCW = 4,
+    //}
+    //public enum ParameterOptions
+    //{
+    //    [Description("Unset")] Unset,
+    //    [Description("Optional")] Optional,
+    //    [Description("Required")] Required,
+    //    [Description("None")] None,
+    //}
     public enum EditTypes
     {
         [Description("Unset")] Unset,
@@ -96,55 +89,49 @@ namespace Squint
         [Description("RangeValues")] RangeValues,
         [Description("AnyOfValues")] AnyOfValues,
     }
-    public enum ImagingProtocols
-    {
-        [Description("None")] Unset,
-        [Description("Single-kV")] kV,
-        [Description("2D-kV")] kV_2D,
-        [Description("Bolus-setup")] Bolus,
-        [Description("Pre-Tx CBCT")] PreCBCT,
-        [Description("Post-Tx CBCT")] PostCBCT,
-    }
+    //public enum ImagingProtocols
+    //{
+    //    [Description("None")] Unset,
+    //    [Description("Single-kV")] kV,
+    //    [Description("2D-kV")] kV_2D,
+    //    [Description("Bolus-setup")] Bolus,
+    //    [Description("Pre-Tx CBCT")] PreCBCT,
+    //    [Description("Post-Tx CBCT")] PostCBCT,
+    //}
 
-    public enum TreatmentIntents
-    {
-        [Description("")] Unset,
-        [Description("Curative")] Curative,
-        [Description("Adjuvant")] Adjuvant,
-        [Description("Neo-Adjuvant")] NeoAdjuvant,
-        [Description("Palliative")] Palliative,
-    }
+    //public enum TreatmentIntents
+    //{
+    //    [Description("")] Unset,
+    //    [Description("Curative")] Curative,
+    //    [Description("Adjuvant")] Adjuvant,
+    //    [Description("Neo-Adjuvant")] NeoAdjuvant,
+    //    [Description("Palliative")] Palliative,
+    //}
 
-    public enum AlgorithmVolumeDoseTypes
-    {
-        [Description("Unset")] Unset,
-        [Description("AAA_11031")] AAA_11031,
-        [Description("AAA_13623")] AAA_13623,
-        [Description("AAA_15606")] AAA_15606,
-    }
-    public enum AlgorithmVMATOptimizationTypes
-    {
-        [Description("Unset")] Unset,
-        [Description("PRO_13623")] PRO_13623,
-        [Description("PO_13623")] PO_13623,
-        [Description("PO_15606")] PO_15606,
-    }
-    public enum AlgorithmIMRTOptimizationTypes
-    {
-        [Description("Unset")] Unset,
-        [Description("PRO_13623")] PRO_13623,
-        [Description("PO_13623")] PO_13623,
-        [Description("PO_15606")] PO_15606,
-    }
 
-    public enum FieldNormalizationTypes
-    {
-        [Description("Unset")] Unset,
-        [Description("100% to isocenter")] ISO,
-        [Description("100% to central axis Dmax")] CAX,
-        [Description("100% to field Dmax")] field,
-        [Description("No field normalization")] None,
-    }
+    //public enum AlgorithmVMATOptimizationTypes
+    //{
+    //    [Description("Unset")] Unset,
+    //    [Description("PRO_13623")] PRO_13623,
+    //    [Description("PO_13623")] PO_13623,
+    //    [Description("PO_15606")] PO_15606,
+    //}
+    //public enum AlgorithmIMRTOptimizationTypes
+    //{
+    //    [Description("Unset")] Unset,
+    //    [Description("PRO_13623")] PRO_13623,
+    //    [Description("PO_13623")] PO_13623,
+    //    [Description("PO_15606")] PO_15606,
+    //}
+
+    //public enum FieldNormalizationTypes
+    //{
+    //    [Description("Unset")] Unset,
+    //    [Description("100% to isocenter")] ISO,
+    //    [Description("100% to central axis Dmax")] CAX,
+    //    [Description("100% to field Dmax")] field,
+    //    [Description("No field normalization")] None,
+    //}
 
     public enum TestType
     {
@@ -156,19 +143,19 @@ namespace Squint
         [Description("Multiple-choice")] MC,
     }
 
-    public enum FieldType
-    {
-        [Description("Unidentified")] Unset,
-        [Description("Bolus Setup")] BolusSetup,
-        [Description("Left Lateral kV")] LL_kv,
-        [Description("Right Lateral kV")] RL_kv,
-        [Description("CBCT")] CBCT,
-        [Description("Anterior kV")] Ant_kv,
-        [Description("Posterior kV")] Post_kv,
-        [Description("Static Tx")] STATIC,
-        [Description("ARC Tx")] ARC,
-        [Description("Unload")] Unload,
-    }
+    //public enum FieldTechniqueType
+    //{
+    //    [Description("Unidentified")] Unset,
+    //    [Description("Bolus Setup")] BolusSetup,
+    //    [Description("Left Lateral kV")] LL_kv,
+    //    [Description("Right Lateral kV")] RL_kv,
+    //    [Description("CBCT")] CBCT,
+    //    [Description("Anterior kV")] Ant_kv,
+    //    [Description("Posterior kV")] Post_kv,
+    //    [Description("Static Tx")] STATIC,
+    //    [Description("ARC Tx")] ARC,
+    //    [Description("Unload")] Unload,
+    //}
 
     public enum StructureTypes
     {
@@ -299,23 +286,23 @@ namespace Squint
         [Description("RADLEX (3.8)")] RADPLEX
     }
 
-    public enum ComponentTypes
-    {
-        [Description("")] Unset = 0,
-        [Description("Phase")] Phase = 1,
-        [Description("Sum")] Sum = 2,
-    }
-    public enum ConstraintTypeCodes
-    {
-        [Description("-")] Unset = 0,
-        [Description("D")] D = 1,
-        [Description("V")] V = 2,
-        [Description("M")] M = 3,
-        [Description("C")] CV = 4,
-        [Description("CI")] CI = 5
-    }
+    //public enum ComponentTypes
+    //{
+    //    [Description("")] Unset = 0,
+    //    [Description("Phase")] Phase = 1,
+    //    [Description("Sum")] Sum = 2,
+    //}
+    //public enum ConstraintTypes
+    //{
+    //    [Description("-")] Unset = 0,
+    //    [Description("D")] D = 1,
+    //    [Description("V")] V = 2,
+    //    [Description("M")] M = 3,
+    //    [Description("C")] CV = 4,
+    //    [Description("CI")] CI = 5
+    //}
 
-    public enum Dvh_Types
+    public enum DvhTypes
     {
         [Description("-")] Unset = 0,
         [Description("CV")] CV = 1,
@@ -353,12 +340,12 @@ namespace Squint
         Goal
     }
 
-    public enum ReferenceTypes
-    {
-        [Description("-")] Unset = 0,
-        [Description("\u2264")] Upper = 1,
-        [Description("\u2265")] Lower = 2
-    }
+    //public enum ReferenceTypes
+    //{
+    //    [Description("-")] Unset = 0,
+    //    [Description("\u2264")] Upper = 1,
+    //    [Description("\u2265")] Lower = 2
+    //}
     public enum ConstraintUnits
     {
         [Description("-")] Unset = 0,
@@ -368,78 +355,78 @@ namespace Squint
         [Description("\u00D7")] Multiple = 4
     }
 
-    public static class DvhVolumeUnits
-    {
-        public readonly static BindingList<ConstraintUnits> VolUnits = new BindingList<ConstraintUnits>()
-        {
-            ConstraintUnits.Unset,
-            ConstraintUnits.cc,
-            ConstraintUnits.Percent
-        };
-    }
+    //public static class DvhVolumeUnits
+    //{
+    //    public readonly static BindingList<ConstraintUnits> VolUnits = new BindingList<ConstraintUnits>()
+    //    {
+    //        ConstraintUnits.Unset,
+    //        ConstraintUnits.cc,
+    //        ConstraintUnits.Percent
+    //    };
+    //}
 
-    public static class DvhDoseUnits
-    {
-        public readonly static BindingList<ConstraintUnits> DoseUnits = new BindingList<ConstraintUnits>()
-        {
-            ConstraintUnits.Unset,
-            ConstraintUnits.cGy,
-            ConstraintUnits.Percent
-        };
-    }
+    //public static class DvhDoseUnits
+    //{
+    //    public readonly static BindingList<ConstraintUnits> DoseUnits = new BindingList<ConstraintUnits>()
+    //    {
+    //        ConstraintUnits.Unset,
+    //        ConstraintUnits.cGy,
+    //        ConstraintUnits.Percent
+    //    };
+    //}
 
 
-    public enum UnitScale
-    {
-        Unset,
-        Relative,
-        Absolute
-    }
+    //public enum UnitScale
+    //{
+    //    Unset,
+    //    Relative,
+    //    Absolute
+    //}
 
-    public enum TreatmentCentres
-    {
-        [Description("")] Unset,
-        [Description("Show all")] All,
-        [Description("Provincial")] Provincial,
-        [Description("CN")] CN,
-        [Description("VCC")] VCC,
-        [Description("VIC")] VIC,
-        [Description("AC")] AC,
-        [Description("FVCC")] FVCC,
-        [Description("CSI")] CSI
-    }
-    public enum ApprovalLevels
-    {
-        [Description("")] Unset,
-        [Description("Show all")] All,
-        [Description("Unapproved")] Unapproved,
-        [Description("Reviewed")] Reviewed,
-        [Description("Approved")] Approved,
-        [Description("Retired")] Retired,
-    }
-    public enum ProtocolTypes
-    {
-        [Description("")] Unset,
-        [Description("Show all")] All,
-        [Description("Clinical")] Clinical,
-        [Description("Trial")] Trial,
-        [Description("Research")] Research,
-        [Description("Development")] Development,
-    }
-    public enum TreatmentSites
-    {
-        [Description("")] Unset,
-        [Description("Show all")] All,
-        [Description("GU")] GU,
-        [Description("GI")] GI,
-        [Description("Lung")] Lung,
-        [Description(@"H&N")] HN,
-        [Description("CNS")] CNS,
-        [Description("Sarcoma")] Sarcoma,
-        [Description("Breast")] Breast,
-        [Description("Lymphoma")] Lymphoma,
-        [Description("Palliative")] Palliative,
-    }
+    //public enum TreatmentCentres
+    //{
+    //    [Description("")] Unset,
+    //    [Description("Show all")] All,
+    //    [Description("Provincial")] Provincial,
+    //    [Description("CN")] CN,
+    //    [Description("VCC")] VCC,
+    //    [Description("VIC")] VIC,
+    //    [Description("AC")] AC,
+    //    [Description("FVCC")] FVCC,
+    //    [Description("CSI")] CSI
+    //}
+    //public enum ApprovalLevels
+    //{
+    //    [Description("")] Unset,
+    //    [Description("Show all")] All,
+    //    [Description("Unapproved")] Unapproved,
+    //    [Description("Reviewed")] Reviewed,
+    //    [Description("Approved")] Approved,
+    //    [Description("Retired")] Retired,
+    //}
+    //public enum ProtocolTypes
+    //{
+    //    [Description("")] Unset,
+    //    [Description("Show all")] All,
+    //    [Description("Clinical")] Clinical,
+    //    [Description("Trial")] Trial,
+    //    [Description("Research")] Research,
+    //    [Description("Development")] Development,
+    //}
+    //public enum TreatmentSites
+    //{
+    //    [Description("")] Unset,
+    //    [Description("Show all")] All,
+    //    [Description("GU")] GU,
+    //    [Description("GI")] GI,
+    //    [Description("Lung")] Lung,
+    //    [Description(@"H&N")] HN,
+    //    [Description("CNS")] CNS,
+    //    [Description("Sarcoma")] Sarcoma,
+    //    [Description("Breast")] Breast,
+    //    [Description("Lymphoma")] Lymphoma,
+    //    [Description("Palliative")] Palliative,
+    //}
     public enum TreatmentTechniques
     {
         [Description("")] Unset,
