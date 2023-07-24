@@ -50,11 +50,11 @@ namespace Squint.ViewModels
             {
                 ParentView.isLoading = true;
                 ParentView.LoadingString = "Applying structure aliases...";
-                Ctr.SetCurrentStructureSet(_CurrentStructureSet.StructureSetUID);
+                SquintModel.SetCurrentStructureSet(_CurrentStructureSet.StructureSetUID);
                 if (ApplyAliasing)
-                    await Task.Run(() => Ctr.MatchStructuresByAlias());
+                    await Task.Run(() => SquintModel.MatchStructuresByAlias());
                 if (CalculatOnStructureSetUpdate)
-                    Ctr.UpdateConstraints();
+                    SquintModel.UpdateConstraints();
                 ParentView.isLoading = false;
             }
         }
@@ -62,22 +62,22 @@ namespace Squint.ViewModels
         public PatientViewModel(MainViewModel parentView)
         {
             ParentView = parentView;
-            Ctr.PatientOpened += OnPatientOpened;
-            Ctr.PatientClosed += OnPatientClosed;
-            Ctr.CurrentStructureSetChanged += OnCurrentStructureSetChanged;
-            Ctr.AvailableStructureSetsChanged += OnAvailableStructureSetsChanged;
+            SquintModel.PatientOpened += OnPatientOpened;
+            SquintModel.PatientClosed += OnPatientClosed;
+            SquintModel.CurrentStructureSetChanged += OnCurrentStructureSetChanged;
+            SquintModel.AvailableStructureSetsChanged += OnAvailableStructureSetsChanged;
         }
 
         private void OnPatientOpened(object sender, EventArgs e)
         {
-            PatientId = Ctr.PatientID;
-            FullPatientName = string.Format("{0}, {1}", Ctr.PatientLastName, Ctr.PatientFirstName);
+            PatientId = SquintModel.PatientID;
+            FullPatientName = string.Format("{0}, {1}", SquintModel.PatientLastName, SquintModel.PatientFirstName);
             StructureSets.Clear();
-            foreach (StructureSetHeader StS in Ctr.GetAvailableStructureSets())
+            foreach (StructureSetHeader StS in SquintModel.GetAvailableStructureSets())
             {
                 StructureSets.Add(new StructureSetSelector(StS));
             }
-            foreach (string CourseId in Ctr.GetCourseNames())
+            foreach (string CourseId in SquintModel.GetCourseNames())
             {
                 Courses.Add(new CourseSelector(CourseId));
             }
@@ -92,7 +92,7 @@ namespace Squint.ViewModels
 
         private async void OnAvailableStructureSetsChanged(object sender, EventArgs e)
         {
-            var A = Ctr.GetAvailableStructureSets();
+            var A = SquintModel.GetAvailableStructureSets();
             StructureSetSelector NewSSS = null;
             foreach (var SS in A) // Make new linked structure set available
             {
@@ -120,8 +120,8 @@ namespace Squint.ViewModels
         }
         private void OnCurrentStructureSetChanged(object sender, EventArgs e)
         {
-            if (Ctr.CurrentStructureSet != null)
-                _CurrentStructureSet = StructureSets.FirstOrDefault(x => x.StructureSetUID == Ctr.CurrentStructureSet.UID);
+            if (SquintModel.CurrentStructureSet != null)
+                _CurrentStructureSet = StructureSets.FirstOrDefault(x => x.StructureSetUID == SquintModel.CurrentStructureSet.UID);
             else
                 _CurrentStructureSet = null;
             RaisePropertyChangedEvent(nameof(CurrentStructureSet));

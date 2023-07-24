@@ -30,7 +30,7 @@ namespace Squint
                 if (User == null)
                 {
                     // Add new user;
-                    lock (Ctr.LockDb)
+                    lock (SquintModel.LockDb)
                     {
                         User = Context.DbUsers.Create();
                         Context.DbUsers.Add(User);
@@ -243,7 +243,7 @@ namespace Squint
         {
             using (SquintDBModel Context = new SquintDBModel())
             {
-                DbSession DbS = Context.DbSessions.FirstOrDefault(x => x.PID == Ctr.PatientID && x.ID == ID);
+                DbSession DbS = Context.DbSessions.FirstOrDefault(x => x.PID == SquintModel.PatientID && x.ID == ID);
                 if (DbS == null)
                     return null;
                 DbSessionProtocol DbSP = DbS.DbSessionProtocol;
@@ -316,7 +316,7 @@ namespace Squint
                         SessionProtocol.Checklist = new ProtocolChecklist(DbChecklist);
 
                     }
-                    Ctr.SetCurrentStructureSet(DbS.SessionStructureSetUID);
+                    SquintModel.SetCurrentStructureSet(DbS.SessionStructureSetUID);
                     return CurrentSession;
                 }
                 catch (Exception ex)
@@ -331,7 +331,7 @@ namespace Squint
             List<Session> S = new List<Session>();
             using (SquintDBModel Context = new SquintDBModel())
             {
-                foreach (DbSession DbS in Context.DbSessions.Where(x => x.PID == Ctr.PatientID).ToList())
+                foreach (DbSession DbS in Context.DbSessions.Where(x => x.PID == SquintModel.PatientID).ToList())
                 {
                     S.Add(new Session(DbS));
                 }
@@ -361,28 +361,28 @@ namespace Squint
                 DbSession DbS = Context.DbSessions.Create();
                 Context.DbSessions.Add(DbS);
                 DbS.ID = IDGenerator.GetUniqueId();
-                DbS.PID = Ctr.PatientID;
-                DbS.SessionStructureSetUID = Ctr.CurrentStructureSet.UID;
+                DbS.PID = SquintModel.PatientID;
+                DbS.SessionStructureSetUID = SquintModel.CurrentStructureSet.UID;
                 DbS.SessionComment = SessionComment;
-                DbS.SessionCreator = Ctr.SquintUser;
+                DbS.SessionCreator = SquintModel.SquintUser;
                 DbS.SessionDateTime = string.Format("{0} {1}", DateTime.Now.ToShortDateString(), DateTime.Now.ToShortTimeString());
                 //Create Session Protocol
                 DbSessionProtocol DbP = Context.DbSessionProtocols.Create();
                 Context.DbSessionProtocols.Add(DbP);
                 DbS.DbSessionProtocol = DbP;
                 DbP.ID = IDGenerator.GetUniqueId();
-                DbP.ProtocolName = Ctr.CurrentProtocol.ProtocolName;
+                DbP.ProtocolName = SquintModel.CurrentProtocol.ProtocolName;
                 DbP.ApproverID = 1;
                 DbP.AuthorID = 1;
-                DbP.TreatmentCentreID = Context.DbTreatmentCentres.FirstOrDefault(x => x.TreatmentCentre == (int)Ctr.CurrentProtocol.TreatmentCentre.Value).ID;
-                DbP.TreatmentSiteID = Context.DbTreatmentSites.FirstOrDefault(x => x.TreatmentSite == (int)Ctr.CurrentProtocol.TreatmentSite.Value).ID;
+                DbP.TreatmentCentreID = Context.DbTreatmentCentres.FirstOrDefault(x => x.TreatmentCentre == (int)SquintModel.CurrentProtocol.TreatmentCentre.Value).ID;
+                DbP.TreatmentSiteID = Context.DbTreatmentSites.FirstOrDefault(x => x.TreatmentSite == (int)SquintModel.CurrentProtocol.TreatmentSite.Value).ID;
                 DbP.ApprovalLevelID = Context.DbApprovalLevels.FirstOrDefault(x => x.ApprovalLevel == (int)ApprovalLevels.Unapproved).ID;
-                DbP.ProtocolTypeID = Context.DbProtocolTypes.FirstOrDefault(x => x.ProtocolType == (int)Ctr.CurrentProtocol.ProtocolType).ID;
-                DbP.LastModifiedBy = Ctr.SquintUser;
+                DbP.ProtocolTypeID = Context.DbProtocolTypes.FirstOrDefault(x => x.ProtocolType == (int)SquintModel.CurrentProtocol.ProtocolType).ID;
+                DbP.LastModifiedBy = SquintModel.SquintUser;
                 DbP.LastModified = DateTime.Now.ToBinary();
-                DbP.ProtocolParentID = Ctr.CurrentProtocol.ID;
+                DbP.ProtocolParentID = SquintModel.CurrentProtocol.ID;
                 // Assessment
-                foreach (Assessment A in Ctr.CurrentSession.Assessments)
+                foreach (Assessment A in SquintModel.CurrentSession.Assessments)
                 {
                     DbAssessment DbA = Context.DbAssessments.Create();
                     Context.DbAssessments.Add(DbA);
@@ -390,14 +390,14 @@ namespace Squint
                     AssessmentLookup.Add(A.ID, DbA.ID);
                     DbA.DisplayOrder = A.DisplayOrder;
                     DbA.SessionID = DbS.ID;
-                    DbA.PID = Ctr.PatientID;
-                    DbA.PatientName = string.Format("{0}, {1}", Ctr.PatientLastName, Ctr.PatientFirstName);
+                    DbA.PID = SquintModel.PatientID;
+                    DbA.PatientName = string.Format("{0}, {1}", SquintModel.PatientLastName, SquintModel.PatientFirstName);
                     DbA.DateOfAssessment = DateTime.Now.ToShortDateString();
-                    DbA.SquintUser = Ctr.SquintUser;
+                    DbA.SquintUser = SquintModel.SquintUser;
                     DbA.AssessmentName = A.AssessmentName;
                 }
                 var SessionProtocolStructure_Lookup = new Dictionary<int, int>();
-                foreach (ProtocolStructure S in Ctr.CurrentProtocol.Structures)
+                foreach (ProtocolStructure S in SquintModel.CurrentProtocol.Structures)
                 {
                     DbSessionProtocolStructure DbE = Context.DbSessionProtocolStructures.Create();
                     Context.DbSessionProtocolStructures.Add(DbE);
@@ -420,9 +420,9 @@ namespace Squint
                 // Checklist
                 var DbPC = Context.DbProtocolChecklists.Create();
                 Context.DbProtocolChecklists.Add(DbPC);
-                if (Ctr.CurrentProtocol.Checklist != null)
+                if (SquintModel.CurrentProtocol.Checklist != null)
                 {
-                    var C = Ctr.CurrentProtocol.Checklist;
+                    var C = SquintModel.CurrentProtocol.Checklist;
                     DbPC.DbProtocol = DbP;
                     DbPC.AlgorithmVolumeDose = (int)C.Algorithm.Value;
                     DbPC.FieldNormalizationMode = (int)C.FieldNormalizationMode.Value;
@@ -458,7 +458,7 @@ namespace Squint
                     }
                 }
                 // structures
-                foreach (Component SC in Ctr.CurrentProtocol.Components)
+                foreach (Component SC in SquintModel.CurrentProtocol.Components)
                 {
                     DbSessionComponent DbC = Context.DbSessionComponents.Create();
                     DbC.ComponentType = (int)SC.ComponentType.Value;
@@ -559,7 +559,7 @@ namespace Squint
                         DbO.OriginalReferenceScale = (int)ConReferenceValues.ReferenceScale;
                         DbO.OriginalConstraintValue = ConReferenceValues.ConstraintValue;
                         //Link Results to Asssessment
-                        foreach (Assessment A in Ctr.CurrentSession.Assessments)
+                        foreach (Assessment A in SquintModel.CurrentSession.Assessments)
                         {
                             ConstraintResultViewModel CRV = Con.GetResult(A.ID);
                             if (CRV != null)
@@ -578,7 +578,7 @@ namespace Squint
                         DbO.Stop = Con.Stop;
                     }
                 }
-                foreach (var P in Ctr.GetPlanAssociations())
+                foreach (var P in SquintModel.GetPlanAssociations())
                     if (P != null)
                     {
                         DbPlanAssociation DbPl = Context.DbPlans.Create();
@@ -614,34 +614,34 @@ namespace Squint
             using (SquintDBModel Context = new SquintDBModel())
             {
                 //Update Protocol
-                DbLibraryProtocol DbP = Context.DbLibraryProtocols.Find(Ctr.CurrentProtocol.ID);
+                DbLibraryProtocol DbP = Context.DbLibraryProtocols.Find(SquintModel.CurrentProtocol.ID);
                 if (DbP == null) // new protocol
                 {
                     int renameCounter = 1;
-                    string originalName = Ctr.CurrentProtocol.ProtocolName;
-                    while (Context.DbLibraryProtocols.Any(x => x.ProtocolName == Ctr.CurrentProtocol.ProtocolName))
+                    string originalName = SquintModel.CurrentProtocol.ProtocolName;
+                    while (Context.DbLibraryProtocols.Any(x => x.ProtocolName == SquintModel.CurrentProtocol.ProtocolName))
                     {
-                        Ctr.CurrentProtocol.ProtocolName = string.Format("{0}{1}", originalName, renameCounter++);
+                        SquintModel.CurrentProtocol.ProtocolName = string.Format("{0}{1}", originalName, renameCounter++);
                     }
                     DbP = Context.DbLibraryProtocols.Create();
                     Context.DbLibraryProtocols.Add(DbP);
-                    DbP.ID = Ctr.CurrentProtocol.ID;
+                    DbP.ID = SquintModel.CurrentProtocol.ID;
                 }
-                DbP.TreatmentCentreID = Context.DbTreatmentCentres.FirstOrDefault(x => x.TreatmentCentre == (int)Ctr.CurrentProtocol.TreatmentCentre.Value).ID;
-                DbP.DbUser_Approver = Context.DbUsers.FirstOrDefault(x => x.ARIA_ID == Ctr.SquintUser);
-                DbP.DbUser_ProtocolAuthor = Context.DbUsers.FirstOrDefault(x => x.ARIA_ID == Ctr.SquintUser);
-                DbP.TreatmentSiteID = Context.DbTreatmentSites.FirstOrDefault(x => x.TreatmentSite == (int)Ctr.CurrentProtocol.TreatmentSite.Value).ID;
-                DbP.ProtocolTypeID = Context.DbProtocolTypes.FirstOrDefault(x => x.ProtocolType == (int)Ctr.CurrentProtocol.ProtocolType).ID;
-                DbP.ApprovalLevelID = Context.DbApprovalLevels.FirstOrDefault(x => x.ApprovalLevel == (int)Ctr.CurrentProtocol.ApprovalLevel).ID;
-                DbP.LastModifiedBy = Ctr.SquintUser;
+                DbP.TreatmentCentreID = Context.DbTreatmentCentres.FirstOrDefault(x => x.TreatmentCentre == (int)SquintModel.CurrentProtocol.TreatmentCentre.Value).ID;
+                DbP.DbUser_Approver = Context.DbUsers.FirstOrDefault(x => x.ARIA_ID == SquintModel.SquintUser);
+                DbP.DbUser_ProtocolAuthor = Context.DbUsers.FirstOrDefault(x => x.ARIA_ID == SquintModel.SquintUser);
+                DbP.TreatmentSiteID = Context.DbTreatmentSites.FirstOrDefault(x => x.TreatmentSite == (int)SquintModel.CurrentProtocol.TreatmentSite.Value).ID;
+                DbP.ProtocolTypeID = Context.DbProtocolTypes.FirstOrDefault(x => x.ProtocolType == (int)SquintModel.CurrentProtocol.ProtocolType).ID;
+                DbP.ApprovalLevelID = Context.DbApprovalLevels.FirstOrDefault(x => x.ApprovalLevel == (int)SquintModel.CurrentProtocol.ApprovalLevel).ID;
+                DbP.LastModifiedBy = SquintModel.SquintUser;
                 DbP.LastModified = DateTime.Now.ToBinary();
 
-                DbP.ProtocolName = Ctr.CurrentProtocol.ProtocolName;
-                DbP.Comments = Ctr.CurrentProtocol.Comments;
+                DbP.ProtocolName = SquintModel.CurrentProtocol.ProtocolName;
+                DbP.Comments = SquintModel.CurrentProtocol.Comments;
                 //Update Checklist
                 Save_UpdateProtocolCheckList(Context, DbP);
                 //Update Components
-                foreach (Component SC in Ctr.CurrentProtocol.Components)
+                foreach (Component SC in SquintModel.CurrentProtocol.Components)
                 {
                     Save_UpdateComponent(Context, SC, DbP.ID, false);
                     foreach (Constraint con in SC.Constraints)
@@ -649,7 +649,7 @@ namespace Squint
                         Save_UpdateConstraint(Context, con, con.ComponentID, con.PrimaryStructureId, con.ReferenceStructureId, false);
                     }
                 }
-                foreach (ProtocolStructure S in Ctr.CurrentProtocol.Structures)
+                foreach (ProtocolStructure S in SquintModel.CurrentProtocol.Structures)
                 {
                     DbProtocolStructure DbS;
                     if (S.ToRetire && !S.isCreated)
@@ -694,29 +694,29 @@ namespace Squint
             using (SquintDBModel Context = new SquintDBModel())
             {
                 // Name check
-                if (Context.DbLibraryProtocols.Select(x => x.ProtocolName).Contains(Ctr.CurrentProtocol.ProtocolName))
-                    Ctr.CurrentProtocol.ProtocolName = Ctr.CurrentProtocol.ProtocolName + "_copy";
+                if (Context.DbLibraryProtocols.Select(x => x.ProtocolName).Contains(SquintModel.CurrentProtocol.ProtocolName))
+                    SquintModel.CurrentProtocol.ProtocolName = SquintModel.CurrentProtocol.ProtocolName + "_copy";
                 //Duplicate Protocol
                 DbLibraryProtocol DbP = Context.DbLibraryProtocols.Create();
                 Context.DbLibraryProtocols.Add(DbP);
                 DbP.ID = IDGenerator.GetUniqueId();
-                DbP.ProtocolName = Ctr.CurrentProtocol.ProtocolName;
+                DbP.ProtocolName = SquintModel.CurrentProtocol.ProtocolName;
                 DbP.ApproverID = 1;
                 DbP.AuthorID = 1;
-                DbP.TreatmentCentreID = Context.DbTreatmentCentres.FirstOrDefault(x => x.TreatmentCentre == (int)Ctr.CurrentProtocol.TreatmentCentre.Value).ID;
-                DbP.TreatmentSiteID = Context.DbTreatmentSites.FirstOrDefault(x => x.TreatmentSite == (int)Ctr.CurrentProtocol.TreatmentSite.Value).ID;
+                DbP.TreatmentCentreID = Context.DbTreatmentCentres.FirstOrDefault(x => x.TreatmentCentre == (int)SquintModel.CurrentProtocol.TreatmentCentre.Value).ID;
+                DbP.TreatmentSiteID = Context.DbTreatmentSites.FirstOrDefault(x => x.TreatmentSite == (int)SquintModel.CurrentProtocol.TreatmentSite.Value).ID;
                 DbP.ApprovalLevelID = Context.DbApprovalLevels.FirstOrDefault(x => x.ApprovalLevel == (int)ApprovalLevels.Unapproved).ID;
-                DbP.ProtocolTypeID = Context.DbProtocolTypes.FirstOrDefault(x => x.ProtocolType == (int)Ctr.CurrentProtocol.ProtocolType).ID;
-                DbP.LastModifiedBy = Ctr.SquintUser;
+                DbP.ProtocolTypeID = Context.DbProtocolTypes.FirstOrDefault(x => x.ProtocolType == (int)SquintModel.CurrentProtocol.ProtocolType).ID;
+                DbP.LastModifiedBy = SquintModel.SquintUser;
                 DbP.LastModified = DateTime.Now.ToBinary();
-                DbP.ProtocolParentID = Ctr.CurrentProtocol.ID;
-                DbP.Comments = Ctr.CurrentProtocol.Comments;
+                DbP.ProtocolParentID = SquintModel.CurrentProtocol.ID;
+                DbP.Comments = SquintModel.CurrentProtocol.Comments;
                 Save_UpdateProtocolCheckList(Context, DbP);
                 //Update Components
                 Dictionary<int, int> ComponentLookup = new Dictionary<int, int>();
                 Dictionary<int, int> StructureLookup = new Dictionary<int, int>();
                 StructureLookup.Add(1, 1); // add dummy structure
-                foreach (ProtocolStructure S in Ctr.CurrentProtocol.Structures)
+                foreach (ProtocolStructure S in SquintModel.CurrentProtocol.Structures)
                 {
                     DbProtocolStructure DbS = Context.DbProtocolStructures.Create();
                     Context.DbProtocolStructures.Add(DbS);
@@ -729,7 +729,7 @@ namespace Squint
                     Save_UpdateStructureCheckList(Context, DbS, S);
                     Save_UpdateStructureAliases(Context, DbS, S);
                 }
-                foreach (Component SC in Ctr.CurrentProtocol.Components)
+                foreach (Component SC in SquintModel.CurrentProtocol.Components)
                 {
                     var newID = Save_UpdateComponent(Context, SC, DbP.ID, true);
                     if (newID != null)
@@ -874,8 +874,8 @@ namespace Squint
                 if (Con.isCreated)
                     DbCC.ChangeDescription = "New";
                 if (createCopy)
-                    DbCC.ChangeDescription = string.Format("Duplicated from protocol ({0})", Ctr.CurrentProtocol.ProtocolName);
-                DbCC.ChangeAuthor = Ctr.SquintUser;
+                    DbCC.ChangeDescription = string.Format("Duplicated from protocol ({0})", SquintModel.CurrentProtocol.ProtocolName);
+                DbCC.ChangeAuthor = SquintModel.SquintUser;
                 DbCC.ConstraintID = DbO.ID;
                 DbCC.ConstraintString = Con.GetConstraintString();
                 DbCC.ParentLogID = DbCC_ParentID;
@@ -897,7 +897,7 @@ namespace Squint
             }
             if (DbPC.CTDeviceIds != null)
                 DbPC.CTDeviceIds.Clear();
-            foreach (string CTDeviceId in Ctr.CurrentProtocol.Checklist.CTDeviceIds)
+            foreach (string CTDeviceId in SquintModel.CurrentProtocol.Checklist.CTDeviceIds)
             {
                 DbCTDeviceId DBCTId = Context.DbCTDeviceIds.FirstOrDefault(x => x.CTDeviceId.ToUpper() == CTDeviceId.ToUpper());
                 if (DBCTId == null)
@@ -910,27 +910,27 @@ namespace Squint
             }
 
 
-            DbPC.SliceSpacing = Ctr.CurrentProtocol.Checklist.SliceSpacing.Value;
-            Ctr.CurrentProtocol.Checklist.SliceSpacing.AcceptChanges();
-            DbPC.AlgorithmVolumeDose = (int)Ctr.CurrentProtocol.Checklist.Algorithm.Value;
-            Ctr.CurrentProtocol.Checklist.Algorithm.AcceptChanges();
-            DbPC.AlgorithmResolution = Ctr.CurrentProtocol.Checklist.AlgorithmResolution.Value;
-            Ctr.CurrentProtocol.Checklist.AlgorithmResolution.AcceptChanges();
-            DbPC.AirCavityCorrectionIMRT = Ctr.CurrentProtocol.Checklist.AirCavityCorrectionIMRT.Value;
-            DbPC.AirCavityCorrectionVMAT = Ctr.CurrentProtocol.Checklist.AirCavityCorrectionVMAT.Value;
-            DbPC.AlgorithmVMATOptimization = (int)Ctr.CurrentProtocol.Checklist.AlgorithmVMATOptimization.Value;
-            DbPC.AlgorithmIMRTOptimization = (int)Ctr.CurrentProtocol.Checklist.AlgorithmIMRTOptimization.Value;
+            DbPC.SliceSpacing = SquintModel.CurrentProtocol.Checklist.SliceSpacing.Value;
+            SquintModel.CurrentProtocol.Checklist.SliceSpacing.AcceptChanges();
+            DbPC.AlgorithmVolumeDose = (int)SquintModel.CurrentProtocol.Checklist.Algorithm.Value;
+            SquintModel.CurrentProtocol.Checklist.Algorithm.AcceptChanges();
+            DbPC.AlgorithmResolution = SquintModel.CurrentProtocol.Checklist.AlgorithmResolution.Value;
+            SquintModel.CurrentProtocol.Checklist.AlgorithmResolution.AcceptChanges();
+            DbPC.AirCavityCorrectionIMRT = SquintModel.CurrentProtocol.Checklist.AirCavityCorrectionIMRT.Value;
+            DbPC.AirCavityCorrectionVMAT = SquintModel.CurrentProtocol.Checklist.AirCavityCorrectionVMAT.Value;
+            DbPC.AlgorithmVMATOptimization = (int)SquintModel.CurrentProtocol.Checklist.AlgorithmVMATOptimization.Value;
+            DbPC.AlgorithmIMRTOptimization = (int)SquintModel.CurrentProtocol.Checklist.AlgorithmIMRTOptimization.Value;
             //DbPC.Artifacts
-            DbPC.CouchInterior = Ctr.CurrentProtocol.Checklist.CouchInterior.Value;
-            Ctr.CurrentProtocol.Checklist.CouchInterior.AcceptChanges();
-            DbPC.CouchSurface = Ctr.CurrentProtocol.Checklist.CouchSurface.Value;
-            Ctr.CurrentProtocol.Checklist.CouchSurface.AcceptChanges();
-            DbPC.FieldNormalizationMode = (int)Ctr.CurrentProtocol.Checklist.FieldNormalizationMode.Value;
-            Ctr.CurrentProtocol.Checklist.FieldNormalizationMode.AcceptChanges();
-            DbPC.HeterogeneityOn = Ctr.CurrentProtocol.Checklist.HeterogeneityOn.Value;
-            Ctr.CurrentProtocol.Checklist.HeterogeneityOn.AcceptChanges();
-            DbPC.SupportIndication = (int)Ctr.CurrentProtocol.Checklist.SupportIndication.Value;
-            Ctr.CurrentProtocol.Checklist.SupportIndication.AcceptChanges();
+            DbPC.CouchInterior = SquintModel.CurrentProtocol.Checklist.CouchInterior.Value;
+            SquintModel.CurrentProtocol.Checklist.CouchInterior.AcceptChanges();
+            DbPC.CouchSurface = SquintModel.CurrentProtocol.Checklist.CouchSurface.Value;
+            SquintModel.CurrentProtocol.Checklist.CouchSurface.AcceptChanges();
+            DbPC.FieldNormalizationMode = (int)SquintModel.CurrentProtocol.Checklist.FieldNormalizationMode.Value;
+            SquintModel.CurrentProtocol.Checklist.FieldNormalizationMode.AcceptChanges();
+            DbPC.HeterogeneityOn = SquintModel.CurrentProtocol.Checklist.HeterogeneityOn.Value;
+            SquintModel.CurrentProtocol.Checklist.HeterogeneityOn.AcceptChanges();
+            DbPC.SupportIndication = (int)SquintModel.CurrentProtocol.Checklist.SupportIndication.Value;
+            SquintModel.CurrentProtocol.Checklist.SupportIndication.AcceptChanges();
             //DbPC.TreatmentTechniqueType 
 
         }
@@ -984,7 +984,7 @@ namespace Squint
 
         private static void Save_UpdateBeamDefinition(SquintDBModel Context, DbComponent DbC, int sourceComponentID, bool createCopy)
         {
-            foreach (Beam B in Ctr.CurrentProtocol.Components.FirstOrDefault(x => x.ID == sourceComponentID).Beams.ToList())
+            foreach (Beam B in SquintModel.CurrentProtocol.Components.FirstOrDefault(x => x.ID == sourceComponentID).Beams.ToList())
             {
                 DbBeam DbB = null;
                 if (DbC.DbBeams != null)
@@ -1102,7 +1102,7 @@ namespace Squint
 
         private static void Save_UpdateImagingDefinitions(SquintDBModel Context, DbComponent DbC, int sourceComponentID, bool createCopy)
         {
-            var ImagingProtocols = Ctr.CurrentProtocol.Components.FirstOrDefault(x => x.ID == sourceComponentID).ImagingProtocols;
+            var ImagingProtocols = SquintModel.CurrentProtocol.Components.FirstOrDefault(x => x.ID == sourceComponentID).ImagingProtocols;
             if (DbC.ImagingProtocols != null)
             {
                 foreach (DbComponentImaging DbCI in DbC.ImagingProtocols)
@@ -1115,7 +1115,7 @@ namespace Squint
                 }
             }
 
-            foreach (ImagingProtocolTypes IP in Ctr.CurrentProtocol.Components.FirstOrDefault(x => x.ID == sourceComponentID).ImagingProtocols)
+            foreach (ImagingProtocolTypes IP in SquintModel.CurrentProtocol.Components.FirstOrDefault(x => x.ID == sourceComponentID).ImagingProtocols)
             {
                 DbComponentImaging DbCI = DbC.ImagingProtocols.FirstOrDefault();
                 if (DbCI == null || createCopy)
@@ -1135,7 +1135,7 @@ namespace Squint
 
             }
             
-            foreach (Beam B in Ctr.CurrentProtocol.Components.FirstOrDefault(x => x.ID == sourceComponentID).Beams.ToList())
+            foreach (Beam B in SquintModel.CurrentProtocol.Components.FirstOrDefault(x => x.ID == sourceComponentID).Beams.ToList())
             {
                 DbBeam DbB = null;
                 if (DbC.DbBeams != null)

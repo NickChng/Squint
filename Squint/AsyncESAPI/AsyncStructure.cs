@@ -71,7 +71,7 @@ namespace Squint
                 if (S != null)
                 {
                     bool foundPointOutsideSegment = false;
-                    var test = Ctr.CurrentStructureSet;
+                    var test = SquintModel.CurrentStructureSet;
                     double Area = double.PositiveInfinity;
                     for (int z = 1; z < NumSlices; z++)
                     {

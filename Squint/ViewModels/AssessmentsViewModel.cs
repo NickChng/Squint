@@ -13,12 +13,15 @@ using System.Linq;
 namespace Squint.ViewModels
 {
     [AddINotifyPropertyChangedInterface]
-    public class AssessmentsView : ObservableObject
+    public class AssessmentsViewModel : ObservableObject
     {
-        public AssessmentsView(MainViewModel parentView)
+        public AssessmentsViewModel()
+        { 
+        }
+        public AssessmentsViewModel(MainViewModel parentView)
         {
             ParentView = parentView;
-            Ctr.ProtocolClosed += Ctr_ProtocolClosed;
+            SquintModel.ProtocolClosed += Ctr_ProtocolClosed;
         }
 
         private void Ctr_ProtocolClosed(object sender, EventArgs e)
@@ -48,11 +51,11 @@ namespace Squint.ViewModels
         private List<wpfcolor> DefaultAssessmentTextColors = new List<wpfcolor> { wpfcolors.White, wpfcolors.Black, wpfcolors.Black, wpfcolors.Black };
 
         public AssessmentView SelectedAssessment { get; set; }
-        public ObservableCollection<AssessmentView> Assessments { get; set; } = new ObservableCollection<AssessmentView>();
+        public ObservableCollection<AssessmentView> Assessments { get; set; } = new ObservableCollection<AssessmentView>(); // { new AssessmentView("DesignTime") 
         public ObservableCollection<SquintDataColumn> AssessmentColumns { get; set; } = new ObservableCollection<SquintDataColumn>();
         public void AddAssessment()
         {
-            if (Ctr.PatientOpen && Ctr.ProtocolLoaded)
+            if (SquintModel.PatientOpen && SquintModel.ProtocolLoaded)
             {
                 int colindex = (AssessmentCounter - 1) % DefaultAssessmentColors.Count;
                 AssessmentView AV = new AssessmentView(DefaultAssessmentColors[colindex], DefaultAssessmentTextColors[colindex], this);
@@ -80,9 +83,9 @@ namespace Squint.ViewModels
         }
         public void LoadAssessmentViews()
         {
-            if (Ctr.PatientOpen && Ctr.ProtocolLoaded)
+            if (SquintModel.PatientOpen && SquintModel.ProtocolLoaded)
             {
-                foreach (Assessment A in Ctr.GetAssessmentList())
+                foreach (Assessment A in SquintModel.GetAssessmentList())
                 {
                     int colindex = (AssessmentCounter - 1) % DefaultAssessmentColors.Count;
                     AssessmentView AV = new AssessmentView(A, DefaultAssessmentColors[colindex], DefaultAssessmentTextColors[colindex], this);
@@ -163,13 +166,13 @@ namespace Squint.ViewModels
         }
         private void FontSizeIncrease(object param = null)
         {
-            var AP = param as AssessmentsView;
+            var AP = param as AssessmentsViewModel;
             if (AP != null)
                 AP.FontSize = AP.FontSize + 1;
         }
         private void FontSizeDecrease(object param = null)
         {
-            var AP = param as AssessmentsView;
+            var AP = param as AssessmentsViewModel;
             if (AP != null)
             {
                 AP.FontSize = AP.FontSize - 1;

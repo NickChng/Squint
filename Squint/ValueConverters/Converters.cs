@@ -1265,12 +1265,20 @@ namespace Squint.Converters
         public object Convert(object[] value, Type targetType,
               object parameter, System.Globalization.CultureInfo culture)
         {
-            foreach (bool? v in value)
+            try
             {
-                if (v == true)
-                    return Visibility.Visible;
+                foreach (bool? v in value)
+                {
+                    if (v == true)
+                        return Visibility.Visible;
+                }
+                return Visibility.Collapsed;
             }
-            return Visibility.Collapsed;
+            catch (Exception ex)
+            {
+                string debugme = "hi";
+                return Visibility.Collapsed;
+            }
         }
 
         public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture)

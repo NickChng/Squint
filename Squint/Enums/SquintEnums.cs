@@ -255,6 +255,16 @@ namespace Squint
 
     }
 
+    public enum ViewEnums
+    {
+        [Description("Centre:")] Centre,
+        [Description("Approval:")] Approval,
+        [Description("Protocol type:")] ProtocolType,
+        [Description("Approver:")] Approver,
+        [Description("Site:")] Site,
+
+    }
+
     public enum ChangeStatus
     {
         [Description("Unset")] Unset,

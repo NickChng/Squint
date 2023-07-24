@@ -27,7 +27,7 @@ namespace Squint
             {
                 DateString = string.Join(" ", DateTime.Now.ToShortDateString(), DateTime.Now.ToShortTimeString());
                 ChangeDescription = @"Ad-hoc constraint";
-                ChangeAuthor = Ctr.SquintUser;
+                ChangeAuthor = SquintModel.SquintUser;
                 ConstraintID = C.ID;
                 ConstraintString = "";
             }

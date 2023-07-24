@@ -21,7 +21,7 @@ namespace Squint.ViewModels
 
         public bool Loading { get; private set; }
         public MainViewModel ParentView { get; private set; }
-        public string ProtocolPath = Ctr.Config.ClinicalProtocols.FirstOrDefault(x => x.Site == Ctr.Config.Site.CurrentSite).Path;
+        public string ProtocolPath = SquintModel.Config.ClinicalProtocols.FirstOrDefault(x => x.Site == SquintModel.Config.Site.CurrentSite).Path;
         public ObservableCollection<VMS_XML.Protocol> EclipseProtocols { get; set; } = new ObservableCollection<VMS_XML.Protocol>();
 
         public EclipseProtocolPopupViewModel(MainViewModel parentView)
@@ -72,10 +72,10 @@ namespace Squint.ViewModels
             bool Success = false;
             if (P != null)
             {
-                Success = await Ctr.ImportEclipseProtocol(P);
+                Success = await SquintModel.ImportEclipseProtocol(P);
             }
             if (Success)
-                ParentView.ProtocolVM.ViewLoadedProtocol();
+                ParentView.ProtocolsVM.ViewLoadedProtocol();
             ParentView.SquintIsBusy = false;
             ParentView.LoadingString = "";
             ParentView.isLoading = false;

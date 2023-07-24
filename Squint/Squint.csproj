@@ -8,7 +8,7 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{6D8BE6B7-741B-4289-BB54-968443E0AC4D}</ProjectGuid>
     <OutputType>WinExe</OutputType>
-    <RootNamespace>SquintScript</RootNamespace>
+    <RootNamespace>Squint</RootNamespace>
     <AssemblyName>Squint</AssemblyName>
     <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
@@ -168,21 +168,27 @@
     <Compile Include="ProtocolClasses\PlanDescriptor.cs" />
     <Compile Include="ProtocolClasses\Beam.cs" />
     <Compile Include="ViewModels\AssessmentComponentViewModel.cs" />
-    <Compile Include="ViewModels\AssessmentsView.cs" />
+    <Compile Include="ViewModels\AssessmentsViewModel.cs" />
     <Compile Include="ViewModels\AssessmentView.cs" />
     <Compile Include="ProtocolCheckClasses\BeamListItem.cs" />
     <Compile Include="ViewModels\Beam_ViewModel.cs" />
+    <Compile Include="ViewModels\DelegateCommand.cs" />
     <Compile Include="ViewModels\Imaging_ViewModel.cs" />
     <Compile Include="ViewModels\LoadingViewModel.cs" />
     <Compile Include="ProtocolCheckClasses\NTODefinition.cs" />
     <Compile Include="ProtocolCheckClasses\ObjectiveDefinition.cs" />
     <Compile Include="ProtocolCheckClasses\ObjectiveItem.cs" />
+    <Compile Include="ViewModels\ObservableObject.cs" />
     <Compile Include="ViewModels\PatientViewModel.cs" />
     <Compile Include="ViewModels\Prescription_ViewModel.cs" />
     <Compile Include="ViewModels\ProtocolImagingViewModel.cs" />
     <Compile Include="ViewModels\SessionsView.cs" />
     <Compile Include="ViewModels\Simulation_ViewModel.cs" />
+    <Compile Include="ViewModels\StartupViewModel.cs" />
     <Compile Include="ViewModels\TestList_ViewModel.cs" />
+    <Compile Include="Views\AssessmentsView.xaml.cs">
+      <DependentUpon>AssessmentsView.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Views\HighResolutionView.xaml.cs">
       <DependentUpon>HighResolutionView.xaml</DependentUpon>
     </Compile>
@@ -191,6 +197,12 @@
     </Compile>
     <Compile Include="Views\PointCheckView.xaml.cs">
       <DependentUpon>PointCheckView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\ProtocolsView.xaml.cs">
+      <DependentUpon>ProtocolsView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\StartupView.xaml.cs">
+      <DependentUpon>StartupView.xaml</DependentUpon>
     </Compile>
     <Compile Include="Views\WaitSpinner.xaml.cs">
       <DependentUpon>WaitSpinner.xaml</DependentUpon>
@@ -299,7 +311,7 @@
     <Compile Include="Helpers and Functions\g3helpers.cs" />
     <Compile Include="Helpers and Functions\Levenshtein.cs" />
     <Compile Include="Helpers and Functions\Serializer.cs" />
-    <Compile Include="ControllerClasses\SquintController.cs" />
+    <Compile Include="Model\SquintController.cs" />
     <Compile Include="PersistenceLayer\SquintDBModel.cs" />
     <Compile Include="Enums\SquintEnums.cs" />
     <Compile Include="ProtocolClasses\BeamGeometry.cs" />
@@ -308,8 +320,12 @@
     <Compile Include="XML Definitions\StructureLabelXML.cs">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Compile>
-    <Compile Include="ViewModels\ProtocolViewModel.cs" />
-    <Compile Include="ViewModels\ViewModel.cs" />
+    <Compile Include="ViewModels\ProtocolsViewModel.cs" />
+    <Compile Include="ViewModels\MainViewModel.cs" />
+    <Page Include="Views\AssessmentsView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Views\HighResolutionView.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -321,6 +337,14 @@
     <Page Include="Views\PointCheckView.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Views\ProtocolsView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\StartupView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Views\WaitSpinner.xaml">
       <SubType>Designer</SubType>

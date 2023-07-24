@@ -212,7 +212,7 @@ namespace Squint
                     BolusTest.ParameterOption = B.Indication.Value;
                     BeamTests.Tests.Add(BolusTest);
                     //ThickCheck
-                    var Thick = await Ctr.GetBolusThickness(Field.CourseId, Field.PlanId, BI.Id);
+                    var Thick = await SquintModel.GetBolusThickness(Field.CourseId, Field.PlanId, BI.Id);
                     var ThickCheck = new TestValueItem<double>(CheckTypes.BolusThickness, Thick, B.Thickness, B.ToleranceThickness, null, null, null);
                     ThickCheck.OptionalNameSuffix = string.Format(@"(""{0}"") [cm]", BI.Id);
                     ThickCheck.ParameterOption = B.Indication.Value;

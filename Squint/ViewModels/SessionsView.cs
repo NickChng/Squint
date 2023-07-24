@@ -39,7 +39,7 @@ namespace Squint.ViewModels
         {
             ParentView.LoadingString = "Saving Session...";
             ParentView.isLoading = true;
-            bool Success = await Task.Run(() => Ctr.Save_Session(SessionComment)); // boolean return is in order to delay the "ParentView.isLoading" return to False, so the load menu has a chance to include the latest save
+            bool Success = await Task.Run(() => SquintModel.Save_Session(SessionComment)); // boolean return is in order to delay the "ParentView.isLoading" return to False, so the load menu has a chance to include the latest save
             ParentView.isLoading = false;
             ParentView.SessionSaveVisibility ^= true;
         }
@@ -55,7 +55,7 @@ namespace Squint.ViewModels
             ParentView.LoadingString = "Deleting session...";
             try
             {
-                await Task.Run(() => Ctr.Delete_Session(E.ID));
+                await Task.Run(() => SquintModel.Delete_Session(E.ID));
             }
             catch (Exception ex)
             {
@@ -72,11 +72,11 @@ namespace Squint.ViewModels
                 return;
             ParentView.isLoading = true;
             ParentView.LoadingString = "Loading session...";
-            if (await Task.Run(() => Ctr.Load_Session(E.ID)))
+            if (await Task.Run(() => SquintModel.Load_Session(E.ID)))
             {
                 //ParentView.ProtocolVM.UpdateProtocolView();
-                ParentView.ProtocolVM.isProtocolLoaded = true;
-                Ctr.UpdateConstraints();
+                ParentView.ProtocolsVM.isProtocolLoaded = true;
+                SquintModel.UpdateConstraints();
                 ParentView.AssessmentsVM.isLinkProtocolVisible = true;
             }
             else
@@ -88,13 +88,13 @@ namespace Squint.ViewModels
         public SessionsViewModel(MainViewModel parentView)
         {
             ParentView = parentView;
-            Ctr.SessionsChanged += OnSessionsChanged;
-            SessionViews = new ObservableCollection<SessionView>(Ctr.GetSessionViews());
+            SquintModel.SessionsChanged += OnSessionsChanged;
+            SessionViews = new ObservableCollection<SessionView>(SquintModel.GetSessionViews());
         }
         public void OnSessionsChanged(object sender, EventArgs e)
         {
             ObservableCollection<SessionView> updatedSV = new ObservableCollection<SessionView>();
-            foreach (SessionView E in Ctr.GetSessionViews())
+            foreach (SessionView E in SquintModel.GetSessionViews())
                 updatedSV.Add(E);
             SessionViews = updatedSV;
         }

@@ -25,7 +25,7 @@ using Squint.Helpers;
 
 namespace Squint
 {
-    public static partial class Ctr
+    public static partial class SquintModel
     {
         private static Dispatcher _uiDispatcher;
         public static AsyncESAPI ESAPIContext { get; private set; }
@@ -80,8 +80,9 @@ namespace Squint
         {
             try
             {
-                // Initialize automapper
-
+                // set dispatcher;
+                _uiDispatcher = uiDispatcher;
+                
                 //Get configuration
                 XmlSerializer ConfigSer = new XmlSerializer(typeof(SquintConfiguration));
                 var AssemblyName = System.Diagnostics.Process.GetCurrentProcess().ProcessName;
@@ -98,7 +99,7 @@ namespace Squint
                         throw new Exception("Unable to configuration file.  Please review the configuration file, which should be named (Squint exe file name)_Config.xml");
                     }
                 }
-                _uiDispatcher = uiDispatcher;
+                
                 InitializeESAPI();
                 InitializeDatabase();
                 InitializeDefinitions();
@@ -162,10 +163,10 @@ namespace Squint
         {
             get
             {
-                if (ReferenceEquals(null, Ctr.ESAPIContext.Patient))
+                if (ReferenceEquals(null, SquintModel.ESAPIContext.Patient))
                     return string.Empty;
                 else
-                    return Ctr.ESAPIContext.Patient.Id;
+                    return SquintModel.ESAPIContext.Patient.Id;
             }
         }
         public async static Task<AsyncPlan> GetAsyncPlan(string CourseId, string PlanId)
@@ -1424,7 +1425,7 @@ namespace Squint
                     LocalContext.DbConstraintChangelogs.Add(DbCC);
                     DbCC.ChangeDescription = con.Description;
                     DbCC.ConstraintString = "";
-                    DbCC.ChangeAuthor = Ctr.SquintUser;
+                    DbCC.ChangeAuthor = SquintModel.SquintUser;
                     DbCC.Date = DateTime.Now.ToBinary();
                     DbCC.DbConstraint = DbCon;
                     DbCC.ParentLogID = 1; // the root dummy log
@@ -1503,7 +1504,7 @@ namespace Squint
                 artifactsToSerialize.Add(new SquintProtocolProtocolChecklistArtifact()
                 {
                     HU = (double)A.RefHU.Value,
-                    ProtocolStructureName = Ctr.GetProtocolStructure(A.ProtocolStructureId.Value).ProtocolStructureName,
+                    ProtocolStructureName = SquintModel.GetProtocolStructure(A.ProtocolStructureId.Value).ProtocolStructureName,
                     ToleranceHU = (double)A.ToleranceHU.Value
                 });
             }
@@ -1675,7 +1676,6 @@ namespace Squint
             }
         }
 
-
         public static async Task Save_UpdateProtocol()
         {
             CurrentProtocol.LastModifiedBy = SquintUser;
@@ -1758,7 +1758,7 @@ namespace Squint
                     }
                 }
                 else
-                    Ctr.ProtocolLoaded = false;
+                    SquintModel.ProtocolLoaded = false;
                 return true;
             }
             else return false;
@@ -1844,7 +1844,7 @@ namespace Squint
         }
         public static async Task<bool> OpenPatient(string PID)
         {
-            PatientOpen = await Task.Run(() => Ctr.ESAPIContext.OpenPatient(PID));
+            PatientOpen = await Task.Run(() => SquintModel.ESAPIContext.OpenPatient(PID));
             if (PatientOpen)
                 PatientOpened?.Invoke(null, EventArgs.Empty);
             SessionsChanged?.Invoke(null, EventArgs.Empty);
@@ -1914,7 +1914,7 @@ namespace Squint
         {
             foreach (Constraint Con in GetAllConstraints().Where(x => x.ReferenceStructureId == E.ID))
             {
-                string SSUID = Ctr.CurrentStructureSet.UID;
+                string SSUID = SquintModel.CurrentStructureSet.UID;
                 if (!string.IsNullOrEmpty(SSUID))
                     Con.UpdateThresholds(E.Volume(SSUID));
             }
@@ -1975,7 +1975,7 @@ namespace Squint
                         SetCurrentStructureSet(P.StructureSetUID);
                         MatchStructuresByAlias();
                     }
-                    Ctr.EndingLongProcess?.Invoke(null, EventArgs.Empty);
+                    SquintModel.EndingLongProcess?.Invoke(null, EventArgs.Empty);
                     return PA.GetErrorCodes();
                 });
 
@@ -2029,7 +2029,7 @@ namespace Squint
         }
         public static List<string> GetCourseNames()
         {
-            return Ctr.ESAPIContext.Patient.CourseIds;
+            return SquintModel.ESAPIContext.Patient.CourseIds;
         }
 
         public static void AddNewContourCheck(ProtocolStructure S)

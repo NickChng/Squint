@@ -82,7 +82,7 @@ namespace Squint
 
         public async Task LoadLinkedPlan(DbPlanAssociation DbO)
         {
-            AsyncPlan LinkedPlan = await Ctr.GetAsyncPlan(DbO.CourseName, DbO.PlanName);
+            AsyncPlan LinkedPlan = await SquintModel.GetAsyncPlan(DbO.CourseName, DbO.PlanName);
             UpdateLinkedPlan(LinkedPlan, false);
             if (LinkedPlan == null)
             {
@@ -191,8 +191,8 @@ namespace Squint
                     ErrorCodes.Add(ComponentStatusCodes.NumFractionsMismatch);
                 }
             }
-            if (Ctr.CurrentStructureSet != null)
-                if (LinkedPlan.StructureSetUID != Ctr.CurrentStructureSet.UID)
+            if (SquintModel.CurrentStructureSet != null)
+                if (LinkedPlan.StructureSetUID != SquintModel.CurrentStructureSet.UID)
                     ErrorCodes.Add(ComponentStatusCodes.StructureSetDiscrepancy);
 
             return ErrorCodes;

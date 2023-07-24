@@ -37,42 +37,47 @@ namespace Squint.ViewModels
         {
             get { return A.ID; }
         }
-        public AssessmentsView ParentView;
+        public AssessmentsViewModel ParentView;
         private Assessment A;
         public int ComponentCount
         {
             get { return ACVs.Count; }
         }
         public ObservableCollection<AssessmentComponentViewModel> ACVs { get; set; } = new ObservableCollection<AssessmentComponentViewModel>(); // only add to this from outside classes through AddACV, so ComponentCount is notified
-        public AssessmentView(wpfcolor Color_in, wpfcolor TextColor_in, AssessmentsView ParentView_in)
+        
+        public AssessmentView(string assessmentName)
+        {
+            AssessmentName = assessmentName;
+        }
+        public AssessmentView(wpfcolor Color_in, wpfcolor TextColor_in, AssessmentsViewModel ParentView_in)
         {
             ParentView = ParentView_in;
             Color = Color_in;
             TextColor = TextColor_in;
-            if (!Ctr.PatientOpen)
+            if (!SquintModel.PatientOpen)
             {
                 MessageBox.Show("Please load patient first...");
                 return;
             }
-            A = Ctr.NewAssessment();
+            A = SquintModel.NewAssessment();
             AssessmentName = A.AssessmentName;
-            foreach (Component Comp in Ctr.CurrentProtocol.Components.OrderBy(x=>x.DisplayOrder))
+            foreach (Component Comp in SquintModel.CurrentProtocol.Components.OrderBy(x=>x.DisplayOrder))
             {
                 ACVs.Add(new AssessmentComponentViewModel(this, Comp, A));
             }
         }
-        public AssessmentView(Assessment Ain, wpfcolor Color_in, wpfcolor TextColor_in, AssessmentsView ParentView_in)
+        public AssessmentView(Assessment Ain, wpfcolor Color_in, wpfcolor TextColor_in, AssessmentsViewModel ParentView_in)
         {
             A = Ain;
             Color = Color_in;
             TextColor = TextColor_in;
             AssessmentName = Ain.AssessmentName;
             ParentView = ParentView_in;
-            foreach (Component Comp in Ctr.CurrentProtocol.Components)
+            foreach (Component Comp in SquintModel.CurrentProtocol.Components)
             {
                 var ACV = new AssessmentComponentViewModel(this, Comp, A);
                 ACV.DisableAutomaticAssociation = true;
-                var _P = Ctr.GetPlanAssociation(Comp.ID, A.ID);
+                var _P = SquintModel.GetPlanAssociation(Comp.ID, A.ID);
                 if (_P != null)
                 {
                     ACV.WarningString = _P.LoadWarningString;
@@ -109,7 +114,7 @@ namespace Squint.ViewModels
         {
             foreach (var ACV in ACVs)
                 ACV.Dispose();
-            Ctr.RemoveAssessment(A.ID);
+            SquintModel.RemoveAssessment(A.ID);
         }
     }
 }

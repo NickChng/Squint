@@ -113,8 +113,8 @@ namespace Squint
         {
             get
             {
-                if (Ctr.CurrentStructureSet != null)
-                    return GetStructureResolution(Ctr.CurrentStructureSet.UID);
+                if (SquintModel.CurrentStructureSet != null)
+                    return GetStructureResolution(SquintModel.CurrentStructureSet.UID);
                 else
                     return null;
             }
@@ -126,8 +126,8 @@ namespace Squint
         {
             get 
             {
-                if (Ctr.CurrentStructureSet != null)
-                    return GetAssignedHU(Ctr.CurrentStructureSet.UID);
+                if (SquintModel.CurrentStructureSet != null)
+                    return GetAssignedHU(SquintModel.CurrentStructureSet.UID);
                 else
                     return null;
             }
@@ -138,7 +138,7 @@ namespace Squint
         {
 
             if (AssignedStructureId != "")
-                return Ctr.GetStructureSet(SSUID).GetStructure(AssignedStructureId).Color;
+                return SquintModel.GetStructureSet(SSUID).GetStructure(AssignedStructureId).Color;
             else
                 return null;
         }
@@ -147,7 +147,7 @@ namespace Squint
             if (AssignedStructureId == "")
                 return "";
             else
-                return Ctr.GetStructureSet(SSUID).GetStructure(AssignedStructureId).Label;
+                return SquintModel.GetStructureSet(SSUID).GetStructure(AssignedStructureId).Label;
         }
         
         public void ApplyAliasing(AsyncStructureSet SS)
@@ -184,7 +184,7 @@ namespace Squint
 
         public async Task<int> VMS_NumParts(string SSUID)
         {
-            var AS = Ctr.GetStructureSet(SSUID).GetStructure(AssignedStructureId);
+            var AS = SquintModel.GetStructureSet(SSUID).GetStructure(AssignedStructureId);
             if (AS == null)
                 return -1;
             return await AS.GetVMS_NumParts();
@@ -192,7 +192,7 @@ namespace Squint
 
         public async Task<Tuple<double, VVector>> GetMinArea(string SSUID)
         {
-            var AS = Ctr.GetStructureSet(SSUID).GetStructure(AssignedStructureId);
+            var AS = SquintModel.GetStructureSet(SSUID).GetStructure(AssignedStructureId);
             if (AS == null)
                 return null;
             return await AS.GetMinArea();
@@ -200,7 +200,7 @@ namespace Squint
 
         public double? Volume(string SSUID)
         {
-            var AS = Ctr.GetStructureSet(SSUID).GetStructure(AssignedStructureId);
+            var AS = SquintModel.GetStructureSet(SSUID).GetStructure(AssignedStructureId);
             if (AS == null)
                 return null;
             else
@@ -208,21 +208,21 @@ namespace Squint
         }
         public async Task<List<double>> PartVolumes(string SSUID)
         {
-            var AS = Ctr.GetStructureSet(SSUID).GetStructure(AssignedStructureId);
+            var AS = SquintModel.GetStructureSet(SSUID).GetStructure(AssignedStructureId);
             if (AS == null)
                 return null;
             return await AS.GetPartVolumes();
         }
         public async Task<int> NumParts(string SSUID)
         {
-            var AS = Ctr.GetStructureSet(SSUID).GetStructure(AssignedStructureId);
+            var AS = SquintModel.GetStructureSet(SSUID).GetStructure(AssignedStructureId);
             if (AS == null)
                 return -1;
             return await AS.GetNumSeperateParts();
         }
         public double? GetAssignedHU(string SSUID)
         {
-            AsyncStructure AS = Ctr.GetStructureSet(SSUID).GetStructure(AssignedStructureId);
+            AsyncStructure AS = SquintModel.GetStructureSet(SSUID).GetStructure(AssignedStructureId);
             if (AS == null)
                 return null;
             return Math.Round(AS.HU);
@@ -230,7 +230,7 @@ namespace Squint
 
         public bool? GetStructureResolution(string SSUID)
         {
-            AsyncStructure AS = Ctr.GetStructureSet(SSUID).GetStructure(AssignedStructureId);
+            AsyncStructure AS = SquintModel.GetStructureSet(SSUID).GetStructure(AssignedStructureId);
             if (AS == null)
                 return null;
             return AS.IsHighResolution;

@@ -1,0 +1,207 @@
+﻿<UserControl x:Class="Squint.Views.AssessmentsView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:Squint.Views"
+             xmlns:ViewModels="clr-namespace:Squint.ViewModels"
+             xmlns:Views ="clr-namespace:Squint.Views"
+             xmlns:sys="clr-namespace:System;assembly=mscorlib"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="800"
+             d:DataContext="{d:DesignInstance Type=ViewModels:AssessmentsViewModel, IsDesignTimeCreatable=True}">
+    <UserControl.DataContext>
+        <ViewModels:AssessmentsViewModel/>
+    </UserControl.DataContext>
+    <Grid Grid.Row="0" Background="White">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        <Grid Grid.Row="0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <Border Grid.Column="0" Background="PapayaWhip" CornerRadius="5,5,5,5" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="5,5,5,5">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Grid.Column="0" Text="Manage Assessments" VerticalAlignment="Center" Margin="10,10,10,10" FontSize="14" FontWeight="Bold"/>
+                    <Button Grid.Column="1" Style="{StaticResource ButtonStyle_Small}" Command="{Binding ChangeLinkVisibilityCommand}" HorizontalAlignment="Right" Margin="0,0,10,0">
+                        <Image>
+                            <Image.Style>
+                                <Style TargetType="Image">
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding Path=isLinkProtocolVisible, UpdateSourceTrigger=PropertyChanged, FallbackValue=False}" Value="true">
+                                            <Setter Property="Source" Value="../Resources/section_collapse.png"/>
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding Path=isLinkProtocolVisible, UpdateSourceTrigger=PropertyChanged, FallbackValue=False}" Value="false">
+                                            <Setter Property="Source" Value="../Resources/section_expand.png"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Image.Style>
+                        </Image>
+                    </Button>
+                </Grid>
+            </Border>
+            <Button Grid.Column="1" Name="button_AddAssessment" DockPanel.Dock="Right" ToolTip="Add new assessment"
+                                    Style="{StaticResource ButtonStyle_Medium}" VerticalAlignment="Center" HorizontalAlignment="Stretch" Margin="5,0,5,0" 
+                                         Command="{Binding AddAssessmentCommand}" CommandParameter="{Binding ElementName=listbox_ProtocolList, Path=SelectedValue}">
+                <Image Source="../Resources/plus.png"></Image>
+            </Button>
+        </Grid>
+        <Grid Grid.Row="1">
+            <Grid.Tag>
+                <sys:Double>0.0</sys:Double>
+            </Grid.Tag>
+            <Grid.MaxHeight>
+                <MultiBinding Converter="{StaticResource ExpanderConverter}" ConverterParameter="100">
+                    <Binding Path="Tag" RelativeSource="{RelativeSource Self}"/>
+                    <Binding Source="400"/>
+                    <Binding Path="DataContext.AssessmentsVM.AssessmentCounter" ElementName="SquintWindow"/>
+                </MultiBinding>
+            </Grid.MaxHeight>
+            <Grid.Style>
+                <Style TargetType="Grid">
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding Path=isLinkProtocolVisible, UpdateSourceTrigger=PropertyChanged}" Value="True" >
+                            <DataTrigger.EnterActions>
+                                <BeginStoryboard Storyboard="{StaticResource ExpandPanel}"/>
+                            </DataTrigger.EnterActions>
+                            <DataTrigger.ExitActions>
+                                <BeginStoryboard Storyboard="{StaticResource CollapsePanel}"/>
+                            </DataTrigger.ExitActions>
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </Grid.Style>
+            <ListView HorizontalAlignment="Stretch" Name="listView_AssessmentList" ItemsSource="{Binding Assessments, UpdateSourceTrigger=PropertyChanged}" Margin="5,0,5,0" BorderThickness="0" VerticalAlignment="Stretch" ItemContainerStyle="{DynamicResource ListViewItemStyle}"
+                                          HorizontalContentAlignment="Stretch" SelectedItem ="{Binding SelectedAssessment, UpdateSourceTrigger=PropertyChanged}" Style="{DynamicResource ListViewStyle1}">
+                <ListView.ItemTemplate>
+                    <DataTemplate>
+                        <Grid >
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="*"/>
+                            </Grid.RowDefinitions>
+                            <Grid Grid.Row="0" Height="Auto" >
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" VerticalAlignment="Center" HorizontalAlignment="Left" Text="{Binding AssessmentName, UpdateSourceTrigger=PropertyChanged}" FontSize="13" Background="Transparent" Margin="10,0,0,0"></TextBlock>
+                                <!--<SC:CircleCheck Grid.Column="1" HorizontalAlignment="Left" Margin="5,0,0,0" CheckHeight="20" CheckWidth="20" Pass="{Binding Warning, UpdateSourceTrigger=PropertyChanged, Mode=OneWay}"/>-->
+                                <Grid Grid.Column="1" Visibility="{Binding Warning, Converter={StaticResource VisibilityConverter}, UpdateSourceTrigger=PropertyChanged}" HorizontalAlignment=" Left" Margin="10,0,0,0">
+                                    <Polygon Points="0,17 8,0 17,17" Fill="Transparent"  Grid.Column="1" Width="17" Height="17" Stroke="DarkOrange" StrokeThickness="2" Margin="0,-2,0,0"/>
+                                    <TextBlock Grid.Column="1" IsHitTestVisible="false" Text="!" FontWeight="Bold" HorizontalAlignment="Center" Padding="0,1,0,0" VerticalAlignment="Center" Foreground="Black"/>
+                                </Grid>
+                                <Button Grid.Column="2" Name="button_ShowAssessment" ToolTip="Pin assessment details"
+                                                            Style="{DynamicResource ButtonStyle_Small}" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="5,5,5,5" 
+                                                            Command="{Binding DataContext.ShowAssessmentCommand, ElementName=SquintWindow}" CommandParameter="{Binding}">
+                                    <Image>
+                                        <Image.Style>
+                                            <Style TargetType="Image">
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding Path=Pinned, UpdateSourceTrigger=PropertyChanged}" Value="false">
+                                                        <Setter Property="Source" Value="../Resources/pin.png"/>
+                                                    </DataTrigger>
+                                                    <DataTrigger Binding="{Binding Path=Pinned, UpdateSourceTrigger=PropertyChanged}" Value="true">
+                                                        <Setter Property="Source" Value="../Resources/pin_remove.png"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Image.Style>
+                                    </Image>
+                                </Button>
+                                <Button Grid.Column="3" Margin="0,0,0,0" Background="Transparent"  ToolTip="Delete assessment"
+                                                            Style="{StaticResource ButtonStyle_Small}" HorizontalAlignment="Right" VerticalAlignment="Center"
+                                                            Command="{Binding DataContext.AssessmentsVM.DeleteAssessmentCommand, ElementName=SquintWindow}" CommandParameter="{Binding}">
+                                    <ContentControl>
+                                        <Image Source="../Resources/x.png"></Image>
+                                    </ContentControl>
+                                </Button>
+                            </Grid>
+                            <Grid Grid.Row="1">
+                                <Grid.Tag>
+                                    <sys:Double>0.0</sys:Double>
+                                </Grid.Tag>
+                                <Grid.Style>
+                                    <Style TargetType="Grid">
+                                        <Style.Triggers>
+                                            <DataTrigger Value="True">
+                                                <DataTrigger.Binding>
+                                                    <MultiBinding Converter="{StaticResource SelectionConverter}" UpdateSourceTrigger="PropertyChanged">
+                                                        <Binding RelativeSource="{RelativeSource AncestorLevel=1, AncestorType=ListViewItem}" UpdateSourceTrigger="PropertyChanged" Path="IsSelected" />
+                                                        <Binding RelativeSource="{RelativeSource AncestorLevel=1, AncestorType=ListViewItem}" UpdateSourceTrigger="PropertyChanged" Path="DataContext.Pinned" />
+                                                    </MultiBinding>
+                                                </DataTrigger.Binding>
+                                                <DataTrigger.EnterActions>
+                                                    <BeginStoryboard Storyboard="{StaticResource ExpandPanel}"/>
+                                                </DataTrigger.EnterActions>
+                                                <DataTrigger.ExitActions>
+                                                    <BeginStoryboard Storyboard="{StaticResource CollapsePanel}"/>
+                                                </DataTrigger.ExitActions>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Grid.Style>
+                                <Grid.MaxHeight>
+                                    <MultiBinding Converter="{StaticResource ExpanderConverter}" UpdateSourceTrigger="PropertyChanged" ConverterParameter="120">
+                                        <Binding Path="Tag" RelativeSource="{RelativeSource Self}"/>
+                                        <Binding Source="100"/>
+                                        <Binding RelativeSource="{RelativeSource AncestorLevel=1, AncestorType=ListViewItem}" UpdateSourceTrigger="PropertyChanged" Path="DataContext.ComponentCount" />
+                                    </MultiBinding>
+                                </Grid.MaxHeight>
+                                <ListView  HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch" Name="listView_AssessmentComponentList" ItemContainerStyle="{DynamicResource ListViewItemStyle2}" 
+                                                              BorderThickness ="0" ItemsSource="{Binding ACVs}" ScrollViewer.VerticalScrollBarVisibility="Disabled">
+                                    <ListView.ItemTemplate>
+                                        <DataTemplate>
+                                            <Grid >
+                                                <Grid.RowDefinitions>
+                                                    <RowDefinition></RowDefinition>
+                                                    <RowDefinition></RowDefinition>
+                                                    <RowDefinition></RowDefinition>
+                                                </Grid.RowDefinitions>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition></ColumnDefinition>
+                                                    <ColumnDefinition></ColumnDefinition>
+                                                    <ColumnDefinition></ColumnDefinition>
+                                                    <ColumnDefinition></ColumnDefinition>
+                                                </Grid.ColumnDefinitions>
+                                                <TextBlock Grid.Column="0" Grid.RowSpan="2" Grid.Row="0" VerticalAlignment="Center"  MinWidth="80" FontSize="13" Padding="0,10,0,0" Text="{Binding ComponentName, StringFormat=' {0}:'}"/>
+                                                <TextBlock Grid.Column="1" Grid.Row="0" VerticalAlignment="Center" HorizontalAlignment="Center" MinWidth="80" Text="Select Course:"/>
+                                                <TextBlock Grid.Column="2" Grid.Row="0" VerticalAlignment="Center" HorizontalAlignment="Center" MinWidth="80" Text="Select Plan/Sum:"/>
+                                                <ComboBox Grid.Column="1" Grid.Row="1" VerticalAlignment="Center" HorizontalAlignment="Center" Style="{DynamicResource ConstraintComboBoxStyle}" MinWidth="100" 
+                                                                          IsEnabled="{Binding EnableCourseSelection, UpdateSourceTrigger=PropertyChanged}"
+                                                                          SelectedItem="{Binding SelectedCourse, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" DisplayMemberPath="CourseId" ItemsSource="{Binding Courses, UpdateSourceTrigger=PropertyChanged}"></ComboBox>
+                                                <ComboBox Grid.Column="2" Grid.Row="1" VerticalAlignment="Center" HorizontalAlignment="Center" Style="{DynamicResource ConstraintComboBoxStyle}" 
+                                                                           IsEnabled="{Binding EnableCourseSelection, UpdateSourceTrigger=PropertyChanged}"
+                                                                          MinWidth="100" SelectedItem="{Binding SelectedPlan, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" DisplayMemberPath="PlanId" ItemsSource="{Binding Plans, UpdateSourceTrigger=PropertyChanged}"></ComboBox>
+                                                <Button Grid.Column="3" Grid.Row="1" Margin="0,0,0,0" Background="Transparent"  ToolTip="Check plan" Style="{StaticResource ButtonStyle_Medium}" HorizontalAlignment="Left" VerticalAlignment="Center"
+                                                                     Command="{Binding DataContext.ViewPlanCheckCommand, ElementName=SquintWindow}" CommandParameter="{Binding SelectedPlan}"
+                                                                        Visibility="{Binding IsSum, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource VisibilityInverseConverter}}">
+                                                    <ContentControl>
+                                                        <Image Source="../Resources/check_plan.png"></Image>
+                                                    </ContentControl>
+                                                </Button>
+                                                <TextBlock Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="2" VerticalAlignment="Center" Foreground="DarkOrange" HorizontalAlignment="Center" 
+                                                                           Visibility="{Binding Warning, Converter={StaticResource VisibilityConverter}}" Text="{Binding WarningString}"/>
+                                            </Grid>
+                                        </DataTemplate>
+                                    </ListView.ItemTemplate>
+                                </ListView>
+                            </Grid>
+                        </Grid>
+                    </DataTemplate>
+                </ListView.ItemTemplate>
+            </ListView>
+
+        </Grid>
+    </Grid>
+</UserControl>

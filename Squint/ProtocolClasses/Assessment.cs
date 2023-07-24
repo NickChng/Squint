@@ -28,10 +28,10 @@ namespace Squint
                 DisplayOrder = DisplayOrder_in;
                 AssessmentName = AssessmentName_in;
                 SessionID = SessionID_in;
-                PID = Ctr.PatientID;
-                PatientName = string.Format("{0},{1}", Ctr.PatientLastName, Ctr.PatientFirstName);
+                PID = SquintModel.PatientID;
+                PatientName = string.Format("{0},{1}", SquintModel.PatientLastName, SquintModel.PatientFirstName);
                 DateOfAssessment = String.Format("{0:g}", DateTimeOffset.Now);
-                SquintUser = Ctr.SquintUser;
+                SquintUser = SquintModel.SquintUser;
             }
             public int DisplayOrder { get; set; } = 0;
             public int ID { get; private set; }
@@ -44,7 +44,7 @@ namespace Squint
             public string Comments { get; set; }
             public List<ComponentStatusCodes> StatusCodes(Component SC)
             {
-                PlanAssociation PA = Ctr.GetPlanAssociation(SC.ID, ID);
+                PlanAssociation PA = SquintModel.GetPlanAssociation(SC.ID, ID);
                 if (PA != null)
                     return PA.GetErrorCodes();
                 else

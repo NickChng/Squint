@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -16,56 +15,7 @@ using wpfcolors = System.Windows.Media.Colors;
 
 namespace Squint.ViewModels
 {
-    public abstract class ObservableObject : INotifyPropertyChanged
-    {
-        public event PropertyChangedEventHandler PropertyChanged;
-
-        protected void RaisePropertyChangedEvent([CallerMemberName] string propertyName = null)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
-    }
-
-    public class DelegateCommand : ICommand
-    {
-        private readonly Action<object> _action;
-
-        public DelegateCommand(Action<object> action)
-        {
-            _action = action;
-        }
-
-        public void Execute(object parameter)
-        {
-            _action(parameter);
-        }
-
-        public bool CanExecute(object parameter)
-        {
-            return true;
-        }
-
-#pragma warning disable 67
-        public event EventHandler CanExecuteChanged;
-#pragma warning restore 67
-    }
-    public enum ViewEnums
-    {
-        [Description("Centre:")] Centre,
-        [Description("Approval:")] Approval,
-        [Description("Protocol type:")] ProtocolType,
-        [Description("Approver:")] Approver,
-        [Description("Site:")] Site,
-
-    }
-
-    //[AddINotifyPropertyChangedInterface]
-    public class StructureProperties
-    {
-        public bool isBeingEdited { get; set; } = false;
-        public string Label { get; set; } = "Label";
-        public string abRatio { get; set; } = "-1";
-    }
+   
     [AddINotifyPropertyChangedInterface]
     public class ProtocolSelector : ObservableObject
     {
@@ -131,8 +81,8 @@ namespace Squint.ViewModels
                         ProtocolStructureName = value;
                     RaisePropertyChangedEvent(nameof(this.StructureColor));
                     RaisePropertyChangedEvent(nameof(this.LabelName));
-                    Ctr.UpdateConstraints(E);
-                    Ctr.UpdateConstraintThresholds(E);
+                    SquintModel.UpdateConstraints(E);
+                    SquintModel.UpdateConstraintThresholds(E);
                 }
             }
         }
@@ -141,8 +91,8 @@ namespace Squint.ViewModels
         {
             get
             {
-                if (Ctr.CurrentStructureSet != null)
-                    return E.EclipseStructureLabel(Ctr.CurrentStructureSet.UID);
+                if (SquintModel.CurrentStructureSet != null)
+                    return E.EclipseStructureLabel(SquintModel.CurrentStructureSet.UID);
                 else
                     return "";
             }
@@ -200,10 +150,10 @@ namespace Squint.ViewModels
         {
             get
             {
-                if (Ctr.CurrentStructureSet == null)
+                if (SquintModel.CurrentStructureSet == null)
                     return false;
                 else
-                    if (E.EclipseStructureLabel(Ctr.CurrentStructureSet.UID).ToUpper() == E.StructureLabel.LabelName.ToUpper() || E.AssignedStructureId == "")
+                    if (E.EclipseStructureLabel(SquintModel.CurrentStructureSet.UID).ToUpper() == E.StructureLabel.LabelName.ToUpper() || E.AssignedStructureId == "")
                 {
                     return false;
                 }
@@ -215,10 +165,10 @@ namespace Squint.ViewModels
         {
             get
             {
-                if (Ctr.CurrentStructureSet == null)
+                if (SquintModel.CurrentStructureSet == null)
                     return "";
                 else
-                    return string.Format("Label mismatch: Assigned structure label is {0}", E.EclipseStructureLabel(Ctr.CurrentStructureSet.UID));
+                    return string.Format("Label mismatch: Assigned structure label is {0}", E.EclipseStructureLabel(SquintModel.CurrentStructureSet.UID));
             }
         }
         public StructureSelector(ProtocolStructure Ein)
@@ -228,7 +178,7 @@ namespace Squint.ViewModels
             Aliases = E.DefaultEclipseAliases;
             E.PropertyChanged += OnProtocolStructureChanged;
             _LabelFilterText = "";
-            _source = new ObservableCollection<StructureLabel>(Ctr.GetStructureLabels());
+            _source = new ObservableCollection<StructureLabel>(SquintModel.GetStructureLabels());
         }
         public void Unsubscribe()
         {
@@ -262,7 +212,7 @@ namespace Squint.ViewModels
         }
         private void AddStructureAlias(object param = null)
         {
-            Ctr.AddStructureAlias(Id, NewAlias);
+            SquintModel.AddStructureAlias(Id, NewAlias);
             RaisePropertyChangedEvent(nameof(Aliases));
         }
         public ICommand RemoveStructureAliasCommand
@@ -271,7 +221,7 @@ namespace Squint.ViewModels
         }
         private void RemoveStructureAlias(object param = null)
         {
-            Ctr.RemoveStructureAlias(Id, param as string);
+            SquintModel.RemoveStructureAlias(Id, param as string);
             RaisePropertyChangedEvent(nameof(Aliases));
         }
         public ICommand PinOptionsCommand
@@ -297,9 +247,9 @@ namespace Squint.ViewModels
         {
             get
             {
-                if (Ctr.CurrentStructureSet != null)
+                if (SquintModel.CurrentStructureSet != null)
                 {
-                    return E.GetStructureColor(Ctr.CurrentStructureSet.UID);
+                    return E.GetStructureColor(SquintModel.CurrentStructureSet.UID);
                 }
                 else return null;
             }
@@ -380,7 +330,7 @@ namespace Squint.ViewModels
             await Task.Run(() =>
             {
                 Comp.NumFractions = NumFractions;
-                Ctr.UpdateConstraints(Comp.ID, null);
+                SquintModel.UpdateConstraints(Comp.ID, null);
             });
         }
         private async void SetReferenceDose(double dose)
@@ -388,7 +338,7 @@ namespace Squint.ViewModels
             Comp.TotalDose = dose;
             await Task.Run(() =>
             {
-                Ctr.UpdateConstraints(Comp.ID, null);
+                SquintModel.UpdateConstraints(Comp.ID, null);
             });
         }
         public ObservableCollection<ComponentTypes> AvailableComponentTypes { get; set; } = new ObservableCollection<ComponentTypes>() { ComponentTypes.Phase };
@@ -442,7 +392,7 @@ namespace Squint.ViewModels
                     _SS = value;
                     if (_SS != null)
                     {
-                        Con.ChangePrimaryStructure(Ctr.GetProtocolStructure(_SS.Id));
+                        Con.ChangePrimaryStructure(SquintModel.GetProtocolStructure(_SS.Id));
                         UpdateConstraint();
                     }
                 }
@@ -470,7 +420,7 @@ namespace Squint.ViewModels
             {
                 if (Con.ComponentID != value.Id)
                 {
-                    Ctr.ChangeConstraintComponent(Con.ID, value.Id);
+                    SquintModel.ChangeConstraintComponent(Con.ID, value.Id);
                     UpdateConstraint();
                 }
             }
@@ -830,7 +780,7 @@ namespace Squint.ViewModels
             }
             SetComboBoxes();
             Components.Clear();
-            foreach (var CN in Ctr.CurrentProtocol.Components)
+            foreach (var CN in SquintModel.CurrentProtocol.Components)
             {
                 Components.Add(new ComponentSelector(CN));
             }
@@ -853,7 +803,7 @@ namespace Squint.ViewModels
         // Event Handlers
         private async void UpdateConstraint()
         {
-            await Task.Run(() => Ctr.UpdateConstraint(Con.ID));
+            await Task.Run(() => SquintModel.UpdateConstraint(Con.ID));
         }
         private void OnConstraintEvaluated(object sender, int AssessmentId)
         {
@@ -969,45 +919,7 @@ namespace Squint.ViewModels
         public int ComponentId { get; set; }
         public int PlanId { get; set; }
     }
-    //[AddINotifyPropertyChangedInterface]
-    //public class AssessmentPlanSelector
-    //{
-    //    public PatientView _P { get; set; }
-    //    public ComponentSelector CS { get; set; }
-    //    private CourseSelector _Course;
-    //    public CourseSelector Course
-    //    {
-    //        get { return _Course; }
-    //        set
-    //        {
-    //            if (value != _Course)
-    //            {
-    //                _Course = value;
-    //                AvailablePlans.Clear();
-    //                PlanTypes P = PlanTypes.Unset;
-    //                switch (CS.ComponentType)
-    //                {
-    //                    case (ComponentTypes.Plan):
-    //                        P = PlanTypes.Single;
-    //                        break;
-    //                    case (ComponentTypes.Sum):
-    //                        P = PlanTypes.Sum;
-    //                        break;
-
-    //                }
-    //                foreach (var A in _P.Courses.FirstOrDefault(x => x.CourseId == _Course.CourseId).Plans.Where(x => x.PlanType == P))
-    //                {
-    //                    AvailablePlans.Add(A);
-    //                }
-    //            }
-    //        }
-    //    }
-    //    public ObservableCollection<PlanSelector> AvailablePlans = new ObservableCollection<PlanSelector>();
-    //    public AssessmentPlanSelector(PatientView _P)
-    //    {
-    //        _P = _P;
-    //    }
-    //}
+    
     [AddINotifyPropertyChangedInterface]
     public class PlanSelector
     {
@@ -1087,48 +999,55 @@ namespace Squint.ViewModels
     {
         public MainViewModel()
         {
+            
+            SquintModel.Initialized += Ctr_Initialized;
+            SquintModel.ESAPIInitializing += Ctr_ESAPIInitialized;
+            SquintModel.DatabaseInitializing += Ctr_DatabaseInitialized;
+            SquintModel.DatabaseCreating += Ctr_DatabaseCreating;
+        }
+
+        private void Ctr_Initializing(object sender, EventArgs e)
+        {
             SquintIsInitializing = true;
-            InitializingMessages = "Initializing Squint, please wait...";
-            Ctr.Initialized += Ctr_Initialized;
-            Ctr.ESAPIInitializing += Ctr_ESAPIInitialized;
-            Ctr.DatabaseInitializing += Ctr_DatabaseInitialized;
-            Ctr.DatabaseCreating += Ctr_DatabaseCreating;
         }
 
         private async void Ctr_Initialized(object sender, EventArgs e)
         {
             PatientVM = new PatientViewModel(this);
-            InitializingMessages = "Loading protocol list...";
+            StartupVM.InitializingMessages = "Loading protocol list...";
             await Task.Run(() =>
             {
-                ProtocolVM = new ProtocolViewModel(this);
+                ProtocolsVM = new ProtocolsViewModel(this);
                 SessionsVM = new SessionsViewModel(this);
-                AssessmentsVM = new AssessmentsView(this);
+                AssessmentsVM = new AssessmentsViewModel(this);
                 SquintIsInitializing = false;
             });
         }
 
         private void Ctr_DatabaseCreating(object sender, EventArgs e)
         {
-            InitializingMessages = "Preparing Squint database for first use...";
+            StartupVM.InitializingMessages = "Preparing Squint database for first use...";
         }
 
         private void Ctr_DatabaseInitialized(object sender, EventArgs e)
         {
-            InitializingMessages = "Connecting to Squint database...";
+            StartupVM.InitializingMessages = "Connecting to Squint database...";
         }
 
         private void Ctr_ESAPIInitialized(object sender, EventArgs e)
         {
-            InitializingMessages = "Starting ESAPI...";
+            StartupVM.InitializingMessages = "Starting ESAPI...";
         }
 
+        public 
         public LoadingViewModel Loading_ViewModel { get; set; } = new LoadingViewModel();
-        public ProtocolViewModel ProtocolVM { get; set; }
+        public ProtocolsViewModel ProtocolsVM { get; set; }
         public PatientViewModel PatientVM { get; set; }
         public SessionsViewModel SessionsVM { get; set; }
-        public AssessmentsView AssessmentsVM { get; set; }
+        public AssessmentsViewModel AssessmentsVM { get; set; }
         public EclipseProtocolPopupViewModel EclipseProtocolPopupVM { get; set; }
+
+        public StartupViewModel StartupVM { get; set; } = new StartupViewModel();
         public bool AdminOptionsToggle { get; set; } = false;
         public bool SquintIsInitializing { get; set; } = false;
         public string InitializingMessages { get; set; } = "Squint is initializing, please wait...";
@@ -1222,7 +1141,7 @@ namespace Squint.ViewModels
         }
         private void ViewAvailableSessions(object param = null)
         {
-            if (Ctr.PatientOpen)
+            if (SquintModel.PatientOpen)
                 SessionSelectVisibility ^= true;
         }
 
@@ -1246,7 +1165,7 @@ namespace Squint.ViewModels
         {
             System.Windows.Forms.FolderBrowserDialog f = new System.Windows.Forms.FolderBrowserDialog();
             f.Description = "Please select import folder...";
-            var ConfigPath = Ctr.Config.SquintProtocols.FirstOrDefault(x => x.Site == Ctr.Config.Site.CurrentSite);
+            var ConfigPath = SquintModel.Config.SquintProtocols.FirstOrDefault(x => x.Site == SquintModel.Config.Site.CurrentSite);
             if (ConfigPath != null)
                 f.SelectedPath = ConfigPath.Path;
             else
@@ -1270,12 +1189,12 @@ namespace Squint.ViewModels
                             try
                             {
                                 if (filecount == filenames.Count())
-                                    finaltask = new Task(() => Ctr.ImportProtocolFromXML(file, true));
+                                    finaltask = new Task(() => SquintModel.ImportProtocolFromXML(file, true));
                                 else
                                 {
                                     importTasks.Add(Task.Run(() =>
                                     {
-                                        Ctr.ImportProtocolFromXML(file, false);
+                                        SquintModel.ImportProtocolFromXML(file, false);
                                     }
                                     ));
                                     count++;
@@ -1306,18 +1225,18 @@ namespace Squint.ViewModels
 
         private async void ImportProtocol(object param = null)
         {
-            if (Ctr.PatientOpen || Ctr.NumAssessments > 0)
+            if (SquintModel.PatientOpen || SquintModel.NumAssessments > 0)
             {
                 System.Windows.Forms.DialogResult DR = System.Windows.Forms.MessageBox.Show("This will close the current protocol and any assessments. Any unsaved changes will be lost. Continue?", "Import from XML", System.Windows.Forms.MessageBoxButtons.YesNo);
                 if (DR == System.Windows.Forms.DialogResult.No)
                     return;
             }
-            Ctr.StartNewSession();
+            SquintModel.StartNewSession();
             SquintIsBusy = true;
             System.Windows.Forms.OpenFileDialog d = new System.Windows.Forms.OpenFileDialog();
             d.Title = "Open Ctr.GetProtocolView() File";
             d.Filter = "XML files|*.xml";
-            var ConfigPath = Ctr.Config.SquintProtocols.FirstOrDefault(x => x.Site == Ctr.Config.Site.CurrentSite);
+            var ConfigPath = SquintModel.Config.SquintProtocols.FirstOrDefault(x => x.Site == SquintModel.Config.Site.CurrentSite);
             if (ConfigPath != null)
                 d.InitialDirectory = ConfigPath.Path;
             else
@@ -1325,7 +1244,7 @@ namespace Squint.ViewModels
             if (d.ShowDialog() == System.Windows.Forms.DialogResult.OK)
             {
                 MessageBox.Show(d.FileName.ToString());
-                bool ImportSuccessful = await Task.Run(() => Ctr.ImportProtocolFromXML(d.FileName, true));
+                bool ImportSuccessful = await Task.Run(() => SquintModel.ImportProtocolFromXML(d.FileName, true));
                 if (!ImportSuccessful)
                 {
                     MessageBox.Show("Error in importing protocol, please review XML file");
@@ -1342,12 +1261,12 @@ namespace Squint.ViewModels
         }
         private async void ExportProtocol(object param = null)
         {
-            if (Ctr.ProtocolLoaded)
+            if (SquintModel.ProtocolLoaded)
             {
                 System.Windows.Forms.SaveFileDialog d = new System.Windows.Forms.SaveFileDialog();
                 d.Title = "Export current protocol";
                 d.Filter = "XML files|*.xml";
-                var ConfigPath = Ctr.Config.SquintProtocols.FirstOrDefault(x => x.Site == Ctr.Config.Site.CurrentSite);
+                var ConfigPath = SquintModel.Config.SquintProtocols.FirstOrDefault(x => x.Site == SquintModel.Config.Site.CurrentSite);
                 if (ConfigPath != null)
                     d.InitialDirectory = ConfigPath.ExportPath;
                 else
@@ -1357,7 +1276,7 @@ namespace Squint.ViewModels
                     MessageBox.Show(d.FileName.ToString());
                     LoadingString = "Exporting current protocol";
                     isLoading = true;
-                    await Task.Run(() => Ctr.ExportProtocolAsXML(d.FileName));
+                    await Task.Run(() => SquintModel.ExportProtocolAsXML(d.FileName));
                     isLoading = false;
                     LoadingString = "";
                 }
@@ -1372,7 +1291,7 @@ namespace Squint.ViewModels
         public bool ImportEclipseProtocolVisibility { get; set; } = false;
         public void ImportEclipseProtocol(object param = null)
         {
-            if (Ctr.PatientOpen || Ctr.NumAssessments > 0)
+            if (SquintModel.PatientOpen || SquintModel.NumAssessments > 0)
             {
                 System.Windows.Forms.DialogResult DR = System.Windows.Forms.MessageBox.Show("Please close patient before importing protocols...");
                 return;
@@ -1401,7 +1320,7 @@ namespace Squint.ViewModels
                     isPlanCheckCalculating = true;
                     Loading_ViewModel = new LoadingViewModel() { LoadingMessage = @"Checking plan, please wait..." };
 
-                    await ProtocolVM.ChecklistViewModel.DisplayChecksForPlan(p);
+                    await ProtocolsVM.ChecklistViewModel.DisplayChecksForPlan(p);
                     isPlanCheckCalculating = false;
                 }
             }
@@ -1430,7 +1349,7 @@ namespace Squint.ViewModels
 
             LoadingString = "Creating copy of current protocol";
             isLoading = true;
-            await Task.Run(() => Ctr.Save_DuplicateProtocol());
+            await Task.Run(() => SquintModel.Save_DuplicateProtocol());
             isLoading = false;
             LoadingString = "";
         }
@@ -1474,7 +1393,7 @@ namespace Squint.ViewModels
 
         private void LaunchAdminView(object param = null)
         {
-            if (Ctr.PatientOpen)
+            if (SquintModel.PatientOpen)
                 MessageBox.Show("Please close the current patient before starting protocol administration.");
             else
                 AdminOptionsToggle ^= true;
@@ -1484,7 +1403,7 @@ namespace Squint.ViewModels
             ConstraintSelector CS = param as ConstraintSelector;
             if (CS != null)
             {
-                Ctr.DuplicateConstraint(CS.Id);
+                SquintModel.DuplicateConstraint(CS.Id);
             }
         }
         private void ShowComponent(object param = null)
@@ -1494,23 +1413,23 @@ namespace Squint.ViewModels
         }
         private void ShowConfig(object param = null)
         {
-            if (Ctr.SquintUser == "nchng")
+            if (SquintModel.SquintUser == "nchng")
                 isConfigVisible = !isConfigVisible;
         }
         private void AddConstraint(object param = null)
         {
-            ProtocolVM.AddConstraint();
+            ProtocolsVM.AddConstraint();
         }
         private void AddStructure(object param = null)
         {
-            ProtocolVM.AddStructure();
+            ProtocolsVM.AddStructure();
         }
         private void ShiftConstraintUp(object param = null)
         {
             ConstraintSelector CS = param as ConstraintSelector;
             if (CS != null)
             {
-                Ctr.ShiftConstraintUp(CS.Id);
+                SquintModel.ShiftConstraintUp(CS.Id);
             }
         }
         private void ShiftConstraintDown(object param = null)
@@ -1518,7 +1437,7 @@ namespace Squint.ViewModels
             ConstraintSelector CS = param as ConstraintSelector;
             if (CS != null)
             {
-                Ctr.ShiftConstraintDown(CS.Id);
+                SquintModel.ShiftConstraintDown(CS.Id);
             }
         }
         public ICommand ShowAssessmentCommand
@@ -1555,11 +1474,11 @@ namespace Squint.ViewModels
         }
         private async void UpdateProtocol(object param = null)
         {
-            if (Ctr.ProtocolLoaded)
+            if (SquintModel.ProtocolLoaded)
             {
                 LoadingString = "Updating Protocol";
                 isLoading = true;
-                await Task.Run(() => Ctr.Save_UpdateProtocol());
+                await Task.Run(() => SquintModel.Save_UpdateProtocol());
                 isLoading = false;
                 LoadingString = "";
             }
@@ -1571,27 +1490,27 @@ namespace Squint.ViewModels
         }
         private async void DeleteProtocol(object param = null)
         {
-            if (Ctr.CurrentProtocol != null)
+            if (SquintModel.CurrentProtocol != null)
             {
                 var result = System.Windows.Forms.MessageBox.Show("This will delete the current protocol. Are you sure?", "Confirm protocol deletion", System.Windows.Forms.MessageBoxButtons.OKCancel);
                 if (result == System.Windows.Forms.DialogResult.OK)
                 {
                     LoadingString = "Deleting Protocol";
                     isLoading = true;
-                    await Task.Run(() => Ctr.DeleteProtocol(Ctr.CurrentProtocol.ID));
-                    Ctr.StartNewSession();
+                    await Task.Run(() => SquintModel.DeleteProtocol(SquintModel.CurrentProtocol.ID));
+                    SquintModel.StartNewSession();
                     isLoading = false;
                     LoadingString = "";
                 }
             }
-            else if (ProtocolVM.SelectedProtocol != null)
+            else if (ProtocolsVM.SelectedProtocol != null)
             {
                 var result = System.Windows.Forms.MessageBox.Show("This will delete the SELECTED protocol. Are you sure?", "Confirm protocol deletion", System.Windows.Forms.MessageBoxButtons.OKCancel);
                 if (result == System.Windows.Forms.DialogResult.OK)
                 {
                     LoadingString = "Deleting Protocol";
                     isLoading = true;
-                    await Task.Run(() => Ctr.DeleteProtocol(ProtocolVM.SelectedProtocol.Id));
+                    await Task.Run(() => SquintModel.DeleteProtocol(ProtocolsVM.SelectedProtocol.Id));
                     isLoading = false;
                     LoadingString = "";
                 }
@@ -1608,9 +1527,9 @@ namespace Squint.ViewModels
             //            PatientVM = new PatientViewModel(this);
             isLoading = true;
             LoadingString = "Loading patient";
-            bool OpenNewPatient = PatientVM.PatientId != Ctr.PatientID;
+            bool OpenNewPatient = PatientVM.PatientId != SquintModel.PatientID;
             string NextPatient = PatientVM.PatientId;
-            if (Ctr.PatientOpen)
+            if (SquintModel.PatientOpen)
             {
                 var Result = MessageBox.Show("Close current patient and all assessments?", "Close Patient?", MessageBoxButton.OKCancel);
                 if (Result == MessageBoxResult.Cancel)
@@ -1620,14 +1539,14 @@ namespace Squint.ViewModels
                     return;
                 }
                 CloseCheckList();
-                Ctr.ClosePatient();
-                Ctr.CloseProtocol();
-                Ctr.StartNewSession();
+                SquintModel.ClosePatient();
+                SquintModel.CloseProtocol();
+                SquintModel.StartNewSession();
             }
             AdminOptionsToggle = false;
             if (OpenNewPatient)
             {
-                bool Success = await Ctr.OpenPatient(NextPatient);
+                bool Success = await SquintModel.OpenPatient(NextPatient);
                 if (!Success)
                     PatientVM.TextBox_Background_Color = new System.Windows.Media.SolidColorBrush(wpfcolors.DarkOrange);
             }
@@ -1638,18 +1557,18 @@ namespace Squint.ViewModels
         private static EventHandler SynchronizeHandler;
         private void SynchronizePatient(object param = null)
         {
-            if (Ctr.PatientOpen && Ctr.ProtocolLoaded && Ctr.GetAssessmentList().Count > 0)
+            if (SquintModel.PatientOpen && SquintModel.ProtocolLoaded && SquintModel.GetAssessmentList().Count > 0)
             {
                 var W = new WaitWindow();
                 W.Show();
                 SynchronizeHandler = new EventHandler((sender, e) => OnSynchronizationComplete(sender, e, W));
-                Ctr.SynchronizationComplete += SynchronizeHandler;
-                Ctr.SynchronizePlans();
+                SquintModel.SynchronizationComplete += SynchronizeHandler;
+                SquintModel.SynchronizePlans();
             }
         }
         private void OnSynchronizationComplete(object sender, EventArgs E, Window W)
         {
-            Ctr.SynchronizationComplete -= SynchronizeHandler;
+            SquintModel.SynchronizationComplete -= SynchronizeHandler;
             // Refresh ViewModel
             PatientVM.CalculateOnUpdate = false; // disable automatic calculation while model is updated
             string CurrentStructureSetId = ""; // store these as clearing the list will null this as it is databound.
@@ -1660,7 +1579,7 @@ namespace Squint.ViewModels
                 CurrentStructureSetUID = PatientVM.CurrentStructureSet.StructureSetUID;
             }
             PatientVM.StructureSets.Clear();
-            foreach (var StS in Ctr.GetAvailableStructureSets())
+            foreach (var StS in SquintModel.GetAvailableStructureSets())
             {
                 PatientVM.StructureSets.Add(new StructureSetSelector(StS));
             }
@@ -1680,7 +1599,7 @@ namespace Squint.ViewModels
                 foreach (AssessmentComponentViewModel ACV in AV.ACVs)
                 {
                     ObservableCollection<CourseSelector> UpdatedCourses = new ObservableCollection<CourseSelector>();
-                    foreach (string CourseName in Ctr.GetCourseNames())
+                    foreach (string CourseName in SquintModel.GetCourseNames())
                     {
                         UpdatedCourses.Add(new CourseSelector(CourseName));
                     }
@@ -1705,16 +1624,16 @@ namespace Squint.ViewModels
 
         private void ChangeVisibility(object param = null)
         {
-            if (PatientVM.isPIDVisible && Ctr.PatientOpen)
+            if (PatientVM.isPIDVisible && SquintModel.PatientOpen)
             {
                 var Result = MessageBox.Show("Close current patient and all assessments?", "Close Patient?", MessageBoxButton.OKCancel);
                 if (Result == MessageBoxResult.Cancel)
                     return;
-                Ctr.ClosePatient();
-                Ctr.CloseProtocol();
-                Ctr.StartNewSession();
+                SquintModel.ClosePatient();
+                SquintModel.CloseProtocol();
+                SquintModel.StartNewSession();
                 CloseCheckList();
-                ProtocolVM.UpdateProtocolView();
+                ProtocolsVM.UpdateProtocolView();
                 PatientVM.PatientId = "";
             }
             else PatientVM.isPIDVisible ^= true;

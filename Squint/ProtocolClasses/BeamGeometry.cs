@@ -66,7 +66,7 @@ namespace Squint
             StartAngle = startAngle;
             EndAngle = endAngle;
             Trajectory = trajectory;
-            foreach (BeamGeometryDefinition bgd in Ctr.GetBeamGeometryDefinitions())
+            foreach (BeamGeometryDefinition bgd in SquintModel.GetBeamGeometryDefinitions())
                 if (bgd.Contains(this))
                 {
                     DisplayName = bgd.GeometryName;

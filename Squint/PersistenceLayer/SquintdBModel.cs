@@ -236,7 +236,7 @@ namespace Squint
                 };
                 context.DbStructureLabelGroups.Add(SLG);
                 context.SaveChanges();
-                var BeamGeometryDefintionPath = Ctr.Config.BeamGeometryDefinitions.FirstOrDefault(x => x.Site == Ctr.Config.Site.CurrentSite);
+                var BeamGeometryDefintionPath = SquintModel.Config.BeamGeometryDefinitions.FirstOrDefault(x => x.Site == SquintModel.Config.Site.CurrentSite);
                 if (BeamGeometryDefintionPath != null)
                 {
                     try
@@ -298,7 +298,7 @@ namespace Squint
                         string StructureLabel = "\"StructureLabel\"";
                         string tableName = "\"DbStructureLabels\"";
                         string Code = "\"Code\"";
-                        var StrutureCodePath = Ctr.Config.StructureCodes.FirstOrDefault(x => x.Site == Ctr.Config.Site.CurrentSite);
+                        var StrutureCodePath = SquintModel.Config.StructureCodes.FirstOrDefault(x => x.Site == SquintModel.Config.Site.CurrentSite);
                         if (StrutureCodePath == null)
                         {
                             MessageBox.Show("Error: Cannot find Structure Code file for this site, please check configuration file.  Important: This database will need to be manually dropped from the server so initialization can be re-attempted");

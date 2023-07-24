@@ -828,7 +828,7 @@ namespace Squint
             //var StructureLabel = Ctr.GetStructureLabel(E.StructureLabelID);
             double abRatio;
             if (E.AlphaBetaRatioOverride == null)
-                abRatio = (await Ctr.GetStructureLabel(E.StructureLabelID)).AlphaBetaRatio;
+                abRatio = (await SquintModel.GetStructureLabel(E.StructureLabelID)).AlphaBetaRatio;
             else
                 abRatio = (double)E.AlphaBetaRatioOverride;
             if (abRatio > 0)
@@ -978,7 +978,7 @@ namespace Squint
                     CR.LinkedLabelName = DbController.GetLabelByCode(p.Structures[targetId].Code);
                 // Constraint is evaluable
                 ConstraintEvaluating?.Raise(new ConstraintResultViewModel(CR), PA.AssessmentID); // this notifies the view class, no need to raise to UI
-                string structureCode = await Ctr.GetStructureCode(primaryStructure.StructureLabelID);
+                string structureCode = await SquintModel.GetStructureCode(primaryStructure.StructureLabelID);
                 if (p.Structures[targetId].Code != structureCode)
                 {
                     CR.AddStatusCode(ConstraintResultStatusCodes.LabelMismatch);
