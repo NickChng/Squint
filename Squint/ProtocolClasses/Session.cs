@@ -10,9 +10,9 @@ namespace Squint
       
         public Protocol SessionProtocol;
             
-        public List<Assessment> Assessments = new List<Assessment>();
+        public List<AssessmentViewModel> Assessments = new List<AssessmentViewModel>();
 
-        public List<PlanAssociation> PlanAssociations = new List<PlanAssociation>();
+        public List<PlanAssociationViewModel> PlanAssociations = new List<PlanAssociationViewModel>();
         public int ID { get; private set; }
         public int PatientId { get; set; } = 0;
         public string ProtocolName

@@ -21,68 +21,74 @@ using System.Runtime.Remoting.Contexts;
 using System.Reflection;
 using AutoMapper;
 using Squint.Helpers;
+using System.Drawing;
+using Squint.Structs;
+
 //using System.Windows.Forms;
 
 namespace Squint
 {
-    public static partial class SquintModel
+    public partial class SquintModel
     {
-        private static Dispatcher _uiDispatcher;
-        public static AsyncESAPI ESAPIContext { get; private set; }
+        private Dispatcher _uiDispatcher;
+        public AsyncESAPI ESAPIContext { get; private set; }
         // State Data
-        public static string SquintUser { get; private set; }
-        public static Protocol CurrentProtocol { get { return CurrentSession.SessionProtocol; } }
-        public static Session CurrentSession { get; private set; } = new Session();
+        public string SquintUser { get; private set; }
+        public Protocol CurrentProtocol { get { return CurrentSession.SessionProtocol; } }
+        public Session CurrentSession { get; private set; } = new Session();
 
-        private static AsyncStructureSet _CurrentStructureSet;
-        public static AsyncStructureSet CurrentStructureSet
+        private AsyncStructureSet _CurrentStructureSet;
+        public AsyncStructureSet CurrentStructureSet
         {
             get { return _CurrentStructureSet; }
             private set { _CurrentStructureSet = value; CurrentStructureSetChanged?.Invoke(null, EventArgs.Empty); }
         }
 
-        private static List<BeamGeometryDefinition> _BeamGeometryDefinitions;
-        public static Dictionary<int, Component> ComponentViews { get; private set; } = new Dictionary<int, Component>();
-        public static Dictionary<int, AssessmentView> AssessmentViews { get; private set; } = new Dictionary<int, AssessmentView>();
-        public static bool SavingNewProtocol { get; } = false;
-        public static bool PatientOpen { get; private set; } = false;
-        private static int _NewStructureCounter = 1;
-        private static int _NewPlanCounter = 1;
-        private static int _AssessmentNameIterator = 1;
-        public static string DefaultNewStructureName = "UserStructure";
-        public static SquintConfiguration Config;
+        private List<BeamGeometryDefinition> _BeamGeometryDefinitions;
+        public Dictionary<int, Component> ComponentViews { get; private set; } = new Dictionary<int, Component>();
+        public Dictionary<int, AssessmentView> AssessmentViews { get; private set; } = new Dictionary<int, AssessmentView>();
+        public bool SavingNewProtocol { get; } = false;
+        public bool PatientOpen { get; private set; } = false;
+        private int _NewStructureCounter = 1;
+        private int _NewPlanCounter = 1;
+        private int _AssessmentNameIterator = 1;
+        public string DefaultNewStructureName = "UserStructure";
+        public SquintConfiguration Config;
         //static public bool PatientOpen { get; private set; } = false;
-        public static bool ProtocolLoaded { get; private set; } = false;
+        public bool ProtocolLoaded { get; private set; } = false;
         // Events
 
         //public static event EventHandler CurrentStructureSetChanged;
-        public static event EventHandler Initialized;
-        public static event EventHandler DatabaseInitializing;
-        public static event EventHandler DatabaseCreating;
-        public static event EventHandler ESAPIInitializing;
-        public static event EventHandler AvailableStructureSetsChanged;
-        public static event EventHandler SynchronizationComplete;
-        public static event EventHandler ProtocolListUpdated;
-        public static event EventHandler ProtocolUpdated;
-        public static event EventHandler CurrentStructureSetChanged;
-        public static event EventHandler ProtocolConstraintOrderChanged;
-        public static event EventHandler ProtocolOpened;
-        public static event EventHandler ProtocolClosed;
-        public static event EventHandler PatientOpened;
-        public static event EventHandler PatientClosed;
-        public static event EventHandler StartingLongProcess;
-        public static event EventHandler EndingLongProcess;
-        public static event EventHandler SessionsChanged;
-        public static event EventHandler<int> ConstraintAdded;
+        public event EventHandler Initialized;
+        public event EventHandler DatabaseInitializing;
+        public event EventHandler DatabaseCreating;
+        public event EventHandler ESAPIInitializing;
+        public event EventHandler AvailableStructureSetsChanged;
+        public event EventHandler SynchronizationComplete;
+        public event EventHandler ProtocolListUpdated;
+        public event EventHandler ProtocolUpdated;
+        public event EventHandler CurrentStructureSetChanged;
+        public event EventHandler ProtocolConstraintOrderChanged;
+        public event EventHandler ProtocolOpened;
+        public event EventHandler ProtocolClosed;
+        public event EventHandler PatientOpened;
+        public event EventHandler PatientClosed;
+        public event EventHandler StartingLongProcess;
+        public event EventHandler EndingLongProcess;
+        public event EventHandler SessionsChanged;
+        public event EventHandler<int> ConstraintAdded;
+
+        public DbConfigurationPaths DbPaths { get; private set; }
 
         // Initialization
-        public static bool Initialize(Dispatcher uiDispatcher)
+        public SquintModel()
         {
             try
             {
                 // set dispatcher;
-                _uiDispatcher = uiDispatcher;
-                
+                _uiDispatcher = Dispatcher.CurrentDispatcher;
+               
+
                 //Get configuration
                 XmlSerializer ConfigSer = new XmlSerializer(typeof(SquintConfiguration));
                 var AssemblyName = System.Diagnostics.Process.GetCurrentProcess().ProcessName;
@@ -99,47 +105,59 @@ namespace Squint
                         throw new Exception("Unable to configuration file.  Please review the configuration file, which should be named (Squint exe file name)_Config.xml");
                     }
                 }
-                
-                InitializeESAPI();
-                InitializeDatabase();
-                InitializeDefinitions();
+
                 CurrentSession = new Session();
-                _uiDispatcher.Invoke(Initialized, new object[] { null, EventArgs.Empty });
-                return true;
+                
             }
             catch (Exception ex)
             {
                 MessageBox.Show(ex.Message);
-                return false;
+
             }
         }
-        private static void InitializeDefinitions()
+
+        public void InitializeModel()
+        {
+            InitializeESAPI();
+            InitializeDatabase();
+            InitializeDefinitions();
+        }
+
+        private void InitializeDefinitions()
         {
             // Automapper.Initialize();  // unable to get this to work globally due to limitations with ConvertUsing in the version of Automapper that supports .net 4.5
-            _BeamGeometryDefinitions = DbController.GetBeamGeometryDefinitions();
+            var dbCon = new DbController(this);
+            _BeamGeometryDefinitions = dbCon.GetBeamGeometryDefinitions();
+            StructureLabelLookup.SetDictionary(dbCon.GetAllStructureLabels());
         }
-        private static void InitializeESAPI()
+        private void InitializeESAPI()
         {
             _uiDispatcher.Invoke(ESAPIInitializing, new object[] { null, EventArgs.Empty });
             ESAPIContext = new AsyncESAPI();
             SquintUser = ESAPIContext.CurrentUserId(); // Get user from ESAPI;
 
         }
-        private static void InitializeDatabase()
+        private void InitializeDatabase()
         {
+            var dBCon = new DbController(this);
             _uiDispatcher.Invoke(DatabaseInitializing, new object[] { null, EventArgs.Empty });
+             DbPaths = new DbConfigurationPaths()
+                {
+                    structureDefinitionPath = Config.BeamGeometryDefinitions.FirstOrDefault(x => x.Site == Config.Site.CurrentSite).Path,
+                    beamDefinitionPath = Config.BeamGeometryDefinitions.FirstOrDefault(x => x.Site == Config.Site.CurrentSite).Path,
+                };
             var database = Config.Databases.FirstOrDefault(x => x.Site == Config.Site.CurrentSite);
-            DbController.SetDatabaseName(database.DatabaseName);
-            var DBStatus = DbController.TestDbConnection();
+            dBCon.SetDatabaseName(database.DatabaseName);
+            var DBStatus = dBCon.TestDbConnection();
             if (DBStatus == DatabaseStatus.NonExistent)
             {
                 _uiDispatcher.Invoke(DatabaseCreating, new object[] { null, EventArgs.Empty });
-                DbController.InitializeDatabase();
+                dBCon.InitializeDatabase();
             }
-            DbController.RegisterUser(SquintUser, ESAPIContext.CurrentUserId(), ESAPIContext.CurrentUserName());
+            dBCon.RegisterUser(SquintUser, ESAPIContext.CurrentUserId(), ESAPIContext.CurrentUserName());
         }
 
-        public static string PatientFirstName
+        public string PatientFirstName
         {
             get
             {
@@ -149,7 +167,7 @@ namespace Squint
                     return ESAPIContext.Patient.FirstName;
             }
         }
-        public static string PatientLastName
+        public string PatientLastName
         {
             get
             {
@@ -159,17 +177,17 @@ namespace Squint
                     return ESAPIContext.Patient.LastName;
             }
         }
-        public static string PatientID
+        public string PatientID
         {
             get
             {
-                if (ReferenceEquals(null, SquintModel.ESAPIContext.Patient))
+                if (ReferenceEquals(null, ESAPIContext.Patient))
                     return string.Empty;
                 else
-                    return SquintModel.ESAPIContext.Patient.Id;
+                    return ESAPIContext.Patient.Id;
             }
         }
-        public async static Task<AsyncPlan> GetAsyncPlan(string CourseId, string PlanId)
+        public async Task<AsyncPlan> GetAsyncPlan(string CourseId, string PlanId)
         {
             AsyncCourse C = await ESAPIContext.Patient.GetCourse(CourseId);
             if (C == null)
@@ -180,7 +198,7 @@ namespace Squint
                 return P;
             }
         }
-        public async static Task<AsyncPlan> GetAsyncPlanByUID(string CourseId, string PlanUID)
+        public async Task<AsyncPlan> GetAsyncPlanByUID(string CourseId, string PlanUID)
         {
             AsyncCourse C = await ESAPIContext.Patient.GetCourse(CourseId);
             if (C == null)
@@ -191,7 +209,7 @@ namespace Squint
                 return P;
             }
         }
-        public static List<StructureSetHeader> GetAvailableStructureSets()
+        public List<StructureSetHeader> GetAvailableStructureSets()
         {
             var L = new List<StructureSetHeader>();
             foreach (var p in CurrentSession.PlanAssociations)
@@ -201,7 +219,7 @@ namespace Squint
             }
             return L;
         }
-        public static AsyncStructureSet GetStructureSet(string ssuid)
+        public AsyncStructureSet GetStructureSet(string ssuid)
         {
             var ass = ESAPIContext.Patient.GetStructureSet(ssuid);
             if (ass != null)
@@ -211,7 +229,7 @@ namespace Squint
             else return null;
         }
 
-        public async static Task<List<ObjectiveDefinition>> GetOptimizationObjectiveList(string CourseId, string PlanId)
+        public async Task<List<ObjectiveDefinition>> GetOptimizationObjectiveList(string CourseId, string PlanId)
         {
             if (!PatientOpen)
                 return null;
@@ -226,7 +244,7 @@ namespace Squint
                 else return new List<ObjectiveDefinition>();
             }
         }
-        public async static Task<double> GetSliceSpacing(string CourseId, string PlanId)
+        public async Task<double> GetSliceSpacing(string CourseId, string PlanId)
         {
             AsyncPlan P = await GetAsyncPlan(CourseId, PlanId);
             if (P.ComponentType == ComponentTypes.Phase)
@@ -234,7 +252,7 @@ namespace Squint
             else
                 return double.NaN;
         }
-        public async static Task<double?> GetDoseGridResolution(string CourseId, string PlanId)
+        public async Task<double?> GetDoseGridResolution(string CourseId, string PlanId)
         {
             AsyncPlan P = await GetAsyncPlan(CourseId, PlanId);
             if (P.ComponentType == ComponentTypes.Phase)
@@ -242,7 +260,7 @@ namespace Squint
             else
                 return null;
         }
-        public async static Task<FieldNormalizationTypes> GetFieldNormalizationMode(string CourseId, string PlanId)
+        public async Task<FieldNormalizationTypes> GetFieldNormalizationMode(string CourseId, string PlanId)
         {
             AsyncPlan P = await GetAsyncPlan(CourseId, PlanId);
             if (P.ComponentType == ComponentTypes.Phase)
@@ -265,14 +283,14 @@ namespace Squint
             else
                 return FieldNormalizationTypes.Unset;
         }
-        public async static Task<double> GetPNV(string CourseId, string PlanId)
+        public async Task<double> GetPNV(string CourseId, string PlanId)
         {
             AsyncPlan P = await GetAsyncPlan(CourseId, PlanId);
             if (P.ComponentType == ComponentTypes.Phase)
                 return await P.GetPNV();
             else return double.NaN;
         }
-        public static async Task<double?> GetRxDose(string CourseId, string PlanId)
+        public async Task<double?> GetRxDose(string CourseId, string PlanId)
         {
             AsyncPlan P = await GetAsyncPlan(CourseId, PlanId);
             if (P != null)
@@ -282,7 +300,7 @@ namespace Squint
                 return double.NaN;
             }
         }
-        public static async Task<int?> GetNumFractions(string CourseId, string PlanId)
+        public async Task<int?> GetNumFractions(string CourseId, string PlanId)
         {
             AsyncPlan P = await GetAsyncPlan(CourseId, PlanId);
             if (P.ComponentType == ComponentTypes.Phase)
@@ -290,7 +308,7 @@ namespace Squint
             else
                 return null;
         }
-        public async static Task<double> GetPrescribedPercentage(string CourseId, string PlanId)
+        public async Task<double> GetPrescribedPercentage(string CourseId, string PlanId)
         {
             AsyncPlan P = await GetAsyncPlan(CourseId, PlanId);
             if (P.ComponentType == ComponentTypes.Phase)
@@ -298,12 +316,12 @@ namespace Squint
             else
                 return double.NaN;
         }
-        public async static Task<string> GetCourseIntent(string CourseId, string PlanId)
+        public async Task<string> GetCourseIntent(string CourseId, string PlanId)
         {
             AsyncPlan P = await GetAsyncPlan(CourseId, PlanId);
             return await P.GetCourseIntent();
         }
-        public async static Task<string> GetAlgorithmModel(string CourseId, string PlanId)
+        public async Task<string> GetAlgorithmModel(string CourseId, string PlanId)
         {
             AsyncPlan P = await GetAsyncPlan(CourseId, PlanId);
             if (P.ComponentType == ComponentTypes.Phase)
@@ -311,7 +329,7 @@ namespace Squint
             else
                 return "";
         }
-        public async static Task<string> GetVMATAlgorithmModel(string CourseId, string PlanId)
+        public async Task<string> GetVMATAlgorithmModel(string CourseId, string PlanId)
         {
             AsyncPlan P = await GetAsyncPlan(CourseId, PlanId);
             if (P.ComponentType == ComponentTypes.Phase)
@@ -319,7 +337,7 @@ namespace Squint
             else
                 return "";
         }
-        public async static Task<string> GetAirCavityCorrectionVMAT(string CourseId, string PlanId)
+        public async Task<string> GetAirCavityCorrectionVMAT(string CourseId, string PlanId)
         {
             AsyncPlan P = await GetAsyncPlan(CourseId, PlanId);
             if (P.ComponentType == ComponentTypes.Phase)
@@ -327,7 +345,7 @@ namespace Squint
             else
                 return null;
         }
-        public async static Task<string> GetIMRTAlgorithmModel(string CourseId, string PlanId)
+        public async Task<string> GetIMRTAlgorithmModel(string CourseId, string PlanId)
         {
             AsyncPlan P = await GetAsyncPlan(CourseId, PlanId);
             if (P.ComponentType == ComponentTypes.Phase)
@@ -335,7 +353,7 @@ namespace Squint
             else
                 return "";
         }
-        public async static Task<string> GetAirCavityCorrectionIMRT(string CourseId, string PlanId)
+        public async Task<string> GetAirCavityCorrectionIMRT(string CourseId, string PlanId)
         {
             AsyncPlan P = await GetAsyncPlan(CourseId, PlanId);
             if (P.ComponentType == ComponentTypes.Phase)
@@ -343,7 +361,7 @@ namespace Squint
             else
                 return null;
         }
-        public async static Task<double> GetCouchSurface(string CourseId, string PlanId)
+        public async Task<double> GetCouchSurface(string CourseId, string PlanId)
         {
             AsyncPlan P = await GetAsyncPlan(CourseId, PlanId);
             if (P.ComponentType == ComponentTypes.Phase)
@@ -352,7 +370,7 @@ namespace Squint
                 return double.NaN;
         }
 
-        public static double GetAssignedHU(string ESId, string structureSetUID)
+        public double GetAssignedHU(string ESId, string structureSetUID)
         {
             var AS = GetStructureSet(structureSetUID).GetStructure(ESId);
             if (AS != null)
@@ -360,14 +378,14 @@ namespace Squint
             else
                 return double.NaN;
         }
-        public async static Task<double> GetCouchInterior(string CourseId, string PlanId)
+        public async Task<double> GetCouchInterior(string CourseId, string PlanId)
         {
             AsyncPlan P = await GetAsyncPlan(CourseId, PlanId);
             if (P.ComponentType == ComponentTypes.Phase)
                 return await P.GetCouchInterior();
             else return double.NaN;
         }
-        public async static Task<bool?> GetHeterogeneityOn(string CourseId, string PlanId)
+        public async Task<bool?> GetHeterogeneityOn(string CourseId, string PlanId)
         {
             AsyncPlan P = await GetAsyncPlan(CourseId, PlanId);
             if (P.ComponentType == ComponentTypes.Sum)
@@ -383,7 +401,7 @@ namespace Squint
                     return null;
             }
         }
-        public async static Task<string> GetStudyId(string CourseId, string PlanId)
+        public async Task<string> GetStudyId(string CourseId, string PlanId)
         {
             AsyncPlan P = await GetAsyncPlan(CourseId, PlanId);
             if (P.ComponentType == ComponentTypes.Phase)
@@ -391,7 +409,7 @@ namespace Squint
             else return "";
         }
 
-        public async static Task<string> GetCTDeviceId(string CourseId, string PlanId)
+        public async Task<string> GetCTDeviceId(string CourseId, string PlanId)
         {
             AsyncPlan P = await GetAsyncPlan(CourseId, PlanId);
             if (P.ComponentType == ComponentTypes.Phase)
@@ -399,14 +417,14 @@ namespace Squint
             else return "";
         }
 
-        public async static Task<string> GetSeriesId(string CourseId, string PlanId)
+        public async Task<string> GetSeriesId(string CourseId, string PlanId)
         {
             AsyncPlan P = await GetAsyncPlan(CourseId, PlanId);
             if (P.ComponentType == ComponentTypes.Phase)
                 return await P.GetSeriesId();
             else return "";
         }
-        public async static Task<string> GetSeriesComments(string CourseId, string PlanId)
+        public async Task<string> GetSeriesComments(string CourseId, string PlanId)
         {
             AsyncPlan P = await GetAsyncPlan(CourseId, PlanId);
             if (P.ComponentType == ComponentTypes.Phase)
@@ -414,7 +432,7 @@ namespace Squint
             else
                 return "";
         }
-        public async static Task<double> GetBolusThickness(string CourseId, string PlanId, string BolusId)
+        public async Task<double> GetBolusThickness(string CourseId, string PlanId, string BolusId)
         {
             AsyncPlan P = await GetAsyncPlan(CourseId, PlanId);
             var Bolus = P.Structures.Values.FirstOrDefault(x => x.DicomType == @"BOLUS" && x.Id == BolusId);
@@ -426,26 +444,26 @@ namespace Squint
             return double.NaN;
         }
 
-        public async static Task<string> GetImageComments(string CourseId, string PlanId)
+        public async Task<string> GetImageComments(string CourseId, string PlanId)
         {
             AsyncPlan P = await GetAsyncPlan(CourseId, PlanId);
             if (P.ComponentType == ComponentTypes.Phase)
                 return await P.GetImageComments();
             else return "";
         }
-        public async static Task<int?> GetNumSlices(string CourseId, string PlanId)
+        public async Task<int?> GetNumSlices(string CourseId, string PlanId)
         {
             AsyncPlan P = await GetAsyncPlan(CourseId, PlanId);
             if (P.ComponentType == ComponentTypes.Phase)
                 return await P.GetNumSlices();
             else return null;
         }
-        public async static Task<List<TxFieldItem>> GetTxFieldItems(string CourseId, string PlanId)
+        public async Task<List<TxFieldItem>> GetTxFieldItems(string CourseId, string PlanId)
         {
             AsyncPlan P = await GetAsyncPlan(CourseId, PlanId);
             return await P.GetTxFields();
         }
-        public async static Task<List<ImagingFieldItem>> GetImagingFieldList(string CourseId, string PlanId)
+        public async Task<List<ImagingFieldItem>> GetImagingFieldList(string CourseId, string PlanId)
         {
             if (!PatientOpen)
                 return new List<ImagingFieldItem>();
@@ -474,7 +492,7 @@ namespace Squint
                 return ImagingFields;
             }
         }
-        public static Dictionary<ImagingProtocolTypes, List<string>> CheckImagingProtocols(Component CV, List<ImagingFieldItem> IF)
+        public Dictionary<ImagingProtocolTypes, List<string>> CheckImagingProtocols(Component CV, List<ImagingFieldItem> IF)
         {
             Dictionary<ImagingProtocolTypes, List<string>> Errors = new Dictionary<ImagingProtocolTypes, List<string>>();
             foreach (ImagingProtocolTypes IP in CV.ImagingProtocols)
@@ -508,7 +526,7 @@ namespace Squint
             }
             return Errors;
         }
-        public async static Task<NTODefinition> GetNTOObjective(string CourseId, string PlanId)
+        public async Task<NTODefinition> GetNTOObjective(string CourseId, string PlanId)
         {
             if (!PatientOpen)
                 return null;
@@ -521,51 +539,53 @@ namespace Squint
                     return null;
             }
         }
-        public static List<ProtocolPreview> GetProtocolPreviewList()
+        public List<ProtocolPreview> GetProtocolPreviewList()
         {
-            return DbController.GetProtocolPreviews().Where(x => x.ID > 1).OrderBy(x => x.ProtocolName).ToList();
+            var dbCon = new DbController(this);
+            return dbCon.GetProtocolPreviews().Where(x => x.ID > 1).OrderBy(x => x.ProtocolName).ToList();
         }
-        public static Protocol GetProtocol(int Id)
+        public Protocol GetProtocol(int Id)
         {
-            return DbController.GetProtocol(Id);
+            var dbCon = new DbController(this);
+            return dbCon.GetProtocol(Id);
         }
 
-        public static PlanAssociation GetPlanAssociation(int ComponentID, int AssessmentID)
+        public PlanAssociationViewModel GetPlanAssociation(int ComponentID, int AssessmentID)
         {
-            PlanAssociation ECP = CurrentSession.PlanAssociations.FirstOrDefault(x => x.ComponentID == ComponentID && x.AssessmentID == AssessmentID);
+            PlanAssociationViewModel ECP = CurrentSession.PlanAssociations.FirstOrDefault(x => x.ComponentID == ComponentID && x.AssessmentID == AssessmentID);
             if (ECP != null)
                 return ECP;
             else
                 return null;
         }
 
-        public static List<PlanAssociation> GetPlanAssociations()
+        public List<PlanAssociationViewModel> GetPlanAssociations()
         {
             return CurrentSession.PlanAssociations;
         }
-        public static void ClearPlanAssociation(int componentId, int assessmentId)
+        public void ClearPlanAssociation(int componentId, int assessmentId)
         {
             foreach (var PA in CurrentSession.PlanAssociations)
             {
                 PA.UpdateLinkedPlan(null, true);
             }
         }
-        public static List<Assessment> GetAssessmentList()
+        public List<AssessmentViewModel> GetAssessmentList()
         {
             return CurrentSession.Assessments.OrderBy(x => x.DisplayOrder).ToList();
         }
-        public static List<AssessmentPreviewViewModel> GetAssessmentPreviews(string PID)
+        public List<AssessmentPreviewViewModel> GetAssessmentPreviews(string PID)
         {
             //return DataCache.GetAssessmentPreviews(PID);
             return null;
 
         }
-        public static readonly Object LockConstraint = new Object();
-        public static readonly Object LockSimultaneousEvaluation = new Object();
-        public static readonly Object LockIDGen = new Object();
-        public static readonly Object LockDb = new Object();
-        private static Progress<int> _ProgressBar;
-        public static Progress<int> ProgressBar
+        public readonly object LockConstraint = new object();
+        public readonly object LockSimultaneousEvaluation = new object();
+        public readonly object LockIDGen = new object();
+        public readonly object LockDb = new object();
+        private Progress<int> _ProgressBar;
+        public Progress<int> ProgressBar
         {
             get { return _ProgressBar; }
             set
@@ -574,12 +594,12 @@ namespace Squint
             }
         }
 
-        public static int NumAssessments
+        public int NumAssessments
         {
             get { return CurrentSession.Assessments.Count(); }
         }
 
-        public static void SetCurrentStructureSet(string ssuid)
+        public void SetCurrentStructureSet(string ssuid)
         {
             if (ssuid == null)
                 CurrentStructureSet = null;
@@ -587,49 +607,49 @@ namespace Squint
                 CurrentStructureSet = GetStructureSet(ssuid);
             CurrentStructureSetChanged?.Invoke(null, EventArgs.Empty);
         }
-        public static List<string> GetCurrentStructures()
+        public List<string> GetCurrentStructures()
         {
             if (CurrentStructureSet != null)
                 return CurrentStructureSet.GetAllStructures().Select(x => x.Id).ToList();
             else return new List<string>();
         }
-        public static List<string> GetAvailableStructureSetIds()
+        public List<string> GetAvailableStructureSetIds()
         {
             var SSs = GetAvailableStructureSets();
             return SSs.Select(x => x.StructureSetId).ToList();
         }
 
 
-        public static Constraint AddConstraint(ConstraintTypes TypeCode, int ComponentID = 0, int StructureId = 1)
+        public ConstraintViewModel AddConstraint(ConstraintTypes TypeCode, int ComponentID = 0, int StructureId = 1)
         {
             if (!ProtocolLoaded)
                 return null;
             Component parentComponent = CurrentProtocol.Components.FirstOrDefault(x => x.ID == ComponentID);
-            ProtocolStructure primaryStructure = CurrentProtocol.Structures.FirstOrDefault(x => x.ID == StructureId);
-            Constraint Con = new Constraint(parentComponent, primaryStructure, null, TypeCode);
+            ProtocolStructureViewModel primaryStructure = CurrentProtocol.Structures.FirstOrDefault(x => x.ID == StructureId);
+            ConstraintViewModel Con = new ConstraintViewModel(this, parentComponent, primaryStructure, null, TypeCode);
             CurrentProtocol.Components.FirstOrDefault(x => x.ID == ComponentID).Constraints.Add(Con);
             return Con;
         }
-        public static void DeleteConstraint(int Id)
+        public void DeleteConstraint(int Id)
         {
             var AllConstraints = GetAllConstraints();
             var Con = AllConstraints.FirstOrDefault(x => x.ID == Id);
             Con.FlagForDeletion();
             int NewDisplayOrder = 1;
-            foreach (Constraint C in CurrentProtocol.Components.FirstOrDefault(x => x.ID == Con.ComponentID).Constraints.Where(x => !x.ToRetire))
+            foreach (ConstraintViewModel C in CurrentProtocol.Components.FirstOrDefault(x => x.ID == Con.ComponentID).Constraints.Where(x => !x.ToRetire))
             {
                 Con.DisplayOrder.Value = NewDisplayOrder++;
             }
         }
-        public static List<Constraint> GetAllConstraints()
+        public List<ConstraintViewModel> GetAllConstraints()
         {
             return CurrentProtocol.Components.SelectMany(x => x.Constraints).ToList();
         }
-        public static Constraint GetConstraint(int Id)
+        public ConstraintViewModel GetConstraint(int Id)
         {
             return GetAllConstraints().FirstOrDefault(x => x.ID == Id);
         }
-        public static void DeleteComponent(int Id)
+        public void DeleteComponent(int Id)
         {
             if (CurrentProtocol.Components.Count() > 1)
             {
@@ -642,25 +662,25 @@ namespace Squint
                 }
             }
         }
-        public static void DeleteStructure(int Id)
+        public void DeleteStructure(int Id)
         {
             if (CurrentProtocol.Structures.Count() > 1)
             {
                 GetProtocolStructure(Id).FlagForDeletion();
                 int NewDisplayOrder = 1;
-                foreach (ProtocolStructure PS in CurrentProtocol.Structures.OrderBy(x => x.DisplayOrder))
+                foreach (ProtocolStructureViewModel PS in CurrentProtocol.Structures.OrderBy(x => x.DisplayOrder))
                 {
                     PS.DisplayOrder = NewDisplayOrder++;
                 }
             }
 
         }
-        public static void ShiftConstraintUp(int Id)
+        public void ShiftConstraintUp(int Id)
         {
-            Constraint Con = GetConstraint(Id);
+            ConstraintViewModel Con = GetConstraint(Id);
             if (Con != null)
             {
-                Constraint ConSwitch = GetAllConstraints().FirstOrDefault(x => x.DisplayOrder.Value == Con.DisplayOrder.Value - 1);
+                ConstraintViewModel ConSwitch = GetAllConstraints().FirstOrDefault(x => x.DisplayOrder.Value == Con.DisplayOrder.Value - 1);
                 if (ConSwitch != null)
                 {
                     ConSwitch.DisplayOrder = Con.DisplayOrder;
@@ -669,12 +689,12 @@ namespace Squint
                 ProtocolConstraintOrderChanged?.Invoke(null, EventArgs.Empty);
             }
         }
-        public static void ShiftConstraintDown(int Id)
+        public void ShiftConstraintDown(int Id)
         {
-            Constraint Con = GetConstraint(Id);
+            ConstraintViewModel Con = GetConstraint(Id);
             if (Con != null)
             {
-                Constraint ConSwitch = GetAllConstraints().FirstOrDefault(x => x.DisplayOrder.Value == Con.DisplayOrder.Value + 1);
+                ConstraintViewModel ConSwitch = GetAllConstraints().FirstOrDefault(x => x.DisplayOrder.Value == Con.DisplayOrder.Value + 1);
                 if (ConSwitch != null)
                 {
                     ConSwitch.DisplayOrder = Con.DisplayOrder;
@@ -683,25 +703,25 @@ namespace Squint
                 ProtocolConstraintOrderChanged?.Invoke(null, EventArgs.Empty);
             }
         }
-        public static void DuplicateConstraint(int ConstraintID)
+        public void DuplicateConstraint(int ConstraintID)
         {
             if (CurrentProtocol == null)
                 return;
-            Constraint Con2Dup = GetConstraint(ConstraintID);
-            foreach (Constraint Con in GetAllConstraints().Where(x => x.DisplayOrder.Value > Con2Dup.DisplayOrder.Value))
+            ConstraintViewModel Con2Dup = GetConstraint(ConstraintID);
+            foreach (ConstraintViewModel Con in GetAllConstraints().Where(x => x.DisplayOrder.Value > Con2Dup.DisplayOrder.Value))
             {
                 Con.DisplayOrder.Value = Con.DisplayOrder.Value + 1;
             }
-            Constraint DupCon = new Constraint(Con2Dup);
+            ConstraintViewModel DupCon = new ConstraintViewModel(Con2Dup);
             CurrentProtocol.Components.FirstOrDefault(x => x.ID == Con2Dup.ComponentID).Constraints.Add(DupCon);
             ConstraintAdded?.Invoke(null, DupCon.ID);
         }
 
-        public static Component GetComponent(int ID)
+        public Component GetComponent(int ID)
         {
             return CurrentProtocol.Components.FirstOrDefault(x => x.ID == ID);
         }
-        public static Component AddComponent()
+        public Component AddComponent()
         {
             if (!ProtocolLoaded)
                 return null;
@@ -709,35 +729,32 @@ namespace Squint
             int DisplayOrder = CurrentProtocol.Components.Count() + 1;
             var newComponent = new Component(CurrentProtocol.ID, ComponentName, DisplayOrder);
             CurrentProtocol.Components.Add(newComponent);
-            foreach (Assessment SA in CurrentSession.Assessments)
-                CurrentSession.PlanAssociations.Add(new PlanAssociation(newComponent, SA));
+            foreach (AssessmentViewModel SA in CurrentSession.Assessments)
+                CurrentSession.PlanAssociations.Add(new PlanAssociationViewModel(this, newComponent, SA));
             return newComponent;
         }
-        public async static Task<ProtocolStructure> AddNewStructure()
+        public async Task<ProtocolStructureViewModel> AddNewStructure()
         {
             if (CurrentProtocol == null)
                 return null;
             else
             {
+                var dbCon = new DbController(this);
                 string NewStructureName = string.Format("{0}{1}", DefaultNewStructureName, _NewStructureCounter++);
                 while (CurrentProtocol.Structures.Select(x => x.ProtocolStructureName).Any(x => x.Equals(NewStructureName)))
                 {
                     NewStructureName = string.Format("{0}{1}", DefaultNewStructureName, _NewStructureCounter++);
                 }
-                StructureLabel SL = await DbController.GetStructureLabel(1);
-                ProtocolStructure newProtocolStructure = new ProtocolStructure(SL, NewStructureName);
+                StructureLabel SL = await dbCon.GetStructureLabel(1);
+                ProtocolStructureViewModel newProtocolStructure = new ProtocolStructureViewModel(this, SL, NewStructureName);
                 newProtocolStructure.DisplayOrder = CurrentProtocol.Structures.Count() + 1;
                 newProtocolStructure.ProtocolID = CurrentProtocol.ID;
                 CurrentProtocol.Structures.Add(newProtocolStructure);
                 return newProtocolStructure;
             }
         }
-        //public static void AddConstraintThreshold(ReferenceThresholdTypes Name, int ConstraintID, double ThresholdValue)
-        //{
-        //    // ConstraintThreshold CT = new ConstraintThreshold(Name, ConstraintID, ThresholdValue);
-        //}
 
-        public static async Task<bool> ImportEclipseProtocol(VMS_XML.Protocol P)
+        public async Task<bool> ImportEclipseProtocol(VMS_XML.Protocol P)
         {
             // Reset adjusted protocol flag
             ClosePatient();
@@ -751,8 +768,9 @@ namespace Squint
                 var EclipseStructureIdToSquintStructureIdMapping = new Dictionary<string, int>();
                 foreach (var ECPStructure in P.StructureTemplate.Structures)
                 {
-                    StructureLabel SL = await DbController.GetStructureLabel(1);
-                    var S = new ProtocolStructure(SL, ECPStructure.ID);
+                    var dbCon = new DbController(this);
+                    StructureLabel SL = await dbCon.GetStructureLabel(1);
+                    var S = new ProtocolStructureViewModel(this, SL, ECPStructure.ID);
                     S.DefaultEclipseAliases.Add(ECPStructure.ID);
                     EclipseProtocol.Structures.Add(S);
                     EclipseStructureIdToSquintStructureIdMapping.Add(ECPStructure.ID.ToLower(), S.ID);
@@ -775,7 +793,7 @@ namespace Squint
                             if (EclipseStructureIdToSquintStructureIdMapping.ContainsKey(Item.ID.ToLower()))
                                 structureId = EclipseStructureIdToSquintStructureIdMapping[Item.ID.ToLower()];
                             var primaryStructure = EclipseProtocol.Structures.FirstOrDefault(x => x.ID == structureId);
-                            Constraint Con = new Constraint(SC, primaryStructure, Item);
+                            ConstraintViewModel Con = new ConstraintViewModel(SC, primaryStructure, Item);
                             SC.Constraints.Add(Con);
                         }
                     }
@@ -787,7 +805,7 @@ namespace Squint
                             if (EclipseStructureIdToSquintStructureIdMapping.ContainsKey(MI.ID.ToLower()))
                                 structureId = EclipseStructureIdToSquintStructureIdMapping[MI.ID.ToLower()];
                             var primaryStructure = EclipseProtocol.Structures.FirstOrDefault(x => x.ID == structureId);
-                            Constraint Con = new Constraint(SC, primaryStructure, MI);
+                            ConstraintViewModel Con = new ConstraintViewModel(SC, primaryStructure, MI);
                             SC.Constraints.Add(Con);
                         }
                     }
@@ -803,117 +821,10 @@ namespace Squint
                 return false;
             }
         }
-        //public static async Task DeleteComponent(int ComponentID)
-        //{
-        //    //// method reports progress as a percent of deleted DataCache.Constraints
-        //    //int count = 1;
-        //    //double total = DataCache.Constraints.Values.Where(x => x.ComponentID == ComponentID).Count();
-        //    //Progress<int> LocalProgress = new Progress<int>((update) =>
-        //    //{
-        //    //    (Ctr.ProgressBar as IProgress<int>).Report(Convert.ToInt32(count++ / total * 100));
-        //    //});
-        //    //await Task.Run(() =>
-        //    //{
-        //    //    foreach (Constraint Con in DataCache.Constraints.Values.Where(x => x.ComponentID == ComponentID).ToList())
-        //    //    {
-        //    //        Con.Delete();
-        //    //        (LocalProgress as IProgress<int>).Report(Con.ID);
-        //    //    }
-        //    //});
-        //    //await Task.Run(() => Components[ComponentID].Delete());
-        //}
-        //public static void RemoveConstraintFromProtocol(int ConstraintID)
-        //{
-        //    // If constraint was added by user it is deleted, otherwise it is removed from calculation but logged as a protocol deviation
-        //    DataCache.Constraints[ConstraintID].RemoveFromProtocol();
-        //}
-        //private static string ExportAssessmentToEclipse(int AssessmentID)
-        //{
-        //    Assessment SA = DataCache.GetAssessment(AssessmentID);
-        //    if (SA == null)
-        //        return "";
-        //    SquintEclipseProtocol.Protocol ECProtocol = new SquintEclipseProtocol.Protocol();
-        //    SquintEclipseProtocol.PreviewClass Preview = new SquintEclipseProtocol.PreviewClass();
-        //    Preview.ID = string.Format("{0}_{1}_{2}", DataCache.Patient.Id, SA.AssessmentName, GetDbUser(SquintUser).ARIA_ID);
-        //    Preview.ApprovalStatus = "Unapproved";
-        //    Preview.Type = "Protocol";
-        //    Preview.ApprovalHistory = @"Exported from Squint";
-        //    Preview.LastModified = DateTime.Now.ToShortDateString();
-        //    Preview.Diagnosis = "";
-        //    ECProtocol.Preview = Preview;
-        //    foreach (ECPlan ECP in DataCache.GetAllPlans().Where(x => x.AssessmentID == AssessmentID))
-        //    {
-        //        try
-        //        {
-        //            SquintEclipseProtocol.PhaseClass PC = new SquintEclipseProtocol.PhaseClass()
-        //            {
-        //                ID = ECP.PlanName,
-        //                //Prescription = new List<SquintEclipseProtocol.MeasureItem>(),
-        //                Prescription = new SquintEclipseProtocol.PrescriptionClass(),
-        //                PlanTemplate = new SquintEclipseProtocol.PlanTemplate(),
-        //                ObjectiveTemplate = new SquintEclipseProtocol.ObjectiveTemplate(),
-        //                Mode = "Photon",
-        //                DefaultEnergyKV = null,
-        //                FractionCount = DataCache.GetComponent(ECP.ComponentID).NumFractions,
-        //                FractionsPerDay = null,
-        //                FractionsPerWeek = null,
-        //                TreatmentStyle = "ARC",
-        //                TreatmentUnit = "CNTB_FRASER",
-        //            };
-        //            foreach (Constraint Con in DataCache.GetAllConstraints())
-        //            {
-        //                if (Con.ComponentID != ECP.ComponentID)
-        //                    continue;
-        //                ProtocolStructure ProtocolStructure = DataCache.GetProtocolStructure(Con.PrimaryStructureID);
-        //                if (!ECProtocol.StructureTemplate.Structures.Structure.Select(x => x.ID).Contains(ProtocolStructure.EclipseStructureName))
-        //                {
-        //                    ECProtocol.StructureTemplate.Structures.Structure.Add(new SquintEclipseProtocol.StructureClass()
-        //                    {
-        //                        ID = ProtocolStructure.EclipseStructureName,
-        //                        TypeIndex = 2,
-        //                        ColorAndStyle = new SquintEclipseProtocol.EmptyClass(),
-        //                        Identification = new SquintEclipseProtocol.Identification()
-        //                    });
-        //                }
-        //                if (Con.ConstraintType == ConstraintTypeCodes.M)
-        //                {
-        //                    SquintEclipseProtocol.Item I = new SquintEclipseProtocol.Item()
-        //                    {
-        //                        ID = ProtocolStructure.EclipseStructureName,
-        //                        Modifier = Con.GetEclipseMeanDoseModifier(),
-        //                        Type = 0, //Con.GetEclipseMeanDoseType(),
-        //                        Dose = Con.ReferenceValue / 100 / DataCache.GetComponent(ECP.ComponentID).NumFractions
-        //                    };
-        //                    PC.Prescription.Items.Add(I);
-        //                }
-        //                else
-        //                {
-        //                    SquintEclipseProtocol.MeasureItem MI = new SquintEclipseProtocol.MeasureItem()
-        //                    {
-        //                        ID = ProtocolStructure.EclipseStructureName,
-        //                        Modifier = Con.GetEclipseModifier(),
-        //                        Type = Con.GetEclipseType(),
-        //                        Value = Con.GetEclipseValue(),
-        //                        TypeSpecifier = Con.GetEclipseTypeSpecifier(),
-        //                        ReportDQPValueInAbsoluteUnits = Con.GetEclipseValueUnits()
-        //                    };
-        //                    PC.Prescription.MeasureItems.Add(MI);
-        //                }
-        //            }
-        //            ECProtocol.Phases.Phase.Add(PC);
-        //            Serializer ser = new Serializer();
-        //            string user = GetDbUser(SquintUser).ARIA_ID;
-        //            ser.Serialize<SquintEclipseProtocol.Protocol>(ECProtocol, string.Format("{0}{1}_{2}_{3}.xml", @"H:\Physics\CN\Software\Squint\XML Output\",
-        //                DataCache.Patient.Id, SA.AssessmentName, user));
-        //        }
-        //        catch
-        //        {
 
-        //        }
-        //    }
-        //    return Preview.ID;
-        //}
-        public static bool ImportProtocolFromXML(string filename, bool refresh)
+      
+
+        public bool ImportProtocolFromXML(string filename, bool refresh)
         {
             SquintProtocol _XMLProtocol;
             if (filename == "") // no file selected
@@ -988,15 +899,15 @@ namespace Squint
                 return true;
             }
         }
-        public static void Dispose()
+        public void Dispose()
         {
             if (ESAPIContext != null)
                 ESAPIContext.Dispose();
         }
-        public static bool SaveXMLProtocolToDatabase(SquintProtocol _XMLProtocol)
+        public bool SaveXMLProtocolToDatabase(SquintProtocol _XMLProtocol)
         {
             List<string> ExistingProtocolNames;
-            using (SquintDBModel LocalContext = new SquintDBModel())
+            using (SquintDBModel LocalContext = new SquintDBModel(DbPaths))
             {
                 if (LocalContext.DbLibraryProtocols.Where(y => !y.isRetired) != null)
                 {
@@ -1425,7 +1336,7 @@ namespace Squint
                     LocalContext.DbConstraintChangelogs.Add(DbCC);
                     DbCC.ChangeDescription = con.Description;
                     DbCC.ConstraintString = "";
-                    DbCC.ChangeAuthor = SquintModel.SquintUser;
+                    DbCC.ChangeAuthor = SquintUser;
                     DbCC.Date = DateTime.Now.ToBinary();
                     DbCC.DbConstraint = DbCon;
                     DbCC.ParentLogID = 1; // the root dummy log
@@ -1444,7 +1355,7 @@ namespace Squint
             }
         }
 
-        public static bool ExportProtocolAsXML(string filename)
+        public bool ExportProtocolAsXML(string filename)
         {
             SquintProtocol XMLProtocol = new SquintProtocol();
             //Assign TEMPORARY primary keys to each constraint, since these are not defined in the XML protocol
@@ -1461,7 +1372,7 @@ namespace Squint
             var intentsToSerialize = new List<SquintProtocolIntent>();
             foreach (var TI in CurrentProtocol.TreatmentIntents)
             {
-                var TreatmentIntent = new SquintProtocolIntent(){ Id = TI };
+                var TreatmentIntent = new SquintProtocolIntent() { Id = TI };
                 intentsToSerialize.Add(TreatmentIntent);
             }
             XMLProtocol.TreatmentIntents = intentsToSerialize.ToArray();
@@ -1504,7 +1415,7 @@ namespace Squint
                 artifactsToSerialize.Add(new SquintProtocolProtocolChecklistArtifact()
                 {
                     HU = (double)A.RefHU.Value,
-                    ProtocolStructureName = SquintModel.GetProtocolStructure(A.ProtocolStructureId.Value).ProtocolStructureName,
+                    ProtocolStructureName = GetProtocolStructure(A.ProtocolStructureId.Value).ProtocolStructureName,
                     ToleranceHU = (double)A.ToleranceHU.Value
                 });
             }
@@ -1654,12 +1565,13 @@ namespace Squint
 
             return true;
         }
-        public async static Task<bool> LoadProtocolFromDb(string ProtocolName, IProgress<int> progress = null) // this method reloads the context.
+        public async Task<bool> LoadProtocolFromDb(string ProtocolName, IProgress<int> progress = null) // this method reloads the context.
         {
             try
             {
                 StartNewSession();
-                CurrentSession.SessionProtocol = await DbController.LoadProtocol(ProtocolName);
+                var dbCon = new DbController(this);
+                CurrentSession.SessionProtocol = await dbCon.LoadProtocol(ProtocolName);
                 if (CurrentProtocol != null)
                 {
                     ProtocolLoaded = true;
@@ -1676,23 +1588,26 @@ namespace Squint
             }
         }
 
-        public static async Task Save_UpdateProtocol()
+        public async Task Save_UpdateProtocol()
         {
+            var dbCon = new DbController(this);
             CurrentProtocol.LastModifiedBy = SquintUser;
-            await DbController.Save_UpdateProtocol();
+            await dbCon.Save_UpdateProtocol();
             string ProtocolNameToReload = CurrentProtocol.ProtocolName;
             await LoadProtocolFromDb(ProtocolNameToReload);
             _uiDispatcher.Invoke(ProtocolUpdated, new[] { null, EventArgs.Empty });
             ProtocolListUpdated?.Invoke(null, EventArgs.Empty);
         }
-        public static void Save_DuplicateProtocol()
+        public void Save_DuplicateProtocol()
         {
-            DbController.Save_DuplicateProtocol();
+            var dbCon = new DbController(this);
+            dbCon.Save_DuplicateProtocol();
             ProtocolListUpdated?.Invoke(null, EventArgs.Empty);
         }
-        public static void DeleteProtocol(int Id)
+        public void DeleteProtocol(int Id)
         {
-            bool Deleted = DbController.Delete_Protocol(Id);
+            var dbCon = new DbController(this);
+            bool Deleted = dbCon.Delete_Protocol(Id);
             if (ProtocolLoaded)
             {
                 if (CurrentProtocol.ID == Id)
@@ -1706,13 +1621,14 @@ namespace Squint
                 ProtocolListUpdated?.Invoke(null, EventArgs.Empty);
             }
         }
-        public static async Task<bool> Save_Session(string SessionComment)
+        public async Task<bool> Save_Session(string SessionComment)
         {
             if (PatientOpen & ProtocolLoaded)
             {
                 try
                 {
-                    bool Success = await DbController.Save_Session(SessionComment);
+                    var dbCon = new DbController(this);
+                    bool Success = await dbCon.Save_Session(SessionComment);
                     if (Success)
                     {
                         SessionsChanged?.Invoke(null, EventArgs.Empty);
@@ -1730,21 +1646,23 @@ namespace Squint
             else
                 return false;
         }
-        public static void Delete_Session(int ID)
+        public void Delete_Session(int ID)
         {
-            DbController.Delete_Session(ID);
+            var dbCon = new DbController(this);
+            dbCon.Delete_Session(ID);
             SessionsChanged?.Invoke(null, EventArgs.Empty);
         }
-        public static async Task<bool> Load_Session(int ID)
+        public async Task<bool> Load_Session(int ID)
         {
             if (PatientOpen)
             {
+                var dbCon = new DbController(this);
                 if (ProtocolLoaded)
                 {
                     CloseProtocol();
                     StartNewSession();
                 }
-                Session LoadedSession = await DbController.Load_Session(ID);
+                Session LoadedSession = await dbCon.Load_Session(ID);
                 if (LoadedSession != null)  // true if successful load
                 {
                     CurrentSession = LoadedSession;
@@ -1752,23 +1670,23 @@ namespace Squint
                     AvailableStructureSetsChanged?.Invoke(null, EventArgs.Empty);
                     CurrentStructureSetChanged?.Invoke(null, EventArgs.Empty);
                     _uiDispatcher.Invoke(ProtocolOpened, new object[] { null, EventArgs.Empty });
-                    foreach (ProtocolStructure PS in CurrentSession.SessionProtocol.Structures)
+                    foreach (ProtocolStructureViewModel PS in CurrentSession.SessionProtocol.Structures)
                     {
                         UpdateConstraintThresholds(PS);
                     }
                 }
                 else
-                    SquintModel.ProtocolLoaded = false;
+                    ProtocolLoaded = false;
                 return true;
             }
             else return false;
         }
-        public static async void SynchronizePlans()
+        public async void SynchronizePlans()
         {
             await Task.Run(() => SynchronizePlansInternal());
             SynchronizationComplete?.Invoke(null, EventArgs.Empty);
         }
-        public static void RefreshPatient()
+        public void RefreshPatient()
         {
             if (PatientOpen)
             {
@@ -1778,7 +1696,7 @@ namespace Squint
                 ESAPIContext.OpenPatient(PID);
             }
         }
-        private static async Task SynchronizePlansInternal()
+        private async Task SynchronizePlansInternal()
         {
             if (ESAPIContext.Patient != null)
             {
@@ -1787,7 +1705,7 @@ namespace Squint
                 // Disable autorefresh (see below for reasons)
                 try
                 {
-                    foreach (PlanAssociation ECP in CurrentSession.PlanAssociations)
+                    foreach (PlanAssociationViewModel ECP in CurrentSession.PlanAssociations)
                     {
                         if (!ECP.Linked)
                         {
@@ -1821,20 +1739,20 @@ namespace Squint
             }
         }
 
-        public static void CloseProtocol()
+        public void CloseProtocol()
         {
             CurrentSession.SessionProtocol = null;
             ProtocolLoaded = false;
             ProtocolClosed?.Invoke(null, EventArgs.Empty);
         }
-        public static void StartNewSession()
+        public void StartNewSession()
         {
             CurrentSession = new Session();
             SetCurrentStructureSet(null);
             _AssessmentNameIterator = 1;
         }
 
-        public static void ClosePatient()
+        public void ClosePatient()
         {
             CurrentSession.PlanAssociations.Clear();
             CurrentStructureSet = null;
@@ -1842,45 +1760,45 @@ namespace Squint
             PatientOpen = false;
             PatientClosed?.Invoke(null, EventArgs.Empty);
         }
-        public static async Task<bool> OpenPatient(string PID)
+        public async Task<bool> OpenPatient(string PID)
         {
-            PatientOpen = await Task.Run(() => SquintModel.ESAPIContext.OpenPatient(PID));
+            PatientOpen = await Task.Run(() => ESAPIContext.OpenPatient(PID));
             if (PatientOpen)
                 PatientOpened?.Invoke(null, EventArgs.Empty);
             SessionsChanged?.Invoke(null, EventArgs.Empty);
             return PatientOpen;
             //_uiDispatcher.Invoke(PatientOpened, new[] { null, EventArgs.Empty });
         }
-        public static void ChangeConstraintComponent(int ConId, int CompId)
+        public void ChangeConstraintComponent(int ConId, int CompId)
         {
-            Constraint Con = GetAllConstraints().FirstOrDefault(x => x.ID == ConId);
+            ConstraintViewModel Con = GetAllConstraints().FirstOrDefault(x => x.ID == ConId);
             CurrentProtocol.Components.FirstOrDefault(x => x.ID == Con.ComponentID).Constraints.Remove(Con);
             Component newComponent = CurrentProtocol.Components.FirstOrDefault(x => x.ID == CompId);
             newComponent.Constraints.Add(Con);
             Con.parentComponent = newComponent;
         }
 
-        public async static void UpdateConstraint(int ConId)
+        public async void UpdateConstraint(int ConId)
         {
-            Constraint Con = GetAllConstraints().FirstOrDefault(x => x.ID == ConId);
+            ConstraintViewModel Con = GetAllConstraints().FirstOrDefault(x => x.ID == ConId);
             foreach (var PA in CurrentSession.PlanAssociations.Where(x => x.ComponentID == Con.ComponentID))
             {
                 await Con.EvaluateConstraint(PA);
             }
         }
-        public async static void UpdateConstraints()
+        public async void UpdateConstraints()
         {
             foreach (var PA in CurrentSession.PlanAssociations)
             {
                 if (PA.Linked)
                 {
-                    foreach (Constraint Con in CurrentProtocol.Components.First(x => x.ID == PA.ComponentID).Constraints)
+                    foreach (ConstraintViewModel Con in CurrentProtocol.Components.First(x => x.ID == PA.ComponentID).Constraints)
                         await Con.EvaluateConstraint(PA);
                 }
             }
         }
 
-        public async static Task<bool> UpdateConstraints(int CompId, int? AssessmentId)
+        public async Task<bool> UpdateConstraints(int CompId, int? AssessmentId)
         {
 
             var PAs = CurrentSession.PlanAssociations.Where(x => x.ComponentID == CompId);
@@ -1890,38 +1808,38 @@ namespace Squint
             {
                 if (PA.Linked)
                 {
-                    foreach (Constraint Con in CurrentProtocol.Components.First(x => x.ID == PA.ComponentID).Constraints)
+                    foreach (ConstraintViewModel Con in CurrentProtocol.Components.First(x => x.ID == PA.ComponentID).Constraints)
                         await Con.EvaluateConstraint(PA);
                 }
             }
             return true;
         }
 
-        public async static void UpdateConstraints(ProtocolStructure PS)
+        public async void UpdateConstraints(ProtocolStructureViewModel PS)
         {
 
             foreach (var PA in CurrentSession.PlanAssociations)
             {
                 if (PA.Linked)
                 {
-                    foreach (Constraint Con in CurrentProtocol.Components.First(x => x.ID == PA.ComponentID).Constraints.Where(x => x.PrimaryStructureId == PS.ID || x.ReferenceStructureId == PS.ID))
+                    foreach (ConstraintViewModel Con in CurrentProtocol.Components.First(x => x.ID == PA.ComponentID).Constraints.Where(x => x.PrimaryStructureId == PS.ID || x.ReferenceStructureId == PS.ID))
                         await Con.EvaluateConstraint(PA);
                 }
             }
         }
 
-        public static void UpdateConstraintThresholds(ProtocolStructure E) // update interpolated thresholds based on change to ProtocolStructureId
+        public void UpdateConstraintThresholds(ProtocolStructureViewModel E) // update interpolated thresholds based on change to ProtocolStructureId
         {
-            foreach (Constraint Con in GetAllConstraints().Where(x => x.ReferenceStructureId == E.ID))
+            foreach (ConstraintViewModel Con in GetAllConstraints().Where(x => x.ReferenceStructureId == E.ID))
             {
-                string SSUID = SquintModel.CurrentStructureSet.UID;
+                string SSUID = CurrentStructureSet.UID;
                 if (!string.IsNullOrEmpty(SSUID))
                     Con.UpdateThresholds(E.Volume(SSUID));
             }
         }
-        public static bool MatchStructuresByAlias()
+        public bool MatchStructuresByAlias()
         {
-            foreach (ProtocolStructure E in CurrentProtocol.Structures) // notify structures
+            foreach (ProtocolStructureViewModel E in CurrentProtocol.Structures) // notify structures
             {
                 E.ApplyAliasing(CurrentStructureSet);
                 UpdateConstraintThresholds(E);
@@ -1929,32 +1847,35 @@ namespace Squint
             return true;
         }
 
-        public static ProtocolStructure GetProtocolStructure(int Id)
+        public ProtocolStructureViewModel GetProtocolStructure(int Id)
         {
             return CurrentProtocol.Structures.FirstOrDefault(x => x.ID == Id);
         }
 
-        public async static Task<StructureLabel> GetStructureLabel(int? Id = null)
+        public async Task<StructureLabel> GetStructureLabel(int? Id = null)
         {
+            var dbCon = new DbController(this);
             if (Id == null)
-                return await DbController.GetStructureLabel(1);
+                return await dbCon.GetStructureLabel(1);
             else
-                return await DbController.GetStructureLabel((int)Id);
+                return await dbCon.GetStructureLabel((int)Id);
         }
 
-        public async static Task<string> GetStructureCode(int? Id = null)
+        public async Task<string> GetStructureCode(int? Id = null)
         {
+            var dbCon = new DbController(this);
             if (Id == null)
-                return await DbController.GetStructureCode(1);
+                return await dbCon.GetStructureCode(1);
             else
-                return await DbController.GetStructureCode((int)Id);
+                return await dbCon.GetStructureCode((int)Id);
         }
-        public static IEnumerable<StructureLabel> GetStructureLabels()
+        public IEnumerable<StructureLabel> GetStructureLabels()
         {
-            return DbController.GetAllStructureLabels();
+            var dbCon = new DbController(this);
+            return dbCon.GetAllStructureLabels();
         }
 
-        public async static Task<List<ComponentStatusCodes>> AssociatePlanToComponent(int AssessmentID, int ComponentID, string CourseId, string PlanId, ComponentTypes Type, bool ClearWarnings) // ClearWarnings
+        public async Task<List<ComponentStatusCodes>> AssociatePlanToComponent(int AssessmentID, int ComponentID, string CourseId, string PlanId, ComponentTypes Type, bool ClearWarnings) // ClearWarnings
         {
             try
             {
@@ -1962,7 +1883,7 @@ namespace Squint
                 AsyncPlan P = await GetAsyncPlan(CourseId, PlanId);
                 return await Task.Run(() =>
                 {
-                    PlanAssociation PA = CurrentSession.PlanAssociations.FirstOrDefault(x => x.AssessmentID == AssessmentID && x.ComponentID == ComponentID);
+                    PlanAssociationViewModel PA = CurrentSession.PlanAssociations.FirstOrDefault(x => x.AssessmentID == AssessmentID && x.ComponentID == ComponentID);
                     PA.UpdateLinkedPlan(P, ClearWarnings);
                     AvailableStructureSetsChanged?.Invoke(null, EventArgs.Empty);
                     if (CurrentStructureSet == null)
@@ -1975,7 +1896,7 @@ namespace Squint
                         SetCurrentStructureSet(P.StructureSetUID);
                         MatchStructuresByAlias();
                     }
-                    SquintModel.EndingLongProcess?.Invoke(null, EventArgs.Empty);
+                    EndingLongProcess?.Invoke(null, EventArgs.Empty);
                     return PA.GetErrorCodes();
                 });
 
@@ -1986,39 +1907,40 @@ namespace Squint
                 return null;
             }
         }
-        public static List<SessionView> GetSessionViews()
+        public List<SessionView> GetSessionViews()
         {
             List<SessionView> SVs = new List<SessionView>();
             if (ESAPIContext != null)
             {
-                foreach (Session S in DbController.GetSessions())
+                var dbCon = new DbController(this);
+                foreach (Session S in dbCon.GetSessions())
                 {
                     SVs.Add(new SessionView(S));
                 }
             }
             return SVs;
         }
-        public static Assessment NewAssessment()
+        public AssessmentViewModel NewAssessment()
         {
-            Assessment NewAssessment = new Assessment(CurrentSession.ID, string.Format("Assessment#{0}", _AssessmentNameIterator), _AssessmentNameIterator);
+            AssessmentViewModel NewAssessment = new AssessmentViewModel(CurrentSession.ID, string.Format("Assessment#{0}", _AssessmentNameIterator), _AssessmentNameIterator, this);
             CurrentSession.Assessments.Add(NewAssessment);
             foreach (Component SC in CurrentProtocol.Components)
             {
-                CurrentSession.PlanAssociations.Add(new PlanAssociation(SC, NewAssessment));
+                CurrentSession.PlanAssociations.Add(new PlanAssociationViewModel(this, SC, NewAssessment));
             }
             _AssessmentNameIterator++;
             return NewAssessment;
         }
-        public static void RemoveAssessment(int AssessmentID)
+        public void RemoveAssessment(int AssessmentID)
         {
-            foreach (PlanAssociation PL in CurrentSession.PlanAssociations.Where(x => x.AssessmentID == AssessmentID).ToList())
+            foreach (PlanAssociationViewModel PL in CurrentSession.PlanAssociations.Where(x => x.AssessmentID == AssessmentID).ToList())
             {
                 CurrentSession.PlanAssociations.Remove(PL);
             }
             CurrentSession.Assessments.Remove(CurrentSession.Assessments.FirstOrDefault(x => x.ID == AssessmentID));
         }
 
-        public async static Task<List<PlanDescriptor>> GetPlanDescriptors(string CourseId)
+        public async Task<List<PlanDescriptor>> GetPlanDescriptors(string CourseId)
         {
             AsyncCourse C = await ESAPIContext.Patient.GetCourse(CourseId);
             if (C != null)
@@ -2027,36 +1949,36 @@ namespace Squint
             }
             else return null;
         }
-        public static List<string> GetCourseNames()
+        public List<string> GetCourseNames()
         {
-            return SquintModel.ESAPIContext.Patient.CourseIds;
+            return ESAPIContext.Patient.CourseIds;
         }
 
-        public static void AddNewContourCheck(ProtocolStructure S)
+        public void AddNewContourCheck(ProtocolStructureViewModel S)
         {
             S.CheckList.isPointContourChecked.Value = true;
             S.CheckList.PointContourVolumeThreshold.Value = 0.05;
         }
-        public static void RemoveNewContourCheck(ProtocolStructure S)
+        public void RemoveNewContourCheck(ProtocolStructureViewModel S)
         {
             S.CheckList.isPointContourChecked.Value = false;
             S.CheckList.PointContourVolumeThreshold.Value = 0;
         }
-        public static void AddNewBeamCheck(int ComponentId)
+        public void AddNewBeamCheck(int ComponentId)
         {
-            CurrentProtocol.Components.FirstOrDefault(x => x.ID == ComponentId).Beams.Add(new Beam(ComponentId));
+            CurrentProtocol.Components.FirstOrDefault(x => x.ID == ComponentId).Beams.Add(new BeamViewModel(ComponentId, this));
         }
 
-        public static void AddStructureAlias(int StructureId, string NewAlias)
+        public void AddStructureAlias(int StructureId, string NewAlias)
         {
             GetProtocolStructure(StructureId).DefaultEclipseAliases.Add(NewAlias);
         }
-        public static void RemoveStructureAlias(int StructureId, string AliasToRemove)
+        public void RemoveStructureAlias(int StructureId, string AliasToRemove)
         {
             GetProtocolStructure(StructureId).DefaultEclipseAliases.Remove(AliasToRemove);
         }
 
-        public static List<BeamGeometryDefinition> GetBeamGeometryDefinitions()
+        public List<BeamGeometryDefinition> GetBeamGeometryDefinitions()
         {
             return new List<BeamGeometryDefinition>(_BeamGeometryDefinitions);
         }

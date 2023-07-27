@@ -58,7 +58,8 @@ namespace Squint.Views
 
         private void OnClosing(object sender, CancelEventArgs e)
         {
-            SquintModel.Dispose();
+            var VM = (MainViewModel)DataContext;
+            VM.Dispose();
         }
 
         public int counter = 0;
@@ -77,27 +78,25 @@ namespace Squint.Views
             e.Handled = true;
         }
 
-        // Structure draggin
-     
-
-        
+           
+                
 
        
         delegate Point GetPositionDelegate(IInputElement element);
 
-     
 
-        
-      
 
-        
+
+
+
+
 
         private void OnLoaded(object sender, RoutedEventArgs e)
         {
-            var uiDispatcher = Dispatcher.CurrentDispatcher;
-            Task.Run(() => SquintModel.Initialize(uiDispatcher));
+            var VM = (MainViewModel)DataContext;
+            VM.InitializeModel();
         }
 
-    
+
     }
 }

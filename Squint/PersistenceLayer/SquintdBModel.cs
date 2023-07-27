@@ -18,11 +18,16 @@ namespace Squint
     using System.Reflection;
     using Squint.XML_Definitions;
     using Squint.Helpers;
+    using Squint.Structs;
 
     public class SquintDBModel : DbContext
     {
-        public SquintDBModel()
-        : base(VersionContextConnection.GetDatabaseConnection(), true) { }
+        private DbConfigurationPaths _dbConfigPaths;
+        public SquintDBModel(DbConfigurationPaths dbConfig)
+        : base(VersionContextConnection.GetDatabaseConnection(), true)
+        {
+            _dbConfigPaths = dbConfig; 
+        }
 
         protected override void OnModelCreating(DbModelBuilder modelBuilder)
         {
@@ -52,12 +57,17 @@ namespace Squint
                 .WillCascadeOnDelete(false);
 
 
-            Database.SetInitializer<SquintDBModel>(new InitializeLookupTables());
+            Database.SetInitializer<SquintDBModel>(new InitializeLookupTables(_dbConfigPaths));
             base.OnModelCreating(modelBuilder);
         }
-        public class InitializeLookupTables  : CreateDatabaseIfNotExists<SquintDBModel> 
+        public class InitializeLookupTables : CreateDatabaseIfNotExists<SquintDBModel>
         //public class InitializeLookupTables : DropCreateDatabaseAlways<SquintdBModel>
         {
+            private DbConfigurationPaths _dbConfigPaths;
+            public InitializeLookupTables(DbConfigurationPaths paths)
+            {
+                _dbConfigPaths = paths;
+            }
             protected override void Seed(SquintDBModel context)
             {
                 foreach (TreatmentCentres item in Enum.GetValues(typeof(TreatmentCentres)))
@@ -236,12 +246,12 @@ namespace Squint
                 };
                 context.DbStructureLabelGroups.Add(SLG);
                 context.SaveChanges();
-                var BeamGeometryDefintionPath = SquintModel.Config.BeamGeometryDefinitions.FirstOrDefault(x => x.Site == SquintModel.Config.Site.CurrentSite);
+                var BeamGeometryDefintionPath = _dbConfigPaths.beamDefinitionPath;
                 if (BeamGeometryDefintionPath != null)
                 {
                     try
                     {
-                        var BeamGeometryDefintionXMLFile = File.ReadAllText(BeamGeometryDefintionPath.Path);
+                        var BeamGeometryDefintionXMLFile = File.ReadAllText(BeamGeometryDefintionPath);
                         Serializer ser = new Serializer();
                         GeometryDefinitions BeamGeometryDefinitions = ser.Deserialize<GeometryDefinitions>(BeamGeometryDefintionXMLFile);
                         foreach (var G in BeamGeometryDefinitions.Geometry)
@@ -298,7 +308,7 @@ namespace Squint
                         string StructureLabel = "\"StructureLabel\"";
                         string tableName = "\"DbStructureLabels\"";
                         string Code = "\"Code\"";
-                        var StrutureCodePath = SquintModel.Config.StructureCodes.FirstOrDefault(x => x.Site == SquintModel.Config.Site.CurrentSite);
+                        var StrutureCodePath = _dbConfigPaths.structureDefinitionPath;
                         if (StrutureCodePath == null)
                         {
                             MessageBox.Show("Error: Cannot find Structure Code file for this site, please check configuration file.  Important: This database will need to be manually dropped from the server so initialization can be re-attempted");
@@ -310,7 +320,7 @@ namespace Squint
                                 string.Format("COPY {0} ({1}, {2}, {3}, {4}, {5},{6},{7},{8}) FROM STDIN (FORMAT BINARY)",
                                 tableName, ID, StructurelabelGroupID, StructureLabel, AlphaBetaRatio, Description, StructureType, Code, Designator)))
                             {
-                                using (StreamReader SR = new StreamReader(StrutureCodePath.Path)) // note that this assumes the CSV is organized as below
+                                using (StreamReader SR = new StreamReader(_dbConfigPaths.structureDefinitionPath)) // note that this assumes the CSV is organized as below
                                 {
                                     string[] data;
                                     string line;
@@ -415,7 +425,7 @@ namespace Squint
             }
         }
         // Types
-        
+
         public DbSet<DbEnergy> DbEnergies { get; set; }
         // Structures
         public DbSet<DbStructureLabelGroup> DbStructureLabelGroups { get; set; }
@@ -464,7 +474,7 @@ namespace Squint
         //Plans
         public DbSet<DbPlanAssociation> DbPlans { get; set; }
         // Confiug
-        
+
         // Add a DbSet for each entity type that you want to include in your model. For more information 
         // on configuring and using a Code First model, see http://go.microsoft.com/fwlink/?LinkId=390109.
     }
@@ -769,7 +779,7 @@ namespace Squint
         public double? CouchInterior { get; set; }
         //Artifacts
         public virtual ICollection<DbArtifact> Artifacts { get; set; }
-        public virtual ICollection<DbCTDeviceId> CTDeviceIds { get; set; } 
+        public virtual ICollection<DbCTDeviceId> CTDeviceIds { get; set; }
 
         //Bolus
         public virtual ICollection<DbBolus> Boluses { get; set; }

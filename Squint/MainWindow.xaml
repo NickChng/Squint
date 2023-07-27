@@ -14,8 +14,11 @@
         WindowStartupLocation="CenterScreen"
         x:Name="SquintWindow"
         Icon="/Resources/squint_icon.ico"
-        Title="Squint v0.8" Height="900" Width="1450" Closing="OnClosing" MinWidth="1250" Loaded="OnLoaded"
-        d:DataContext="{d:DesignInstance Type=ViewModels:MainViewModel, IsDesignTimeCreatable=True}">
+        Title="Squint v0.8" Height="900" Width="1450" Closing="OnClosing" MinWidth="1250" 
+        Loaded="OnLoaded"
+        d:DataContext="{d:DesignInstance Type=ViewModels:MainViewModel, IsDesignTimeCreatable=True}" >
+    <!--Loaded="OnLoaded"-->
+
     <Window.DataContext>
         <ViewModels:MainViewModel/>
     </Window.DataContext>
@@ -35,7 +38,8 @@
             </Grid.RowDefinitions>
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="590"/>
-                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="36*"/>
+                <ColumnDefinition Width="769*"/>
                 <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
             <Grid Grid.Row="0" Grid.Column="0">
@@ -48,10 +52,10 @@
                     </Border>
                 </Grid>
             </Grid>
-            <Grid Grid.Row="0" Grid.Column="1" HorizontalAlignment="Stretch">
+            <Grid Grid.Row="0" Grid.Column="1" Grid.ColumnSpan="2">
                 <ContentPresenter ContentTemplate="{StaticResource AssessmentHeader}"/>
             </Grid>
-            <Grid Panel.ZIndex="2" Grid.Row="0" Grid.Column="2" SnapsToDevicePixels="True" Grid.RowSpan="4">
+            <Grid Panel.ZIndex="2" Grid.Row="0" Grid.Column="3" SnapsToDevicePixels="True" Grid.RowSpan="4">
                 <Grid Margin="5,5,0,5" >
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
@@ -187,7 +191,7 @@
                             <RowDefinition Height="*"></RowDefinition>
                         </Grid.RowDefinitions>
                         <Views:AssessmentsView Grid.Row="0" DataContext="{Binding AssessmentsVM}"/>
-                        <Views:ProtocolsView Grid.Row="1" DataContext="{Binding ProtocolsVM}"/> 
+                        <Views:ProtocolsView Grid.Row="1" DataContext="{Binding ProtocolsVM}"/>
                     </Grid>
                 </ScrollViewer>
                 <Grid Grid.Row="1" Margin="0,10,0,10" Visibility="{Binding isLoading, Converter={StaticResource VisibilityConverter}}">
@@ -195,14 +199,13 @@
                 </Grid>
             </Grid>
             <DataGrid Name="dg" Grid.Row="1" Grid.RowSpan="3" Grid.Column="1" BorderThickness="0" Background="White" Margin="15,5,5,5" RowHeaderStyle="{DynamicResource SquintRowHeaderStyle}" 
-                  AutoGenerateColumns="False" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" ColumnHeaderStyle="{DynamicResource SquintColumnHeaderStyle}" 
-                      Views:DataGridColumnsBehavior.BindableColumns="{Binding AssessmentsVM.AssessmentColumns}" RowHeaderWidth="{Binding ElementName=SquintWindow, Path=DataContext.AssessmentsVM.RowHeaderWidth, UpdateSourceTrigger=PropertyChanged}"
-                  ItemsSource="{Binding ProtocolVM.Constraints, UpdateSourceTrigger=PropertyChanged, Mode=OneWay}" GridLinesVisibility="None" Style="{DynamicResource SquintDataGridStyle}"
-                  Visibility="{Binding ProtocolCheckVisible, Converter={StaticResource VisibilityConverter}, UpdateSourceTrigger=PropertyChanged}">
-            </DataGrid>
-            <Grid Grid.Row="1" Grid.RowSpan="3" Grid.Column="1" Margin="10,0,0,0" Visibility="{Binding PlanCheckVisible, Converter={StaticResource VisibilityConverter}, UpdateSourceTrigger=PropertyChanged}" IsEnabled="{Binding PlanCheckVisible}">
+                  AutoGenerateColumns="False" ColumnHeaderStyle="{DynamicResource SquintColumnHeaderStyle}" Views:DataGridColumnsBehavior.BindableColumns="{Binding AssessmentsVM.AssessmentColumns}" 
+                  RowHeaderWidth="{Binding ElementName=SquintWindow, Path=DataContext.AssessmentsVM.RowHeaderWidth, UpdateSourceTrigger=PropertyChanged}"
+                  ItemsSource="{Binding ProtocolsVM.Constraints, UpdateSourceTrigger=PropertyChanged, Mode=OneWay}" GridLinesVisibility="None" Style="{DynamicResource SquintDataGridStyle}"
+                  Visibility="{Binding ProtocolCheckVisible, Converter={StaticResource VisibilityConverter}, UpdateSourceTrigger=PropertyChanged}" Grid.ColumnSpan="2"/>
+            <Grid Grid.Row="1" Grid.RowSpan="3" Grid.Column="1" Margin="10,0,0,0" Visibility="{Binding PlanCheckVisible, Converter={StaticResource VisibilityConverter}, UpdateSourceTrigger=PropertyChanged}" IsEnabled="{Binding PlanCheckVisible}" Grid.ColumnSpan="2">
                 <Grid Visibility="{Binding isPlanCheckCalculating, Mode=OneWay, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource VisibilityInverseConverter}}">
-                    <Views:ChecklistControl DataContext="{Binding DataContext.ProtocolVM.ChecklistViewModel, ElementName=SquintWindow}" />
+                    <Views:ChecklistControl DataContext="{Binding DataContext.ProtocolsVM.ChecklistViewModel, ElementName=SquintWindow}" />
                 </Grid>
                 <Views:LoadingControl DataContext="{Binding DataContext, ElementName=SquintWindow}"
                                LoadingMessage="{Binding PlanCheckLoadingMessage, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" 

@@ -73,8 +73,8 @@ namespace Squint
                     .ForMember(x => x.Author, opt => opt.MapFrom(y => y.DbUser_ProtocolAuthor.ARIA_ID));
                 cfg.CreateMap<DbProtocol, Protocol>().ForMember(x => x.Checklist, opt => opt.Ignore());
                 cfg.CreateMap<DbBeamGeometry, BeamGeometryDefinition>();
-                cfg.CreateMap<DbConstraint, Constraint>();
-                cfg.CreateMap<DbProtocolStructure, ProtocolStructure>();
+                cfg.CreateMap<DbConstraint, ConstraintViewModel>();
+                cfg.CreateMap<DbProtocolStructure, ProtocolStructureViewModel>();
                 cfg.CreateMap<double?, TrackedValue<double?>>().ConvertUsing(new TrackedValueConverter<double?>());
                 cfg.CreateMap<double, TrackedValue<double>>().ConvertUsing(new TrackedValueConverter<double>());
                 cfg.CreateMap<int, TrackedValue<int>>().ConvertUsing(new TrackedValueConverter<int>());

@@ -11,6 +11,7 @@ using Squint.TestFramework;
 using Squint.Extensions;
 using System.IO;
 using System.Xml.Serialization;
+using System.Windows;
 
 namespace Squint.ViewModels
 {
@@ -21,12 +22,14 @@ namespace Squint.ViewModels
 
         public bool Loading { get; private set; }
         public MainViewModel ParentView { get; private set; }
-        public string ProtocolPath = SquintModel.Config.ClinicalProtocols.FirstOrDefault(x => x.Site == SquintModel.Config.Site.CurrentSite).Path;
+        
         public ObservableCollection<VMS_XML.Protocol> EclipseProtocols { get; set; } = new ObservableCollection<VMS_XML.Protocol>();
 
-        public EclipseProtocolPopupViewModel(MainViewModel parentView)
+        private SquintModel _model;
+        public EclipseProtocolPopupViewModel(MainViewModel parentView, SquintModel model)
         {
             ParentView = parentView;
+            _model = model;
             Loading = true;
             LoadProtocols();
         }
@@ -37,19 +40,27 @@ namespace Squint.ViewModels
             var eclipseProtocols = new ObservableCollection<VMS_XML.Protocol>();
             await Task.Run(() =>
             {
-                var filenames = Directory.GetFiles(ProtocolPath, @"*.xml");
-                XmlSerializer ser = new XmlSerializer(typeof(VMS_XML.Protocol));
-                foreach (var f in filenames)
+                var ProtocolPath = _model.Config.ClinicalProtocols.FirstOrDefault(x => x.Site == _model.Config.Site.CurrentSite);
+                if (ProtocolPath == null)
                 {
-                    using (var data = new StreamReader(f))
+                    MessageBox.Show("No protocol path defined for this site");
+                }
+                else
+                {
+                    var filenames = Directory.GetFiles(ProtocolPath.Path, @"*.xml");
+                    XmlSerializer ser = new XmlSerializer(typeof(VMS_XML.Protocol));
+                    foreach (var f in filenames)
                     {
-                        var EP = (VMS_XML.Protocol)ser.Deserialize(data);
-                        if (EP != null)
+                        using (var data = new StreamReader(f))
                         {
-                            if (EP.Preview.ApprovalStatus == VMS_XML.ApprovalStatus.Approved)
-                                eclipseProtocols.Add(EP);
-                        }
+                            var EP = (VMS_XML.Protocol)ser.Deserialize(data);
+                            if (EP != null)
+                            {
+                                if (EP.Preview.ApprovalStatus == VMS_XML.ApprovalStatus.Approved)
+                                    eclipseProtocols.Add(EP);
+                            }
 
+                        }
                     }
                 }
             });
@@ -72,7 +83,7 @@ namespace Squint.ViewModels
             bool Success = false;
             if (P != null)
             {
-                Success = await SquintModel.ImportEclipseProtocol(P);
+                Success = await _model.ImportEclipseProtocol(P);
             }
             if (Success)
                 ParentView.ProtocolsVM.ViewLoadedProtocol();

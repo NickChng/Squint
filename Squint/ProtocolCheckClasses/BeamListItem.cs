@@ -33,7 +33,7 @@ namespace Squint
             }
         }
         public List<TxFieldItem> Fields { get; set; }
-        private Beam RefBeam;
+        private BeamViewModel RefBeam;
 
         public void RetireCheck()
         {
@@ -76,9 +76,11 @@ namespace Squint
         public bool NoFieldAssigned { get; set; } = true;
         public string SelectedAlias { get; set; }
         public string NewAlias { get; set; }
-     
-        public BeamListItem(Beam RefBeam_in, List<TxFieldItem> TxFields)
+
+        private SquintModel _model;
+        public BeamListItem(BeamViewModel RefBeam_in, List<TxFieldItem> TxFields, SquintModel model)
         {
+            _model = model;
             RefBeam = RefBeam_in;
             Aliases = RefBeam_in.EclipseAliases;
             Fields = TxFields;
@@ -95,7 +97,7 @@ namespace Squint
                         if (F.Id == alias)
                         {
                             Field = F;
-                            beamGeometry = new BeamGeometryInstance(Field.GantryStart, Field.GantryEnd, Field.Trajectory);
+                            beamGeometry = new BeamGeometryInstance(Field.GantryStart, Field.GantryEnd, Field.Trajectory, _model);
                             NoFieldAssigned = false;
                         }
             FieldDescription = string.Format(@"Protocol field ""{0}"" assigned to plan field:", RefBeam.ProtocolBeamName);
@@ -151,7 +153,7 @@ namespace Squint
                         Test.SetCheckValue(Field.Energy);
                         break;
                     case CheckTypes.BeamGeometry:
-                        var CheckBeam = new BeamGeometryInstance(Field.GantryStart, Field.GantryEnd, Field.Trajectory);
+                        var CheckBeam = new BeamGeometryInstance(Field.GantryStart, Field.GantryEnd, Field.Trajectory, _model);
                         Test.SetCheckValue(CheckBeam);
                         break;
                     case CheckTypes.CouchRotation:
@@ -212,7 +214,7 @@ namespace Squint
                     BolusTest.ParameterOption = B.Indication.Value;
                     BeamTests.Tests.Add(BolusTest);
                     //ThickCheck
-                    var Thick = await SquintModel.GetBolusThickness(Field.CourseId, Field.PlanId, BI.Id);
+                    var Thick = await _model.GetBolusThickness(Field.CourseId, Field.PlanId, BI.Id);
                     var ThickCheck = new TestValueItem<double>(CheckTypes.BolusThickness, Thick, B.Thickness, B.ToleranceThickness, null, null, null);
                     ThickCheck.OptionalNameSuffix = string.Format(@"(""{0}"") [cm]", BI.Id);
                     ThickCheck.ParameterOption = B.Indication.Value;

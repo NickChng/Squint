@@ -9,6 +9,7 @@
              xmlns:sys="clr-namespace:System;assembly=mscorlib"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800"
+             Name="AssessmentsViewElement"
              d:DataContext="{d:DesignInstance Type=ViewModels:AssessmentsViewModel, IsDesignTimeCreatable=True}">
     <UserControl.DataContext>
         <ViewModels:AssessmentsViewModel/>
@@ -62,7 +63,7 @@
                 <MultiBinding Converter="{StaticResource ExpanderConverter}" ConverterParameter="100">
                     <Binding Path="Tag" RelativeSource="{RelativeSource Self}"/>
                     <Binding Source="400"/>
-                    <Binding Path="DataContext.AssessmentsVM.AssessmentCounter" ElementName="SquintWindow"/>
+                    <Binding Path="DataContext.AssessmentCounter" ElementName="AssessmentsViewElement"/>
                 </MultiBinding>
             </Grid.MaxHeight>
             <Grid.Style>
@@ -103,7 +104,7 @@
                                 </Grid>
                                 <Button Grid.Column="2" Name="button_ShowAssessment" ToolTip="Pin assessment details"
                                                             Style="{DynamicResource ButtonStyle_Small}" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="5,5,5,5" 
-                                                            Command="{Binding DataContext.ShowAssessmentCommand, ElementName=SquintWindow}" CommandParameter="{Binding}">
+                                                            Command="{Binding DataContext.ShowAssessmentCommand, ElementName=AssessmentsViewElement}" CommandParameter="{Binding}">
                                     <Image>
                                         <Image.Style>
                                             <Style TargetType="Image">
@@ -121,7 +122,7 @@
                                 </Button>
                                 <Button Grid.Column="3" Margin="0,0,0,0" Background="Transparent"  ToolTip="Delete assessment"
                                                             Style="{StaticResource ButtonStyle_Small}" HorizontalAlignment="Right" VerticalAlignment="Center"
-                                                            Command="{Binding DataContext.AssessmentsVM.DeleteAssessmentCommand, ElementName=SquintWindow}" CommandParameter="{Binding}">
+                                                            Command="{Binding DataContext.DeleteAssessmentCommand, ElementName=AssessmentsViewElement}" CommandParameter="{Binding}">
                                     <ContentControl>
                                         <Image Source="../Resources/x.png"></Image>
                                     </ContentControl>
@@ -184,7 +185,7 @@
                                                                            IsEnabled="{Binding EnableCourseSelection, UpdateSourceTrigger=PropertyChanged}"
                                                                           MinWidth="100" SelectedItem="{Binding SelectedPlan, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" DisplayMemberPath="PlanId" ItemsSource="{Binding Plans, UpdateSourceTrigger=PropertyChanged}"></ComboBox>
                                                 <Button Grid.Column="3" Grid.Row="1" Margin="0,0,0,0" Background="Transparent"  ToolTip="Check plan" Style="{StaticResource ButtonStyle_Medium}" HorizontalAlignment="Left" VerticalAlignment="Center"
-                                                                     Command="{Binding DataContext.ViewPlanCheckCommand, ElementName=SquintWindow}" CommandParameter="{Binding SelectedPlan}"
+                                                                     Command="{Binding DataContext.ViewPlanCheckCommand, ElementName=AssessmentsViewElement}" CommandParameter="{Binding SelectedPlan}"
                                                                         Visibility="{Binding IsSum, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource VisibilityInverseConverter}}">
                                                     <ContentControl>
                                                         <Image Source="../Resources/check_plan.png"></Image>

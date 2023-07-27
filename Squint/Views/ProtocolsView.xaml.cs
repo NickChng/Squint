@@ -29,9 +29,9 @@ namespace Squint.Views
 
         private void DragStructure_MouseDown(object sender, MouseButtonEventArgs e)
         {
-            var VM = DataContext as MainViewModel;
+            var VM = DataContext as ProtocolsViewModel;
             StructuresTree.AllowDrop = true;
-            VM.ProtocolsVM.DragSelected = true;
+            VM.DragSelected = true;
 
             //var ImageContentPresenter = (ContentPresenter)(sender as System.Windows.Controls.Image).TemplatedParent;
             //var SelectedListBoxItem = (ListBoxItem)VisualTreeHelper.GetParent(ImageContentPresenter.Parent);
@@ -73,9 +73,9 @@ namespace Squint.Views
         // Constraints dragging
         private async void DragConstraint_MouseDown(object sender, MouseButtonEventArgs e)
         {
-            var VM = DataContext as MainViewModel;
+            var VM = DataContext as ProtocolsViewModel;
             ConstraintListView.AllowDrop = true;
-            VM.ProtocolsVM.DragSelected = true;
+            VM.DragSelected = true;
 
             //var ImageContentPresenter = (ContentPresenter)(sender as System.Windows.Controls.Image).TemplatedParent;
             //var SelectedListBoxItem = (ListBoxItem)VisualTreeHelper.GetParent(ImageContentPresenter.Parent);
@@ -87,37 +87,37 @@ namespace Squint.Views
             if (LV.AllowDrop && Mouse.LeftButton == MouseButtonState.Released)
             {
                 LV.AllowDrop = false;
-                var VM = DataContext as MainViewModel;
-                VM.ProtocolsVM.DragSelected = false; // this needs to be at protocol level as it's used to suppress selection/expansion of constraint in XAML
+                var VM = DataContext as ProtocolsViewModel;
+                VM.DragSelected = false; // this needs to be at protocol level as it's used to suppress selection/expansion of constraint in XAML
             }
         }
 
         private void DragConstraint_ListView_DragOver(object sender, DragEventArgs e)
         {
-            var VM = DataContext as MainViewModel;
+            var VM = DataContext as ProtocolsViewModel;
             var SelectedIndex = DragConstraint_GetCurrentIndex(e.GetPosition);
             //
 
-            var DropIndex = VM.ProtocolsVM.SelectedIndex;
+            var DropIndex = VM.SelectedIndex;
             if (SelectedIndex < 0)
                 return;
             if (DropIndex < 0)
                 return;
             if (SelectedIndex == DropIndex)
                 return;
-            if (VM.ProtocolsVM.DragSelected)
+            if (VM.DragSelected)
             {
-                int OldIndex = VM.ProtocolsVM.Constraints[SelectedIndex].DisplayOrder;
+                int OldIndex = VM.Constraints[SelectedIndex].DisplayOrder;
                 int inc = 1;
                 if (SelectedIndex < DropIndex)
                     inc = -1;
                 int CurrentIndex = DropIndex;
                 while (CurrentIndex != SelectedIndex)
                 {
-                    int Switch = VM.ProtocolsVM.Constraints[CurrentIndex + inc].DisplayOrder;
-                    VM.ProtocolsVM.Constraints[CurrentIndex + inc].DisplayOrder = VM.ProtocolsVM.Constraints[CurrentIndex].DisplayOrder;
-                    VM.ProtocolsVM.Constraints[CurrentIndex].DisplayOrder = Switch;
-                    VM.ProtocolsVM.Constraints.Move(CurrentIndex + inc, CurrentIndex);
+                    int Switch = VM.Constraints[CurrentIndex + inc].DisplayOrder;
+                    VM.Constraints[CurrentIndex + inc].DisplayOrder = VM.Constraints[CurrentIndex].DisplayOrder;
+                    VM.Constraints[CurrentIndex].DisplayOrder = Switch;
+                    VM.Constraints.Move(CurrentIndex + inc, CurrentIndex);
                     CurrentIndex = CurrentIndex + inc;
                 }
 
@@ -148,8 +148,8 @@ namespace Squint.Views
             if (LV.AllowDrop && Mouse.LeftButton == MouseButtonState.Released)
             {
                 LV.AllowDrop = false;
-                var VM = DataContext as MainViewModel;
-                VM.ProtocolsVM.DragSelected = false; // this needs to be at protocol level as it's used to suppress selection/expansion of constraint in XAML
+                var VM = DataContext as ProtocolsViewModel;
+                VM.DragSelected = false; // this needs to be at protocol level as it's used to suppress selection/expansion of constraint in XAML
             }
 
         }
@@ -266,30 +266,30 @@ namespace Squint.Views
 
         private void DragStructure_ListView_DragOver(object sender, DragEventArgs e)
         {
-            var VM = DataContext as MainViewModel;
+            var VM = DataContext as ProtocolsViewModel;
             var SelectedIndex = DragStructure_GetCurrentIndex(e.GetPosition);
             //
 
-            var DropIndex = VM.ProtocolsVM.SelectedStructureIndex;
+            var DropIndex = VM.SelectedStructureIndex;
             if (SelectedIndex < 0)
                 return;
             if (DropIndex < 0)
                 return;
             if (SelectedIndex == DropIndex)
                 return;
-            if (VM.ProtocolsVM.DragSelected)
+            if (VM.DragSelected)
             {
-                int OldIndex = VM.ProtocolsVM.Structures[SelectedIndex].DisplayOrder;
+                int OldIndex = VM.Structures[SelectedIndex].DisplayOrder;
                 int inc = 1;
                 if (SelectedIndex < DropIndex)
                     inc = -1;
                 int CurrentIndex = DropIndex;
                 while (CurrentIndex != SelectedIndex)
                 {
-                    int Switch = VM.ProtocolsVM.Structures[CurrentIndex + inc].DisplayOrder;
-                    VM.ProtocolsVM.Structures[CurrentIndex + inc].DisplayOrder = VM.ProtocolsVM.Structures[CurrentIndex].DisplayOrder;
-                    VM.ProtocolsVM.Structures[CurrentIndex].DisplayOrder = Switch;
-                    VM.ProtocolsVM.Structures.Move(CurrentIndex + inc, CurrentIndex);
+                    int Switch = VM.Structures[CurrentIndex + inc].DisplayOrder;
+                    VM.Structures[CurrentIndex + inc].DisplayOrder = VM.Structures[CurrentIndex].DisplayOrder;
+                    VM.Structures[CurrentIndex].DisplayOrder = Switch;
+                    VM.Structures.Move(CurrentIndex + inc, CurrentIndex);
                     CurrentIndex = CurrentIndex + inc;
                 }
 

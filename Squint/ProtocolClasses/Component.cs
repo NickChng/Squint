@@ -14,9 +14,9 @@ namespace Squint
     {
         //Required notification class
         public event PropertyChangedEventHandler PropertyChanged;
-        public List<Constraint> Constraints = new List<Constraint>();
+        public List<ConstraintViewModel> Constraints = new List<ConstraintViewModel>();
         public List<ImagingProtocolTypes> ImagingProtocols { get; set; } = new List<ImagingProtocolTypes>();
-        public List<Beam> Beams = new List<Beam>();
+        public List<BeamViewModel> Beams = new List<BeamViewModel>();
         public Component(int CompId, int ProtocolId)
         {
             ID = CompId;

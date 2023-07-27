@@ -10,6 +10,7 @@
              mc:Ignorable="d" 
              xmlns:dd="urn:gong-wpf-dragdrop"
              d:DesignHeight="450" d:DesignWidth="800"
+             Name="ProtocolsViewElement"
              d:DataContext="{d:DesignInstance Type=ViewModels:ProtocolsViewModel, IsDesignTimeCreatable=True}">
     <UserControl.DataContext>
         <ViewModels:ProtocolsViewModel/>
@@ -198,7 +199,7 @@
                     <MultiBinding Converter="{StaticResource ExpanderConverter}" UpdateSourceTrigger="PropertyChanged" ConverterParameter="100">
                         <Binding Path="Tag" RelativeSource="{RelativeSource Self}"/>
                         <Binding Source="50"/>
-                        <Binding ElementName="SquintWindow" Path="DataContext.NumComponents" UpdateSourceTrigger="PropertyChanged"/>
+                        <Binding ElementName="ProtocolsViewElement" Path="DataContext.NumComponents" UpdateSourceTrigger="PropertyChanged"/>
                     </MultiBinding>
                 </Grid.MaxHeight>
                 <Grid.ColumnDefinitions>
@@ -257,10 +258,10 @@
                                         <ColumnDefinition Width="Auto"/>
                                         <ColumnDefinition Width="Auto"/>
                                     </Grid.ColumnDefinitions>
-                                    <TextBox Grid.Column="0" Text="{Binding ComponentName, Mode=TwoWay}" Visibility="{Binding DataContext.AdminOptionsToggle,  ElementName=SquintWindow,Converter={StaticResource VisibilityConverter}}" 
+                                    <TextBox Grid.Column="0" Text="{Binding ComponentName, Mode=TwoWay}" Visibility="{Binding DataContext.AdminOptionsToggle,  ElementName=ProtocolsViewElement,Converter={StaticResource VisibilityConverter}}" 
                                                          FontSize="13" Margin="10,0,0,0" TextAlignment="Left" Width="150"                                                      
                                                          Style="{StaticResource ConstraintTextBoxStyle}"/>
-                                    <TextBlock Grid.Column="0" Text="{Binding ComponentName, UpdateSourceTrigger=PropertyChanged}" Visibility="{Binding DataContext.AdminOptionsToggle, ElementName=SquintWindow, Converter={StaticResource VisibilityInverseConverter}}"
+                                    <TextBlock Grid.Column="0" Text="{Binding ComponentName, UpdateSourceTrigger=PropertyChanged}" Visibility="{Binding DataContext.AdminOptionsToggle, ElementName=ProtocolsViewElement, Converter={StaticResource VisibilityInverseConverter}}"
                                                            FontSize="13" Background="Transparent" Margin="10,0,0,0" VerticalAlignment="Center"/>
                                     <TextBlock Grid.Column="1" Text="{Binding ComponentTDFDescription, UpdateSourceTrigger=PropertyChanged}" FontSize="13" Foreground="SteelBlue" Background="Transparent" Margin="10,0,0,0" VerticalAlignment="Center"/>
                                     <Button Grid.Column="2" Name="button_DeleteComonent_Admin" ToolTip="Delete component" 
@@ -269,14 +270,14 @@
                                         <Image Source="/Resources/x.png"/>
                                         <Button.Visibility>
                                             <MultiBinding Converter="{StaticResource VisibilityMultiConverter}">
-                                                <Binding Path="DataContext.AdminOptionsToggle" ElementName="SquintWindow" UpdateSourceTrigger="PropertyChanged"/>
+                                                <Binding Path="DataContext.AdminOptionsToggle" ElementName="ProtocolsViewElement" UpdateSourceTrigger="PropertyChanged"/>
                                                 <Binding Path="isCreated"/>
                                             </MultiBinding>
                                         </Button.Visibility>
                                     </Button>
                                     <Button Grid.Column="3" Name="button_ShowComponent" ToolTip="Pin component details"
                                                         Style="{DynamicResource ButtonStyle_Small}" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="5,0,5,0" 
-                                                            Command="{Binding DataContext.ShowComponentCommand, ElementName=SquintWindow}" CommandParameter="{Binding}">
+                                                            Command="{Binding DataContext.ShowComponentCommand, ElementName=ProtocolsViewElement}" CommandParameter="{Binding}">
                                         <Image>
                                             <Image.Style>
                                                 <Style TargetType="Image">
@@ -387,7 +388,7 @@
                             </Button>
                         </Grid>
                     </Border>
-                    <Button Grid.Column="1" Style="{DynamicResource ButtonStyle_Small}" Command="{Binding ElementName=SquintWindow, Path=DataContext.AddStructureCommand}">
+                    <Button Grid.Column="1" Style="{DynamicResource ButtonStyle_Small}" Command="{Binding ElementName=ProtocolsViewElement, Path=DataContext.AddStructureCommand}">
                         <Image Source="../Resources/plus.png"></Image>
                     </Button>
                 </Grid>
@@ -399,7 +400,7 @@
                         <MultiBinding Converter="{StaticResource ExpanderConverter}" ConverterParameter="500">
                             <Binding Path="Tag" RelativeSource="{RelativeSource Self}"/>
                             <Binding Source="50"/>
-                            <Binding ElementName="SquintWindow" Path="DataContext.NumStructures" UpdateSourceTrigger="PropertyChanged"/>
+                            <Binding ElementName="ProtocolsViewElement" Path="DataContext.NumStructures" UpdateSourceTrigger="PropertyChanged"/>
                         </MultiBinding>
                     </Grid.MaxHeight>
                     <Grid.Style>
@@ -453,10 +454,10 @@
                                         </Grid.ColumnDefinitions>
                                         <Image Name ="DragImage"  Grid.Column="0" Height="20" Width="18" Stretch="Fill" RenderOptions.BitmapScalingMode="HighQuality" Source="/Resources/align.png" ToolTip="Drag to re-order" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="5,2,5,2" MouseDown="DragStructure_MouseDown"/>
                                         <TextBlock Grid.Column="1" Text="{Binding ProtocolStructureName, UpdateSourceTrigger=PropertyChanged, Mode=OneWay}" VerticalAlignment="Center"
-                                                               Visibility="{Binding DataContext.AdminOptionsToggle, ElementName=SquintWindow, UpdateSourceTrigger=PropertyChanged,Converter={StaticResource VisibilityInverseConverter}}"
+                                                               Visibility="{Binding DataContext.AdminOptionsToggle, ElementName=ProtocolsViewElement, UpdateSourceTrigger=PropertyChanged,Converter={StaticResource VisibilityInverseConverter}}"
                                                                FontSize="13" Background="Transparent" Margin="5,0,0,0"></TextBlock>
                                         <TextBox Grid.Column="1" Text="{Binding ProtocolStructureName, Mode=TwoWay}" Width="150" HorizontalAlignment="Left" 
-                                                             Visibility="{Binding DataContext.AdminOptionsToggle, ElementName=SquintWindow, UpdateSourceTrigger=PropertyChanged,Converter={StaticResource VisibilityConverter}}"
+                                                             Visibility="{Binding DataContext.AdminOptionsToggle, ElementName=ProtocolsViewElement, UpdateSourceTrigger=PropertyChanged,Converter={StaticResource VisibilityConverter}}"
                                                              FontSize="13" Style="{StaticResource ConstraintTextBoxStyle}" Margin="5,0,0,0" VerticalContentAlignment="Center" VerticalAlignment="Center" Views:TextBoxExtensions.UpdateSourceOnKey="Return" Height="25"></TextBox>
                                         <Grid Grid.Column="2" Margin="00,0,0,0">
                                             <Grid.ColumnDefinitions>
@@ -465,15 +466,15 @@
                                                 <ColumnDefinition Width="*"/>
                                             </Grid.ColumnDefinitions>
                                             <Ellipse Grid.Column="0" Width="12" Height="12" Margin="10,0,10,0" Fill="{Binding StructureColor, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource Color2Brush}}"
-                                                                 Visibility="{Binding DataContext.AdminOptionsToggle, ElementName=SquintWindow, UpdateSourceTrigger=PropertyChanged,Converter={StaticResource VisibilityInverseConverter}}"/>
-                                            <ComboBox Grid.Column="1"  Visibility="{Binding DataContext.AdminOptionsToggle, ElementName=SquintWindow, UpdateSourceTrigger=PropertyChanged,Converter={StaticResource VisibilityInverseConverter}}"
+                                                                 Visibility="{Binding DataContext.AdminOptionsToggle, ElementName=ProtocolsViewElement, UpdateSourceTrigger=PropertyChanged,Converter={StaticResource VisibilityInverseConverter}}"/>
+                                            <ComboBox Grid.Column="1"  Visibility="{Binding DataContext.AdminOptionsToggle, ElementName=ProtocolsViewElement, UpdateSourceTrigger=PropertyChanged,Converter={StaticResource VisibilityInverseConverter}}"
                                                                       HorizontalAlignment="Center" MinWidth="150" MaxWidth="200" HorizontalContentAlignment="Center" Width="Auto" Style="{StaticResource ConstraintComboBoxStyle}" MaxDropDownHeight="150"
                                                                   SelectedItem="{Binding AssignedStructureId, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
                                                                       Background="AliceBlue">
                                                 <ComboBox.ItemsSource>
                                                     <MultiBinding Converter="{StaticResource SortStructuresConverter}" Mode="OneWay">
                                                         <Binding RelativeSource="{RelativeSource FindAncestor, AncestorType={x:Type ListViewItem}}" Path="DataContext"  Mode="OneWay"/>
-                                                        <Binding ElementName="SquintWindow" Path="DataContext.AvailableStructureIds" UpdateSourceTrigger="PropertyChanged" Mode="OneWay"/>
+                                                        <Binding ElementName="ProtocolsViewElement" Path="DataContext.AvailableStructureIds" UpdateSourceTrigger="PropertyChanged" Mode="OneWay"/>
                                                     </MultiBinding>
                                                 </ComboBox.ItemsSource>
                                             </ComboBox>
@@ -490,7 +491,7 @@
                                             <Image Source="/Resources/x.png"/>
                                             <Button.Visibility>
                                                 <MultiBinding Converter="{StaticResource VisibilityMultiConverter}">
-                                                    <Binding Path="DataContext.AdminOptionsToggle" ElementName="SquintWindow" UpdateSourceTrigger="PropertyChanged"/>
+                                                    <Binding Path="DataContext.AdminOptionsToggle" ElementName="ProtocolsViewElement" UpdateSourceTrigger="PropertyChanged"/>
                                                     <Binding Path="isUserAdded"/>
                                                 </MultiBinding>
                                             </Button.Visibility>
@@ -533,7 +534,7 @@
                                                             <MultiBinding Converter="{StaticResource SelectionConverter}" UpdateSourceTrigger="PropertyChanged">
                                                                 <Binding RelativeSource="{RelativeSource AncestorLevel=1, AncestorType=ListViewItem}" UpdateSourceTrigger="PropertyChanged" Path="IsSelected" />
                                                                 <Binding RelativeSource="{RelativeSource AncestorLevel=1, AncestorType=ListViewItem}" UpdateSourceTrigger="PropertyChanged" Path="DataContext.Pinned" />
-                                                                <Binding ElementName="SquintWindow" Path="DataContext.DragSelected" />
+                                                                <Binding ElementName="ProtocolsViewElement" Path="DataContext.DragSelected" />
                                                             </MultiBinding>
                                                         </DataTrigger.Binding>
                                                         <DataTrigger.EnterActions>
@@ -561,10 +562,10 @@
                                                 </Grid.ColumnDefinitions>
                                                 <TextBlock Grid.Row="0" Grid.Column="0" Text="Structure Name:" Margin="7,5,7,5" HorizontalAlignment="Left" Visibility="{Binding isUserAdded, Converter={StaticResource VisibilityConverter}, UpdateSourceTrigger=PropertyChanged}"/>
                                                 <TextBox Grid.Row="0" Grid.Column="1" HorizontalAlignment="Center" Width="150" MaxLength="50" Text="{Binding ProtocolStructureName, Mode=TwoWay}" KeyUp="TextBox_KeyEnterUpdate" Visibility="{Binding isUserAdded, Converter={StaticResource VisibilityConverter}, UpdateSourceTrigger=PropertyChanged}"/>
-                                                <TextBlock Grid.Row="1" Grid.Column="0" Text="Structure Aliases:" Margin="7,5,7,5" HorizontalAlignment="Left" Visibility="{Binding DataContext.AdminOptionsToggle, ElementName=SquintWindow, UpdateSourceTrigger=PropertyChanged,Converter={StaticResource VisibilityConverter}}"></TextBlock>
+                                                <TextBlock Grid.Row="1" Grid.Column="0" Text="Structure Aliases:" Margin="7,5,7,5" HorizontalAlignment="Left" Visibility="{Binding DataContext.AdminOptionsToggle, ElementName=ProtocolsViewElement, UpdateSourceTrigger=PropertyChanged,Converter={StaticResource VisibilityConverter}}"></TextBlock>
 
                                                 <Grid Grid.Row="1" Grid.Column="1"  HorizontalAlignment="Center" VerticalAlignment="Center" Background="White"
-                                                                  Visibility="{Binding DataContext.AdminOptionsToggle, ElementName=SquintWindow, UpdateSourceTrigger=PropertyChanged,Converter={StaticResource VisibilityConverter}}">
+                                                                  Visibility="{Binding DataContext.AdminOptionsToggle, ElementName=ProtocolsViewElement, UpdateSourceTrigger=PropertyChanged,Converter={StaticResource VisibilityConverter}}">
                                                     <Grid.RowDefinitions>
                                                         <RowDefinition Height="*"/>
                                                         <RowDefinition Height="Auto"/>
@@ -618,7 +619,7 @@
                                                                        Margin="7,5,7,5" HorizontalAlignment="Left" Foreground="SteelBlue"/>
                                                     <Grid Grid.Column="3">
                                                         <Button Style="{StaticResource ButtonStyle_Small}" Width="20" Height="20" HorizontalAlignment="Right" Margin="0,0,5,0" 
-                                                                            Visibility="{Binding DataContext.AdminOptionsToggle, ElementName=SquintWindow, Converter={StaticResource VisibilityConverter}}"
+                                                                            Visibility="{Binding DataContext.AdminOptionsToggle, ElementName=ProtocolsViewElement, Converter={StaticResource VisibilityConverter}}"
                                                                             Command="{Binding EditStructureCommand}" ToolTip="Change protocol structure label">
                                                             <Image>
                                                                 <Image.Style>
@@ -653,7 +654,7 @@
                                                                     <DataTrigger.Binding>
                                                                         <MultiBinding Converter="{StaticResource SelectionConverter}" UpdateSourceTrigger="PropertyChanged">
                                                                             <Binding RelativeSource="{RelativeSource AncestorLevel=1, AncestorType=ListViewItem}" UpdateSourceTrigger="PropertyChanged" Path="DataContext.EditStructureVisibility" />
-                                                                            <Binding ElementName="SquintWindow" Path="DataContext.DragSelected" />
+                                                                            <Binding ElementName="ProtocolsViewElement" Path="DataContext.DragSelected" />
                                                                         </MultiBinding>
                                                                     </DataTrigger.Binding>
                                                                     <DataTrigger.EnterActions>
@@ -690,8 +691,8 @@
                                                     </Grid.ColumnDefinitions>
                                                     <TextBlock Grid.Column="0" Text="Alpha/Beta ratio:" HorizontalAlignment="Left" Margin="7,5,7,5"/>
                                                     <TextBlock Grid.Column="1" Text="{Binding DataContext.AlphaBetaRatio, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type ListViewItem}}, UpdateSourceTrigger=PropertyChanged, Mode=OneWay}"
-                                                                       Margin="7,5,7,5" HorizontalAlignment="Center" Foreground="SteelBlue" Visibility="{Binding DataContext.AdminOptionsToggle, ElementName=SquintWindow, Converter={StaticResource VisibilityInverseConverter}}"/>
-                                                    <TextBox Grid.Column="1" Text="{Binding AlphaBetaRatioOverride}" Width="30" HorizontalAlignment="Left" Visibility="{Binding DataContext.AdminOptionsToggle, ElementName=SquintWindow, Converter={StaticResource VisibilityConverter}}"/>
+                                                                       Margin="7,5,7,5" HorizontalAlignment="Center" Foreground="SteelBlue" Visibility="{Binding DataContext.AdminOptionsToggle, ElementName=ProtocolsViewElement, Converter={StaticResource VisibilityInverseConverter}}"/>
+                                                    <TextBox Grid.Column="1" Text="{Binding AlphaBetaRatioOverride}" Width="30" HorizontalAlignment="Left" Visibility="{Binding DataContext.AdminOptionsToggle, ElementName=ProtocolsViewElement, Converter={StaticResource VisibilityConverter}}"/>
                                                 </Grid>
                                             </Grid>
                                         </GroupBox>
@@ -710,7 +711,7 @@
                         <TextBlock Text="Constraints" VerticalAlignment="Center" FontWeight="Bold" Margin="10,0,0,0">
                         </TextBlock>
                     </Border>
-                    <Button Grid.Column="1" Style="{DynamicResource ButtonStyle_Small}" Command="{Binding ElementName=SquintWindow, Path=DataContext.AddConstraintCommand}" >
+                    <Button Grid.Column="1" Style="{DynamicResource ButtonStyle_Small}" Command="{Binding ElementName=ProtocolsViewElement, Path=DataContext.AddConstraintCommand}" >
                         <Image Source="/Resources/plus.png"></Image>
                     </Button>
                 </Grid>
@@ -737,7 +738,7 @@
                                         </Grid.ColumnDefinitions>
                                         <Image Name ="DragImage"  Grid.Column="0" Height="20" Width="18" Stretch="Fill" RenderOptions.BitmapScalingMode="HighQuality" Source="/Resources/align.png" ToolTip="Drag to re-order" VerticalAlignment="Center"
                                                                HorizontalAlignment="Right" Margin="5,2,5,2" MouseDown="DragConstraint_MouseDown"/>
-                                        <ComboBox Grid.Column="1" HorizontalAlignment="Stretch" Width="120" ItemsSource="{Binding ElementName=SquintWindow, Path=DataContext.Structures}" DisplayMemberPath="ProtocolStructureName" Style="{StaticResource ConstraintComboBoxStyle}"
+                                        <ComboBox Grid.Column="1" HorizontalAlignment="Stretch" Width="120" ItemsSource="{Binding ElementName=ProtocolsViewElement, Path=DataContext.Structures}" DisplayMemberPath="ProtocolStructureName" Style="{StaticResource ConstraintComboBoxStyle}"
                                                                   MaxDropDownHeight="100" 
                                                                   VerticalAlignment="Center" 
                                                           SelectedItem="{Binding RelativeSource={RelativeSource FindAncestor, AncestorLevel=1, AncestorType={x:Type ListViewItem}}, Path=DataContext.SS, Converter={StaticResource GetConstraintStructureConverter}, Mode=TwoWay}"/>
@@ -755,20 +756,20 @@
                                             </ComboBox.ItemTemplate>
                                         </ComboBox>
                                         <Button Grid.Column="4" Name="ConstraintInfoButton" ToolTip="Constraint Information" Style="{DynamicResource ButtonStyle_Small}" Margin="5,5,0,5" 
-                                                        Command="{Binding DataContext.GetConstraintInformationCommand, ElementName=SquintWindow}" CommandParameter="{Binding}">
+                                                        Command="{Binding DataContext.GetConstraintInformationCommand, ElementName=ProtocolsViewElement}" CommandParameter="{Binding}">
                                             <Image Source="/Resources/appbar.question.png"/>
                                         </Button>
-                                        <Popup Name="ConstraintInfoPopup" PlacementTarget="{Binding ElementName=SquintWindow}" Placement="Center" StaysOpen="False" AllowsTransparency="True" PopupAnimation="Fade"  IsOpen="{Binding ConstraintInfoVisibility, UpdateSourceTrigger=PropertyChanged}" >
+                                        <Popup Name="ConstraintInfoPopup" PlacementTarget="{Binding ElementName=ProtocolsViewElement}" Placement="Center" StaysOpen="False" AllowsTransparency="True" PopupAnimation="Fade"  IsOpen="{Binding ConstraintInfoVisibility, UpdateSourceTrigger=PropertyChanged}" >
                                             <Views:ConstraintInformation DataContext="{Binding}" MinHeight="35" Height="Auto"/>
                                         </Popup>
                                         <Button ToolTip="Delete constraint" Grid.Column="5"
-                                                            Style="{DynamicResource ButtonStyle_Small}" VerticalAlignment="Center" HorizontalAlignment="Right" Visibility="{Binding DataContext.AdminOptionsToggle, ElementName=SquintWindow, Converter={StaticResource VisibilityConverter}}"
-                                                            Command="{Binding DataContext.DeleteConstraintCommand, ElementName=SquintWindow}" CommandParameter="{Binding}" Height="25" Width="25">
+                                                            Style="{DynamicResource ButtonStyle_Small}" VerticalAlignment="Center" HorizontalAlignment="Right" Visibility="{Binding DataContext.AdminOptionsToggle, ElementName=ProtocolsViewElement, Converter={StaticResource VisibilityConverter}}"
+                                                            Command="{Binding DataContext.DeleteConstraintCommand, ElementName=ProtocolsViewElement}" CommandParameter="{Binding}" Height="25" Width="25">
                                             <Image Source="/Resources/x.png"/>
                                         </Button>
                                         <Button Grid.Column="6" ToolTip="Pin constraint details"
                                                             Style="{DynamicResource ButtonStyle_Small}" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="0,5,5,5" 
-                                                            Command="{Binding DataContext.PinConstraintCommand, ElementName=SquintWindow}" CommandParameter="{Binding}">
+                                                            Command="{Binding DataContext.PinConstraintCommand, ElementName=ProtocolsViewElement}" CommandParameter="{Binding}">
                                             <Image>
                                                 <Image.Style>
                                                     <Style TargetType="Image">
@@ -802,7 +803,7 @@
                                                             <MultiBinding Converter="{StaticResource SelectionConverter}" UpdateSourceTrigger="PropertyChanged">
                                                                 <Binding RelativeSource="{RelativeSource AncestorLevel=1, AncestorType=ListViewItem}" UpdateSourceTrigger="PropertyChanged" Path="IsSelected" />
                                                                 <Binding RelativeSource="{RelativeSource AncestorLevel=1, AncestorType=ListViewItem}" UpdateSourceTrigger="PropertyChanged" Path="DataContext.Pinned" />
-                                                                <Binding ElementName="SquintWindow" Path="DataContext.DragSelected" />
+                                                                <Binding ElementName="ProtocolsViewElement" Path="DataContext.DragSelected" />
                                                             </MultiBinding>
                                                         </DataTrigger.Binding>
                                                         <DataTrigger.EnterActions>

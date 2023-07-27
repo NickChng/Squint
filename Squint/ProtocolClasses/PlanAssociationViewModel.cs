@@ -5,28 +5,32 @@ using System.Threading.Tasks;
 using System.ComponentModel;
 using PropertyChanged;
 using Squint.Extensions;
+using Squint.ViewModels;
 
 namespace Squint
 {
     [AddINotifyPropertyChangedInterface]
-    public class PlanAssociation
+    public class PlanAssociationViewModel
     {
         //private Dictionary<int, bool> ComponentValidity = new Dictionary<int, bool>(); // component ID to validity
         //public event EventHandler<int> PlanDeleting;
         //public event EventHandler<int> PlanMappingChanged;
 
         private Component component;
-        private Assessment assessment;
-        public PlanAssociation(Component component_in, Assessment assessment_in, DbPlanAssociation DbO)
+        private AssessmentViewModel assessment;
+        private SquintModel _model;
+        public PlanAssociationViewModel(SquintModel model, Component component_in, AssessmentViewModel assessment_in, DbPlanAssociation DbO)
         {
             ID = DbO.ID;
+            _model = model;
             assessment = assessment_in;
             component = component_in;
             component.PropertyChanged += OnComponentPropertyChanged;
         }
-        public PlanAssociation(Component component_in, Assessment assessment_in, AsyncPlan p = null)
+        public PlanAssociationViewModel(SquintModel model, Component component_in, AssessmentViewModel assessment_in, AsyncPlan p = null)
         {
             ID = IDGenerator.GetUniqueId();
+            _model = model; 
             if (p != null)
                 UpdateLinkedPlan(p, false);
             assessment = assessment_in;
@@ -82,7 +86,7 @@ namespace Squint
 
         public async Task LoadLinkedPlan(DbPlanAssociation DbO)
         {
-            AsyncPlan LinkedPlan = await SquintModel.GetAsyncPlan(DbO.CourseName, DbO.PlanName);
+            AsyncPlan LinkedPlan = await _model.GetAsyncPlan(DbO.CourseName, DbO.PlanName);
             UpdateLinkedPlan(LinkedPlan, false);
             if (LinkedPlan == null)
             {
@@ -191,8 +195,8 @@ namespace Squint
                     ErrorCodes.Add(ComponentStatusCodes.NumFractionsMismatch);
                 }
             }
-            if (SquintModel.CurrentStructureSet != null)
-                if (LinkedPlan.StructureSetUID != SquintModel.CurrentStructureSet.UID)
+            if (_model.CurrentStructureSet != null)
+                if (LinkedPlan.StructureSetUID != _model.CurrentStructureSet.UID)
                     ErrorCodes.Add(ComponentStatusCodes.StructureSetDiscrepancy);
 
             return ErrorCodes;

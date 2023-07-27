@@ -6,7 +6,7 @@ using System.IO;
 
 namespace Squint
 {
-     public partial class Constraint
+     public partial class ConstraintViewModel
         {
             public class InterpolatedThreshold : IReferenceThreshold, ITrackedValue
             {

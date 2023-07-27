@@ -54,6 +54,7 @@ namespace Squint.ViewModels
 
     public class Checklist_ViewModel : ObservableObject
     {
+        private SquintModel _model;
         public Beam_ViewModel Beam_ViewModel { get; set; } = new Beam_ViewModel();
         public LoadingViewModel Loading_ViewModel { get; set; } = new LoadingViewModel();
         public OptimizationCheckViewModel Objectives_ViewModel { get; set; } = new OptimizationCheckViewModel();
@@ -70,6 +71,7 @@ namespace Squint.ViewModels
 
         public bool EditBeamChecksVisibility { get; set; }
 
+        private PlanSelector _planSelector;
         public BeamListItem SelectedBeam { get; set; }
 
         private ComponentSelector _SelectedComponent;
@@ -84,11 +86,12 @@ namespace Squint.ViewModels
             set { _SelectedComponent = value; PopulateViewFromSelectedComponent(); }
         }
         public StructureSelector SelectedStructure { get; set; }
-        public Checklist_ViewModel(ProtocolsViewModel parentView)
+        public Checklist_ViewModel(ProtocolsViewModel parentView, SquintModel model)
         {
             ParentView = parentView;
-            SquintModel.ProtocolUpdated += Ctr_ProtocolUpdated;
-            SquintModel.ProtocolOpened += Ctr_ProtocolUpdated;
+            _model = model;
+            _model.ProtocolUpdated += Ctr_ProtocolUpdated;
+            _model.ProtocolOpened += Ctr_ProtocolUpdated;
         }
 
         private void Ctr_ProtocolUpdated(object sender, EventArgs e)
@@ -108,11 +111,11 @@ namespace Squint.ViewModels
             // No pre-population of the Objectives of imaging checks yet, as these aren't editable
 
             // Populate Simulation ViewModel
-            var P = SquintModel.CurrentProtocol;
+            var P = _model.CurrentProtocol;
             Components.Clear();
-            foreach (var Comp in SquintModel.CurrentProtocol.Components.OrderBy(x => x.DisplayOrder))
+            foreach (var Comp in _model.CurrentProtocol.Components.OrderBy(x => x.DisplayOrder))
             {
-                Components.Add(new ComponentSelector(Comp));
+                Components.Add(new ComponentSelector(Comp, _model));
             }
 
             Simulation_ViewModel.Tests.Clear();
@@ -188,7 +191,7 @@ namespace Squint.ViewModels
                 string NoCheckHUString = @"No artifact structure";
                 string NoRefHUString = @"Not specified";
                 var ArtifactCheck = new TestValueItem<double?>(CheckTypes.ArtifactHU, null, A.RefHU, A.ToleranceHU, ArtifactWarningString, NoCheckHUString, NoRefHUString);
-                var PS = SquintModel.GetProtocolStructure(A.ProtocolStructureId.Value);
+                var PS = _model.GetProtocolStructure(A.ProtocolStructureId.Value);
                 if (PS != null)
                     ArtifactCheck.OptionalNameSuffix = string.Format(@"(""{0}"")", PS.AssignedStructureId);
                 ArtifactCheck.ParameterOption = ParameterOptions.Optional;
@@ -196,21 +199,21 @@ namespace Squint.ViewModels
             }
 
             // Course Intent
-            var ValidTreatmentIntents = SquintModel.CurrentProtocol.TreatmentIntents;
+            var ValidTreatmentIntents = _model.CurrentProtocol.TreatmentIntents;
             var CourseIntentWarningString = "Invalid course intent";
             TestContainsItem<TreatmentIntents> CourseIntentTest = new TestContainsItem<TreatmentIntents>(CheckTypes.CourseIntent, TreatmentIntents.Unset, ValidTreatmentIntents, null, CourseIntentWarningString);
             DiagnosisIntent_ViewModel.Tests = new ObservableCollection<ITestListItem>() { CourseIntentTest };
 
             // Structure
-            // old point checks.
+            PerformStrayVoxelChecks();
         }
         private void PopulateViewFromSelectedComponent()
         {
 
             if (_SelectedComponent == null)
                 return;
-            var P = SquintModel.CurrentProtocol;
-            Component Comp = SquintModel.GetComponent(_SelectedComponent.Id);
+            var P = _model.CurrentProtocol;
+            Component Comp = _model.GetComponent(_SelectedComponent.Id);
 
             var PNVWarning = "Out of range";
             TestRangeItem<double?> PNVCheck = new TestRangeItem<double?>(CheckTypes.PlanNormalization, null, Comp.PNVMin, Comp.PNVMax, PNVWarning);
@@ -238,7 +241,7 @@ namespace Squint.ViewModels
             Beam_ViewModel.GroupTests.Tests.Clear();
             foreach (var Beam in Comp.Beams)
             {
-                var BLI = new BeamListItem(Beam, null);
+                var BLI = new BeamListItem(Beam, null, _model);
                 Beam_ViewModel.Beams.Add(BLI);
                 BLI.InitializeTests();
                 BLI.FieldChanged += new EventHandler((s, e) => BLI_PropertyChanged(s, e, Comp)); // this updates the MinColOffsetCheck if the field assignments on any reference beam are changed
@@ -263,10 +266,11 @@ namespace Squint.ViewModels
         public async Task DisplayChecksForPlan(PlanSelector p)
         {
 
-            StructuresWithDensityOverride = SquintModel.CurrentStructureSet.GetAllStructures().Where(x => !double.IsNaN(x.HU) && x.DicomType != @"SUPPORT").ToList();
-            StructuresWithHighResolutionContours = SquintModel.CurrentStructureSet.GetAllStructures().Where(x => x.IsHighResolution).ToList();
+            _planSelector = p;
+            StructuresWithDensityOverride = _model.CurrentStructureSet.GetAllStructures().Where(x => !double.IsNaN(x.HU) && x.DicomType != @"SUPPORT").ToList();
+            StructuresWithHighResolutionContours = _model.CurrentStructureSet.GetAllStructures().Where(x => x.IsHighResolution).ToList();
             Objectives_ViewModel = new OptimizationCheckViewModel();
-            var Objectives = await SquintModel.GetOptimizationObjectiveList(p.CourseId, p.PlanId);
+            var Objectives = await _model.GetOptimizationObjectiveList(p.CourseId, p.PlanId);
             List<string> StructureIds = new List<string>();
             ObservableCollection<ObjectiveItem> objectiveItems = new ObservableCollection<ObjectiveItem>();
             foreach (ObjectiveDefinition OD in Objectives)
@@ -281,11 +285,11 @@ namespace Squint.ViewModels
 
             }
             Objectives_ViewModel.Objectives = objectiveItems;
-            Objectives_ViewModel.NTO = await SquintModel.GetNTOObjective(p.CourseId, p.PlanId);
+            Objectives_ViewModel.NTO = await _model.GetNTOObjective(p.CourseId, p.PlanId);
 
-            var ImagingFields = await SquintModel.GetImagingFieldList(p.CourseId, p.PlanId);
-            Component Comp = SquintModel.CurrentProtocol.Components.FirstOrDefault(x => x.ComponentName == p.ACV.ComponentName);
-            var ImageProtocolCheck = SquintModel.CheckImagingProtocols(Comp, ImagingFields);
+            var ImagingFields = await _model.GetImagingFieldList(p.CourseId, p.PlanId);
+            Component Comp = _model.CurrentProtocol.Components.FirstOrDefault(x => x.ComponentName == p.ACV.ComponentName);
+            var ImageProtocolCheck = _model.CheckImagingProtocols(Comp, ImagingFields);
             Imaging_ViewModel.ImagingProtocols.Clear();
             foreach (ImagingProtocolTypes IP in Comp.ImagingProtocols)
             {
@@ -303,17 +307,17 @@ namespace Squint.ViewModels
             Imaging_ViewModel.ImagingFields = new ObservableCollection<ImagingFieldItem>(ImagingFields);
 
             // Populate Simulation ViewModel
-            var P = SquintModel.CurrentProtocol;
+            var P = _model.CurrentProtocol;
             var SliceSpacingReference = P.Checklist.SliceSpacing;
-            var SliceSpacingValue = await SquintModel.GetSliceSpacing(p.CourseId, p.PlanId);
+            var SliceSpacingValue = await _model.GetSliceSpacing(p.CourseId, p.PlanId);
             TestValueItem<double?> SliceSpacing = new TestValueItem<double?>(CheckTypes.SliceSpacing, SliceSpacingValue, SliceSpacingReference, new TrackedValue<double?>(1E-5), "Slice spacing does not match protocol");
             SliceSpacing.CheckType = CheckTypes.SliceSpacing;
-            TestValueItem<string> Series = new TestValueItem<string>(CheckTypes.SeriesId, await SquintModel.GetSeriesId(p.CourseId, p.PlanId), null) { ParameterOption = ParameterOptions.Optional };
-            TestValueItem<string> Study = new TestValueItem<string>(CheckTypes.StudyId, await SquintModel.GetStudyId(p.CourseId, p.PlanId), null) { ParameterOption = ParameterOptions.Optional };
-            TestContainsItem<string> CTDevice = new TestContainsItem<string>(CheckTypes.CTDeviceId, await SquintModel.GetCTDeviceId(p.CourseId, p.PlanId), P.Checklist.CTDeviceIds) { IsInfoOnly = false };
-            TestValueItem<string> SeriesComment = new TestValueItem<string>(CheckTypes.SeriesComment, await SquintModel.GetSeriesComments(p.CourseId, p.PlanId), null) { ParameterOption = ParameterOptions.Optional };
-            TestValueItem<string> ImageComment = new TestValueItem<string>(CheckTypes.ImageComment, await SquintModel.GetImageComments(p.CourseId, p.PlanId), null) { ParameterOption = ParameterOptions.Optional };
-            var NumSlices = await SquintModel.GetNumSlices(p.CourseId, p.PlanId);
+            TestValueItem<string> Series = new TestValueItem<string>(CheckTypes.SeriesId, await _model.GetSeriesId(p.CourseId, p.PlanId), null) { ParameterOption = ParameterOptions.Optional };
+            TestValueItem<string> Study = new TestValueItem<string>(CheckTypes.StudyId, await _model.GetStudyId(p.CourseId, p.PlanId), null) { ParameterOption = ParameterOptions.Optional };
+            TestContainsItem<string> CTDevice = new TestContainsItem<string>(CheckTypes.CTDeviceId, await _model.GetCTDeviceId(p.CourseId, p.PlanId), P.Checklist.CTDeviceIds) { IsInfoOnly = false };
+            TestValueItem<string> SeriesComment = new TestValueItem<string>(CheckTypes.SeriesComment, await _model.GetSeriesComments(p.CourseId, p.PlanId), null) { ParameterOption = ParameterOptions.Optional };
+            TestValueItem<string> ImageComment = new TestValueItem<string>(CheckTypes.ImageComment, await _model.GetImageComments(p.CourseId, p.PlanId), null) { ParameterOption = ParameterOptions.Optional };
+            var NumSlices = await _model.GetNumSlices(p.CourseId, p.PlanId);
             int Slices;
             if (NumSlices != null)
                 Slices = (int)NumSlices;
@@ -326,7 +330,7 @@ namespace Squint.ViewModels
             Calculation_ViewModel.Tests.Clear(); // = new ObservableCollection<Controls.TestListItem<string>>();
             var ProtocolAlgorithm = P.Checklist.Algorithm;
             AlgorithmVolumeDoseTypes ComponentAlgorithm;
-            Enum.TryParse(await SquintModel.GetAlgorithmModel(p.CourseId, p.PlanId), out ComponentAlgorithm);
+            Enum.TryParse(await _model.GetAlgorithmModel(p.CourseId, p.PlanId), out ComponentAlgorithm);
             TestValueItem<AlgorithmVolumeDoseTypes> Algorithm = new TestValueItem<AlgorithmVolumeDoseTypes>(CheckTypes.Algorithm, ComponentAlgorithm, ProtocolAlgorithm, null, "Algorithm mismatch");
             Calculation_ViewModel.Tests.Add(Algorithm);
 
@@ -334,7 +338,7 @@ namespace Squint.ViewModels
             if (ProtocolVMATAlgorithm.Value != AlgorithmVMATOptimizationTypes.Unset)
             {
                 AlgorithmVMATOptimizationTypes ComponentVMATAlgorithm;
-                Enum.TryParse(await SquintModel.GetVMATAlgorithmModel(p.CourseId, p.PlanId), out ComponentVMATAlgorithm);
+                Enum.TryParse(await _model.GetVMATAlgorithmModel(p.CourseId, p.PlanId), out ComponentVMATAlgorithm);
                 TestValueItem<AlgorithmVMATOptimizationTypes> VMATAlgorithm = new TestValueItem<AlgorithmVMATOptimizationTypes>(CheckTypes.AlgorithmVMATOptimization, ComponentVMATAlgorithm, ProtocolVMATAlgorithm, null, "Algorithm mismatch");
                 Calculation_ViewModel.Tests.Add(VMATAlgorithm);
             }
@@ -342,7 +346,7 @@ namespace Squint.ViewModels
             var ProtocolVMATAirCavityCorrection = P.Checklist.AirCavityCorrectionVMAT;
             if (!string.IsNullOrEmpty(ProtocolVMATAirCavityCorrection.Value))
             {
-                var PlanVMATAirCavityCorrection = await SquintModel.GetAirCavityCorrectionVMAT(p.CourseId, p.PlanId);
+                var PlanVMATAirCavityCorrection = await _model.GetAirCavityCorrectionVMAT(p.CourseId, p.PlanId);
                 TestValueItem<string> AirCavityCorrectionVMATOn = new TestValueItem<string>(CheckTypes.AirCavityCorrectionVMAT, PlanVMATAirCavityCorrection, ProtocolVMATAirCavityCorrection, null, "Option mismatch");
                 Calculation_ViewModel.Tests.Add(AirCavityCorrectionVMATOn);
             }
@@ -351,7 +355,7 @@ namespace Squint.ViewModels
             if (ProtocolIMRTAlgorithm.Value != AlgorithmIMRTOptimizationTypes.Unset)
             {
                 AlgorithmIMRTOptimizationTypes ComponentIMRTAlgorithm;
-                Enum.TryParse(await SquintModel.GetIMRTAlgorithmModel(p.CourseId, p.PlanId), out ComponentIMRTAlgorithm);
+                Enum.TryParse(await _model.GetIMRTAlgorithmModel(p.CourseId, p.PlanId), out ComponentIMRTAlgorithm);
                 TestValueItem<AlgorithmIMRTOptimizationTypes> IMRTAlgorithm = new TestValueItem<AlgorithmIMRTOptimizationTypes>(CheckTypes.AlgorithmIMRTOptimization, ComponentIMRTAlgorithm, ProtocolIMRTAlgorithm, null, "Algorithm mismatch");
                 Calculation_ViewModel.Tests.Add(IMRTAlgorithm);
             }
@@ -359,19 +363,19 @@ namespace Squint.ViewModels
             var ProtocolIMRTAirCavityCorrection = P.Checklist.AirCavityCorrectionIMRT;
             if (!string.IsNullOrEmpty(ProtocolIMRTAirCavityCorrection.Value))
             {
-                var PlanIMRTAirCavityCorrection = await SquintModel.GetAirCavityCorrectionIMRT(p.CourseId, p.PlanId);
+                var PlanIMRTAirCavityCorrection = await _model.GetAirCavityCorrectionIMRT(p.CourseId, p.PlanId);
                 TestValueItem<string> AirCavityCorrectionIMRTOn = new TestValueItem<string>(CheckTypes.AirCavityCorrectionIMRT, PlanIMRTAirCavityCorrection, ProtocolIMRTAirCavityCorrection, null, "Option mismatch");
                 Calculation_ViewModel.Tests.Add(AirCavityCorrectionIMRTOn);
             }
 
             var DGR_protocol = P.Checklist.AlgorithmResolution;
             var DGRwarningMessage = "Resolution deviation";
-            var DGR_plan = await SquintModel.GetDoseGridResolution(p.CourseId, p.PlanId);
+            var DGR_plan = await _model.GetDoseGridResolution(p.CourseId, p.PlanId);
             TestValueItem<double?> DoseGridResolution = new TestValueItem<double?>(CheckTypes.DoseGridResolution, DGR_plan, DGR_protocol, new TrackedValue<double?>(1E-2), DGRwarningMessage);
             Calculation_ViewModel.Tests.Add(DoseGridResolution);
 
             // Heterogeneity
-            var HeteroOn = await SquintModel.GetHeterogeneityOn(p.CourseId, p.PlanId);
+            var HeteroOn = await _model.GetHeterogeneityOn(p.CourseId, p.PlanId);
             var ProtocolHeteroOn = P.Checklist.HeterogeneityOn;
             var HeteroWarningString = "Heterogeneity setting incorrect";
             TestValueItem<bool?> HeterogeneityOn = new TestValueItem<bool?>(CheckTypes.HeterogeneityOn, HeteroOn, ProtocolHeteroOn, null, HeteroWarningString, "Not set", "Not set");
@@ -379,12 +383,12 @@ namespace Squint.ViewModels
 
             // Field Normalization
             var ProtocolFieldNorm = P.Checklist.FieldNormalizationMode;
-            TestValueItem<FieldNormalizationTypes> FieldNormTest = new TestValueItem<FieldNormalizationTypes>(CheckTypes.FieldNormMode, await SquintModel.GetFieldNormalizationMode(p.CourseId, p.PlanId), ProtocolFieldNorm, null, "Non-standard normalization");
+            TestValueItem<FieldNormalizationTypes> FieldNormTest = new TestValueItem<FieldNormalizationTypes>(CheckTypes.FieldNormMode, await _model.GetFieldNormalizationMode(p.CourseId, p.PlanId), ProtocolFieldNorm, null, "Non-standard normalization");
             Calculation_ViewModel.Tests.Add(FieldNormTest);
 
             // Support structures
-            var CheckCouchSurface = await SquintModel.GetCouchSurface(p.CourseId, p.PlanId);
-            var CheckCouchInterior = await SquintModel.GetCouchInterior(p.CourseId, p.PlanId);
+            var CheckCouchSurface = await _model.GetCouchSurface(p.CourseId, p.PlanId);
+            var CheckCouchInterior = await _model.GetCouchInterior(p.CourseId, p.PlanId);
             var RefCouchSurface = P.Checklist.CouchSurface;
             var RefCouchInterior = P.Checklist.CouchInterior;
             var CouchWarningMessage = "HU Deviation";
@@ -410,7 +414,7 @@ namespace Squint.ViewModels
                 string NoCheckHUString = @"No artifact structure";
                 string NoRefHUString = @"Not specified";
                 double? CheckHU = null;
-                ProtocolStructure PS = SquintModel.GetProtocolStructure(A.ProtocolStructureId.Value);
+                ProtocolStructureViewModel PS = _model.GetProtocolStructure(A.ProtocolStructureId.Value);
                 if (PS != null)
                 {
                     if (PS.AssignedStructureId != "")
@@ -428,30 +432,30 @@ namespace Squint.ViewModels
             }
 
             // Course Intent
-            var RefCourseIntent = SquintModel.CurrentProtocol.TreatmentIntents;
+            var RefCourseIntent = _model.CurrentProtocol.TreatmentIntents;
             TreatmentIntents CourseTxIntent;
-            Enum.TryParse<TreatmentIntents>(await SquintModel.GetCourseIntent(p.CourseId, p.PlanId), out CourseTxIntent);
+            Enum.TryParse<TreatmentIntents>(await _model.GetCourseIntent(p.CourseId, p.PlanId), out CourseTxIntent);
             var CourseIntentWarningString = "";
             TestContainsItem<TreatmentIntents> CourseIntentTest = new TestContainsItem<TreatmentIntents>(CheckTypes.CourseIntent, CourseTxIntent, RefCourseIntent, null, CourseIntentWarningString);
             DiagnosisIntent_ViewModel.Tests = new ObservableCollection<ITestListItem>() { CourseIntentTest };
 
             // Plan normalization
             var PNVWarning = "Out of range";
-            var PlanPNV = await SquintModel.GetPNV(p.CourseId, p.PlanId);
+            var PlanPNV = await _model.GetPNV(p.CourseId, p.PlanId);
             TestRangeItem<double?> PNVCheck = new TestRangeItem<double?>(CheckTypes.PlanNormalization, PlanPNV, Comp.PNVMin, Comp.PNVMax, PNVWarning);
 
             // Prescription percentage
-            var PlanRxPercentage = await SquintModel.GetPrescribedPercentage(p.CourseId, p.PlanId);
+            var PlanRxPercentage = await _model.GetPrescribedPercentage(p.CourseId, p.PlanId);
             TestValueItem<double> PlanRxPc = new TestValueItem<double>(CheckTypes.PrescribedPercentage, PlanRxPercentage, new TrackedValue<double>(100), new TrackedValue<double>(1E-5), "Not set to 100");
 
             // Check Rx and fractions
-            var CheckRxDose = await SquintModel.GetRxDose(p.CourseId, p.PlanId);
+            var CheckRxDose = await _model.GetRxDose(p.CourseId, p.PlanId);
             var RxDoseWarningString = "Plan dose different from protocol";
             var TrackedRefDose = new TrackedValue<double?>(Comp.TotalDose);
             var TrackedDoseTolerance = new TrackedValue<double?>(1E-5);
             TestValueItem<double?> RxCheck = new TestValueItem<double?>(CheckTypes.PrescriptionDose, CheckRxDose, TrackedRefDose, TrackedDoseTolerance, RxDoseWarningString);
 
-            var CheckFractions = await SquintModel.GetNumFractions(p.CourseId, p.PlanId);
+            var CheckFractions = await _model.GetNumFractions(p.CourseId, p.PlanId);
             var RefFractions = Comp.NumFractions;
             var TrackedRefFractions = new TrackedValue<int?>(Comp.NumFractions);
             var CheckFractionWarningString = "Plan fractions different from protocol";
@@ -461,10 +465,10 @@ namespace Squint.ViewModels
             // Beam checks
             Beam_ViewModel.Beams.Clear();
             Beam_ViewModel.GroupTests.Tests.Clear();
-            var Fields = await SquintModel.GetTxFieldItems(p.CourseId, p.PlanId);
+            var Fields = await _model.GetTxFieldItems(p.CourseId, p.PlanId);
             foreach (var Beam in Comp.Beams)
             {
-                var BLI = new BeamListItem(Beam, Fields);
+                var BLI = new BeamListItem(Beam, Fields, _model);
                 BLI.InitializeTests();
                 Beam_ViewModel.Beams.Add(BLI);
                 BLI.FieldChanged += new EventHandler((s, e) => BLI_PropertyChanged(s, e, Comp)); // this updates the MinColOffsetCheck if the field assignments on any reference beam are changed
@@ -498,8 +502,13 @@ namespace Squint.ViewModels
             }
 
             // Target Structure Checks
+            PerformStrayVoxelChecks();
+        }
+
+        private async void PerformStrayVoxelChecks()
+        {
             PointCheck_VM.Checks.Clear();
-            foreach (ProtocolStructure E in SquintModel.CurrentProtocol.Structures)
+            foreach (ProtocolStructureViewModel E in _model.CurrentProtocol.Structures)
             {
                 if (E.CheckList != null)
                 {
@@ -517,7 +526,7 @@ namespace Squint.ViewModels
                         else
                         {
                             PO.Assigned = true;
-                            var VolParts = await E.PartVolumes(p.StructureSetUID);
+                            var VolParts = await E.PartVolumes(_planSelector.StructureSetUID);
                             double MinVol = double.NaN;
                             if (VolParts != null)
                             {
@@ -534,12 +543,12 @@ namespace Squint.ViewModels
                                     MinVol = VolParts.Min();
                                     if (!double.IsNaN(MinVol))
                                     {
-                                        var NumDetectedParts = await E.NumParts(p.StructureSetUID);
-                                        var VMS_NumParts = await E.VMS_NumParts(p.StructureSetUID);
+                                        var NumDetectedParts = await E.NumParts(_planSelector.StructureSetUID);
+                                        var VMS_NumParts = await E.VMS_NumParts(_planSelector.StructureSetUID);
                                         if (VMS_NumParts > NumDetectedParts)
                                         {
                                             PO.MinSubVolume = @"< 0.1";
-                                            var Result = await E.GetMinArea(p.StructureSetUID);
+                                            var Result = await E.GetMinArea(_planSelector.StructureSetUID);
                                             PO.Warning = true;
                                             PO.WarningString = "Stray Voxel";
                                             PO.Centroid_x = string.Format("{0:0.#}", Result.Item2.x);
@@ -549,7 +558,7 @@ namespace Squint.ViewModels
                                         else if (MinVol < 0.2)
                                         {
 
-                                            var Result = await E.GetMinArea(p.StructureSetUID);
+                                            var Result = await E.GetMinArea(_planSelector.StructureSetUID);
                                             if (Result != null)
                                             {
                                                 if (Result.Item1 < 50)
@@ -587,7 +596,7 @@ namespace Squint.ViewModels
                                 PO.ParameterOption = ParameterOptions.Optional;
                                 PO.WarningString = "Empty structure";
                             }
-                        
+
                         }
                         PointCheck_VM.Checks.Add(PO);
                     }
@@ -663,8 +672,8 @@ namespace Squint.ViewModels
             StructureSelector SS = param as StructureSelector;
             if (SS != null)
             {
-                SquintModel.AddNewContourCheck(SquintModel.GetProtocolStructure(SS.Id));
-                PopulateViewFromProtocol();
+                _model.AddNewContourCheck(_model.GetProtocolStructure(SS.Id));
+                PerformStrayVoxelChecks();
             }
         }
         public ICommand RemoveContourCheckCommand
@@ -676,7 +685,7 @@ namespace Squint.ViewModels
             StructureSelector SS = param as StructureSelector;
             if (SS != null)
             {
-                SquintModel.RemoveNewContourCheck(SquintModel.GetProtocolStructure(SS.Id));
+                _model.RemoveNewContourCheck(_model.GetProtocolStructure(SS.Id));
                 PopulateViewFromProtocol();
             }
         }
@@ -701,7 +710,7 @@ namespace Squint.ViewModels
             ComponentSelector CS = SelectedComponent as ComponentSelector;
             if (CS != null)
             {
-                SquintModel.AddNewBeamCheck(CS.Id);
+                _model.AddNewBeamCheck(CS.Id);
                 PopulateViewFromSelectedComponent();
                 EditBeamChecksVisibility ^= true;
             }

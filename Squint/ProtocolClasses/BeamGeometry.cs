@@ -20,7 +20,7 @@ namespace Squint
 
     public class BeamGeometryInstance : IDisplayable
     {
-
+        private SquintModel _model;
         public TrajectoryTypes Trajectory { get; private set; } = TrajectoryTypes.Unset;
         public double StartAngle { get; private set; } = double.NaN;
         public double EndAngle { get; private set; } = double.NaN;
@@ -34,7 +34,7 @@ namespace Squint
 
         public override int GetHashCode()
         {
-            return GetHashCode();
+            return base.GetHashCode();
         }
            
         public bool Equals(BeamGeometryInstance that)
@@ -47,8 +47,9 @@ namespace Squint
             return false;
         }
 
-        public BeamGeometryInstance(DbBeamGeometry DbBG)
+        public BeamGeometryInstance(DbBeamGeometry DbBG, SquintModel model)
         {
+            _model = model;
             Definition = new BeamGeometryDefinition(DbBG);
             DisplayName = Definition.DisplayName;
             StartAngle = Definition.StartAngle;
@@ -61,12 +62,13 @@ namespace Squint
 
         }
 
-        public BeamGeometryInstance(double startAngle, double endAngle, TrajectoryTypes trajectory)
+        public BeamGeometryInstance(double startAngle, double endAngle, TrajectoryTypes trajectory, SquintModel model)
         {
             StartAngle = startAngle;
+            _model = model;
             EndAngle = endAngle;
             Trajectory = trajectory;
-            foreach (BeamGeometryDefinition bgd in SquintModel.GetBeamGeometryDefinitions())
+            foreach (BeamGeometryDefinition bgd in _model.GetBeamGeometryDefinitions())
                 if (bgd.Contains(this))
                 {
                     DisplayName = bgd.GeometryName;

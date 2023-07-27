@@ -12,6 +12,8 @@ namespace Squint.ViewModels
     public class PatientViewModel : ObservableObject
     {
         public MainViewModel ParentView { get; private set; } = null;
+
+        private SquintModel _model;
         public string PatientId { get; set; } = "";
         public bool AutomaticStructureAliasingEnabled = true;
         public string FullPatientName { get; private set; }
@@ -50,34 +52,35 @@ namespace Squint.ViewModels
             {
                 ParentView.isLoading = true;
                 ParentView.LoadingString = "Applying structure aliases...";
-                SquintModel.SetCurrentStructureSet(_CurrentStructureSet.StructureSetUID);
+                _model.SetCurrentStructureSet(_CurrentStructureSet.StructureSetUID);
                 if (ApplyAliasing)
-                    await Task.Run(() => SquintModel.MatchStructuresByAlias());
+                    await Task.Run(() => _model.MatchStructuresByAlias());
                 if (CalculatOnStructureSetUpdate)
-                    SquintModel.UpdateConstraints();
+                    _model.UpdateConstraints();
                 ParentView.isLoading = false;
             }
         }
 
-        public PatientViewModel(MainViewModel parentView)
+        public PatientViewModel(MainViewModel parentView, SquintModel model)
         {
             ParentView = parentView;
-            SquintModel.PatientOpened += OnPatientOpened;
-            SquintModel.PatientClosed += OnPatientClosed;
-            SquintModel.CurrentStructureSetChanged += OnCurrentStructureSetChanged;
-            SquintModel.AvailableStructureSetsChanged += OnAvailableStructureSetsChanged;
+            _model = model;
+            _model.PatientOpened += OnPatientOpened;
+            _model.PatientClosed += OnPatientClosed;
+            _model.CurrentStructureSetChanged += OnCurrentStructureSetChanged;
+            _model.AvailableStructureSetsChanged += OnAvailableStructureSetsChanged;
         }
 
         private void OnPatientOpened(object sender, EventArgs e)
         {
-            PatientId = SquintModel.PatientID;
-            FullPatientName = string.Format("{0}, {1}", SquintModel.PatientLastName, SquintModel.PatientFirstName);
+            PatientId = _model.PatientID;
+            FullPatientName = string.Format("{0}, {1}", _model.PatientLastName, _model.PatientFirstName);
             StructureSets.Clear();
-            foreach (StructureSetHeader StS in SquintModel.GetAvailableStructureSets())
+            foreach (StructureSetHeader StS in _model.GetAvailableStructureSets())
             {
                 StructureSets.Add(new StructureSetSelector(StS));
             }
-            foreach (string CourseId in SquintModel.GetCourseNames())
+            foreach (string CourseId in _model.GetCourseNames())
             {
                 Courses.Add(new CourseSelector(CourseId));
             }
@@ -92,7 +95,7 @@ namespace Squint.ViewModels
 
         private async void OnAvailableStructureSetsChanged(object sender, EventArgs e)
         {
-            var A = SquintModel.GetAvailableStructureSets();
+            var A = _model.GetAvailableStructureSets();
             StructureSetSelector NewSSS = null;
             foreach (var SS in A) // Make new linked structure set available
             {
@@ -120,8 +123,8 @@ namespace Squint.ViewModels
         }
         private void OnCurrentStructureSetChanged(object sender, EventArgs e)
         {
-            if (SquintModel.CurrentStructureSet != null)
-                _CurrentStructureSet = StructureSets.FirstOrDefault(x => x.StructureSetUID == SquintModel.CurrentStructureSet.UID);
+            if (_model.CurrentStructureSet != null)
+                _CurrentStructureSet = StructureSets.FirstOrDefault(x => x.StructureSetUID == _model.CurrentStructureSet.UID);
             else
                 _CurrentStructureSet = null;
             RaisePropertyChangedEvent(nameof(CurrentStructureSet));

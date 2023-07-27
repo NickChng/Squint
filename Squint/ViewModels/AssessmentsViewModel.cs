@@ -18,10 +18,11 @@ namespace Squint.ViewModels
         public AssessmentsViewModel()
         { 
         }
-        public AssessmentsViewModel(MainViewModel parentView)
+        public AssessmentsViewModel(MainViewModel parentView, SquintModel model)
         {
             ParentView = parentView;
-            SquintModel.ProtocolClosed += Ctr_ProtocolClosed;
+            _model = model;
+            _model.ProtocolClosed += Ctr_ProtocolClosed;
         }
 
         private void Ctr_ProtocolClosed(object sender, EventArgs e)
@@ -44,7 +45,7 @@ namespace Squint.ViewModels
         // Visibility Toggles
         public bool isLinkProtocolVisible { get; set; } = false;
 
-
+        private SquintModel _model;
         public MainViewModel ParentView { get; set; }
         public double FontSize { get; set; } = 12;
         private List<wpfcolor> DefaultAssessmentColors = new List<wpfcolor> { wpfcolors.LightSteelBlue, wpfcolors.AliceBlue, wpfcolors.PapayaWhip, wpfcolors.PaleGoldenrod };
@@ -55,10 +56,10 @@ namespace Squint.ViewModels
         public ObservableCollection<SquintDataColumn> AssessmentColumns { get; set; } = new ObservableCollection<SquintDataColumn>();
         public void AddAssessment()
         {
-            if (SquintModel.PatientOpen && SquintModel.ProtocolLoaded)
+            if (_model.PatientOpen && _model.ProtocolLoaded)
             {
                 int colindex = (AssessmentCounter - 1) % DefaultAssessmentColors.Count;
-                AssessmentView AV = new AssessmentView(DefaultAssessmentColors[colindex], DefaultAssessmentTextColors[colindex], this);
+                AssessmentView AV = new AssessmentView(DefaultAssessmentColors[colindex], DefaultAssessmentTextColors[colindex], this, _model);
                 Assessments.Add(AV);
                 //Add new column
                 SquintDataColumn dgtc = new SquintDataColumn(AV)
@@ -83,12 +84,12 @@ namespace Squint.ViewModels
         }
         public void LoadAssessmentViews()
         {
-            if (SquintModel.PatientOpen && SquintModel.ProtocolLoaded)
+            if (_model.PatientOpen && _model.ProtocolLoaded)
             {
-                foreach (Assessment A in SquintModel.GetAssessmentList())
+                foreach (AssessmentViewModel A in _model.GetAssessmentList())
                 {
                     int colindex = (AssessmentCounter - 1) % DefaultAssessmentColors.Count;
-                    AssessmentView AV = new AssessmentView(A, DefaultAssessmentColors[colindex], DefaultAssessmentTextColors[colindex], this);
+                    AssessmentView AV = new AssessmentView(A, DefaultAssessmentColors[colindex], DefaultAssessmentTextColors[colindex], this, _model);
                     Assessments.Add(AV);
                     //Add new column
                     SquintDataColumn dgtc = new SquintDataColumn(AV)
@@ -185,5 +186,47 @@ namespace Squint.ViewModels
                 RowHeaderWidth = double.NaN;
             }
         }
+        public ICommand ViewPlanCheckCommand
+        {
+            get
+            {
+                return new DelegateCommand(ViewPlanCheck);
+            }
+        }
+        private async void ViewPlanCheck(object param = null)
+        {
+            try
+            {
+                var p = (param as PlanSelector);
+                if (param == null)
+                    return;
+                else
+                {
+                    ParentView.ProtocolCheckVisible = false;
+                    ParentView.PlanCheckVisible = true;
+                    ParentView.isPlanCheckCalculating = true;
+                    ParentView.Loading_ViewModel = new LoadingViewModel() { LoadingMessage = @"Checking plan, please wait..." };
+
+                    await ParentView.ProtocolsVM.ChecklistViewModel.DisplayChecksForPlan(p);
+                    ParentView.isPlanCheckCalculating = false;
+                }
+            }
+            catch (Exception ex)
+            {
+                Helpers.Logger.AddLog(ex.Message);
+                MessageBox.Show("Error in ViewPlanCheck");
+            }
+        }
+
+        public ICommand ShowAssessmentCommand
+        {
+            get { return new DelegateCommand(ShowAssessment); }
+        }
+        private void ShowAssessment(object param = null)
+        {
+            var AS = (AssessmentView)param;
+            AS.Pinned = !AS.Pinned;
+        }
+
     }
 }

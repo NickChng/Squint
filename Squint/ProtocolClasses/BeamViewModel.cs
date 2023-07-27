@@ -7,13 +7,14 @@ using PropertyChanged;
 namespace Squint
 {
     [AddINotifyPropertyChangedInterface]
-    public class Beam
+    public class BeamViewModel
     {
 
         //References
         public int ID { get; private set; }
         public int ComponentID { get; private set; }
 
+        private SquintModel _model;
         public bool ToRetire { get; set; } = false;
         //Properties
         public string ProtocolBeamName { get; set; } = "unset";
@@ -43,8 +44,9 @@ namespace Squint
         public event EventHandler<int> BeamDeleted;
 
 
-        public Beam(DbBeam DbO)
+        public BeamViewModel(DbBeam DbO, SquintModel model)
         {
+            _model = model;
             ID = DbO.ID;
             ComponentID = DbO.ComponentID;
             ProtocolBeamName = DbO.ProtocolBeamName;
@@ -55,7 +57,7 @@ namespace Squint
                 EclipseAliases.Add(A.EclipseFieldId);
             foreach (var G in DbO.DbBeamGeometries)
             {
-                ValidGeometries.Add(new BeamGeometryInstance(G));
+                ValidGeometries.Add(new BeamGeometryInstance(G, _model));
             }
             foreach (var B in DbO.DbBoluses)
             {
@@ -73,9 +75,10 @@ namespace Squint
             MinY = new TrackedValue<double?>(DbO.MinY);
             MaxY = new TrackedValue<double?>(DbO.MaxY);
         }
-        public Beam(int ComponentId)
+        public BeamViewModel(int ComponentId, SquintModel model)
         {
             ID = IDGenerator.GetUniqueId();
+            _model = model;
             ComponentID = ComponentId;
             ProtocolBeamName = "New beam";
             Technique = FieldTechniqueType.Unset;

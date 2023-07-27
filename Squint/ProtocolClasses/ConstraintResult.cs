@@ -11,7 +11,7 @@ namespace Squint
             //Events
             public event PropertyChangedEventHandler PropertyChanged;
             public event EventHandler<ConstraintResultRemovedArgs> ConstraintResultRemoved;
-            private Constraint con;
+            private ConstraintViewModel con;
             public class ConstraintResultRemovedArgs : EventArgs
             {
                 public int ConstraintID; // this will be -1 if constraint already deleted
@@ -25,7 +25,7 @@ namespace Squint
             //    AssessmentID = AssessmentId;
             //    isLoaded = true;
             //}
-            public ConstraintResult(int _AssessmentID, Constraint con_in)
+            public ConstraintResult(int _AssessmentID, ConstraintViewModel con_in)
             {
                 isLoaded = false;
                 ThresholdStatus = ReferenceThresholdTypes.Unset;

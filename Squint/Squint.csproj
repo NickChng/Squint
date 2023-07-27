@@ -147,9 +147,11 @@
     <Compile Include="AsyncESAPI\AsyncPlan.cs" />
     <Compile Include="AsyncESAPI\AsyncStructure.cs" />
     <Compile Include="AsyncESAPI\AsyncStructureSet.cs" />
+    <Compile Include="Enums\SquintStructs.cs" />
     <Compile Include="Helpers and Functions\Class1.cs" />
     <Compile Include="Helpers and Functions\IDGenerator.cs" />
     <Compile Include="Helpers and Functions\PlanSumUIDGenerator.cs" />
+    <Compile Include="Helpers and Functions\StructureLabelLookup.cs" />
     <Compile Include="Helpers and Functions\TypeDisplay.cs" />
     <Compile Include="Interfaces\IDisplayable.cs" />
     <Compile Include="Interfaces\IBeamGeometry.cs" />
@@ -166,7 +168,7 @@
     <Compile Include="ProtocolClasses\StructureSetHeader.cs" />
     <Compile Include="ProtocolClasses\TxFieldItem.cs" />
     <Compile Include="ProtocolClasses\PlanDescriptor.cs" />
-    <Compile Include="ProtocolClasses\Beam.cs" />
+    <Compile Include="ProtocolClasses\BeamViewModel.cs" />
     <Compile Include="ViewModels\AssessmentComponentViewModel.cs" />
     <Compile Include="ViewModels\AssessmentsViewModel.cs" />
     <Compile Include="ViewModels\AssessmentView.cs" />
@@ -242,19 +244,19 @@
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
     <Compile Include="ProtocolClasses\Artifact.cs" />
-    <Compile Include="ProtocolClasses\Assessment.cs" />
+    <Compile Include="ProtocolClasses\AssessmentViewModel.cs" />
     <Compile Include="ProtocolClasses\BolusDefinition.cs" />
     <Compile Include="ProtocolClasses\Component.cs" />
     <Compile Include="ProtocolClasses\Constraint.cs" />
-    <Compile Include="ProtocolClasses\ConstraintChangelog.cs" />
+    <Compile Include="ProtocolClasses\ConstraintChangelogViewModel.cs" />
     <Compile Include="ProtocolClasses\ConstraintResult.cs" />
     <Compile Include="Interfaces\IReferenceThreshold.cs" />
     <Compile Include="ProtocolClasses\FixedThreshold.cs" />
     <Compile Include="ProtocolClasses\Constraint.InterpolatedThreshold.cs" />
-    <Compile Include="ProtocolClasses\PlanAssociation.cs" />
+    <Compile Include="ProtocolClasses\PlanAssociationViewModel.cs" />
     <Compile Include="ProtocolClasses\Protocol.cs" />
     <Compile Include="ProtocolClasses\ProtocolChecklist.cs" />
-    <Compile Include="ProtocolClasses\ProtocolStructure.cs" />
+    <Compile Include="ProtocolClasses\ProtocolStructureViewModel.cs" />
     <Compile Include="ProtocolClasses\Session.cs" />
     <Compile Include="ProtocolClasses\StructureCheckList.cs" />
     <Compile Include="ProtocolClasses\StructureLabel.cs" />
@@ -311,7 +313,7 @@
     <Compile Include="Helpers and Functions\g3helpers.cs" />
     <Compile Include="Helpers and Functions\Levenshtein.cs" />
     <Compile Include="Helpers and Functions\Serializer.cs" />
-    <Compile Include="Model\SquintController.cs" />
+    <Compile Include="Model\SquintModel.cs" />
     <Compile Include="PersistenceLayer\SquintDBModel.cs" />
     <Compile Include="Enums\SquintEnums.cs" />
     <Compile Include="ProtocolClasses\BeamGeometry.cs" />

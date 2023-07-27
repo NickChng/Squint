@@ -49,7 +49,7 @@ namespace Squint.ViewModels
             {
                 ParentView.ParentView.ParentView.isLoading = true;
                 ParentView.ParentView.ParentView.LoadingString = "Loading course plans...";
-                List<PlanDescriptor> result = await SquintModel.GetPlanDescriptors(_SelectedCourse.CourseId);
+                List<PlanDescriptor> result = await _model.GetPlanDescriptors(_SelectedCourse.CourseId);
                 ObservableCollection<PlanSelector> NewPlans = new ObservableCollection<PlanSelector>();
                 foreach (var d in result.Where(x => x.Type == Comp.ComponentType.Value))
                 {
@@ -75,7 +75,7 @@ namespace Squint.ViewModels
                 {
                     if (!DisableAutomaticAssociation)
                     {
-                        SquintModel.ClearPlanAssociation(Comp.ID, A.ID);
+                        _model.ClearPlanAssociation(Comp.ID, A.ID);
                     }
                 }
                 if (value != _SelectedPlan)
@@ -97,23 +97,24 @@ namespace Squint.ViewModels
                     return false;
             }
         }
-
+        private SquintModel _model;
         private Component Comp;
-        private Assessment A;
+        private AssessmentViewModel A;
         private AssessmentView ParentView;
         public ObservableCollection<CourseSelector> Courses { get; set; } = new ObservableCollection<CourseSelector>();
         public ObservableCollection<PlanSelector> Plans { get; set; } = new ObservableCollection<PlanSelector>();
-        public AssessmentComponentViewModel(AssessmentView AV, Component CompIn, Assessment Ain)
+        public AssessmentComponentViewModel(AssessmentView AV, Component CompIn, AssessmentViewModel Ain, SquintModel model)
         {
             Comp = CompIn;
             ParentView = AV;
+            _model = model;
             Comp.PropertyChanged += UpdateStatus;
-            SquintModel.CurrentStructureSetChanged += UpdateStatus;
+            _model.CurrentStructureSetChanged += UpdateStatus;
             A = Ain;
-            var _P = SquintModel.GetPlanAssociation(Comp.ID, A.ID); // check if plan is associated
+            var _P = _model.GetPlanAssociation(Comp.ID, A.ID); // check if plan is associated
             if (_P != null)
-                Warning = SquintModel.GetPlanAssociation(Comp.ID, A.ID).LoadWarning; // initialize warning 
-            foreach (string CourseName in SquintModel.GetCourseNames())
+                Warning = _model.GetPlanAssociation(Comp.ID, A.ID).LoadWarning; // initialize warning 
+            foreach (string CourseName in _model.GetCourseNames())
             {
                 Courses.Add(new CourseSelector(CourseName));
             }
@@ -122,7 +123,7 @@ namespace Squint.ViewModels
         public void Dispose()
         {
             Comp.PropertyChanged -= UpdateStatus;
-            SquintModel.CurrentStructureSetChanged -= UpdateStatus;
+            _model.CurrentStructureSetChanged -= UpdateStatus;
         }
         private async void SetPlanAsync()
         {
@@ -132,8 +133,8 @@ namespace Squint.ViewModels
                 {
                     ParentView.ParentView.ParentView.isLoading = true;
                     ParentView.ParentView.ParentView.LoadingString = "Loading plan...";
-                    var CSC = await SquintModel.AssociatePlanToComponent(A.ID, Comp.ID, _SelectedCourse.CourseId, _SelectedPlan.PlanId, Comp.ComponentType.Value, true);
-                    await Task.Run(() => SquintModel.UpdateConstraints(Comp.ID, A.ID));
+                    var CSC = await _model.AssociatePlanToComponent(A.ID, Comp.ID, _SelectedCourse.CourseId, _SelectedPlan.PlanId, Comp.ComponentType.Value, true);
+                    await Task.Run(() => _model.UpdateConstraints(Comp.ID, A.ID));
                     UpdateWarning(CSC);
                     ParentView.ParentView.ParentView.isLoading = false;
                     ParentView.ParentView.ParentView.LoadingString = "";

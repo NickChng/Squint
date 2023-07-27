@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using VMS.TPS.Common.Model.API;
 using VMS.TPS.Common.Model.Types;
+using Squint.Helpers;
 
 
 namespace Squint
@@ -40,7 +41,7 @@ namespace Squint
             StructureSetID = SSID;
             NumSlices = numSlices;
             Code = S.StructureCodeInfos.FirstOrDefault().Code;
-            Label = DbController.GetLabelByCode(Code);
+            Label = StructureLabelLookup.GetLabelByCode(Code);
             double HU_out = Double.NaN;
             S.GetAssignedHU(out HU_out);
             HU = Math.Round(HU_out);
@@ -71,7 +72,6 @@ namespace Squint
                 if (S != null)
                 {
                     bool foundPointOutsideSegment = false;
-                    var test = SquintModel.CurrentStructureSet;
                     double Area = double.PositiveInfinity;
                     for (int z = 1; z < NumSlices; z++)
                     {
