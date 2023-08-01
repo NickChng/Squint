@@ -15,21 +15,17 @@ namespace Squint
 {
 
     [AddINotifyPropertyChangedInterface]
-    public class ProtocolStructureViewModel : ObservableObject
+    public class ProtocolStructure : ObservableObject
     {
-        //public event PropertyChangedEventHandler PropertyChanged;
-        //private void NotifyPropertyChanged([CallerMemberName] String propertyName = "")
-        //{
-        //    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        //}
-        public EventHandler NewProtocolStructureCommitting;
-        public EventHandler NewProtocolStructureCommitted;
-        public EventHandler ProtocolStructureExceptionLoaded;
-        public EventHandler ProtocolStructureChanged;
-        public EventHandler<int> ProtocolStructureDeleting;
+      
+        //public EventHandler NewProtocolStructureCommitting;
+        //public EventHandler NewProtocolStructureCommitted;
+        //public EventHandler ProtocolStructureExceptionLoaded;
+        //public EventHandler ProtocolStructureChanged;
+        //public EventHandler<int> ProtocolStructureDeleting;
 
         private SquintModel _model;
-        public ProtocolStructureViewModel()
+        public ProtocolStructure()
         {
             ID = 1;
             ProtocolStructureName = "Default";
@@ -38,7 +34,7 @@ namespace Squint
             CheckList = new StructureCheckList();
             _StructureLabel = new TrackedValue<StructureLabel>(null);
         }
-        public ProtocolStructureViewModel(SquintModel model, StructureLabel label_in, DbProtocolStructure DbO)
+        public ProtocolStructure(SquintModel model, StructureLabel label_in, DbProtocolStructure DbO)
         {
             ID = DbO.ID;
             _model = model;
@@ -65,7 +61,7 @@ namespace Squint
         }
 
 
-        public ProtocolStructureViewModel(SquintModel model, StructureLabel label_in, string NewStructureName)
+        public ProtocolStructure(SquintModel model, StructureLabel label_in, string NewStructureName)
         {
             ID = IDGenerator.GetUniqueId();
             _model = model;

@@ -10,21 +10,21 @@ namespace Squint
 {
 
     [AddINotifyPropertyChangedInterface]
-    public class Component : INotifyPropertyChanged
+    public class ComponentModel : INotifyPropertyChanged
     {
         //Required notification class
         public event PropertyChangedEventHandler PropertyChanged;
-        public List<ConstraintViewModel> Constraints = new List<ConstraintViewModel>();
+        public List<ConstraintModel> ConstraintModels = new List<ConstraintModel>();
         public List<ImagingProtocolTypes> ImagingProtocols { get; set; } = new List<ImagingProtocolTypes>();
         public List<BeamViewModel> Beams = new List<BeamViewModel>();
-        public Component(int CompId, int ProtocolId)
+        public ComponentModel(int CompId, int ProtocolId)
         {
-            ID = CompId;
+            Id = CompId;
             ProtocolID = ProtocolId;
         }
-        public Component(DbComponent DbO)
+        public ComponentModel(DbComponent DbO)
         {
-            ID = DbO.ID;
+            Id = DbO.ID;
             MinColOffset = new TrackedValue<double?>(DbO.MinColOffset);
             MinBeams = new TrackedValue<int?>(DbO.MinBeams);
             MaxBeams = new TrackedValue<int?>(DbO.MaxBeams);
@@ -39,9 +39,9 @@ namespace Squint
             DisplayOrder = DbO.DisplayOrder;
             ProtocolID = DbO.ProtocolID;
         }
-        public Component(int protocolID, string ComponentName_in, int DisplayOrder_in, int ReferenceFractions_in = 0, double ReferenceDose_in = 0, ComponentTypes ComponentType_in = ComponentTypes.Phase)
+        public ComponentModel(int protocolID, string ComponentName_in, int DisplayOrder_in, int ReferenceFractions_in = 0, double ReferenceDose_in = 0, ComponentTypes ComponentType_in = ComponentTypes.Phase)
         {
-            ID = IDGenerator.GetUniqueId();
+            Id = IDGenerator.GetUniqueId();
             _ComponentName = new TrackedValue<string>(ComponentName_in);
             ComponentType = new TrackedValue<ComponentTypes>(ComponentType_in);
             _NumFractions = new TrackedValue<int>(ReferenceFractions_in);
@@ -59,7 +59,7 @@ namespace Squint
         {
             public object Value;
         }
-        public int ID { get; private set; }
+        public int Id { get; private set; }
         public int DisplayOrder { get; set; }
         public int ProtocolID { get; private set; }
 

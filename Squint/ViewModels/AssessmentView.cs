@@ -63,7 +63,7 @@ namespace Squint.ViewModels
             }
             A = _model.NewAssessment();
             AssessmentName = A.AssessmentName;
-            foreach (Component Comp in _model.CurrentProtocol.Components.OrderBy(x=>x.DisplayOrder))
+            foreach (ComponentModel Comp in _model.CurrentProtocol.Components.OrderBy(x=>x.DisplayOrder))
             {
                 ACVs.Add(new AssessmentComponentViewModel(this, Comp, A, _model));
             }
@@ -76,11 +76,11 @@ namespace Squint.ViewModels
             TextColor = TextColor_in;
             AssessmentName = Ain.AssessmentName;
             ParentView = ParentView_in;
-            foreach (Component Comp in _model.CurrentProtocol.Components)
+            foreach (ComponentModel Comp in _model.CurrentProtocol.Components)
             {
                 var ACV = new AssessmentComponentViewModel(this, Comp, A, _model);
                 ACV.DisableAutomaticAssociation = true;
-                var _P = _model.GetPlanAssociation(Comp.ID, A.ID);
+                var _P = _model.GetPlanAssociation(Comp.Id, A.ID);
                 if (_P != null)
                 {
                     ACV.WarningString = _P.LoadWarningString;

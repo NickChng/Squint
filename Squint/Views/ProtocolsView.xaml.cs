@@ -107,17 +107,17 @@ namespace Squint.Views
                 return;
             if (VM.DragSelected)
             {
-                int OldIndex = VM.Constraints[SelectedIndex].DisplayOrder;
+                int OldIndex = VM.ConstraintViewModels[SelectedIndex].DisplayOrder;
                 int inc = 1;
                 if (SelectedIndex < DropIndex)
                     inc = -1;
                 int CurrentIndex = DropIndex;
                 while (CurrentIndex != SelectedIndex)
                 {
-                    int Switch = VM.Constraints[CurrentIndex + inc].DisplayOrder;
-                    VM.Constraints[CurrentIndex + inc].DisplayOrder = VM.Constraints[CurrentIndex].DisplayOrder;
-                    VM.Constraints[CurrentIndex].DisplayOrder = Switch;
-                    VM.Constraints.Move(CurrentIndex + inc, CurrentIndex);
+                    int Switch = VM.ConstraintViewModels[CurrentIndex + inc].DisplayOrder;
+                    VM.ConstraintViewModels[CurrentIndex + inc].DisplayOrder = VM.ConstraintViewModels[CurrentIndex].DisplayOrder;
+                    VM.ConstraintViewModels[CurrentIndex].DisplayOrder = Switch;
+                    VM.ConstraintViewModels.Move(CurrentIndex + inc, CurrentIndex);
                     CurrentIndex = CurrentIndex + inc;
                 }
 
@@ -165,7 +165,7 @@ namespace Squint.Views
             listbox.AllowDrop = true;
 
             (listbox.Parent as Grid).MouseLeave += AliasList_MouseLeave;
-            (listbox.DataContext as StructureSelector).DragSelected = true;
+            (listbox.DataContext as StructureViewModel).DragSelected = true;
         }
         private void AliasList_MouseLeave(object sender, MouseEventArgs e)
         {
@@ -176,7 +176,7 @@ namespace Squint.Views
             {
                 ListBox LB = (sender as Grid).Children.OfType<ListBox>().FirstOrDefault();
                 LB.AllowDrop = false;
-                var VM = (sender as Grid).DataContext as StructureSelector;
+                var VM = (sender as Grid).DataContext as StructureViewModel;
                 VM.DragSelected = false;
                 (sender as Grid).MouseLeave -= AliasList_MouseLeave;
             }
@@ -186,7 +186,7 @@ namespace Squint.Views
         {
             var listbox = (sender as ListBox);
 
-            var VM = listbox.DataContext as StructureSelector;
+            var VM = listbox.DataContext as StructureViewModel;
             var SelectedIndex = GetCurrentAliasIndex(e.GetPosition, listbox);
             //
 

@@ -716,7 +716,7 @@
                     </Button>
                 </Grid>
                 <Grid Grid.Row="5" >
-                    <ListView Margin="0,0,0,0" Name="ConstraintListView" Style="{StaticResource ListViewStyle_NoScroll}" ItemsSource="{Binding Constraints, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" SelectedIndex="{Binding SelectedIndex}" VerticalAlignment="Stretch" BorderThickness="0" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Center" ItemContainerStyle="{DynamicResource DraggableListViewItemStyle}"
+                    <ListView Margin="0,0,0,0" Name="ConstraintListView" Style="{StaticResource ListViewStyle_NoScroll}" ItemsSource="{Binding ConstraintViewModels, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" SelectedIndex="{Binding SelectedIndex}" VerticalAlignment="Stretch" BorderThickness="0" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Center" ItemContainerStyle="{DynamicResource DraggableListViewItemStyle}"
                                       SelectedItem="{Binding SelectedConstraint, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
                                       dd:DragDrop.IsDragSource="True" DragDrop.DragOver="DragConstraint_ListView_DragOver" MouseLeave="Constraint_ListView_MouseLeave" DragDrop.Drop="DragConstraint_Drop">
                         <ListView.ItemTemplate>

@@ -201,7 +201,7 @@
             <DataGrid Name="dg" Grid.Row="1" Grid.RowSpan="3" Grid.Column="1" BorderThickness="0" Background="White" Margin="15,5,5,5" RowHeaderStyle="{DynamicResource SquintRowHeaderStyle}" 
                   AutoGenerateColumns="False" ColumnHeaderStyle="{DynamicResource SquintColumnHeaderStyle}" Views:DataGridColumnsBehavior.BindableColumns="{Binding AssessmentsVM.AssessmentColumns}" 
                   RowHeaderWidth="{Binding ElementName=SquintWindow, Path=DataContext.AssessmentsVM.RowHeaderWidth, UpdateSourceTrigger=PropertyChanged}"
-                  ItemsSource="{Binding ProtocolsVM.Constraints, UpdateSourceTrigger=PropertyChanged, Mode=OneWay}" GridLinesVisibility="None" Style="{DynamicResource SquintDataGridStyle}"
+                  ItemsSource="{Binding ProtocolsVM.ConstraintViewModels, UpdateSourceTrigger=PropertyChanged, Mode=OneWay}" GridLinesVisibility="None" Style="{DynamicResource SquintDataGridStyle}"
                   Visibility="{Binding ProtocolCheckVisible, Converter={StaticResource VisibilityConverter}, UpdateSourceTrigger=PropertyChanged}" Grid.ColumnSpan="2"/>
             <Grid Grid.Row="1" Grid.RowSpan="3" Grid.Column="1" Margin="10,0,0,0" Visibility="{Binding PlanCheckVisible, Converter={StaticResource VisibilityConverter}, UpdateSourceTrigger=PropertyChanged}" IsEnabled="{Binding PlanCheckVisible}" Grid.ColumnSpan="2">
                 <Grid Visibility="{Binding isPlanCheckCalculating, Mode=OneWay, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource VisibilityInverseConverter}}">

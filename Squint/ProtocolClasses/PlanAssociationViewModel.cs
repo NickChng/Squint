@@ -16,10 +16,10 @@ namespace Squint
         //public event EventHandler<int> PlanDeleting;
         //public event EventHandler<int> PlanMappingChanged;
 
-        private Component component;
+        private ComponentModel component;
         private AssessmentViewModel assessment;
         private SquintModel _model;
-        public PlanAssociationViewModel(SquintModel model, Component component_in, AssessmentViewModel assessment_in, DbPlanAssociation DbO)
+        public PlanAssociationViewModel(SquintModel model, ComponentModel component_in, AssessmentViewModel assessment_in, DbPlanAssociation DbO)
         {
             ID = DbO.ID;
             _model = model;
@@ -27,7 +27,7 @@ namespace Squint
             component = component_in;
             component.PropertyChanged += OnComponentPropertyChanged;
         }
-        public PlanAssociationViewModel(SquintModel model, Component component_in, AssessmentViewModel assessment_in, AsyncPlan p = null)
+        public PlanAssociationViewModel(SquintModel model, ComponentModel component_in, AssessmentViewModel assessment_in, AsyncPlan p = null)
         {
             ID = IDGenerator.GetUniqueId();
             _model = model; 
@@ -107,7 +107,7 @@ namespace Squint
         public string LoadWarningString { get; private set; } = "";
         public string PID { get; private set; }
         public int AssessmentID { get { return assessment.ID; } }
-        public int ComponentID { get { return component.ID; } }
+        public int ComponentID { get { return component.Id; } }
         public ComponentTypes PlanType
         {
             get

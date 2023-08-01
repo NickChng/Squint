@@ -45,9 +45,9 @@ namespace Squint
         public string DateOfAssessment { get; private set; }
         public string AssessmentName { get; set; }
         public string Comments { get; set; }
-        public List<ComponentStatusCodes> StatusCodes(Component SC)
+        public List<ComponentStatusCodes> StatusCodes(ComponentModel SC)
         {
-            PlanAssociationViewModel PA = _model.GetPlanAssociation(SC.ID, ID);
+            PlanAssociationViewModel PA = _model.GetPlanAssociation(SC.Id, ID);
             if (PA != null)
                 return PA.GetErrorCodes();
             else

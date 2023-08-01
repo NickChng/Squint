@@ -1,5 +1,6 @@
-﻿using PropertyChanged;
-using Squint.Extensions;
+﻿using Prism.Events;
+using PropertyChanged;
+using Squint.Events;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -9,7 +10,6 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
-using wpfbrush = System.Windows.Media.SolidColorBrush;
 using wpfcolor = System.Windows.Media.Color;
 using wpfcolors = System.Windows.Media.Colors;
 
@@ -38,12 +38,12 @@ namespace Squint.ViewModels
 
     }
     [AddINotifyPropertyChangedInterface]
-    public class StructureSelector : ObservableObject
+    public class StructureViewModel : ObservableObject
     {
-
+        private IEventAggregator ea;
         public bool DragSelected { get; set; } = false;
         private SquintModel _model;
-        private ProtocolStructureViewModel E;
+        private ProtocolStructure E;
         public int Id
         {
             get { return E.ID; }
@@ -86,6 +86,7 @@ namespace Squint.ViewModels
                     RaisePropertyChangedEvent(nameof(this.LabelName));
                     _model.UpdateConstraints(E);
                     _model.UpdateConstraintThresholds(E);
+                    ea.GetEvent<StructureEclipseIdAssigmentChanged>().Publish(new StructureEclipseIdAssignmentChangedArgs { EclipseStructureId = value, ProtocolStructureId = ProtocolStructureName });
                 }
             }
         }
@@ -174,10 +175,11 @@ namespace Squint.ViewModels
                     return string.Format("Label mismatch: Assigned structure label is {0}", E.EclipseStructureLabel(_model.CurrentStructureSet.UID));
             }
         }
-        public StructureSelector(ProtocolStructureViewModel Ein, SquintModel model)
+        public StructureViewModel(ProtocolStructure Ein, SquintModel model, IEventAggregator ea_in)
         {
             //Must unsubscribe when cleared!
             _model = model;
+            ea = ea_in;
             E = Ein;
             Aliases = E.DefaultEclipseAliases;
             E.PropertyChanged += OnProtocolStructureChanged;
@@ -190,7 +192,7 @@ namespace Squint.ViewModels
         }
         public string NewAlias { get; set; }
         public int SelectedAliasIndex { get; set; }
-        
+
         private string _LabelFilterText;
         public string LabelFilterText
         {
@@ -262,7 +264,7 @@ namespace Squint.ViewModels
         private void OnProtocolStructureChanged(object sender, PropertyChangedEventArgs e)
         {
             RaisePropertyChangedEvent(e.PropertyName);
-            if (e.PropertyName == nameof(ProtocolStructureViewModel.AssignedStructureId))
+            if (e.PropertyName == nameof(ProtocolStructure.AssignedStructureId))
             {
                 RaisePropertyChangedEvent(nameof(StructureColor)); // this is for when the Assigned Eclipse structure itself is changed
                 RaisePropertyChangedEvent(nameof(LabelIsConsistent)); // this is for when the Assigned Eclipse structure itself is changed
@@ -272,7 +274,7 @@ namespace Squint.ViewModels
         }
     }
     [AddINotifyPropertyChangedInterface]
-    public class ComponentSelector : ObservableObject
+    public class ComponentViewModel : ObservableObject
     {
 
         private SquintModel _model;
@@ -281,24 +283,24 @@ namespace Squint.ViewModels
         public bool isCreated { get { return Id < 0; } }
         public bool Pinned { get; set; } = false;
         public int DisplayHeight { get; } = 100;
-        private Component Comp;
+        private ComponentModel _comp;
         public int Id
         {
-            get { return Comp.ID; }
+            get { return _comp.Id; }
         }
         public string ComponentName
         {
-            get { return Comp.ComponentName; }
-            set { Comp.ComponentName = value; }
+            get { return _comp.ComponentName; }
+            set { _comp.ComponentName = value; }
         }
         public ComponentTypes ComponentType
         {
-            get { return Comp.ComponentType.Value; }
-            set { Comp.ComponentType.Value = value; }
+            get { return _comp.ComponentType.Value; }
+            set { _comp.ComponentType.Value = value; }
         }
         public double ReferenceDose
         {
-            get { return Comp.TotalDose; }
+            get { return _comp.TotalDose; }
             set
             {
                 SetReferenceDose(value);
@@ -321,11 +323,11 @@ namespace Squint.ViewModels
         {
             get { return string.Format("({0:0.#} Gy in {1} fractions)", ReferenceDose / 100, NumFractions); }
         }
-        public ComponentSelector(Component Compin, SquintModel model)
+        public ComponentViewModel(ComponentModel Compin, SquintModel model)
         {
             _model = model;
-            Comp = Compin;
-            _numFractions = Comp.NumFractions;
+            _comp = Compin;
+            _numFractions = _comp.NumFractions;
             AvailableComponentTypes.Clear();
             foreach (ComponentTypes T in Enum.GetValues(typeof(ComponentTypes)))
             {
@@ -334,587 +336,15 @@ namespace Squint.ViewModels
         }
         private async void SetFractions(int NumFractions)
         {
-            Comp.NumFractions = NumFractions;
-            await Task.Run(() => _model.UpdateConstraints(Comp.ID, null));
+            _comp.NumFractions = NumFractions;
+            await Task.Run(() => _model.UpdateConstraints(_comp.Id, null));
         }
         private async void SetReferenceDose(double dose)
         {
-            Comp.TotalDose = dose;
-            await Task.Run(() => _model.UpdateConstraints(Comp.ID, null));
+            _comp.TotalDose = dose;
+            await Task.Run(() => _model.UpdateConstraints(_comp.Id, null));
         }
         public ObservableCollection<ComponentTypes> AvailableComponentTypes { get; set; } = new ObservableCollection<ComponentTypes>() { ComponentTypes.Phase };
-    }
-
-    [AddINotifyPropertyChangedInterface]
-    public class ConstraintSelector : ObservableObject
-    {
-
-        private SquintModel _model;
-        public bool RefreshFlag { get; set; } // this bool updates
-
-        public bool ConstraintInfoVisibility { get; set; } = false;
-        public string ChangeDescription
-        {
-            get
-            {
-                return ""; // not implemented
-            }
-            set
-            {
-                // removed temporarily while refactoring constraintview
-            }
-        } // only used for entry when users changes constraint within the AdminWindow.
-        public ObservableCollection<ConstraintChangelogViewModel> ConstraintChangelogs
-        {
-            get
-            {
-                return new ObservableCollection<ConstraintChangelogViewModel>(); // temp disabled while refactoring constraintview
-                //if (Comp == null)
-                //{
-                //    return new ObservableCollection<Ctr.ConstraintChangelog>() { new Ctr.ConstraintChangelog(), new Ctr.ConstraintChangelog() };
-                //}
-                //else
-                //{
-                //    return new ObservableCollection<Ctr.ConstraintChangelog>(Comp.GetChangeLogs());
-                //}
-            }
-        }
-        private ConstraintViewModel Con;
-        private StructureSelector _SS;
-        public StructureSelector SS
-        {
-            get
-            {
-                return _SS;
-            }
-            set
-            {
-                if (_SS != value)
-                {
-                    _SS = value;
-                    if (_SS != null)
-                    {
-                        Con.ChangePrimaryStructure(_model.GetProtocolStructure(_SS.Id));
-                        UpdateConstraint();
-                    }
-                }
-            }
-        }
-        public int Id
-        {
-            get { return Con.ID; }
-        }
-        public bool Pinned { get; set; } = false;
-        public bool DragSelected { get; set; } = false;
-        public bool isCreated { get { return Con.isCreated; } }
-        public bool ThresholdIsInterpolated
-        {
-            get
-            {
-                return !string.IsNullOrEmpty(Con.ThresholdDataPath);
-            }
-        }
-        public wpfcolor Color { get; set; } = wpfcolors.PapayaWhip;
-        public ComponentSelector Component
-        {
-            get { return Components.FirstOrDefault(x => x.Id == Con.ComponentID); }
-            set
-            {
-                if (Con.ComponentID != value.Id)
-                {
-                    _model.ChangeConstraintComponent(Con.ID, value.Id);
-                    UpdateConstraint();
-                }
-            }
-        }
-        public string ComponentName
-        {
-            get { return Con.ComponentName; }
-            set { }
-        }
-        public int DisplayOrder
-        {
-            get { return Con.DisplayOrder.Value; }
-            set { Con.DisplayOrder.Value = value; }
-        }
-        public double ConstraintValue
-        {
-            get { return Con.ConstraintValue; }
-            set
-            {
-                if (value != Con.ConstraintValue)
-                {
-                    Con.ConstraintValue = value;
-                    UpdateConstraint();
-                    RaisePropertyChangedEvent(nameof(ConstraintValueColor));
-                }
-            }
-        }
-        public wpfbrush ConstraintValueColor // Bound by SquintRowHeaderStyle to change and to ConstraintValue textbox when editing
-        {
-            get
-            {
-                if (Con.isCreated)
-                    return new wpfbrush(wpfcolors.ForestGreen);
-                if (Con.isModified(nameof(Con.ConstraintValue)))
-                    return new wpfbrush(wpfcolors.DarkOrange);
-                else
-                    return new wpfbrush(wpfcolors.Black);
-            }
-        }
-        public double ReferenceValue
-        {
-            get { return Con.ReferenceValue; }
-            //set
-            //{
-            //    if (Con.ReferenceValue != value)
-            //    {
-            //        bool CalcAfter = false;
-            //        if (!Con.isValid())
-            //            CalcAfter = true;
-            //        Con.ReferenceValue = value;
-            //        if (CalcAfter)
-            //            UpdateConstraint(); // only do this if the constraint was previously invalid
-            //        RaisePropertyChangedEvent(nameof(ReferenceValueColor));
-            //    }
-            //}
-        }
-        public wpfbrush ReferenceValueColor
-        {
-            get
-            {
-                if (Con.isModified(nameof(Con.ReferenceValue)) && !Con.isCreated)
-                    return new wpfbrush(wpfcolors.DarkOrange);
-                else
-                    return new wpfbrush(wpfcolors.Black);
-            }
-        }
-        public double? StopValue
-        {
-            get
-            {
-                return Con.Stop;
-            }
-            set
-            {
-                if (!Con.Stop.CloseEnough(value))
-                {
-                    Con.Stop = value;
-                    UpdateConstraint();
-                }
-            }
-        }
-        public double? MinorViolation
-        {
-            get
-            {
-                return Con.MinorViolation;
-            }
-            set
-            {
-
-                if (!Con.MinorViolation.CloseEnough(value))
-                {
-                    Con.MinorViolation = value;
-                    UpdateConstraint();
-                }
-            }
-        }
-        public double? MajorViolation
-        {
-            get
-            {
-                return Con.MajorViolation;
-            }
-            set
-            {
-                if (!Con.MajorViolation.CloseEnough(value))
-                {
-                    Con.MajorViolation = value;
-                    UpdateConstraint();
-                }
-            }
-        }
-        public ConstraintTypes ConstraintType
-        {
-            get { return Con.ConstraintType; }
-            set
-            {
-                Con.ConstraintType = value;
-                UpdateConstraint();
-                SetComboBoxes();
-            }
-        }
-        public ConstraintUnits ConstraintUnit
-        {
-            get { return Con.GetConstraintUnit(); }
-            set
-            {
-                if (value != Con.GetConstraintUnit())
-                {
-                    switch (value)
-                    {
-                        case ConstraintUnits.Multiple:
-                            Con.ConstraintScale = UnitScale.Absolute;
-                            break;
-                        case ConstraintUnits.cc:
-                            Con.ConstraintScale = UnitScale.Absolute;
-                            break;
-                        case ConstraintUnits.cGy:
-                            Con.ConstraintScale = UnitScale.Absolute;
-                            break;
-                        case ConstraintUnits.Percent:
-                            Con.ConstraintScale = UnitScale.Relative;
-                            break;
-                    }
-                    UpdateConstraint();
-                }
-            }
-        }
-        public ConstraintUnits ReferenceUnit
-        {
-            get { return Con.GetReferenceUnit(); }
-            set
-            {
-                if (value != Con.GetReferenceUnit())
-                {
-                    switch (value)
-                    {
-                        case ConstraintUnits.Multiple:
-                            Con.ReferenceScale = UnitScale.Absolute;
-                            break;
-                        case ConstraintUnits.cc:
-                            Con.ReferenceScale = UnitScale.Absolute;
-                            break;
-                        case ConstraintUnits.cGy:
-                            Con.ReferenceScale = UnitScale.Absolute;
-                            break;
-                        case ConstraintUnits.Percent:
-                            Con.ReferenceScale = UnitScale.Relative;
-                            break;
-                    }
-                }
-                UpdateConstraint();
-
-            }
-        }
-        public string StructureId
-        {
-            get { return Con.PrimaryStructureName; }
-        }
-        public string FullConstraintDefinition
-        {
-            get
-            {
-                return Con.GetConstraintString();
-            }
-        }
-        public string ShortConstraintDefinition
-        {
-            get { return Con.GetConstraintStringNoStructure(); }
-        }
-        public string IsAddedStatus
-        {
-            get
-            {
-                if (Id < 0)
-                    return "New";
-                else
-                    return "";
-            }
-        }
-        public string ChangeStatusString
-        {
-            get
-            {
-                if (Con.isCreated)
-                    return ChangeStatus.New.Display();
-                if (Con.isModified())
-                    return ChangeStatus.Modified.Display();
-                else
-                    return "";
-            }
-        }
-        public bool isModified
-        {
-            get
-            {
-                return (Con.isModified());
-            }
-        }
-        public ReferenceTypes ReferenceType
-        {
-            get { return Con.ReferenceType; }
-            set
-            {
-                if (value != Con.ReferenceType)
-                {
-                    bool CalcAfter = false;
-                    if (!Con.isValid())
-                        CalcAfter = true;
-                    Con.ReferenceType = value;
-                    if (CalcAfter)
-                        UpdateConstraint();
-                    //   RaisePropertyChangedEvent(nameof(ConstraintSelector.ShortConstraintDefinition));
-                    //   RaisePropertyChangedEvent("OppositeReferenceTypeString"); // notify view to update the opposite as well
-                }
-            }
-        }
-        public string OppositeReferenceTypeString // this is used for thresholds.  
-        {
-            get
-            {
-                if (Con.ReferenceType == ReferenceTypes.Lower)
-                    return "<";
-                if (Con.ReferenceType == ReferenceTypes.Upper)
-                    return ">";
-                else
-                    return "";
-            }
-        }
-        public string GetResult(int AssessmentId)
-        {
-            ConstraintResultViewModel CRV = Con.GetResult(AssessmentId);
-            if (CRV != null)
-                return CRV.Result;
-            else
-                return "";
-        }
-        public List<ConstraintResultStatusCodes> GetStatusCodes(int AssessmentId)
-        {
-            ConstraintResultViewModel CRV = Con.GetResult(AssessmentId);
-            if (CRV != null)
-                return CRV.StatusCodes;
-            else
-                return null;
-        }
-        public bool isResultCalculating(int AssessmentId)
-        {
-            ConstraintResultViewModel CRV = Con.GetResult(AssessmentId);
-            if (CRV != null)
-                return CRV.isCalculating;
-            else
-                return false;
-        }
-        public ReferenceThresholdTypes GetViolationStatus(int AssessmentId)
-        {
-            ConstraintResultViewModel CRV = Con.GetResult(AssessmentId);
-            if (CRV != null)
-                return CRV.ThresholdStatus;
-            else
-                return ReferenceThresholdTypes.Unset;
-        }
-        private void SetComboBoxes()
-        {
-            ConstraintUnitTypes.Clear();
-            List<ConstraintUnits> ConUnitList = new List<ConstraintUnits>();
-            List<ConstraintUnits> RefUnitList = new List<ConstraintUnits>();
-            if (ConstraintType == Squint.ConstraintTypes.M)
-            {
-                ConUnitList.Add(ConstraintUnits.Unset);
-                RefUnitList.Add(ConstraintUnits.cGy);
-                RefUnitList.Add(ConstraintUnits.Percent);
-                RaisePropertyChangedEvent("ReferenceUnits");
-                RaisePropertyChangedEvent("ReferenceTypes");
-                return;
-            }
-            ConUnitList.Add(ConstraintUnits.Percent);
-            if (Con.isConstraintValueDose())
-            {
-                ConUnitList.Add(ConstraintUnits.cGy);
-            }
-            else
-            {
-                ConUnitList.Add(ConstraintUnits.cc);
-            }
-            foreach (ConstraintUnits U in ConUnitList)
-            {
-                ConstraintUnitTypes.Add(U);
-            }
-
-            RaisePropertyChangedEvent("ConstraintUnits");
-            AvailableReferenceUnitTypes.Clear();
-
-
-            RefUnitList.Add(ConstraintUnits.Percent);
-            AvailableReferenceTypes.Clear();
-            foreach (ReferenceTypes RT in Enum.GetValues(typeof(ReferenceTypes)).Cast<ReferenceTypes>())
-            {
-                if (RT == ReferenceTypes.Unset)
-                    continue; // don't list this
-                AvailableReferenceTypes.Add(RT);
-            }
-            if (Con.ConstraintType == Squint.ConstraintTypes.CI)
-            {
-                RefUnitList.Add(ConstraintUnits.Multiple);
-            }
-            else
-            {
-                if (Con.isReferenceValueDose())
-                {
-
-                    RefUnitList.Add(ConstraintUnits.cGy);
-                }
-                else
-                {
-                    RefUnitList.Add(ConstraintUnits.cc);
-                }
-            }
-            foreach (ConstraintUnits U in RefUnitList)
-            {
-                AvailableReferenceUnitTypes.Add(U);
-            }
-            RaisePropertyChangedEvent("ReferenceUnits");
-            RaisePropertyChangedEvent("ReferenceTypes");
-        }
-        public ConstraintSelector(ConstraintViewModel ConIn, StructureSelector SSin, SquintModel model)
-        {
-            // must unsubscribe when cleared!
-
-            _model = model;
-            Con = ConIn;
-            SS = SSin;
-            ConstraintTypes.Clear();
-            foreach (ConstraintTypes T in Enum.GetValues(typeof(ConstraintTypes)).Cast<ConstraintTypes>())
-            {
-                if (T == Squint.ConstraintTypes.Unset)
-                    continue;
-                ConstraintTypes.Add(T);
-            }
-            SetComboBoxes();
-            Components.Clear();
-            foreach (var CN in _model.CurrentProtocol.Components)
-            {
-                Components.Add(new ComponentSelector(CN, _model));
-            }
-            Con.ConstraintEvaluating += OnConstraintEvaluating;
-            Con.ConstraintEvaluated += OnConstraintEvaluated;
-            Con.PropertyChanged += OnConstraintPropertyChanged;
-            SSin.PropertyChanged += OnStructurePropertyChanged;
-            RaisePropertyChangedEvent("ChangeStatusString");
-            RaisePropertyChangedEvent(nameof(ConstraintValueColor));
-            RaisePropertyChangedEvent(nameof(ReferenceValueColor));
-        }
-        public void Unsubscribe()
-        {
-            Con.ConstraintEvaluating -= OnConstraintEvaluating;
-            Con.ConstraintEvaluated -= OnConstraintEvaluated;
-            Con.PropertyChanged -= OnConstraintPropertyChanged;
-            SS.PropertyChanged -= OnStructurePropertyChanged;
-        }
-
-        // Event Handlers
-        private async void UpdateConstraint()
-        {
-            await Task.Run(() => _model.UpdateConstraint(Con.ID));
-        }
-        private void OnConstraintEvaluated(object sender, int AssessmentId)
-        {
-            RefreshFlag = !RefreshFlag;
-        }
-        private void OnConstraintEvaluating(object sender, int AssessmentId)
-        {
-            RefreshFlag = !RefreshFlag;
-        }
-        private void OnConstraintPropertyChanged(object sender, PropertyChangedEventArgs e)
-        {
-            switch (e.PropertyName)
-            {
-                case nameof(ConstraintViewModel.DisplayOrder):
-                    RaisePropertyChangedEvent("DisplayOrder");
-                    break;
-                default:
-                    RefreshFlag ^= true; // necessary for when these properties are updated internally to Squin, i.e. by an A/B ratio change
-                    RaisePropertyChangedEvent(nameof(ConstraintSelector.ShortConstraintDefinition));
-                    RaisePropertyChangedEvent(nameof(ConstraintSelector.ChangeStatusString));
-                    RaisePropertyChangedEvent(nameof(ConstraintSelector.ConstraintType));
-                    RaisePropertyChangedEvent(nameof(ConstraintSelector.ConstraintValue));
-                    RaisePropertyChangedEvent(nameof(ConstraintSelector.ConstraintUnit));
-                    RaisePropertyChangedEvent(nameof(ConstraintSelector.ReferenceValue));
-                    RaisePropertyChangedEvent(nameof(ConstraintSelector.ReferenceType));
-                    RaisePropertyChangedEvent(nameof(ConstraintSelector.ReferenceUnit));
-                    RaisePropertyChangedEvent(nameof(ConstraintSelector.MajorViolation));
-                    RaisePropertyChangedEvent(nameof(ConstraintSelector.MinorViolation));
-                    RaisePropertyChangedEvent(nameof(ConstraintSelector.StopValue));
-                    break;
-            }
-        }
-        private void OnStructurePropertyChanged(object sender, PropertyChangedEventArgs e)
-        {
-            switch (e.PropertyName)
-            {
-                case nameof(StructureSelector.AssignedStructureId):
-                    RefreshFlag ^= true;
-                    break;
-            }
-        }
-        public ObservableCollection<ConstraintTypes> ConstraintTypes { get; private set; } = new ObservableCollection<ConstraintTypes>() { Squint.ConstraintTypes.Unset };
-        public ObservableCollection<ConstraintUnits> ConstraintUnitTypes { get; private set; } = new ObservableCollection<ConstraintUnits>() { ConstraintUnits.Unset };
-        public ObservableCollection<ReferenceTypes> AvailableReferenceTypes { get; private set; } = new ObservableCollection<ReferenceTypes>() { ReferenceTypes.Unset };
-        public ObservableCollection<ConstraintUnits> AvailableReferenceUnitTypes { get; private set; } = new ObservableCollection<ConstraintUnits>() { ConstraintUnits.Unset };
-        public ObservableCollection<ComponentSelector> Components { get; private set; } = new ObservableCollection<ComponentSelector>() { };
-
-        public ICommand SetV95Command
-        {
-            get { return new DelegateCommand(SetV95); }
-        }
-        private void SetV95(object param = null)
-        {
-            ConstraintType = Squint.ConstraintTypes.V;
-            Con.ReferenceType = ReferenceTypes.Lower;
-            Con.MajorViolation = 98;
-            Con.ReferenceScale = UnitScale.Relative;
-            Con.ConstraintScale = UnitScale.Relative;
-            Con.ConstraintValue = 95;
-            UpdateConstraint();
-        }
-
-        public ICommand SetD0035Command
-        {
-            get { return new DelegateCommand(SetD0035); }
-        }
-        private void SetD0035(object param = null)
-        {
-            ConstraintType = Squint.ConstraintTypes.D;
-            Con.ReferenceType = ReferenceTypes.Upper;
-            Con.MajorViolation = 0;
-            Con.ReferenceScale = UnitScale.Absolute;
-            Con.ConstraintScale = UnitScale.Absolute;
-            Con.ConstraintValue = 0.035;
-            var test = AvailableReferenceUnitTypes;
-            UpdateConstraint();
-        }
-
-        public ICommand SetDMinCommand
-        {
-            get { return new DelegateCommand(SetDMin); }
-        }
-        private void SetDMin(object param = null)
-        {
-            ConstraintType = Squint.ConstraintTypes.D;
-            Con.ReferenceType = ReferenceTypes.Lower;
-            Con.MajorViolation = 95;
-            Con.ReferenceScale = UnitScale.Relative;
-            Con.ConstraintScale = UnitScale.Relative;
-            Con.ConstraintValue = 100;
-            UpdateConstraint();
-        }
-
-        public ICommand SetMeanDoseCommand
-        {
-            get { return new DelegateCommand(SetMeanDose); }
-        }
-        private void SetMeanDose(object param = null)
-        {
-            ConstraintType = Squint.ConstraintTypes.M;
-            Con.ReferenceType = ReferenceTypes.Upper;
-            Con.MajorViolation = 0;
-            Con.ReferenceScale = UnitScale.Absolute;
-            Con.ConstraintScale = UnitScale.Relative;
-            Con.ConstraintValue = 0;
-            UpdateConstraint();
-        }
-
     }
     [AddINotifyPropertyChangedInterface]
     public class AssignmentSelector
@@ -1000,11 +430,15 @@ namespace Squint.ViewModels
     [AddINotifyPropertyChangedInterface]
     public class MainViewModel
     {
-        public MainViewModel() 
+
+        private IEventAggregator ea;
+
+        public MainViewModel()
         {
+            ea = new EventAggregator();
             _model = new SquintModel();
         }
-        
+
 
         public async void InitializeModel()
         {
@@ -1024,7 +458,7 @@ namespace Squint.ViewModels
             StartupVM.InitializingMessages = "Loading protocol list...";
             await Task.Run(() =>
             {
-                ProtocolsVM = new ProtocolsViewModel(this, _model);
+                ProtocolsVM = new ProtocolsViewModel(this, _model, ea);
                 SessionsVM = new SessionsViewModel(this, _model);
                 AssessmentsVM = new AssessmentsViewModel(this, _model);
                 SquintIsInitializing = false;
@@ -1071,7 +505,7 @@ namespace Squint.ViewModels
         public string LoadingString { get; set; } = "";
         public bool isUserPanelVisible { get; set; } = false;
         public bool isConfigVisible { get; set; } = false;
-        public bool isLoadProtocolPanelVisible { get; set; } = true;
+
         public bool isStructurePanelVisible { get; set; } = true;
         public ObservableCollection<string> Protocols { get; } = new ObservableCollection<string> { "Protocol1", "Protocol2" };
         //UI Commands
@@ -1083,10 +517,7 @@ namespace Squint.ViewModels
         {
             get { return new DelegateCommand(SynchronizePatient); }
         }
-        public ICommand ExpandLoadProtocolCommand
-        {
-            get { return new DelegateCommand(ExpandLoadProtocol); }
-        }
+
         public ICommand ExpandStructuresCommand
         {
             get { return new DelegateCommand(ExpandStructures); }
@@ -1095,8 +526,8 @@ namespace Squint.ViewModels
         {
             get { return new DelegateCommand(LoadPatient); }
         }
-        
-       
+
+
         public ICommand ShowConfigCommand
         {
             get { return new DelegateCommand(ShowConfig); }
@@ -1142,7 +573,7 @@ namespace Squint.ViewModels
                 SessionSelectVisibility ^= true;
         }
 
-       
+
         public ICommand CloseCheckListCommand
         {
             get { return new DelegateCommand(CloseCheckList); }
@@ -1297,7 +728,7 @@ namespace Squint.ViewModels
             ProtocolCheckVisible = true;
             PlanCheckVisible = false;
         }
-       
+
         public ICommand ToggleChecklistViewCommand
         {
             get { return new DelegateCommand(ToggleCheckListView); }
@@ -1306,7 +737,7 @@ namespace Squint.ViewModels
         {
             ProtocolCheckVisible ^= false;
             PlanCheckVisible ^= true;
-
+            ea.GetEvent<PlanChecklistClosing>().Publish();
         }
         public ICommand DuplicateProtocolCommand
         {
@@ -1368,23 +799,23 @@ namespace Squint.ViewModels
         }
         private void AddConstraintBelow(object param = null)
         {
-            ConstraintSelector CS = param as ConstraintSelector;
+            ConstraintViewModel CS = param as ConstraintViewModel;
             if (CS != null)
             {
                 _model.DuplicateConstraint(CS.Id);
             }
         }
 
-       
+
         private void ShowConfig(object param = null)
         {
             if (_model.SquintUser == "nchng")
                 isConfigVisible = !isConfigVisible;
         }
-        
+
         private void ShiftConstraintUp(object param = null)
         {
-            ConstraintSelector CS = param as ConstraintSelector;
+            ConstraintViewModel CS = param as ConstraintViewModel;
             if (CS != null)
             {
                 _model.ShiftConstraintUp(CS.Id);
@@ -1392,14 +823,14 @@ namespace Squint.ViewModels
         }
         private void ShiftConstraintDown(object param = null)
         {
-            ConstraintSelector CS = param as ConstraintSelector;
+            ConstraintViewModel CS = param as ConstraintViewModel;
             if (CS != null)
             {
                 _model.ShiftConstraintDown(CS.Id);
             }
         }
-       
-        
+
+
 
         public ICommand UpdateProtocolCommand
         {
@@ -1572,10 +1003,7 @@ namespace Squint.ViewModels
             else PatientVM.isPIDVisible ^= true;
         }
 
-        private void ExpandLoadProtocol(object param = null)
-        {
-            isLoadProtocolPanelVisible = !isLoadProtocolPanelVisible;
-        }
+
         private void ExpandStructures(object param = null)
         {
             isStructurePanelVisible = !isStructurePanelVisible;

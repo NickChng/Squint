@@ -13,7 +13,6 @@ using System.Data;
 using Squint.Interfaces;
 using Squint.Extensions;
 using System.Windows.Media;
-using AutoMapper;
 
 namespace Squint
 {

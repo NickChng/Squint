@@ -20,7 +20,7 @@ namespace Squint.Converters
         public object Convert(object value, Type targetType,
                object parameter, System.Globalization.CultureInfo culture)
         {
-            StructureSelector V = value as StructureSelector;
+            StructureViewModel V = value as StructureViewModel;
             if (V != null)
                 return Visibility.Visible;
             else
@@ -126,7 +126,7 @@ namespace Squint.Converters
         public object Convert(object value, Type targetType,
                object parameter, System.Globalization.CultureInfo culture)
         {
-            StructureSelector SS = value as StructureSelector;
+            StructureViewModel SS = value as StructureViewModel;
             if (SS != null)
                 return SS;
             else
@@ -135,7 +135,7 @@ namespace Squint.Converters
         public object ConvertBack(object value, Type targetTypes,
                object parameter, System.Globalization.CultureInfo culture)
         {
-            StructureSelector SS = value as StructureSelector;
+            StructureViewModel SS = value as StructureViewModel;
             if (SS != null)
                 return SS;
             else return null;
@@ -282,7 +282,7 @@ namespace Squint.Converters
         public object Convert(object value, Type targetType,
               object parameter, System.Globalization.CultureInfo culture)
         {
-            ConstraintSelector CS = value as ConstraintSelector;
+            ConstraintViewModel CS = value as ConstraintViewModel;
             if (CS != null)
             {
                 if (CS.ReferenceType == ReferenceTypes.Lower)
@@ -430,7 +430,7 @@ namespace Squint.Converters
         public object Convert(object value, Type targetType,
               object parameter, System.Globalization.CultureInfo culture)
         {
-            var CS = value as ComponentSelector;
+            var CS = value as ComponentViewModel;
             if (CS != null)
             {
                 return new SolidColorBrush(Colors.AliceBlue);
@@ -487,7 +487,7 @@ namespace Squint.Converters
         public object Convert(object[] value, Type targetType,
               object parameter, System.Globalization.CultureInfo culture)
         {
-            ConstraintSelector CS = value[0] as ConstraintSelector;
+            ConstraintViewModel CS = value[0] as ConstraintViewModel;
             if (CS != null)
                 return CS.FullConstraintDefinition;
             else
@@ -655,7 +655,7 @@ namespace Squint.Converters
                object parameter, System.Globalization.CultureInfo culture)
         {
             var AV = (value[0] as AssessmentView);
-            var CS = (value[1] as ConstraintSelector);
+            var CS = (value[1] as ConstraintViewModel);
             if (AV != null && CS != null)
             {
                 if (CS.isResultCalculating(AV.AssessmentId))
@@ -682,7 +682,7 @@ namespace Squint.Converters
                object parameter, System.Globalization.CultureInfo culture)
         {
             var Col = (value[1] as DataGridCell).Column as SquintDataColumn;
-            var CS = (value[0] as ConstraintSelector);
+            var CS = (value[0] as ConstraintViewModel);
             if (Col != null & CS != null)
             {
                 if (CS.isResultCalculating(Col.AV.AssessmentId))
@@ -829,8 +829,8 @@ namespace Squint.Converters
         public object Convert(object[] value, Type targetType,
                object parameter, System.Globalization.CultureInfo culture)
         {
-            var selectedCS = (value[0] as ConstraintSelector);
-            var rowCS = (value[1] as ConstraintSelector);
+            var selectedCS = (value[0] as ConstraintViewModel);
+            var rowCS = (value[1] as ConstraintViewModel);
             if (selectedCS != null && rowCS != null)
                 if (selectedCS.Id == rowCS.Id)
                     return new SolidColorBrush(Colors.Goldenrod);
@@ -850,7 +850,7 @@ namespace Squint.Converters
         public object Convert(object[] value, Type targetType,
                object parameter, System.Globalization.CultureInfo culture)
         {
-            StructureSelector SS = (value[0] as StructureSelector);
+            StructureViewModel SS = (value[0] as StructureViewModel);
             ObservableCollection<string> AvailableStructures = value[1] as ObservableCollection<string>;
             if (SS == null)
             {
@@ -908,7 +908,7 @@ namespace Squint.Converters
                object parameter, System.Globalization.CultureInfo culture)
         {
             var AV = (value[0] as AssessmentView);
-            var CS = (value[1] as ConstraintSelector);
+            var CS = (value[1] as ConstraintViewModel);
             if (AV != null && CS != null)
             {
                 if (CS.isResultCalculating(AV.AssessmentId))
@@ -971,7 +971,7 @@ namespace Squint.Converters
                object parameter, System.Globalization.CultureInfo culture)
         {
             var Col = (value[1] as DataGridCell).Column as SquintDataColumn;
-            var CS = (value[0] as ConstraintSelector);
+            var CS = (value[0] as ConstraintViewModel);
             if (Col != null & CS != null)
             {
                 if (Col.AV == null)
@@ -1066,7 +1066,7 @@ namespace Squint.Converters
         public object Convert(object value, Type targetType,
                object parameter, System.Globalization.CultureInfo culture)
         {
-            StructureSelector V = value as StructureSelector;
+            StructureViewModel V = value as StructureViewModel;
             return string.Format("{0} (Label={1})", V.AssignedStructureId, V.LabelName);
         }
         public object ConvertBack(object value, Type targetTypes,

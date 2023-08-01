@@ -19,7 +19,6 @@ using Squint.Extensions;
 using System.Windows.Threading;
 using System.Runtime.Remoting.Contexts;
 using System.Reflection;
-using AutoMapper;
 using Squint.Helpers;
 using System.Drawing;
 using Squint.Structs;
@@ -45,7 +44,7 @@ namespace Squint
         }
 
         private List<BeamGeometryDefinition> _BeamGeometryDefinitions;
-        public Dictionary<int, Component> ComponentViews { get; private set; } = new Dictionary<int, Component>();
+        public Dictionary<int, ComponentModel> ComponentViews { get; private set; } = new Dictionary<int, ComponentModel>();
         public Dictionary<int, AssessmentView> AssessmentViews { get; private set; } = new Dictionary<int, AssessmentView>();
         public bool SavingNewProtocol { get; } = false;
         public bool PatientOpen { get; private set; } = false;
@@ -492,7 +491,7 @@ namespace Squint
                 return ImagingFields;
             }
         }
-        public Dictionary<ImagingProtocolTypes, List<string>> CheckImagingProtocols(Component CV, List<ImagingFieldItem> IF)
+        public Dictionary<ImagingProtocolTypes, List<string>> CheckImagingProtocols(ComponentModel CV, List<ImagingFieldItem> IF)
         {
             Dictionary<ImagingProtocolTypes, List<string>> Errors = new Dictionary<ImagingProtocolTypes, List<string>>();
             foreach (ImagingProtocolTypes IP in CV.ImagingProtocols)
@@ -620,32 +619,34 @@ namespace Squint
         }
 
 
-        public ConstraintViewModel AddConstraint(ConstraintTypes TypeCode, int ComponentID = 0, int StructureId = 1)
+        public ConstraintModel AddConstraint(ConstraintTypes TypeCode, int ComponentID = 0, int StructureId = 1)
         {
             if (!ProtocolLoaded)
                 return null;
-            Component parentComponent = CurrentProtocol.Components.FirstOrDefault(x => x.ID == ComponentID);
-            ProtocolStructureViewModel primaryStructure = CurrentProtocol.Structures.FirstOrDefault(x => x.ID == StructureId);
-            ConstraintViewModel Con = new ConstraintViewModel(this, parentComponent, primaryStructure, null, TypeCode);
-            CurrentProtocol.Components.FirstOrDefault(x => x.ID == ComponentID).Constraints.Add(Con);
+            ComponentModel parentComponent = CurrentProtocol.Components.FirstOrDefault(x => x.Id == ComponentID);
+            ProtocolStructure primaryStructure = CurrentProtocol.Structures.FirstOrDefault(x => x.ID == StructureId);
+            ConstraintModel Con = new ConstraintModel(this, parentComponent, primaryStructure, null, TypeCode);
+            CurrentProtocol.Components.FirstOrDefault(x => x.Id == ComponentID).ConstraintModels.Add(Con);
             return Con;
         }
+
+        
         public void DeleteConstraint(int Id)
         {
             var AllConstraints = GetAllConstraints();
             var Con = AllConstraints.FirstOrDefault(x => x.ID == Id);
             Con.FlagForDeletion();
             int NewDisplayOrder = 1;
-            foreach (ConstraintViewModel C in CurrentProtocol.Components.FirstOrDefault(x => x.ID == Con.ComponentID).Constraints.Where(x => !x.ToRetire))
+            foreach (ConstraintModel C in CurrentProtocol.Components.FirstOrDefault(x => x.Id == Con.ComponentID).ConstraintModels.Where(x => !x.ToRetire))
             {
                 Con.DisplayOrder.Value = NewDisplayOrder++;
             }
         }
-        public List<ConstraintViewModel> GetAllConstraints()
+        public List<ConstraintModel> GetAllConstraints()
         {
-            return CurrentProtocol.Components.SelectMany(x => x.Constraints).ToList();
+            return CurrentProtocol.Components.SelectMany(x => x.ConstraintModels).ToList();
         }
-        public ConstraintViewModel GetConstraint(int Id)
+        public ConstraintModel GetConstraint(int Id)
         {
             return GetAllConstraints().FirstOrDefault(x => x.ID == Id);
         }
@@ -656,7 +657,7 @@ namespace Squint
                 GetComponent(Id).FlagForDeletion();
                 //Re-index displayorder
                 int NewDisplayOrder = 1;
-                foreach (Component Comp in CurrentProtocol.Components.OrderBy(x => x.DisplayOrder))
+                foreach (ComponentModel Comp in CurrentProtocol.Components.OrderBy(x => x.DisplayOrder))
                 {
                     Comp.DisplayOrder = NewDisplayOrder++;
                 }
@@ -668,7 +669,7 @@ namespace Squint
             {
                 GetProtocolStructure(Id).FlagForDeletion();
                 int NewDisplayOrder = 1;
-                foreach (ProtocolStructureViewModel PS in CurrentProtocol.Structures.OrderBy(x => x.DisplayOrder))
+                foreach (ProtocolStructure PS in CurrentProtocol.Structures.OrderBy(x => x.DisplayOrder))
                 {
                     PS.DisplayOrder = NewDisplayOrder++;
                 }
@@ -677,10 +678,10 @@ namespace Squint
         }
         public void ShiftConstraintUp(int Id)
         {
-            ConstraintViewModel Con = GetConstraint(Id);
+            ConstraintModel Con = GetConstraint(Id);
             if (Con != null)
             {
-                ConstraintViewModel ConSwitch = GetAllConstraints().FirstOrDefault(x => x.DisplayOrder.Value == Con.DisplayOrder.Value - 1);
+                ConstraintModel ConSwitch = GetAllConstraints().FirstOrDefault(x => x.DisplayOrder.Value == Con.DisplayOrder.Value - 1);
                 if (ConSwitch != null)
                 {
                     ConSwitch.DisplayOrder = Con.DisplayOrder;
@@ -691,10 +692,10 @@ namespace Squint
         }
         public void ShiftConstraintDown(int Id)
         {
-            ConstraintViewModel Con = GetConstraint(Id);
+            ConstraintModel Con = GetConstraint(Id);
             if (Con != null)
             {
-                ConstraintViewModel ConSwitch = GetAllConstraints().FirstOrDefault(x => x.DisplayOrder.Value == Con.DisplayOrder.Value + 1);
+                ConstraintModel ConSwitch = GetAllConstraints().FirstOrDefault(x => x.DisplayOrder.Value == Con.DisplayOrder.Value + 1);
                 if (ConSwitch != null)
                 {
                     ConSwitch.DisplayOrder = Con.DisplayOrder;
@@ -707,33 +708,33 @@ namespace Squint
         {
             if (CurrentProtocol == null)
                 return;
-            ConstraintViewModel Con2Dup = GetConstraint(ConstraintID);
-            foreach (ConstraintViewModel Con in GetAllConstraints().Where(x => x.DisplayOrder.Value > Con2Dup.DisplayOrder.Value))
+            ConstraintModel Con2Dup = GetConstraint(ConstraintID);
+            foreach (ConstraintModel Con in GetAllConstraints().Where(x => x.DisplayOrder.Value > Con2Dup.DisplayOrder.Value))
             {
                 Con.DisplayOrder.Value = Con.DisplayOrder.Value + 1;
             }
-            ConstraintViewModel DupCon = new ConstraintViewModel(Con2Dup);
-            CurrentProtocol.Components.FirstOrDefault(x => x.ID == Con2Dup.ComponentID).Constraints.Add(DupCon);
+            ConstraintModel DupCon = new ConstraintModel(Con2Dup);
+            CurrentProtocol.Components.FirstOrDefault(x => x.Id == Con2Dup.ComponentID).ConstraintModels.Add(DupCon);
             ConstraintAdded?.Invoke(null, DupCon.ID);
         }
 
-        public Component GetComponent(int ID)
+        public ComponentModel GetComponent(int ID)
         {
-            return CurrentProtocol.Components.FirstOrDefault(x => x.ID == ID);
+            return CurrentProtocol.Components.FirstOrDefault(x => x.Id == ID);
         }
-        public Component AddComponent()
+        public ComponentModel AddComponent()
         {
             if (!ProtocolLoaded)
                 return null;
             string ComponentName = string.Format("NewPhase{0}", _NewPlanCounter++);
             int DisplayOrder = CurrentProtocol.Components.Count() + 1;
-            var newComponent = new Component(CurrentProtocol.ID, ComponentName, DisplayOrder);
+            var newComponent = new ComponentModel(CurrentProtocol.ID, ComponentName, DisplayOrder);
             CurrentProtocol.Components.Add(newComponent);
             foreach (AssessmentViewModel SA in CurrentSession.Assessments)
                 CurrentSession.PlanAssociations.Add(new PlanAssociationViewModel(this, newComponent, SA));
             return newComponent;
         }
-        public async Task<ProtocolStructureViewModel> AddNewStructure()
+        public async Task<ProtocolStructure> AddNewStructure()
         {
             if (CurrentProtocol == null)
                 return null;
@@ -746,7 +747,7 @@ namespace Squint
                     NewStructureName = string.Format("{0}{1}", DefaultNewStructureName, _NewStructureCounter++);
                 }
                 StructureLabel SL = await dbCon.GetStructureLabel(1);
-                ProtocolStructureViewModel newProtocolStructure = new ProtocolStructureViewModel(this, SL, NewStructureName);
+                ProtocolStructure newProtocolStructure = new ProtocolStructure(this, SL, NewStructureName);
                 newProtocolStructure.DisplayOrder = CurrentProtocol.Structures.Count() + 1;
                 newProtocolStructure.ProtocolID = CurrentProtocol.ID;
                 CurrentProtocol.Structures.Add(newProtocolStructure);
@@ -770,7 +771,7 @@ namespace Squint
                 {
                     var dbCon = new DbController(this);
                     StructureLabel SL = await dbCon.GetStructureLabel(1);
-                    var S = new ProtocolStructureViewModel(this, SL, ECPStructure.ID);
+                    var S = new ProtocolStructure(this, SL, ECPStructure.ID);
                     S.DefaultEclipseAliases.Add(ECPStructure.ID);
                     EclipseProtocol.Structures.Add(S);
                     EclipseStructureIdToSquintStructureIdMapping.Add(ECPStructure.ID.ToLower(), S.ID);
@@ -781,7 +782,7 @@ namespace Squint
 
                     int numFractions = Convert.ToInt32(Ph.FractionCount);
                     double totalDose = (double)Ph.PlanTemplate.DosePerFraction * numFractions * 100; // convert to cGy;
-                    Component SC = new Component(EclipseProtocol.ID, Ph.ID, ComponentDisplayOrder++, numFractions, totalDose);
+                    ComponentModel SC = new ComponentModel(EclipseProtocol.ID, Ph.ID, ComponentDisplayOrder++, numFractions, totalDose);
                     EclipseProtocol.Components.Add(SC);
                     if (Ph.Prescription.Item != null)
                     {
@@ -793,8 +794,8 @@ namespace Squint
                             if (EclipseStructureIdToSquintStructureIdMapping.ContainsKey(Item.ID.ToLower()))
                                 structureId = EclipseStructureIdToSquintStructureIdMapping[Item.ID.ToLower()];
                             var primaryStructure = EclipseProtocol.Structures.FirstOrDefault(x => x.ID == structureId);
-                            ConstraintViewModel Con = new ConstraintViewModel(SC, primaryStructure, Item);
-                            SC.Constraints.Add(Con);
+                            ConstraintModel Con = new ConstraintModel(SC, primaryStructure, Item);
+                            SC.ConstraintModels.Add(Con);
                         }
                     }
                     if (Ph.Prescription.MeasureItem != null)
@@ -805,8 +806,8 @@ namespace Squint
                             if (EclipseStructureIdToSquintStructureIdMapping.ContainsKey(MI.ID.ToLower()))
                                 structureId = EclipseStructureIdToSquintStructureIdMapping[MI.ID.ToLower()];
                             var primaryStructure = EclipseProtocol.Structures.FirstOrDefault(x => x.ID == structureId);
-                            ConstraintViewModel Con = new ConstraintViewModel(SC, primaryStructure, MI);
-                            SC.Constraints.Add(Con);
+                            ConstraintModel Con = new ConstraintModel(SC, primaryStructure, MI);
+                            SC.ConstraintModels.Add(Con);
                         }
                     }
                 }
@@ -1521,7 +1522,7 @@ namespace Squint
 
                 // Constraints
                 var constraintsToSerialize = new List<SquintProtocolConstraint>();
-                foreach (var Con in C.Constraints.OrderBy(x => x.DisplayOrder))
+                foreach (var Con in C.ConstraintModels.OrderBy(x => x.DisplayOrder))
                 {
                     switch (Con.ConstraintType)
                     {
@@ -1670,7 +1671,7 @@ namespace Squint
                     AvailableStructureSetsChanged?.Invoke(null, EventArgs.Empty);
                     CurrentStructureSetChanged?.Invoke(null, EventArgs.Empty);
                     _uiDispatcher.Invoke(ProtocolOpened, new object[] { null, EventArgs.Empty });
-                    foreach (ProtocolStructureViewModel PS in CurrentSession.SessionProtocol.Structures)
+                    foreach (ProtocolStructure PS in CurrentSession.SessionProtocol.Structures)
                     {
                         UpdateConstraintThresholds(PS);
                     }
@@ -1771,16 +1772,16 @@ namespace Squint
         }
         public void ChangeConstraintComponent(int ConId, int CompId)
         {
-            ConstraintViewModel Con = GetAllConstraints().FirstOrDefault(x => x.ID == ConId);
-            CurrentProtocol.Components.FirstOrDefault(x => x.ID == Con.ComponentID).Constraints.Remove(Con);
-            Component newComponent = CurrentProtocol.Components.FirstOrDefault(x => x.ID == CompId);
-            newComponent.Constraints.Add(Con);
+            ConstraintModel Con = GetAllConstraints().FirstOrDefault(x => x.ID == ConId);
+            CurrentProtocol.Components.FirstOrDefault(x => x.Id == Con.ComponentID).ConstraintModels.Remove(Con);
+            ComponentModel newComponent = CurrentProtocol.Components.FirstOrDefault(x => x.Id == CompId);
+            newComponent.ConstraintModels.Add(Con);
             Con.parentComponent = newComponent;
         }
 
         public async void UpdateConstraint(int ConId)
         {
-            ConstraintViewModel Con = GetAllConstraints().FirstOrDefault(x => x.ID == ConId);
+            ConstraintModel Con = GetAllConstraints().FirstOrDefault(x => x.ID == ConId);
             foreach (var PA in CurrentSession.PlanAssociations.Where(x => x.ComponentID == Con.ComponentID))
             {
                 await Con.EvaluateConstraint(PA);
@@ -1792,7 +1793,7 @@ namespace Squint
             {
                 if (PA.Linked)
                 {
-                    foreach (ConstraintViewModel Con in CurrentProtocol.Components.First(x => x.ID == PA.ComponentID).Constraints)
+                    foreach (ConstraintModel Con in CurrentProtocol.Components.First(x => x.Id == PA.ComponentID).ConstraintModels)
                         await Con.EvaluateConstraint(PA);
                 }
             }
@@ -1808,29 +1809,29 @@ namespace Squint
             {
                 if (PA.Linked)
                 {
-                    foreach (ConstraintViewModel Con in CurrentProtocol.Components.First(x => x.ID == PA.ComponentID).Constraints)
+                    foreach (ConstraintModel Con in CurrentProtocol.Components.First(x => x.Id == PA.ComponentID).ConstraintModels)
                         await Con.EvaluateConstraint(PA);
                 }
             }
             return true;
         }
 
-        public async void UpdateConstraints(ProtocolStructureViewModel PS)
+        public async void UpdateConstraints(ProtocolStructure PS)
         {
 
             foreach (var PA in CurrentSession.PlanAssociations)
             {
                 if (PA.Linked)
                 {
-                    foreach (ConstraintViewModel Con in CurrentProtocol.Components.First(x => x.ID == PA.ComponentID).Constraints.Where(x => x.PrimaryStructureId == PS.ID || x.ReferenceStructureId == PS.ID))
+                    foreach (ConstraintModel Con in CurrentProtocol.Components.First(x => x.Id == PA.ComponentID).ConstraintModels.Where(x => x.PrimaryStructureId == PS.ID || x.ReferenceStructureId == PS.ID))
                         await Con.EvaluateConstraint(PA);
                 }
             }
         }
 
-        public void UpdateConstraintThresholds(ProtocolStructureViewModel E) // update interpolated thresholds based on change to ProtocolStructureId
+        public void UpdateConstraintThresholds(ProtocolStructure E) // update interpolated thresholds based on change to ProtocolStructureId
         {
-            foreach (ConstraintViewModel Con in GetAllConstraints().Where(x => x.ReferenceStructureId == E.ID))
+            foreach (ConstraintModel Con in GetAllConstraints().Where(x => x.ReferenceStructureId == E.ID))
             {
                 string SSUID = CurrentStructureSet.UID;
                 if (!string.IsNullOrEmpty(SSUID))
@@ -1839,7 +1840,7 @@ namespace Squint
         }
         public bool MatchStructuresByAlias()
         {
-            foreach (ProtocolStructureViewModel E in CurrentProtocol.Structures) // notify structures
+            foreach (ProtocolStructure E in CurrentProtocol.Structures) // notify structures
             {
                 E.ApplyAliasing(CurrentStructureSet);
                 UpdateConstraintThresholds(E);
@@ -1847,7 +1848,7 @@ namespace Squint
             return true;
         }
 
-        public ProtocolStructureViewModel GetProtocolStructure(int Id)
+        public ProtocolStructure GetProtocolStructure(int Id)
         {
             return CurrentProtocol.Structures.FirstOrDefault(x => x.ID == Id);
         }
@@ -1924,7 +1925,7 @@ namespace Squint
         {
             AssessmentViewModel NewAssessment = new AssessmentViewModel(CurrentSession.ID, string.Format("Assessment#{0}", _AssessmentNameIterator), _AssessmentNameIterator, this);
             CurrentSession.Assessments.Add(NewAssessment);
-            foreach (Component SC in CurrentProtocol.Components)
+            foreach (ComponentModel SC in CurrentProtocol.Components)
             {
                 CurrentSession.PlanAssociations.Add(new PlanAssociationViewModel(this, SC, NewAssessment));
             }
@@ -1954,19 +1955,19 @@ namespace Squint
             return ESAPIContext.Patient.CourseIds;
         }
 
-        public void AddNewContourCheck(ProtocolStructureViewModel S)
+        public void AddNewContourCheck(ProtocolStructure S)
         {
             S.CheckList.isPointContourChecked.Value = true;
             S.CheckList.PointContourVolumeThreshold.Value = 0.05;
         }
-        public void RemoveNewContourCheck(ProtocolStructureViewModel S)
+        public void RemoveNewContourCheck(ProtocolStructure S)
         {
             S.CheckList.isPointContourChecked.Value = false;
             S.CheckList.PointContourVolumeThreshold.Value = 0;
         }
         public void AddNewBeamCheck(int ComponentId)
         {
-            CurrentProtocol.Components.FirstOrDefault(x => x.ID == ComponentId).Beams.Add(new BeamViewModel(ComponentId, this));
+            CurrentProtocol.Components.FirstOrDefault(x => x.Id == ComponentId).Beams.Add(new BeamViewModel(ComponentId, this));
         }
 
         public void AddStructureAlias(int StructureId, string NewAlias)

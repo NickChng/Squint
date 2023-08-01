@@ -10,50 +10,17 @@ using Squint.Interfaces;
 using Squint.TestFramework;
 using Squint.Extensions;
 using Squint.Views;
+using Prism.Events;
+using Squint.Events;
 
 namespace Squint.ViewModels
 {
-    [AddINotifyPropertyChangedInterface]
-    public class PointCheck_ViewModel : ObservableObject
-    {
-        public class PointCheckObject
-        {
-            public string ProtocolStructureId { get; set; }
-            public string MinSubVolume { get; set; }
-            public string Centroid_x { get; set; }
-            public string Centroid_y { get; set; }
-            public string Centroid_z { get; set; }
-
-            public string CentroidString 
-            { 
-                get
-                {
-                    if (Warning != null)
-                    {
-                        if ((bool)Warning)
-                            return string.Format("{0},{1},{2}", Centroid_x, Centroid_y, Centroid_z);
-                        else
-                            return "";
-                    }
-                    else
-                        return "";
-                }
-            }
-            public bool? Warning { get; set; }
-            public string WarningString { get; set; }
-            public bool Assigned { get; set; }
-            public bool isEmpty { get; set; } = false;
-
-            public ParameterOptions ParameterOption { get; set; } = ParameterOptions.Required;
-
-        }
-        public ObservableCollection<PointCheckObject> Checks { get; set; } = new ObservableCollection<PointCheckObject>();
-    }
 
     [AddINotifyPropertyChangedInterface]
 
     public class Checklist_ViewModel : ObservableObject
     {
+        private IEventAggregator ea;
         private SquintModel _model;
         public Beam_ViewModel Beam_ViewModel { get; set; } = new Beam_ViewModel();
         public LoadingViewModel Loading_ViewModel { get; set; } = new LoadingViewModel();
@@ -74,25 +41,54 @@ namespace Squint.ViewModels
         private PlanSelector _planSelector;
         public BeamListItem SelectedBeam { get; set; }
 
-        private ComponentSelector _SelectedComponent;
+        private ComponentViewModel _SelectedComponent;
 
         public List<AsyncStructure> StructuresWithDensityOverride { get; set; }
         public List<AsyncStructure> StructuresWithHighResolutionContours { get; set; }
 
-        public ObservableCollection<ComponentSelector> Components { get; set; } = new ObservableCollection<ComponentSelector>();
-        public ComponentSelector SelectedComponent
+        public ObservableCollection<ComponentViewModel> Components { get; set; } = new ObservableCollection<ComponentViewModel>();
+        public ComponentViewModel SelectedComponent
         {
             get { return _SelectedComponent; }
             set { _SelectedComponent = value; PopulateViewFromSelectedComponent(); }
         }
-        public StructureSelector SelectedStructure { get; set; }
-        public Checklist_ViewModel(ProtocolsViewModel parentView, SquintModel model)
+        public StructureViewModel SelectedStructure { get; set; }
+
+        public Checklist_ViewModel() { }
+        public Checklist_ViewModel(ProtocolsViewModel parentView, SquintModel model, IEventAggregator ea_in)
         {
             ParentView = parentView;
+            ea = ea_in;
             _model = model;
             _model.ProtocolUpdated += Ctr_ProtocolUpdated;
             _model.ProtocolOpened += Ctr_ProtocolUpdated;
+            Subscribe();
         }
+
+        private void Subscribe()
+        {
+            ea.GetEvent<StructureEclipseIdAssigmentChanged>().Subscribe(OnStructureEclipseIdAssignmentChanged);
+            ea.GetEvent<PlanChecklistClosing>().Subscribe(OnPlanChecklistClosing);
+        }
+
+        private void OnPlanChecklistClosing()
+        {
+            Unsubscribe();
+        }
+
+        private void Unsubscribe()
+        {
+            ea.GetEvent<StructureEclipseIdAssigmentChanged>().Unsubscribe(OnStructureEclipseIdAssignmentChanged);
+            ea.GetEvent<PlanChecklistClosing>().Unsubscribe(OnPlanChecklistClosing);
+        }
+
+        private void OnStructureEclipseIdAssignmentChanged(StructureEclipseIdAssignmentChangedArgs args)
+        {
+
+            PerformStrayVoxelChecks();
+        }
+
+
 
         private void Ctr_ProtocolUpdated(object sender, EventArgs e)
         {
@@ -115,13 +111,13 @@ namespace Squint.ViewModels
             Components.Clear();
             foreach (var Comp in _model.CurrentProtocol.Components.OrderBy(x => x.DisplayOrder))
             {
-                Components.Add(new ComponentSelector(Comp, _model));
+                Components.Add(new ComponentViewModel(Comp, _model));
             }
 
             Simulation_ViewModel.Tests.Clear();
             TestValueItem<double?> SliceSpacing = new TestValueItem<double?>(CheckTypes.SliceSpacing, null, P.Checklist.SliceSpacing, new TrackedValue<double?>(1E-5), "Slice spacing does not match protocol");
             TestValueItem<string> Series = new TestValueItem<string>(CheckTypes.SeriesId, null, null) { ParameterOption = ParameterOptions.Optional, IsInfoOnly = true };
-            TestContainsItem<string> CTDevice = new TestContainsItem<string>(CheckTypes.CTDeviceId, null, P.Checklist.CTDeviceIds) { IsInfoOnly = false }; 
+            TestContainsItem<string> CTDevice = new TestContainsItem<string>(CheckTypes.CTDeviceId, null, P.Checklist.CTDeviceIds) { IsInfoOnly = false };
             TestValueItem<string> Study = new TestValueItem<string>(CheckTypes.StudyId, null, null) { ParameterOption = ParameterOptions.Optional, IsInfoOnly = true };
             TestValueItem<string> SeriesComment = new TestValueItem<string>(CheckTypes.SeriesComment, null, null) { ParameterOption = ParameterOptions.Optional, IsInfoOnly = true };
             TestValueItem<string> ImageComment = new TestValueItem<string>(CheckTypes.ImageComment, null, null) { ParameterOption = ParameterOptions.Optional, IsInfoOnly = true };
@@ -213,7 +209,7 @@ namespace Squint.ViewModels
             if (_SelectedComponent == null)
                 return;
             var P = _model.CurrentProtocol;
-            Component Comp = _model.GetComponent(_SelectedComponent.Id);
+            ComponentModel Comp = _model.GetComponent(_SelectedComponent.Id);
 
             var PNVWarning = "Out of range";
             TestRangeItem<double?> PNVCheck = new TestRangeItem<double?>(CheckTypes.PlanNormalization, null, Comp.PNVMin, Comp.PNVMax, PNVWarning);
@@ -288,7 +284,7 @@ namespace Squint.ViewModels
             Objectives_ViewModel.NTO = await _model.GetNTOObjective(p.CourseId, p.PlanId);
 
             var ImagingFields = await _model.GetImagingFieldList(p.CourseId, p.PlanId);
-            Component Comp = _model.CurrentProtocol.Components.FirstOrDefault(x => x.ComponentName == p.ACV.ComponentName);
+            ComponentModel Comp = _model.CurrentProtocol.Components.FirstOrDefault(x => x.ComponentName == p.ACV.ComponentName);
             var ImageProtocolCheck = _model.CheckImagingProtocols(Comp, ImagingFields);
             Imaging_ViewModel.ImagingProtocols.Clear();
             foreach (ImagingProtocolTypes IP in Comp.ImagingProtocols)
@@ -414,7 +410,7 @@ namespace Squint.ViewModels
                 string NoCheckHUString = @"No artifact structure";
                 string NoRefHUString = @"Not specified";
                 double? CheckHU = null;
-                ProtocolStructureViewModel PS = _model.GetProtocolStructure(A.ProtocolStructureId.Value);
+                ProtocolStructure PS = _model.GetProtocolStructure(A.ProtocolStructureId.Value);
                 if (PS != null)
                 {
                     if (PS.AssignedStructureId != "")
@@ -508,7 +504,7 @@ namespace Squint.ViewModels
         private async void PerformStrayVoxelChecks()
         {
             PointCheck_VM.Checks.Clear();
-            foreach (ProtocolStructureViewModel E in _model.CurrentProtocol.Structures)
+            foreach (ProtocolStructure E in _model.CurrentProtocol.Structures)
             {
                 if (E.CheckList != null)
                 {
@@ -604,7 +600,7 @@ namespace Squint.ViewModels
             }
         }
 
-        private void BLI_PropertyChanged(object sender, EventArgs e, Component Comp)
+        private void BLI_PropertyChanged(object sender, EventArgs e, ComponentModel Comp)
         {
             //Refresh Field col separation check
 
@@ -669,7 +665,7 @@ namespace Squint.ViewModels
         }
         private void AddMinSubVolumeCheck(object param = null)
         {
-            StructureSelector SS = param as StructureSelector;
+            StructureViewModel SS = param as StructureViewModel;
             if (SS != null)
             {
                 _model.AddNewContourCheck(_model.GetProtocolStructure(SS.Id));
@@ -682,7 +678,7 @@ namespace Squint.ViewModels
         }
         public void RemoveContourCheck(object param = null)
         {
-            StructureSelector SS = param as StructureSelector;
+            StructureViewModel SS = param as StructureViewModel;
             if (SS != null)
             {
                 _model.RemoveNewContourCheck(_model.GetProtocolStructure(SS.Id));
@@ -707,7 +703,7 @@ namespace Squint.ViewModels
 
         public void AddNewBeamCheck(object param = null)
         {
-            ComponentSelector CS = SelectedComponent as ComponentSelector;
+            ComponentViewModel CS = SelectedComponent as ComponentViewModel;
             if (CS != null)
             {
                 _model.AddNewBeamCheck(CS.Id);

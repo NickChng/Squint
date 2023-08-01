@@ -186,17 +186,17 @@ namespace Squint
                     foreach (DbProtocolStructure DbProtocolStructure in DbP.ProtocolStructures)
                     {
                         StructureLabel SL = await GetStructureLabel(DbProtocolStructure.StructureLabelID);
-                        LoadedProtocol.Structures.Add(new ProtocolStructureViewModel(_model, SL, DbProtocolStructure));
+                        LoadedProtocol.Structures.Add(new ProtocolStructure(_model, SL, DbProtocolStructure));
                         AtLeastOneStructure = true;
                     }
                     if (!AtLeastOneStructure)
                     {
                         StructureLabel SL = await GetStructureLabel(1);
-                        LoadedProtocol.Structures.Add(new ProtocolStructureViewModel(_model, SL, Context.DbProtocolStructures.Find(1)));  //Initialize non-defined structure
+                        LoadedProtocol.Structures.Add(new ProtocolStructure(_model, SL, Context.DbProtocolStructures.Find(1)));  //Initialize non-defined structure
                     }
                     foreach (DbComponent DbC in DbP.Components)
                     {
-                        Component SC = new Component(DbC);
+                        ComponentModel SC = new ComponentModel(DbC);
                         LoadedProtocol.Components.Add(SC);
                         foreach (DbComponentImaging DbCI in DbC.ImagingProtocols)
                         {
@@ -215,7 +215,7 @@ namespace Squint
                             {
                                 var primaryStructure = LoadedProtocol.Structures.FirstOrDefault(x => x.ID == DbCon.PrimaryStructureID);
                                 var referenceStructure = LoadedProtocol.Structures.FirstOrDefault(x => x.ID == DbCon.ReferenceStructureId);
-                                SC.Constraints.Add(new ConstraintViewModel(_model, SC, primaryStructure, referenceStructure, DbCon));
+                                SC.ConstraintModels.Add(new ConstraintModel(_model, SC, primaryStructure, referenceStructure, DbCon));
                             }
                         }
                     }
@@ -262,18 +262,18 @@ namespace Squint
                     foreach (DbSessionProtocolStructure DbProtocolStructure in DbSP.ProtocolStructures)
                     {
                         StructureLabel SL = await GetStructureLabel(DbProtocolStructure.StructureLabelID);
-                        ProtocolStructureViewModel E = new ProtocolStructureViewModel(_model, SL, DbProtocolStructure);
+                        ProtocolStructure E = new ProtocolStructure(_model, SL, DbProtocolStructure);
                         SessionProtocol.Structures.Add(E);
                         AtLeastOneStructure = true;
                     }
                     if (!AtLeastOneStructure)
                     {
                         StructureLabel SL = await GetStructureLabel(1);
-                        SessionProtocol.Structures.Add(new ProtocolStructureViewModel(_model, SL, Context.DbProtocolStructures.Find(1)));  //Initialize non-defined structure
+                        SessionProtocol.Structures.Add(new ProtocolStructure(_model, SL, Context.DbProtocolStructures.Find(1)));  //Initialize non-defined structure
                     }
                     foreach (DbSessionComponent DbC in DbSP.Components.OrderBy(x => x.DisplayOrder))
                     {
-                        Component SC = new Component(DbC);
+                        ComponentModel SC = new ComponentModel(DbC);
                         SessionProtocol.Components.Add(SC);
                         foreach (DbBeam DbB in DbC.DbBeams)
                         {
@@ -292,7 +292,7 @@ namespace Squint
                             {
                                 var primaryStructure = SessionProtocol.Structures.FirstOrDefault(x => x.ID == DbCon.PrimaryStructureID);
                                 var referenceStructure = SessionProtocol.Structures.FirstOrDefault(x => x.ID == DbCon.ReferenceStructureId);
-                                SC.Constraints.Add(new ConstraintViewModel(_model, SC, primaryStructure, referenceStructure, DbCon));
+                                SC.ConstraintModels.Add(new ConstraintModel(_model, SC, primaryStructure, referenceStructure, DbCon));
                             }
                         }
                     }
@@ -303,7 +303,7 @@ namespace Squint
                     }
                     foreach (DbPlanAssociation DbP in DbS.SessionPlans)
                     {
-                        var SC = SessionProtocol.Components.FirstOrDefault(x => x.ID == DbP.SessionComponentID);
+                        var SC = SessionProtocol.Components.FirstOrDefault(x => x.Id == DbP.SessionComponentID);
                         var SA = CurrentSession.Assessments.FirstOrDefault(x => x.ID == DbP.AssessmentID);
                         PlanAssociationViewModel P = new PlanAssociationViewModel(_model, SC, SA, DbP);
                         CurrentSession.PlanAssociations.Add(P);
@@ -396,7 +396,7 @@ namespace Squint
                     DbA.AssessmentName = A.AssessmentName;
                 }
                 var SessionProtocolStructure_Lookup = new Dictionary<int, int>();
-                foreach (ProtocolStructureViewModel S in _model.CurrentProtocol.Structures)
+                foreach (ProtocolStructure S in _model.CurrentProtocol.Structures)
                 {
                     DbSessionProtocolStructure DbE = Context.DbSessionProtocolStructures.Create();
                     Context.DbSessionProtocolStructures.Add(DbE);
@@ -457,15 +457,15 @@ namespace Squint
                     }
                 }
                 // structures
-                foreach (Component SC in _model.CurrentProtocol.Components)
+                foreach (ComponentModel SC in _model.CurrentProtocol.Components)
                 {
                     DbSessionComponent DbC = Context.DbSessionComponents.Create();
                     DbC.ComponentType = (int)SC.ComponentType.Value;
                     Context.DbSessionComponents.Add(DbC);
                     DbC.ID = IDGenerator.GetUniqueId();
                     DbC.SessionID = DbS.ID;
-                    DbC.ParentComponentID = SC.ID;
-                    ComponentLookup.Add(SC.ID, DbC.ID);
+                    DbC.ParentComponentID = SC.Id;
+                    ComponentLookup.Add(SC.Id, DbC.ID);
                     DbC.ProtocolID = DbP.ID;
                     //Update
                     DbC.ComponentName = SC.ComponentName;
@@ -524,7 +524,7 @@ namespace Squint
                             DbB.DbEnergies.Add(Context.DbEnergies.Find((int)VE));
                         }
                     }
-                    foreach (ConstraintViewModel Con in SC.Constraints)
+                    foreach (ConstraintModel Con in SC.ConstraintModels)
                     {
                         DbSessionConstraint DbO = Context.DbSessionConstraints.Create();
                         Context.DbSessionConstraints.Add(DbO);
@@ -640,15 +640,15 @@ namespace Squint
                 //Update Checklist
                 Save_UpdateProtocolCheckList(Context, DbP);
                 //Update Components
-                foreach (Component SC in _model.CurrentProtocol.Components)
+                foreach (ComponentModel SC in _model.CurrentProtocol.Components)
                 {
                     Save_UpdateComponent(Context, SC, DbP.ID, false);
-                    foreach (ConstraintViewModel con in SC.Constraints)
+                    foreach (ConstraintModel con in SC.ConstraintModels)
                     {
                         Save_UpdateConstraint(Context, con, con.ComponentID, con.PrimaryStructureId, con.ReferenceStructureId, false);
                     }
                 }
-                foreach (ProtocolStructureViewModel S in _model.CurrentProtocol.Structures)
+                foreach (ProtocolStructure S in _model.CurrentProtocol.Structures)
                 {
                     DbProtocolStructure DbS;
                     if (S.ToRetire && !S.isCreated)
@@ -715,7 +715,7 @@ namespace Squint
                 Dictionary<int, int> ComponentLookup = new Dictionary<int, int>();
                 Dictionary<int, int> StructureLookup = new Dictionary<int, int>();
                 StructureLookup.Add(1, 1); // add dummy structure
-                foreach (ProtocolStructureViewModel S in _model.CurrentProtocol.Structures)
+                foreach (ProtocolStructure S in _model.CurrentProtocol.Structures)
                 {
                     DbProtocolStructure DbS = Context.DbProtocolStructures.Create();
                     Context.DbProtocolStructures.Add(DbS);
@@ -728,12 +728,12 @@ namespace Squint
                     Save_UpdateStructureCheckList(Context, DbS, S);
                     Save_UpdateStructureAliases(Context, DbS, S);
                 }
-                foreach (Component SC in _model.CurrentProtocol.Components)
+                foreach (ComponentModel SC in _model.CurrentProtocol.Components)
                 {
                     var newID = Save_UpdateComponent(Context, SC, DbP.ID, true);
                     if (newID != null)
-                        ComponentLookup.Add(SC.ID, (int)newID);
-                    foreach (ConstraintViewModel Con in SC.Constraints)
+                        ComponentLookup.Add(SC.Id, (int)newID);
+                    foreach (ConstraintModel Con in SC.ConstraintModels)
                     {
                         if (ComponentLookup.ContainsKey(Con.ComponentID))
                             Save_UpdateConstraint(Context, Con, ComponentLookup[Con.ComponentID], StructureLookup[Con.PrimaryStructureId], StructureLookup[Con.ReferenceStructureId], true);
@@ -766,29 +766,29 @@ namespace Squint
 
         }
 
-        private int? Save_UpdateComponent(SquintDBModel Context, Component comp, int protocolId, bool createCopy)
+        private int? Save_UpdateComponent(SquintDBModel Context, ComponentModel comp, int protocolId, bool createCopy)
         {
             DbComponent DbC;
             if (comp.ToRetire)
             {
-                DbC = Context.DbComponents.Find(comp.ID);
+                DbC = Context.DbComponents.Find(comp.Id);
                 if (DbC != null && comp.ToRetire && !createCopy) // don't remove from template if creating copy
                     Context.DbComponents.Remove(DbC);
                 return null;
                 //update checklist
             }
-            else if (comp.ID < 0 || createCopy)
+            else if (comp.Id < 0 || createCopy)
             {
                 DbC = Context.DbComponents.Create();
                 Context.DbComponents.Add(DbC);
                 if (createCopy)
                     DbC.ID = IDGenerator.GetUniqueId();
                 else
-                    DbC.ID = comp.ID;
+                    DbC.ID = comp.Id;
             }
             else
             {
-                DbC = Context.DbComponents.Find(comp.ID);
+                DbC = Context.DbComponents.Find(comp.Id);
             }
             // Update
             DbC.ComponentName = comp.ComponentName;
@@ -799,10 +799,10 @@ namespace Squint
             DbC.ReferenceDose = comp.TotalDose;
 
             //Update beams
-            Save_UpdateBeamDefinition(Context, DbC, comp.ID, createCopy);
+            Save_UpdateBeamDefinition(Context, DbC, comp.Id, createCopy);
 
             //Update imaging protocols
-            Save_UpdateImagingDefinitions(Context, DbC, comp.ID, createCopy);
+            Save_UpdateImagingDefinitions(Context, DbC, comp.Id, createCopy);
 
             // Update checklist parameters
             DbC.MaxBeams = comp.MaxBeams.Value;
@@ -822,7 +822,7 @@ namespace Squint
             return DbC.ID;
         }
 
-        private void Save_UpdateConstraint(SquintDBModel Context, ConstraintViewModel Con, int ComponentId, int StructureId, int refStructureId, bool createCopy)
+        private void Save_UpdateConstraint(SquintDBModel Context, ConstraintModel Con, int ComponentId, int StructureId, int refStructureId, bool createCopy)
         {
             DbConstraint DbO;
             if ((Con.isCreated || createCopy) && !Con.ToRetire)
@@ -932,7 +932,7 @@ namespace Squint
             _model.CurrentProtocol.Checklist.SupportIndication.AcceptChanges();
         }
 
-        private void Save_UpdateStructureCheckList(SquintDBModel Context, DbProtocolStructure DbS, ProtocolStructureViewModel S)
+        private void Save_UpdateStructureCheckList(SquintDBModel Context, DbProtocolStructure DbS, ProtocolStructure S)
         {
             if (DbS.DbStructureChecklist == null) // no existing checklist in db
             {
@@ -951,7 +951,7 @@ namespace Squint
             }
         }
 
-        private void Save_UpdateStructureAliases(SquintDBModel Context, DbProtocolStructure DbS, ProtocolStructureViewModel S)
+        private void Save_UpdateStructureAliases(SquintDBModel Context, DbProtocolStructure DbS, ProtocolStructure S)
         {
             if (DbS.DbStructureAliases == null) //no existing aliases
                 DbS.DbStructureAliases = new List<DbStructureAlias>();
@@ -981,7 +981,7 @@ namespace Squint
 
         private void Save_UpdateBeamDefinition(SquintDBModel Context, DbComponent DbC, int sourceComponentID, bool createCopy)
         {
-            foreach (BeamViewModel B in _model.CurrentProtocol.Components.FirstOrDefault(x => x.ID == sourceComponentID).Beams.ToList())
+            foreach (BeamViewModel B in _model.CurrentProtocol.Components.FirstOrDefault(x => x.Id == sourceComponentID).Beams.ToList())
             {
                 DbBeam DbB = null;
                 if (DbC.DbBeams != null)
@@ -1099,7 +1099,7 @@ namespace Squint
 
         private void Save_UpdateImagingDefinitions(SquintDBModel Context, DbComponent DbC, int sourceComponentID, bool createCopy)
         {
-            var ImagingProtocols = _model.CurrentProtocol.Components.FirstOrDefault(x => x.ID == sourceComponentID).ImagingProtocols;
+            var ImagingProtocols = _model.CurrentProtocol.Components.FirstOrDefault(x => x.Id == sourceComponentID).ImagingProtocols;
             if (DbC.ImagingProtocols != null)
             {
                 foreach (DbComponentImaging DbCI in DbC.ImagingProtocols)
@@ -1112,7 +1112,7 @@ namespace Squint
                 }
             }
 
-            foreach (ImagingProtocolTypes IP in _model.CurrentProtocol.Components.FirstOrDefault(x => x.ID == sourceComponentID).ImagingProtocols)
+            foreach (ImagingProtocolTypes IP in _model.CurrentProtocol.Components.FirstOrDefault(x => x.Id == sourceComponentID).ImagingProtocols)
             {
                 DbComponentImaging DbCI = DbC.ImagingProtocols.FirstOrDefault();
                 if (DbCI == null || createCopy)
@@ -1132,7 +1132,7 @@ namespace Squint
 
             }
 
-            foreach (BeamViewModel B in _model.CurrentProtocol.Components.FirstOrDefault(x => x.ID == sourceComponentID).Beams.ToList())
+            foreach (BeamViewModel B in _model.CurrentProtocol.Components.FirstOrDefault(x => x.Id == sourceComponentID).Beams.ToList())
             {
                 DbBeam DbB = null;
                 if (DbC.DbBeams != null)

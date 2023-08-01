@@ -26,7 +26,7 @@ namespace Squint
                 ConstraintString = DbCC.ConstraintString;
             }
         }
-        public ConstraintChangelogViewModel(SquintModel model, ConstraintViewModel C)
+        public ConstraintChangelogViewModel(SquintModel model, ConstraintModel C)
         {
             _model = model;
             DateString = string.Join(" ", DateTime.Now.ToShortDateString(), DateTime.Now.ToShortTimeString());

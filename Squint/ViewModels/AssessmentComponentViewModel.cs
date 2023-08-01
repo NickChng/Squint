@@ -75,7 +75,7 @@ namespace Squint.ViewModels
                 {
                     if (!DisableAutomaticAssociation)
                     {
-                        _model.ClearPlanAssociation(Comp.ID, A.ID);
+                        _model.ClearPlanAssociation(Comp.Id, A.ID);
                     }
                 }
                 if (value != _SelectedPlan)
@@ -98,12 +98,12 @@ namespace Squint.ViewModels
             }
         }
         private SquintModel _model;
-        private Component Comp;
+        private ComponentModel Comp;
         private AssessmentViewModel A;
         private AssessmentView ParentView;
         public ObservableCollection<CourseSelector> Courses { get; set; } = new ObservableCollection<CourseSelector>();
         public ObservableCollection<PlanSelector> Plans { get; set; } = new ObservableCollection<PlanSelector>();
-        public AssessmentComponentViewModel(AssessmentView AV, Component CompIn, AssessmentViewModel Ain, SquintModel model)
+        public AssessmentComponentViewModel(AssessmentView AV, ComponentModel CompIn, AssessmentViewModel Ain, SquintModel model)
         {
             Comp = CompIn;
             ParentView = AV;
@@ -111,9 +111,9 @@ namespace Squint.ViewModels
             Comp.PropertyChanged += UpdateStatus;
             _model.CurrentStructureSetChanged += UpdateStatus;
             A = Ain;
-            var _P = _model.GetPlanAssociation(Comp.ID, A.ID); // check if plan is associated
+            var _P = _model.GetPlanAssociation(Comp.Id, A.ID); // check if plan is associated
             if (_P != null)
-                Warning = _model.GetPlanAssociation(Comp.ID, A.ID).LoadWarning; // initialize warning 
+                Warning = _model.GetPlanAssociation(Comp.Id, A.ID).LoadWarning; // initialize warning 
             foreach (string CourseName in _model.GetCourseNames())
             {
                 Courses.Add(new CourseSelector(CourseName));
@@ -133,8 +133,8 @@ namespace Squint.ViewModels
                 {
                     ParentView.ParentView.ParentView.isLoading = true;
                     ParentView.ParentView.ParentView.LoadingString = "Loading plan...";
-                    var CSC = await _model.AssociatePlanToComponent(A.ID, Comp.ID, _SelectedCourse.CourseId, _SelectedPlan.PlanId, Comp.ComponentType.Value, true);
-                    await Task.Run(() => _model.UpdateConstraints(Comp.ID, A.ID));
+                    var CSC = await _model.AssociatePlanToComponent(A.ID, Comp.Id, _SelectedCourse.CourseId, _SelectedPlan.PlanId, Comp.ComponentType.Value, true);
+                    await Task.Run(() => _model.UpdateConstraints(Comp.Id, A.ID));
                     UpdateWarning(CSC);
                     ParentView.ParentView.ParentView.isLoading = false;
                     ParentView.ParentView.ParentView.LoadingString = "";
