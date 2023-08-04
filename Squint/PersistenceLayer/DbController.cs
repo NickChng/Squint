@@ -186,13 +186,13 @@ namespace Squint
                     foreach (DbProtocolStructure DbProtocolStructure in DbP.ProtocolStructures)
                     {
                         StructureLabel SL = await GetStructureLabel(DbProtocolStructure.StructureLabelID);
-                        LoadedProtocol.Structures.Add(new ProtocolStructure(_model, SL, DbProtocolStructure));
+                        LoadedProtocol.Structures.Add(new StructureModel(_model.ESAPIContext, SL, DbProtocolStructure));
                         AtLeastOneStructure = true;
                     }
                     if (!AtLeastOneStructure)
                     {
                         StructureLabel SL = await GetStructureLabel(1);
-                        LoadedProtocol.Structures.Add(new ProtocolStructure(_model, SL, Context.DbProtocolStructures.Find(1)));  //Initialize non-defined structure
+                        LoadedProtocol.Structures.Add(new StructureModel(_model.ESAPIContext, SL, Context.DbProtocolStructures.Find(1)));  //Initialize non-defined structure
                     }
                     foreach (DbComponent DbC in DbP.Components)
                     {
@@ -262,14 +262,14 @@ namespace Squint
                     foreach (DbSessionProtocolStructure DbProtocolStructure in DbSP.ProtocolStructures)
                     {
                         StructureLabel SL = await GetStructureLabel(DbProtocolStructure.StructureLabelID);
-                        ProtocolStructure E = new ProtocolStructure(_model, SL, DbProtocolStructure);
+                        StructureModel E = new StructureModel(_model.ESAPIContext, SL, DbProtocolStructure);
                         SessionProtocol.Structures.Add(E);
                         AtLeastOneStructure = true;
                     }
                     if (!AtLeastOneStructure)
                     {
                         StructureLabel SL = await GetStructureLabel(1);
-                        SessionProtocol.Structures.Add(new ProtocolStructure(_model, SL, Context.DbProtocolStructures.Find(1)));  //Initialize non-defined structure
+                        SessionProtocol.Structures.Add(new StructureModel(_model.ESAPIContext, SL, Context.DbProtocolStructures.Find(1)));  //Initialize non-defined structure
                     }
                     foreach (DbSessionComponent DbC in DbSP.Components.OrderBy(x => x.DisplayOrder))
                     {
@@ -396,7 +396,7 @@ namespace Squint
                     DbA.AssessmentName = A.AssessmentName;
                 }
                 var SessionProtocolStructure_Lookup = new Dictionary<int, int>();
-                foreach (ProtocolStructure S in _model.CurrentProtocol.Structures)
+                foreach (StructureModel S in _model.CurrentProtocol.Structures)
                 {
                     DbSessionProtocolStructure DbE = Context.DbSessionProtocolStructures.Create();
                     Context.DbSessionProtocolStructures.Add(DbE);
@@ -648,7 +648,7 @@ namespace Squint
                         Save_UpdateConstraint(Context, con, con.ComponentID, con.PrimaryStructureId, con.ReferenceStructureId, false);
                     }
                 }
-                foreach (ProtocolStructure S in _model.CurrentProtocol.Structures)
+                foreach (StructureModel S in _model.CurrentProtocol.Structures)
                 {
                     DbProtocolStructure DbS;
                     if (S.ToRetire && !S.isCreated)
@@ -715,7 +715,7 @@ namespace Squint
                 Dictionary<int, int> ComponentLookup = new Dictionary<int, int>();
                 Dictionary<int, int> StructureLookup = new Dictionary<int, int>();
                 StructureLookup.Add(1, 1); // add dummy structure
-                foreach (ProtocolStructure S in _model.CurrentProtocol.Structures)
+                foreach (StructureModel S in _model.CurrentProtocol.Structures)
                 {
                     DbProtocolStructure DbS = Context.DbProtocolStructures.Create();
                     Context.DbProtocolStructures.Add(DbS);
@@ -932,7 +932,7 @@ namespace Squint
             _model.CurrentProtocol.Checklist.SupportIndication.AcceptChanges();
         }
 
-        private void Save_UpdateStructureCheckList(SquintDBModel Context, DbProtocolStructure DbS, ProtocolStructure S)
+        private void Save_UpdateStructureCheckList(SquintDBModel Context, DbProtocolStructure DbS, StructureModel S)
         {
             if (DbS.DbStructureChecklist == null) // no existing checklist in db
             {
@@ -951,7 +951,7 @@ namespace Squint
             }
         }
 
-        private void Save_UpdateStructureAliases(SquintDBModel Context, DbProtocolStructure DbS, ProtocolStructure S)
+        private void Save_UpdateStructureAliases(SquintDBModel Context, DbProtocolStructure DbS, StructureModel S)
         {
             if (DbS.DbStructureAliases == null) //no existing aliases
                 DbS.DbStructureAliases = new List<DbStructureAlias>();

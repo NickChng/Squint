@@ -43,7 +43,7 @@ namespace Squint.ViewModels
         private IEventAggregator ea;
         public bool DragSelected { get; set; } = false;
         private SquintModel _model;
-        private ProtocolStructure E;
+        private StructureModel E;
         public int Id
         {
             get { return E.ID; }
@@ -175,7 +175,7 @@ namespace Squint.ViewModels
                     return string.Format("Label mismatch: Assigned structure label is {0}", E.EclipseStructureLabel(_model.CurrentStructureSet.UID));
             }
         }
-        public StructureViewModel(ProtocolStructure Ein, SquintModel model, IEventAggregator ea_in)
+        public StructureViewModel(StructureModel Ein, SquintModel model, IEventAggregator ea_in)
         {
             //Must unsubscribe when cleared!
             _model = model;
@@ -264,7 +264,7 @@ namespace Squint.ViewModels
         private void OnProtocolStructureChanged(object sender, PropertyChangedEventArgs e)
         {
             RaisePropertyChangedEvent(e.PropertyName);
-            if (e.PropertyName == nameof(ProtocolStructure.AssignedStructureId))
+            if (e.PropertyName == nameof(StructureModel.AssignedStructureId))
             {
                 RaisePropertyChangedEvent(nameof(StructureColor)); // this is for when the Assigned Eclipse structure itself is changed
                 RaisePropertyChangedEvent(nameof(LabelIsConsistent)); // this is for when the Assigned Eclipse structure itself is changed

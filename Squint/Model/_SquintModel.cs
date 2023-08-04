@@ -86,7 +86,7 @@ namespace Squint
             {
                 // set dispatcher;
                 _uiDispatcher = Dispatcher.CurrentDispatcher;
-               
+
 
                 //Get configuration
                 XmlSerializer ConfigSer = new XmlSerializer(typeof(SquintConfiguration));
@@ -106,7 +106,7 @@ namespace Squint
                 }
 
                 CurrentSession = new Session();
-                
+
             }
             catch (Exception ex)
             {
@@ -140,11 +140,11 @@ namespace Squint
         {
             var dBCon = new DbController(this);
             _uiDispatcher.Invoke(DatabaseInitializing, new object[] { null, EventArgs.Empty });
-             DbPaths = new DbConfigurationPaths()
-                {
-                    structureDefinitionPath = Config.BeamGeometryDefinitions.FirstOrDefault(x => x.Site == Config.Site.CurrentSite).Path,
-                    beamDefinitionPath = Config.BeamGeometryDefinitions.FirstOrDefault(x => x.Site == Config.Site.CurrentSite).Path,
-                };
+            DbPaths = new DbConfigurationPaths()
+            {
+                structureDefinitionPath = Config.BeamGeometryDefinitions.FirstOrDefault(x => x.Site == Config.Site.CurrentSite).Path,
+                beamDefinitionPath = Config.BeamGeometryDefinitions.FirstOrDefault(x => x.Site == Config.Site.CurrentSite).Path,
+            };
             var database = Config.Databases.FirstOrDefault(x => x.Site == Config.Site.CurrentSite);
             dBCon.SetDatabaseName(database.DatabaseName);
             var DBStatus = dBCon.TestDbConnection();
@@ -624,13 +624,13 @@ namespace Squint
             if (!ProtocolLoaded)
                 return null;
             ComponentModel parentComponent = CurrentProtocol.Components.FirstOrDefault(x => x.Id == ComponentID);
-            ProtocolStructure primaryStructure = CurrentProtocol.Structures.FirstOrDefault(x => x.ID == StructureId);
+            StructureModel primaryStructure = CurrentProtocol.Structures.FirstOrDefault(x => x.ID == StructureId);
             ConstraintModel Con = new ConstraintModel(this, parentComponent, primaryStructure, null, TypeCode);
             CurrentProtocol.Components.FirstOrDefault(x => x.Id == ComponentID).ConstraintModels.Add(Con);
             return Con;
         }
 
-        
+
         public void DeleteConstraint(int Id)
         {
             var AllConstraints = GetAllConstraints();
@@ -669,7 +669,7 @@ namespace Squint
             {
                 GetProtocolStructure(Id).FlagForDeletion();
                 int NewDisplayOrder = 1;
-                foreach (ProtocolStructure PS in CurrentProtocol.Structures.OrderBy(x => x.DisplayOrder))
+                foreach (StructureModel PS in CurrentProtocol.Structures.OrderBy(x => x.DisplayOrder))
                 {
                     PS.DisplayOrder = NewDisplayOrder++;
                 }
@@ -734,7 +734,7 @@ namespace Squint
                 CurrentSession.PlanAssociations.Add(new PlanAssociationViewModel(this, newComponent, SA));
             return newComponent;
         }
-        public async Task<ProtocolStructure> AddNewStructure()
+        public async Task<StructureModel> AddNewStructure()
         {
             if (CurrentProtocol == null)
                 return null;
@@ -747,7 +747,7 @@ namespace Squint
                     NewStructureName = string.Format("{0}{1}", DefaultNewStructureName, _NewStructureCounter++);
                 }
                 StructureLabel SL = await dbCon.GetStructureLabel(1);
-                ProtocolStructure newProtocolStructure = new ProtocolStructure(this, SL, NewStructureName);
+                StructureModel newProtocolStructure = new StructureModel(ESAPIContext, SL, NewStructureName);
                 newProtocolStructure.DisplayOrder = CurrentProtocol.Structures.Count() + 1;
                 newProtocolStructure.ProtocolID = CurrentProtocol.ID;
                 CurrentProtocol.Structures.Add(newProtocolStructure);
@@ -767,11 +767,11 @@ namespace Squint
                 Protocol EclipseProtocol = new Protocol();
                 EclipseProtocol.ProtocolName = P.Preview.ID;
                 var EclipseStructureIdToSquintStructureIdMapping = new Dictionary<string, int>();
+                var dbCon = new DbController(this);
                 foreach (var ECPStructure in P.StructureTemplate.Structures)
                 {
-                    var dbCon = new DbController(this);
                     StructureLabel SL = await dbCon.GetStructureLabel(1);
-                    var S = new ProtocolStructure(this, SL, ECPStructure.ID);
+                    var S = new StructureModel(ESAPIContext, SL, ECPStructure.ID);
                     S.DefaultEclipseAliases.Add(ECPStructure.ID);
                     EclipseProtocol.Structures.Add(S);
                     EclipseStructureIdToSquintStructureIdMapping.Add(ECPStructure.ID.ToLower(), S.ID);
@@ -816,6 +816,7 @@ namespace Squint
                 _uiDispatcher.Invoke(ProtocolOpened, new object[] { null, EventArgs.Empty });
                 return true;
             }
+
             catch (Exception ex)
             {
                 MessageBox.Show("Unspecified error importing Eclipse Protocol.");
@@ -823,7 +824,7 @@ namespace Squint
             }
         }
 
-      
+
 
         public bool ImportProtocolFromXML(string filename, bool refresh)
         {
@@ -1671,7 +1672,7 @@ namespace Squint
                     AvailableStructureSetsChanged?.Invoke(null, EventArgs.Empty);
                     CurrentStructureSetChanged?.Invoke(null, EventArgs.Empty);
                     _uiDispatcher.Invoke(ProtocolOpened, new object[] { null, EventArgs.Empty });
-                    foreach (ProtocolStructure PS in CurrentSession.SessionProtocol.Structures)
+                    foreach (StructureModel PS in CurrentSession.SessionProtocol.Structures)
                     {
                         UpdateConstraintThresholds(PS);
                     }
@@ -1816,7 +1817,7 @@ namespace Squint
             return true;
         }
 
-        public async void UpdateConstraints(ProtocolStructure PS)
+        public async void UpdateConstraints(StructureModel PS)
         {
 
             foreach (var PA in CurrentSession.PlanAssociations)
@@ -1829,7 +1830,7 @@ namespace Squint
             }
         }
 
-        public void UpdateConstraintThresholds(ProtocolStructure E) // update interpolated thresholds based on change to ProtocolStructureId
+        public void UpdateConstraintThresholds(StructureModel E) // update interpolated thresholds based on change to ProtocolStructureId
         {
             foreach (ConstraintModel Con in GetAllConstraints().Where(x => x.ReferenceStructureId == E.ID))
             {
@@ -1840,7 +1841,7 @@ namespace Squint
         }
         public bool MatchStructuresByAlias()
         {
-            foreach (ProtocolStructure E in CurrentProtocol.Structures) // notify structures
+            foreach (StructureModel E in CurrentProtocol.Structures) // notify structures
             {
                 E.ApplyAliasing(CurrentStructureSet);
                 UpdateConstraintThresholds(E);
@@ -1848,7 +1849,7 @@ namespace Squint
             return true;
         }
 
-        public ProtocolStructure GetProtocolStructure(int Id)
+        public StructureModel GetProtocolStructure(int Id)
         {
             return CurrentProtocol.Structures.FirstOrDefault(x => x.ID == Id);
         }
@@ -1955,12 +1956,12 @@ namespace Squint
             return ESAPIContext.Patient.CourseIds;
         }
 
-        public void AddNewContourCheck(ProtocolStructure S)
+        public void AddNewContourCheck(StructureModel S)
         {
             S.CheckList.isPointContourChecked.Value = true;
             S.CheckList.PointContourVolumeThreshold.Value = 0.05;
         }
-        public void RemoveNewContourCheck(ProtocolStructure S)
+        public void RemoveNewContourCheck(StructureModel S)
         {
             S.CheckList.isPointContourChecked.Value = false;
             S.CheckList.PointContourVolumeThreshold.Value = 0;

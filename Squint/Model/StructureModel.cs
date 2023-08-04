@@ -10,22 +10,23 @@ using Squint.Extensions;
 using System.Collections.ObjectModel;
 using Squint.ViewModels;
 using VMS.TPS.Common.Model.Types;
+using System.Security.Cryptography;
 
 namespace Squint
 {
 
     [AddINotifyPropertyChangedInterface]
-    public class ProtocolStructure : ObservableObject
+    public class StructureModel : ObservableObject
     {
-      
+
         //public EventHandler NewProtocolStructureCommitting;
         //public EventHandler NewProtocolStructureCommitted;
         //public EventHandler ProtocolStructureExceptionLoaded;
         //public EventHandler ProtocolStructureChanged;
         //public EventHandler<int> ProtocolStructureDeleting;
 
-        private SquintModel _model;
-        public ProtocolStructure()
+        private AsyncESAPI _esapiContext;
+        public StructureModel()
         {
             ID = 1;
             ProtocolStructureName = "Default";
@@ -34,10 +35,10 @@ namespace Squint
             CheckList = new StructureCheckList();
             _StructureLabel = new TrackedValue<StructureLabel>(null);
         }
-        public ProtocolStructure(SquintModel model, StructureLabel label_in, DbProtocolStructure DbO)
+        public StructureModel(AsyncESAPI esapiContext, StructureLabel label_in, DbProtocolStructure DbO)
         {
             ID = DbO.ID;
-            _model = model;
+            _esapiContext = esapiContext;
             ProtocolStructureName = DbO.ProtocolStructureName;
             DisplayOrder = DbO.DisplayOrder;
             AlphaBetaRatioOverride = DbO.AlphaBetaRatioOverride;
@@ -61,10 +62,10 @@ namespace Squint
         }
 
 
-        public ProtocolStructure(SquintModel model, StructureLabel label_in, string NewStructureName)
+        public StructureModel(AsyncESAPI esapiContext, StructureLabel label_in, string NewStructureName)
         {
             ID = IDGenerator.GetUniqueId();
-            _model = model;
+            _esapiContext = esapiContext;
             isCreated = true;
             CheckList = new StructureCheckList();
             ProtocolStructureName = NewStructureName;
@@ -107,37 +108,52 @@ namespace Squint
         public int ProtocolID { get; set; }
         public string ProtocolStructureName { get; set; }
         public StructureCheckList CheckList { get; set; }
-        
-        public bool? IsHighResolution 
+
+        public bool? IsHighResolution(string SSUID)
         {
-            get
+            var SS = _esapiContext.Patient.GetStructureSet(SSUID);
+            if (SS != null)
             {
-                if (_model.CurrentStructureSet != null)
-                    return GetStructureResolution(_model.CurrentStructureSet.UID);
+                var AS = SS.GetStructure(AssignedStructureId);
+                if (AS != null)
+                    return AS.IsHighResolution;
                 else
                     return null;
             }
-                
+            else
+                return null;
         }
         public string AssignedStructureId { get; set; } = "";
 
-        public double? AssignedHUInCurrentStructureSet // used for density override report
+        public double? GetAssignedHU(string SSUID) // used for density override report
         {
-            get 
+
+            var SS = _esapiContext.Patient.GetStructureSet(SSUID);
+            if (SS != null)
             {
-                if (_model.CurrentStructureSet != null)
-                    return GetAssignedHU(_model.CurrentStructureSet.UID);
-                else
+                AsyncStructure AS = SS.GetStructure(AssignedStructureId);
+                if (AS == null)
                     return null;
+                else
+                    return Math.Round(AS.HU);
             }
+            else
+                return null;
+
         }
-                  
+
 
         public System.Windows.Media.Color? GetStructureColor(string SSUID)
         {
 
             if (AssignedStructureId != "")
-                return _model.GetStructureSet(SSUID).GetStructure(AssignedStructureId).Color;
+            {
+                var SS = _esapiContext.Patient.GetStructureSet(SSUID);
+                if (SS != null)
+                    return SS.GetStructure(AssignedStructureId).Color;
+                else
+                    return null;
+            }
             else
                 return null;
         }
@@ -146,9 +162,15 @@ namespace Squint
             if (AssignedStructureId == "")
                 return "";
             else
-                return _model.GetStructureSet(SSUID).GetStructure(AssignedStructureId).Label;
+            {
+                var SS = _esapiContext.Patient.GetStructureSet(SSUID);
+                if (SS != null)
+                    return SS.GetStructure(AssignedStructureId).Label;
+                else
+                    return string.Empty;
+            }
         }
-        
+
         public void ApplyAliasing(AsyncStructureSet SS)
         {
             // this will assign a structure Id if that structure exists in the plan ECP
@@ -183,57 +205,76 @@ namespace Squint
 
         public async Task<int> VMS_NumParts(string SSUID)
         {
-            var AS = _model.GetStructureSet(SSUID).GetStructure(AssignedStructureId);
-            if (AS == null)
+            var SS = _esapiContext.Patient.GetStructureSet(SSUID);
+            if (SS != null)
+            {
+                var AS = SS.GetStructure(AssignedStructureId);
+                if (AS == null)
+                    return -1;
+                return await AS.GetVMS_NumParts();
+            }
+            else
+            {
                 return -1;
-            return await AS.GetVMS_NumParts();
+            }
         }
 
         public async Task<Tuple<double, VVector>> GetMinArea(string SSUID)
         {
-            var AS = _model.GetStructureSet(SSUID).GetStructure(AssignedStructureId);
-            if (AS == null)
-                return null;
-            return await AS.GetMinArea();
+            var SS = _esapiContext.Patient.GetStructureSet(SSUID);
+            if (SS != null)
+            {
+                var AS = SS.GetStructure(AssignedStructureId);
+                if (AS == null)
+                    return null;
+                return await AS.GetMinArea();
+            }
+            else { return null; }
+            
         }
 
         public double? Volume(string SSUID)
         {
-            var AS = _model.GetStructureSet(SSUID).GetStructure(AssignedStructureId);
-            if (AS == null)
-                return null;
+            var SS = _esapiContext.Patient.GetStructureSet(SSUID);
+            if (SS != null)
+            {
+                var AS = SS.GetStructure(AssignedStructureId);
+                if (AS == null)
+                    return null;
+                else
+                    return AS.Volume;
+            }
             else
-                return AS.Volume;
+                return null;
         }
         public async Task<List<double>> PartVolumes(string SSUID)
         {
-            var AS = _model.GetStructureSet(SSUID).GetStructure(AssignedStructureId);
-            if (AS == null)
-                return null;
-            return await AS.GetPartVolumes();
+            var SS = _esapiContext.Patient.GetStructureSet(SSUID);
+            if (SS != null)
+            {
+                var AS = SS.GetStructure(AssignedStructureId);
+                if (AS == null)
+                    return null;
+                return await AS.GetPartVolumes();
+            }
+            else return null;
         }
         public async Task<int> NumParts(string SSUID)
         {
-            var AS = _model.GetStructureSet(SSUID).GetStructure(AssignedStructureId);
-            if (AS == null)
+            var SS = _esapiContext.Patient.GetStructureSet(SSUID);
+            if (SS != null)
+            {
+                var AS = SS.GetStructure(AssignedStructureId);
+                if (AS == null)
+                    return -1;
+                return await AS.GetNumSeperateParts();
+            }
+            else
+            {
                 return -1;
-            return await AS.GetNumSeperateParts();
+            }
         }
-        public double? GetAssignedHU(string SSUID)
-        {
-            AsyncStructure AS = _model.GetStructureSet(SSUID).GetStructure(AssignedStructureId);
-            if (AS == null)
-                return null;
-            return Math.Round(AS.HU);
-        }
-
-        public bool? GetStructureResolution(string SSUID)
-        {
-            AsyncStructure AS = _model.GetStructureSet(SSUID).GetStructure(AssignedStructureId);
-            if (AS == null)
-                return null;
-            return AS.IsHighResolution;
-        }
+    
 
     }
 

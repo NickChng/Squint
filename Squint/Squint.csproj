@@ -269,7 +269,7 @@
     <Compile Include="ProtocolClasses\PlanAssociationViewModel.cs" />
     <Compile Include="ProtocolClasses\Protocol.cs" />
     <Compile Include="ProtocolClasses\ProtocolChecklist.cs" />
-    <Compile Include="ProtocolClasses\ProtocolStructure.cs" />
+    <Compile Include="Model\StructureModel.cs" />
     <Compile Include="ProtocolClasses\Session.cs" />
     <Compile Include="ProtocolClasses\StructureCheckList.cs" />
     <Compile Include="ProtocolClasses\StructureLabel.cs" />
@@ -326,7 +326,7 @@
     <Compile Include="Helpers and Functions\g3helpers.cs" />
     <Compile Include="Helpers and Functions\Levenshtein.cs" />
     <Compile Include="Helpers and Functions\Serializer.cs" />
-    <Compile Include="Model\SquintModel.cs" />
+    <Compile Include="Model\_SquintModel.cs" />
     <Compile Include="PersistenceLayer\SquintDBModel.cs" />
     <Compile Include="Enums\SquintEnums.cs" />
     <Compile Include="ProtocolClasses\BeamGeometry.cs" />
@@ -336,7 +336,7 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Compile>
     <Compile Include="ViewModels\ProtocolsViewModel.cs" />
-    <Compile Include="ViewModels\MainViewModel.cs" />
+    <Compile Include="ViewModels\_MainViewModel.cs" />
     <Page Include="Views\AssessmentsView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>

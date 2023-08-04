@@ -85,7 +85,7 @@ namespace Squint
             Aliases = RefBeam_in.EclipseAliases;
             Fields = TxFields;
             Field = null;
-            //FieldChanged += BeamChangeAction;
+            
         }
         public void InitializeTests()
         {
@@ -129,14 +129,7 @@ namespace Squint
                 RefreshTests();
             //RaisePropertyChangedEvent(nameof(BeamTests));
         }
-        //public void BeamChangeAction(string newFieldId = null)
-        //{
-        //    if (newFieldId != string.Empty)
-        //    {
-        //        Field = Fields.FirstOrDefault(x => x.Id == newFieldId);
-        //        RefreshTests();
-        //    }
-        //}
+      
         private async void RefreshTests()
         {
             if (Field == null)

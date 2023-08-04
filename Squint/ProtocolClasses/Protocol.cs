@@ -10,7 +10,7 @@ namespace Squint
     {
 
         public List<ComponentModel> Components = new List<ComponentModel>();
-        public List<ProtocolStructure> Structures = new List<ProtocolStructure>();
+        public List<StructureModel> Structures = new List<StructureModel>();
 
         public class ProtocolReferenceValues
         {

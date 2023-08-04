@@ -410,7 +410,7 @@ namespace Squint.ViewModels
                 string NoCheckHUString = @"No artifact structure";
                 string NoRefHUString = @"Not specified";
                 double? CheckHU = null;
-                ProtocolStructure PS = _model.GetProtocolStructure(A.ProtocolStructureId.Value);
+                StructureModel PS = _model.GetProtocolStructure(A.ProtocolStructureId.Value);
                 if (PS != null)
                 {
                     if (PS.AssignedStructureId != "")
@@ -504,7 +504,7 @@ namespace Squint.ViewModels
         private async void PerformStrayVoxelChecks()
         {
             PointCheck_VM.Checks.Clear();
-            foreach (ProtocolStructure E in _model.CurrentProtocol.Structures)
+            foreach (StructureModel E in _model.CurrentProtocol.Structures)
             {
                 if (E.CheckList != null)
                 {

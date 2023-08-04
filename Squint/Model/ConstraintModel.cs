@@ -34,10 +34,10 @@ namespace Squint
         //Required notification class
         public virtual event PropertyChangedEventHandler PropertyChanged;
 
-        private TrackedValue<ProtocolStructure> _primaryStructure = new TrackedValue<ProtocolStructure>(null);
-        private TrackedValue<ProtocolStructure> _referenceStructure = new TrackedValue<ProtocolStructure>(null);
+        private TrackedValue<StructureModel> _primaryStructure = new TrackedValue<StructureModel>(null);
+        private TrackedValue<StructureModel> _referenceStructure = new TrackedValue<StructureModel>(null);
         private TrackedValue<ComponentModel> _parentComponent;
-        private ProtocolStructure primaryStructure { get { return _primaryStructure.Value; } }
+        private StructureModel primaryStructure { get { return _primaryStructure.Value; } }
         public ComponentModel parentComponent
         {
             get { return _parentComponent.Value; }
@@ -47,7 +47,7 @@ namespace Squint
                 NotifyPropertyChanged(nameof(parentComponent));
             }
         }
-        private ProtocolStructure referenceStructure
+        private StructureModel referenceStructure
         {
             get
             {
@@ -70,15 +70,15 @@ namespace Squint
                     break;
             }
         }
-        public ConstraintModel(SquintModel model, ComponentModel parentComponent_in, ProtocolStructure primaryStructure_in, ProtocolStructure referenceStructure_in, DbConstraint DbO)
+        public ConstraintModel(SquintModel model, ComponentModel parentComponent_in, StructureModel primaryStructure_in, StructureModel referenceStructure_in, DbConstraint DbO)
         {
             ID = DbO.ID;
             _model = model;
             DisplayOrder = new TrackedValue<int>(DbO.DisplayOrder);
 
             _parentComponent = new TrackedValue<ComponentModel>(parentComponent_in);
-            _referenceStructure = new TrackedValue<ProtocolStructure>(referenceStructure_in);
-            _primaryStructure = new TrackedValue<ProtocolStructure>(primaryStructure_in);
+            _referenceStructure = new TrackedValue<StructureModel>(referenceStructure_in);
+            _primaryStructure = new TrackedValue<StructureModel>(primaryStructure_in);
 
             var DbOS = DbO as DbSessionConstraint;
             if (DbOS != null) // set current session values
@@ -130,15 +130,15 @@ namespace Squint
             parentComponent.ReferenceFractionsChanged += OnComponentFractionsChanging;
 
         }
-        public ConstraintModel(SquintModel model, ComponentModel parentComponent_in, ProtocolStructure primaryStructure_in, ProtocolStructure referenceStructure_in, ConstraintTypes TypeCode)
+        public ConstraintModel(SquintModel model, ComponentModel parentComponent_in, StructureModel primaryStructure_in, StructureModel referenceStructure_in, ConstraintTypes TypeCode)
         {
             // This method creates a new ad-hoc constraint
             isCreated = true;
             _model = model; ;
             ID = IDGenerator.GetUniqueId();
             _parentComponent = new TrackedValue<ComponentModel>(parentComponent_in);
-            _referenceStructure = new TrackedValue<ProtocolStructure>(referenceStructure_in);
-            _primaryStructure = new TrackedValue<ProtocolStructure>(primaryStructure_in);
+            _referenceStructure = new TrackedValue<StructureModel>(referenceStructure_in);
+            _primaryStructure = new TrackedValue<StructureModel>(primaryStructure_in);
             _ConstraintScale = new TrackedValue<UnitScale>(UnitScale.Unset);
             _ConstraintValue = new TrackedValue<double>(0);
             _ReferenceType = new TrackedValue<ReferenceTypes>(ReferenceTypes.Unset);
@@ -175,8 +175,8 @@ namespace Squint
             isCreated = true;
             ID = IDGenerator.GetUniqueId();
             _parentComponent = new TrackedValue<ComponentModel>(Con.parentComponent);
-            _referenceStructure = new TrackedValue<ProtocolStructure>(Con.referenceStructure);
-            _primaryStructure = new TrackedValue<ProtocolStructure>(Con.primaryStructure);
+            _referenceStructure = new TrackedValue<StructureModel>(Con.referenceStructure);
+            _primaryStructure = new TrackedValue<StructureModel>(Con.primaryStructure);
             ConstraintScale = Con.ConstraintScale;
             ConstraintValue = Con.ConstraintValue;
             ConstraintType = Con.ConstraintType;
@@ -191,14 +191,14 @@ namespace Squint
             parentComponent.ReferenceFractionsChanged += OnComponentFractionsChanging;
         }
 
-        public ConstraintModel(ComponentModel parentComponent_in, ProtocolStructure primaryStructure_in, VMS_XML.MeasureItem MI)
+        public ConstraintModel(ComponentModel parentComponent_in, StructureModel primaryStructure_in, VMS_XML.MeasureItem MI)
         {
             // This constructor creates a constraint from an Eclipse Clinical Protocol MeasureItem
             ID = IDGenerator.GetUniqueId();
             isCreated = true;
 
             _parentComponent = new TrackedValue<ComponentModel>(parentComponent_in);
-            _primaryStructure = new TrackedValue<ProtocolStructure>(primaryStructure_in);
+            _primaryStructure = new TrackedValue<StructureModel>(primaryStructure_in);
 
             primaryStructure.PropertyChanged += OnProtocolStructureChanged;
             if (referenceStructure != null)
@@ -339,13 +339,13 @@ namespace Squint
                 }
             }
         }
-        public ConstraintModel(ComponentModel parentComponent_in, ProtocolStructure primaryStructure_in, VMS_XML.Item PI)
+        public ConstraintModel(ComponentModel parentComponent_in, StructureModel primaryStructure_in, VMS_XML.Item PI)
         {
             // This constructor creates a constraint from an Eclipse Clinical Protocol MeasureItem
             ID = IDGenerator.GetUniqueId();
             isCreated = true;
             _parentComponent = new TrackedValue<ComponentModel>(parentComponent_in);
-            _primaryStructure = new TrackedValue<ProtocolStructure>(primaryStructure_in);
+            _primaryStructure = new TrackedValue<StructureModel>(primaryStructure_in);
             DisplayOrder = new TrackedValue<int>(parentComponent.ConstraintModels.Count + 1);
 
             primaryStructure.PropertyChanged += OnProtocolStructureChanged;
@@ -830,7 +830,7 @@ namespace Squint
         private async void ApplyBEDScaling(int prevFractions)
         {
             ComponentModel SC = parentComponent;
-            ProtocolStructure E = primaryStructure;
+            StructureModel E = primaryStructure;
             //var StructureLabel = Ctr.GetStructureLabel(E.StructureLabelID);
             double abRatio;
             if (E.AlphaBetaRatioOverride == null)
@@ -893,7 +893,7 @@ namespace Squint
         }
     
 
-        public void ChangePrimaryStructure(ProtocolStructure primaryStructure_in)
+        public void ChangePrimaryStructure(StructureModel primaryStructure_in)
         {
             primaryStructure.PropertyChanged -= OnProtocolStructureChanged;
             primaryStructure_in.PropertyChanged += OnProtocolStructureChanged;
@@ -1332,7 +1332,7 @@ namespace Squint
             {
                 case "ES":
                     {
-                        if ((sender as ProtocolStructure).ID == PrimaryStructureId)
+                        if ((sender as StructureModel).ID == PrimaryStructureId)
                             NotifyPropertyChanged("PrimaryStructureName");
                         else
                             NotifyPropertyChanged("SecondaryStructureName");
