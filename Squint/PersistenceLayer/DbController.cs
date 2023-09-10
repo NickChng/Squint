@@ -7,7 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Data.Common;
-using Npgsql;
+using System.Data.SqlClient;
 
 namespace Squint
 {
@@ -64,14 +64,14 @@ namespace Squint
         }
         public DatabaseStatus TestDbConnection()
         {
-            NpgsqlConnection conn = new NpgsqlConnection(VersionContextConnection.ConnectionString());
+            SqlConnection conn = new SqlConnection(VersionContextConnection.ConnectionString());
             try
             {
                 conn.Open();
                 conn.Close();
                 return DatabaseStatus.Exists;
             }
-            catch (NpgsqlException ex)
+            catch (SqlException ex)
             {
                 return DatabaseStatus.NonExistent;
             }
@@ -95,20 +95,21 @@ namespace Squint
             });
         }
 
-        public async Task<StructureLabel> GetStructureLabel(int Id)
+        public async Task<StructureLabel> GetStructureLabel(int? Id)
         {
             if (!areStructuresLoaded)
             {
                 await LoadStructures();
                 areStructuresLoaded = true;
             }
-            if (_StructureLabels.ContainsKey(Id))
-                return _StructureLabels[Id];
-            else
+            if (Id != null)
             {
-                MessageBox.Show(string.Format("Structure Label {0} not found in dictionary, setting default...", Id));
-                return _StructureLabels[1];
+                if (_StructureLabels.ContainsKey((int)Id))
+                    return _StructureLabels[(int)Id];
             }
+            // else
+            MessageBox.Show(string.Format("Structure Label {0} not found in dictionary, setting default...", Id));
+            return _StructureLabels[1];
         }
         public async Task<string> GetStructureCode(int Id)
         {
@@ -123,7 +124,7 @@ namespace Squint
         {
             return _StructureLabels.Values;
         }
-       
+
 
         public List<ProtocolPreview> GetProtocolPreviews()
         {
@@ -510,7 +511,7 @@ namespace Squint
                         {
                             if (BG.Definition == null)
                             {
-                                DbBeamGeometry DbBG = Context.DbBeamGeometries.FirstOrDefault(x => x.ID == BG.Definition.Id);
+                                DbBeamGeometry DbBG = Context.DbBeamGeometries.FirstOrDefault(x => x.BeamGeometryID == BG.Definition.Id);
                                 if (DbBG != null)
                                     DbB.DbBeamGeometries.Add(DbBG);
                             }
@@ -639,6 +640,7 @@ namespace Squint
                 DbP.Comments = _model.CurrentProtocol.Comments;
                 //Update Checklist
                 Save_UpdateProtocolCheckList(Context, DbP);
+               
                 //Update Components
                 foreach (ComponentModel SC in _model.CurrentProtocol.Components)
                 {
@@ -648,6 +650,7 @@ namespace Squint
                         Save_UpdateConstraint(Context, con, con.ComponentID, con.PrimaryStructureId, con.ReferenceStructureId, false);
                     }
                 }
+               
                 foreach (StructureModel S in _model.CurrentProtocol.Structures)
                 {
                     DbProtocolStructure DbS;
@@ -937,17 +940,17 @@ namespace Squint
             if (DbS.DbStructureChecklist == null) // no existing checklist in db
             {
                 DbStructureChecklist DbSC = Context.DbStructureChecklists.Create();
-                DbSC.ProtocolStructureID = DbS.ID;
+                DbSC.StructureChecklistID = DbS.ID;
                 Context.DbStructureChecklists.Add(DbSC);
                 DbSC.isPointContourChecked = (bool)S.CheckList.isPointContourChecked.Value;
-                DbSC.PointContourThreshold = (double)S.CheckList.PointContourVolumeThreshold.Value;
+                DbSC.PointContourThreshold = S.CheckList.PointContourVolumeThreshold.Value;
                 S.CheckList.isPointContourChecked.AcceptChanges();
                 S.CheckList.PointContourVolumeThreshold.AcceptChanges();
             }
             else
             {
                 DbS.DbStructureChecklist.isPointContourChecked = (bool)S.CheckList.isPointContourChecked.Value;
-                DbS.DbStructureChecklist.PointContourThreshold = (double)S.CheckList.PointContourVolumeThreshold.Value;
+                DbS.DbStructureChecklist.PointContourThreshold = S.CheckList.PointContourVolumeThreshold.Value;
             }
         }
 
@@ -1030,7 +1033,7 @@ namespace Squint
                     DbBol.Indication = (int)B.Boluses.FirstOrDefault().Indication.Value;
                     B.Boluses.FirstOrDefault().Indication.AcceptChanges();
                 }
-                DbB.CouchRotation = B.CouchRotation.Value == null ? double.NaN : (double)B.CouchRotation.Value;
+                DbB.CouchRotation = B.CouchRotation.Value; 
                 B.CouchRotation.AcceptChanges();
                 DbB.DbEnergies.Clear();
                 foreach (var energy in B.ValidEnergies)
@@ -1043,19 +1046,19 @@ namespace Squint
                 }
                 DbB.JawTracking_Indication = (int)B.JawTracking_Indication.Value;
                 B.JawTracking_Indication.AcceptChanges();
-                DbB.MaxColRotation = B.MaxColRotation.Value == null ? double.NaN : (double)B.MaxColRotation.Value;
+                DbB.MaxColRotation = B.MaxColRotation.Value;
                 B.MaxColRotation.AcceptChanges();
-                DbB.MaxMUWarning = B.MaxMUWarning.Value == null ? double.NaN : (double)B.MaxMUWarning.Value;
+                DbB.MaxMUWarning = B.MaxMUWarning.Value;
                 B.MaxMUWarning.AcceptChanges();
-                DbB.MinMUWarning = B.MinMUWarning.Value == null ? double.NaN : (double)B.MinMUWarning.Value;
+                DbB.MinMUWarning = B.MinMUWarning.Value;
                 B.MinMUWarning.AcceptChanges();
-                DbB.MaxX = B.MaxX.Value == null ? double.NaN : (double)B.MaxX.Value;
+                DbB.MaxX = B.MaxX.Value;
                 B.MaxX.AcceptChanges();
-                DbB.MinX = B.MinX.Value == null ? double.NaN : (double)B.MinX.Value;
+                DbB.MinX = B.MinX.Value;
                 B.MinX.AcceptChanges();
-                DbB.MaxY = B.MaxY.Value == null ? double.NaN : (double)B.MaxY.Value;
+                DbB.MaxY = B.MaxY.Value;
                 B.MaxY.AcceptChanges();
-                DbB.MinY = B.MinY.Value == null ? double.NaN : (double)B.MinY.Value;
+                DbB.MinY = B.MinY.Value;
                 B.MinY.AcceptChanges();
                 DbB.ProtocolBeamName = B.ProtocolBeamName;
                 DbB.Technique = (int)B.Technique;
@@ -1181,7 +1184,7 @@ namespace Squint
                     DbBol.Indication = (int)B.Boluses.FirstOrDefault().Indication.Value;
                     B.Boluses.FirstOrDefault().Indication.AcceptChanges();
                 }
-                DbB.CouchRotation = B.CouchRotation.Value == null ? double.NaN : (double)B.CouchRotation.Value;
+                DbB.CouchRotation = B.CouchRotation.Value;
                 B.CouchRotation.AcceptChanges();
                 DbB.DbEnergies.Clear();
                 foreach (var energy in B.ValidEnergies)
@@ -1194,19 +1197,19 @@ namespace Squint
                 }
                 DbB.JawTracking_Indication = (int)B.JawTracking_Indication.Value;
                 B.JawTracking_Indication.AcceptChanges();
-                DbB.MaxColRotation = B.MaxColRotation.Value == null ? double.NaN : (double)B.MaxColRotation.Value;
+                DbB.MaxColRotation = B.MaxColRotation.Value;
                 B.MaxColRotation.AcceptChanges();
-                DbB.MaxMUWarning = B.MaxMUWarning.Value == null ? double.NaN : (double)B.MaxMUWarning.Value;
+                DbB.MaxMUWarning = B.MaxMUWarning.Value;
                 B.MaxMUWarning.AcceptChanges();
-                DbB.MinMUWarning = B.MinMUWarning.Value == null ? double.NaN : (double)B.MinMUWarning.Value;
+                DbB.MinMUWarning = B.MinMUWarning.Value;
                 B.MinMUWarning.AcceptChanges();
-                DbB.MaxX = B.MaxX.Value == null ? double.NaN : (double)B.MaxX.Value;
+                DbB.MaxX = B.MaxX.Value;
                 B.MaxX.AcceptChanges();
-                DbB.MinX = B.MinX.Value == null ? double.NaN : (double)B.MinX.Value;
+                DbB.MinX = B.MinX.Value;
                 B.MinX.AcceptChanges();
-                DbB.MaxY = B.MaxY.Value == null ? double.NaN : (double)B.MaxY.Value;
+                DbB.MaxY = B.MaxY.Value;
                 B.MaxY.AcceptChanges();
-                DbB.MinY = B.MinY.Value == null ? double.NaN : (double)B.MinY.Value;
+                DbB.MinY = B.MinY.Value;
                 B.MinY.AcceptChanges();
                 DbB.ProtocolBeamName = B.ProtocolBeamName;
                 DbB.Technique = (int)B.Technique;

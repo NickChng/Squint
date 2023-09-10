@@ -92,7 +92,7 @@ namespace Squint
         public BeamGeometryDefinition(DbBeamGeometry DbBG)
         {
             //Automapper.SquintMapper.Map(DbBG, this);  // unable to get this to work globally due to limitations with ConvertUsing in the version of Automapper that supports .net 4.5
-            Id = DbBG.ID;
+            Id = DbBG.BeamGeometryID;
             Trajectory = (TrajectoryTypes)DbBG.Trajectory;
             StartAngle = DbBG.StartAngle;
             EndAngle = DbBG.EndAngle;

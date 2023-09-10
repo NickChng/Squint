@@ -1,205 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <xs:schema xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xs="http://www.w3.org/2001/XMLSchema" attributeFormDefault="unqualified" elementFormDefault="qualified">
-  <xs:simpleType name="PositiveDouble">
-    <xs:restriction base="xs:double">
-      <xs:minInclusive value="0"/>
-    </xs:restriction>
-  </xs:simpleType>
-  <xs:simpleType name="NullDouble">
-    <xs:union>
-      <xs:simpleType>
-        <xs:restriction base="xs:double"/>
-      </xs:simpleType>
-      <xs:simpleType>
-        <xs:restriction base="xs:string">
-          <xs:length value="0"/>
-        </xs:restriction>
-      </xs:simpleType>
-    </xs:union>
-  </xs:simpleType>
-  <xs:simpleType name="TreatmentIntents">
-    <xs:restriction base="xs:string">
-      <xs:enumeration value="Unset"/>
-      <xs:enumeration value="Curative"/>
-      <xs:enumeration value="Adjuvant"/>
-      <xs:enumeration value="NeoAdjuvant"/>
-      <xs:enumeration value="Palliative"/>
-    </xs:restriction>
-  </xs:simpleType>
-  <xs:simpleType name="ComponentTypes">
-    <xs:restriction base="xs:string">
-      <xs:enumeration value="Unset"/>
-      <xs:enumeration value="Phase"/>
-      <xs:enumeration value="Sum"/>
-    </xs:restriction>
-  </xs:simpleType>
-  <xs:simpleType name="TrajectoryTypes">
-    <xs:restriction base="xs:string">
-      <xs:enumeration value="Unset"/>
-      <xs:enumeration value="Static"/>
-      <xs:enumeration value="CW"/>
-      <xs:enumeration value="CCW"/>
-    </xs:restriction>
-  </xs:simpleType>
-  <xs:simpleType name="ImagingProtocolTypes">
-    <xs:restriction base="xs:string">
-      <xs:enumeration value="Unset"/>
-      <xs:enumeration value="kV"/>
-      <xs:enumeration value="kV_2D"/>
-      <xs:enumeration value="Bolus"/>
-      <xs:enumeration value="PreCBCT"/>
-      <xs:enumeration value="PostCBCT"/>
-      <xs:enumeration value="MidTxCBCT"/>
-      <xs:enumeration value="Home"/>
-    </xs:restriction>
-  </xs:simpleType>
-  <xs:simpleType name="Energies">
-    <xs:restriction base="xs:string">
-      <xs:enumeration value="Unset"/>
-      <xs:enumeration value="6X"/>
-      <xs:enumeration value="10X"/>
-      <xs:enumeration value="15X"/>
-      <xs:enumeration value="10XFFF"/>
-      <xs:enumeration value="6XFFF"/>
-    </xs:restriction>
-  </xs:simpleType>
-  <xs:simpleType name="ConstraintTypes">
-    <xs:restriction base="xs:string">
-      <xs:enumeration value="Unset"/>
-      <xs:enumeration value="D"/>
-      <xs:enumeration value="V"/>
-      <xs:enumeration value="M"/>
-      <xs:enumeration value="CV"/>
-      <xs:enumeration value="CI"/>
-    </xs:restriction>
-  </xs:simpleType>
-  <xs:simpleType name="ConstraintUnits">
-    <xs:restriction base="xs:string">
-      <xs:enumeration value="Unset"/>
-      <xs:enumeration value="Percent"/>
-      <xs:enumeration value="cGy"/>
-      <xs:enumeration value="cc"/>
-      <xs:enumeration value="Multiple"/>
-    </xs:restriction>
-  </xs:simpleType>
-  <xs:simpleType name="UnitScale">
-    <xs:restriction base="xs:string">
-      <xs:enumeration value="Unset"/>
-      <xs:enumeration value="Relative"/>
-      <xs:enumeration value="Absolute"/>
-    </xs:restriction>
-  </xs:simpleType>
-  <xs:simpleType name="ReferenceTypes">
-    <xs:restriction base="xs:string">
-      <xs:enumeration value="Unset"/>
-      <xs:enumeration value="Upper"/>
-      <xs:enumeration value="Lower"/>
-    </xs:restriction>
-  </xs:simpleType>
-  <xs:simpleType name="FieldTechniqueType">
-    <xs:restriction base="xs:string">
-      <xs:enumeration value="Unset"/>
-      <xs:enumeration value="BolusSetup"/>
-      <xs:enumeration value="LL_kv"/>
-      <xs:enumeration value="RL_kv"/>
-      <xs:enumeration value="CBCT"/>
-      <xs:enumeration value="Ant_kv"/>
-      <xs:enumeration value="Post_kv"/>
-      <xs:enumeration value="STATIC"/>
-      <xs:enumeration value="ARC"/>
-      <xs:enumeration value="Unload"/>
-      <xs:enumeration value="Home"/>
-    </xs:restriction>
-  </xs:simpleType>
-  <xs:simpleType name="AlgorithmVolumeDoseTypes">
-    <xs:restriction base="xs:string">
-      <xs:enumeration value="Unset"/>
-      <xs:enumeration value="AAA_11031"/>
-      <xs:enumeration value="AAA_13623"/>
-      <xs:enumeration value="AAA_15606"/>
-    </xs:restriction>
-  </xs:simpleType>
-  <xs:simpleType name="ApprovalLevels">
-    <xs:restriction base="xs:string">
-      <xs:enumeration value="Unset"/>
-      <xs:enumeration value="All"/>
-      <xs:enumeration value="Unapproved"/>
-      <xs:enumeration value="Reviewed"/>
-      <xs:enumeration value="Approved"/>
-      <xs:enumeration value="Retired"/>
-    </xs:restriction>
-  </xs:simpleType>
-  <xs:simpleType name="TreatmentSites">
-    <xs:restriction base="xs:string">
-      <xs:enumeration value="Unset"/>
-      <xs:enumeration value="All"/>
-      <xs:enumeration value="GU"/>
-      <xs:enumeration value="GI"/>
-      <xs:enumeration value="Lung"/>
-      <xs:enumeration value="HN"/>
-      <xs:enumeration value="CNS"/>
-      <xs:enumeration value="Sarcoma"/>
-      <xs:enumeration value="Breast"/>
-      <xs:enumeration value="Lymphoma"/>
-      <xs:enumeration value="Palliative"/>
-    </xs:restriction>
-  </xs:simpleType>
-  <xs:simpleType name="ProtocolTypes">
-    <xs:restriction base="xs:string">
-      <xs:enumeration value="Unset"/>
-      <xs:enumeration value="All"/>
-      <xs:enumeration value="Clinical"/>
-      <xs:enumeration value="Trial"/>
-      <xs:enumeration value="Research"/>
-      <xs:enumeration value="Development"/>
-    </xs:restriction>
-  </xs:simpleType>
-  <xs:simpleType name="TreatmentCentres">
-    <xs:restriction base="xs:string">
-      <xs:enumeration value="Unset"/>
-      <xs:enumeration value="All"/>
-      <xs:enumeration value="Provincial"/>
-      <xs:enumeration value="CN"/>
-      <xs:enumeration value="VCC"/>
-      <xs:enumeration value="VIC"/>
-      <xs:enumeration value="AC"/>
-      <xs:enumeration value="FVCC"/>
-      <xs:enumeration value="CSI"/>
-    </xs:restriction>
-  </xs:simpleType>
-  <xs:simpleType name="FieldNormalizationTypes">
-    <xs:restriction base="xs:string">
-      <xs:enumeration value="Unset"/>
-      <xs:enumeration value="ISO"/>
-      <xs:enumeration value="CAX"/>
-      <xs:enumeration value="field"/>
-      <xs:enumeration value="None"/>
-    </xs:restriction>
-  </xs:simpleType>
-  <xs:simpleType name="ParameterOptions">
-    <xs:restriction base="xs:string">
-      <xs:enumeration value="Unset"/>
-      <xs:enumeration value="Optional"/>
-      <xs:enumeration value="Required"/>
-      <xs:enumeration value="None"/>
-    </xs:restriction>
-  </xs:simpleType>
-  <xs:simpleType name="AlgorithmVMATOptimizationTypes">
-    <xs:restriction base="xs:string">
-      <xs:enumeration value="Unset"/>
-      <xs:enumeration value="PRO_13623"/>
-      <xs:enumeration value="PO_13623"/>
-      <xs:enumeration value="PO_15606"/>
-    </xs:restriction>
-  </xs:simpleType>
-  <xs:simpleType name="AlgorithmIMRTOptimizationTypes">
-    <xs:restriction base="xs:string">
-      <xs:enumeration value="Unset"/>
-      <xs:enumeration value="PRO_13623"/>
-      <xs:enumeration value="PO_13623"/>
-      <xs:enumeration value="PO_15606"/>
-    </xs:restriction>
-  </xs:simpleType>
+  <xs:include schemaLocation="SquintSchemaTypes.xsd"/>
   <xsd:element name="SquintProtocol">
     <xsd:complexType>
       <xsd:sequence>
@@ -233,7 +34,7 @@
             <xsd:sequence>
               <xsd:element maxOccurs="unbounded" name="Structure">
                 <xsd:complexType>
-                  <xsd:sequence>
+                  <xsd:all>
                     <xsd:element minOccurs="0" name="StructureChecklist">
                       <xsd:complexType>
                         <xsd:sequence>
@@ -256,7 +57,7 @@
                         </xsd:sequence>
                       </xsd:complexType>
                     </xsd:element>
-                  </xsd:sequence>
+                  </xsd:all>
                   <xsd:attribute name="Label" type="xsd:string" use="required" />
                   <xsd:attribute name="ProtocolStructureName" type="xsd:string" use="required" />
                 </xsd:complexType>

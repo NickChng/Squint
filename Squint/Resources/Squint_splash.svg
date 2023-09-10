@@ -1,12 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <svg
-   xmlns:dc="http://purl.org/dc/elements/1.1/"
-   xmlns:cc="http://creativecommons.org/ns#"
-   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
-   xmlns:svg="http://www.w3.org/2000/svg"
-   xmlns="http://www.w3.org/2000/svg"
-   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
-   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    width="65"
    height="30"
    viewBox="0 0 65 30"
@@ -14,11 +7,18 @@
    version="1.1"
    id="svg62"
    sodipodi:docname="Squint_splash.svg"
-   inkscape:version="0.92.3 (2405546, 2018-03-11)"
-   inkscape:export-filename="C:\Users\Pogie\Documents\VSProjects\WinSquint2\Resources\SquintIcon2.png"
-   inkscape:export-xdpi="2297.3901"
-   inkscape:export-ydpi="2297.3901"
-   style="fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round">
+   inkscape:version="1.2.1 (9c6d41e410, 2022-07-14)"
+   inkscape:export-filename="SquintSplash.png"
+   inkscape:export-xdpi="590.76923"
+   inkscape:export-ydpi="590.76923"
+   style="fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:dc="http://purl.org/dc/elements/1.1/">
   <metadata
      id="metadata68">
     <rdf:RDF>
@@ -37,10 +37,10 @@
        inkscape:collect="always"
        style="color-interpolation-filters:sRGB"
        id="filter885"
-       x="-0.016789845"
-       width="1.0335797"
-       y="-0.042063606"
-       height="1.0841272">
+       x="-0.032747119"
+       width="1.0654942"
+       y="-0.082041374"
+       height="1.1640827">
       <feGaussianBlur
          inkscape:collect="always"
          stdDeviation="0.43840623"
@@ -56,21 +56,24 @@
      guidetolerance="10"
      inkscape:pageopacity="0"
      inkscape:pageshadow="2"
-     inkscape:window-width="1920"
-     inkscape:window-height="1138"
+     inkscape:window-width="1918"
+     inkscape:window-height="1128"
      id="namedview64"
      showgrid="false"
      inkscape:zoom="11.313708"
-     inkscape:cx="27.088186"
-     inkscape:cy="-2.330912"
-     inkscape:window-x="-30080"
-     inkscape:window-y="-32000"
+     inkscape:cx="27.135224"
+     inkscape:cy="-2.3422913"
+     inkscape:window-x="-7"
+     inkscape:window-y="0"
      inkscape:window-maximized="0"
      inkscape:current-layer="svg62"
      fit-margin-top="1"
      fit-margin-left="1"
      fit-margin-right="1"
-     fit-margin-bottom="1" />
+     fit-margin-bottom="1"
+     inkscape:showpageshadow="2"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1" />
   <rect
      style="fill:#ffffff;fill-opacity:1;stroke:#aeded6;stroke-opacity:1;filter:url(#filter885)"
      id="rect853"
@@ -104,7 +107,7 @@
   <flowRoot
      xml:space="preserve"
      id="flowRoot12062"
-     style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:28.75870514px;line-height:1.25;font-family:'Maiandra GD';-inkscape-font-specification:'Maiandra GD';letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none"
+     style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:28.7587px;line-height:1.25;font-family:'Maiandra GD';-inkscape-font-specification:'Maiandra GD';letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none"
      transform="matrix(1.1713147,0,0,-1.1127066,5.417052,84.942671)"
      inkscape:export-xdpi="593.36365"
      inkscape:export-ydpi="593.36365"><flowRegion
@@ -117,10 +120,11 @@
          y="10.162323"
          style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Maiandra GD';-inkscape-font-specification:'Maiandra GD'"
          ry="0" /></flowRegion><flowPara
-       id="flowPara12068">  uintu</flowPara></flowRoot>  <flowRoot
+       id="flowPara12068">  uintu</flowPara></flowRoot>
+  <flowRoot
      xml:space="preserve"
      id="flowRoot12070"
-     style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:26.66666603px;line-height:1.25;font-family:'Lucida Sans Unicode';-inkscape-font-specification:'Lucida Sans Unicode';letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none"
+     style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:26.6667px;line-height:1.25;font-family:'Lucida Sans Unicode';-inkscape-font-specification:'Lucida Sans Unicode';letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none"
      transform="translate(-1.1193532,6.8552045)"><flowRegion
        id="flowRegion12072"
        style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Lucida Sans Unicode';-inkscape-font-specification:'Lucida Sans Unicode'"><rect
@@ -130,20 +134,17 @@
          x="39.550041"
          y="13.470144"
          style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Lucida Sans Unicode';-inkscape-font-specification:'Lucida Sans Unicode'" /></flowRegion><flowPara
-       id="flowPara12076" /></flowRoot>  <text
+       id="flowPara12076" /></flowRoot>
+  <text
      xml:space="preserve"
-     style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:26.66666603px;line-height:1.25;font-family:'Maiandra GD';-inkscape-font-specification:'Maiandra GD';letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none"
+     style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:26.6667px;line-height:1.25;font-family:'Maiandra GD';-inkscape-font-specification:'Maiandra GD';letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none"
      x="44.108143"
      y="37.1521"
-     id="text12080"><tspan
-       sodipodi:role="line"
-       id="tspan12078"
-       x="44.108143"
-       y="60.74585" /></text>
+     id="text12080" />
   <flowRoot
      xml:space="preserve"
      id="flowRoot12082"
-     style="font-style:normal;font-weight:normal;font-size:26.66666603px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none"
+     style="font-style:normal;font-weight:normal;font-size:26.6667px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none"
      transform="translate(-1.1193532,6.8552045)"><flowRegion
        id="flowRegion12084"><rect
          id="rect12086"
@@ -151,54 +152,43 @@
          height="28.044575"
          x="55.945332"
          y="14.908328" /></flowRegion><flowPara
-       id="flowPara12088" /></flowRoot>  <text
+       id="flowPara12088" /></flowRoot>
+  <text
      xml:space="preserve"
-     style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:21.33333397px;line-height:1.25;font-family:'Maiandra GD';-inkscape-font-specification:'Maiandra GD';letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round"
+     style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:21.3333px;line-height:1.25;font-family:'Maiandra GD';-inkscape-font-specification:'Maiandra GD';letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round"
      x="58.843285"
      y="35.647625"
-     id="text12080-4"><tspan
-       sodipodi:role="line"
-       id="tspan12078-1"
-       x="58.843285"
-       y="54.522625" /></text>
+     id="text12080-4" />
   <text
      xml:space="preserve"
      style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:16px;line-height:1.25;font-family:'Maiandra GD';-inkscape-font-specification:'Maiandra GD';letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round"
      x="64.690331"
      y="34.375645"
-     id="text12080-4-6"><tspan
-       sodipodi:role="line"
-       id="tspan12078-1-3"
-       x="64.690331"
-       y="48.531895" /></text>
+     id="text12080-4-6" />
   <text
      xml:space="preserve"
-     style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:10.66666698px;line-height:1.25;font-family:'Maiandra GD';-inkscape-font-specification:'Maiandra GD';letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round"
+     style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:10.6667px;line-height:1.25;font-family:'Maiandra GD';-inkscape-font-specification:'Maiandra GD';letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round"
      x="74.796844"
      y="33.460838"
-     id="text12080-4-6-9"><tspan
-       sodipodi:role="line"
-       id="tspan12078-1-3-9"
-       x="74.796844"
-       y="42.898338" /></text>
+     id="text12080-4-6-9" />
   <text
      xml:space="preserve"
-     style="font-style:normal;font-weight:normal;font-size:7.03373003px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1.05505955"
-     x="50.713745"
-     y="20.157911"
+     style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:4.02143px;line-height:1.25;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.603215"
+     x="54.811306"
+     y="18.724993"
      id="text12160"
      inkscape:export-filename="K:\Scripting\Current\Squint_v06\Resources\SquintSplash_v07.png"
      inkscape:export-xdpi="593.36365"
      inkscape:export-ydpi="593.36365"
-     transform="scale(1.003613,0.9964)"><tspan
+     transform="scale(0.93038817,1.0748202)"><tspan
        sodipodi:role="line"
-       id="tspan12158"
-       x="50.713745"
-       y="20.157911"
-       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:4.22023821px;line-height:0.25;font-family:'Gill Sans MT';-inkscape-font-specification:'Gill Sans MT';fill:#000000;stroke-width:1.05505955">v0.7</tspan></text>
+       id="tspan357"
+       x="54.811306"
+       y="18.724993"
+       style="stroke-width:0.603215">v0.9</tspan></text>
   <text
      xml:space="preserve"
-     style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:17.11885071px;line-height:1.25;font-family:'Bernard MT Condensed';-inkscape-font-specification:'Bernard MT Condensed, ';letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:2.56782746;stroke-linecap:round;stroke-linejoin:round"
+     style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:17.1189px;line-height:1.25;font-family:'Bernard MT Condensed';-inkscape-font-specification:'Bernard MT Condensed, ';letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:2.56783;stroke-linecap:round;stroke-linejoin:round"
      x="30.207701"
      y="16.328772"
      id="text12160-4"
@@ -210,5 +200,5 @@
        id="tspan12158-6"
        x="30.207701"
        y="16.328772"
-       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:10.27130985px;line-height:0.25;font-family:'Gill Sans MT';-inkscape-font-specification:'Gill Sans MT';fill:#000000;stroke-width:2.56782746">Squint</tspan></text>
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:10.2713px;line-height:0.25;font-family:'Gill Sans MT';-inkscape-font-specification:'Gill Sans MT';fill:#000000;stroke-width:2.56783">Squint</tspan></text>
 </svg>

@@ -73,7 +73,15 @@ namespace Squint
         {
             m_application = Execute(new Func<EApp>(() =>
             {
-                return EApp.CreateApplication();
+                try
+                {
+                    var app = EApp.CreateApplication();
+                    return app;
+                }
+                catch (Exception ex)
+                {
+                    throw new Exception();
+                }
             }));
             isInit = true;
         }

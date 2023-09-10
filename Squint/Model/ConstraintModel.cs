@@ -741,53 +741,53 @@ namespace Squint
             switch (ConstraintType)
             {
                 case ConstraintTypes.CV:
-                    ReturnString = string.Format("CV{0:0.###} [{1}] {2} {3:0.###} [{4}]", ConstraintValue, GetConstraintUnit().Display(), ReferenceType.Display(), ReferenceValue, GetReferenceUnit().Display());
+                    ReturnString = string.Format("CV{0:0.###} [{1}] {2} {3:0.###} [{4}]", ConstraintValue, TypeDisplay.Display(GetConstraintUnit()), TypeDisplay.Display(ReferenceType), ReferenceValue, TypeDisplay.Display(GetReferenceUnit()));
                     break;
                 case ConstraintTypes.V:
                     if (ConstraintScale == UnitScale.Relative)
-                        ReturnString = string.Format("V{0:0.###} [{1}] {2} {3:0.###} [{4}]", ConstraintValue, GetConstraintUnit().Display(), ReferenceType.Display(), ReferenceValue, GetReferenceUnit().Display());
+                        ReturnString = string.Format("V{0:0.###} [{1}] {2} {3:0.###} [{4}]", ConstraintValue, TypeDisplay.Display(GetConstraintUnit()), TypeDisplay.Display(ReferenceType), ReferenceValue, TypeDisplay.Display(GetReferenceUnit()));
                     else
-                        ReturnString = string.Format("V{0:0.#} [{1}] {2} {3:0.###} [{4}]", ConstraintValue, GetConstraintUnit().Display(), ReferenceType.Display(), ReferenceValue, GetReferenceUnit().Display());
+                        ReturnString = string.Format("V{0:0.#} [{1}] {2} {3:0.###} [{4}]", ConstraintValue, TypeDisplay.Display(GetConstraintUnit()), TypeDisplay.Display(ReferenceType), ReferenceValue, TypeDisplay.Display(GetReferenceUnit()));
                     break;
                 case ConstraintTypes.D:
                     //Exception for min and max dose
                     if (ConstraintValue < 1E-5)
                     { // max dose
                         if (ReferenceScale == UnitScale.Relative)
-                            ReturnString = string.Format("Max Dose {0} {1:0.###} [{2}]", ReferenceType.Display(), ReferenceValue, GetReferenceUnit().Display());
+                            ReturnString = string.Format("Max Dose {0} {1:0.###} [{2}]", TypeDisplay.Display(ReferenceType), ReferenceValue, TypeDisplay.Display(GetReferenceUnit()));
                         else
-                            ReturnString = string.Format("Max Dose {0} {1:0} [{2}]", ReferenceType.Display(), ReferenceValue, GetReferenceUnit().Display());
+                            ReturnString = string.Format("Max Dose {0} {1:0} [{2}]", TypeDisplay.Display(ReferenceType), ReferenceValue, TypeDisplay.Display(GetReferenceUnit()));
 
                         break;
                     }
                     else if (ConstraintValue > (100 - 1E-5) && ConstraintScale == UnitScale.Relative)
                     {
                         if (ReferenceScale == UnitScale.Relative)
-                            ReturnString = string.Format("Min Dose {0} {1:0.###} [{2}]", ReferenceType.Display(), ReferenceValue, GetReferenceUnit().Display());
+                            ReturnString = string.Format("Min Dose {0} {1:0.###} [{2}]", TypeDisplay.Display(ReferenceType), ReferenceValue, TypeDisplay.Display(GetReferenceUnit()));
                         else
-                            ReturnString = string.Format("Min Dose {0} {1:0} [{2}]", ReferenceType.Display(), ReferenceValue, GetReferenceUnit().Display());
+                            ReturnString = string.Format("Min Dose {0} {1:0} [{2}]", TypeDisplay.Display(ReferenceType), ReferenceValue, TypeDisplay.Display(GetReferenceUnit()));
                         break;
                     }
                     else
                     {
                         if (ReferenceScale == UnitScale.Relative)
-                            ReturnString = string.Format("D{0:0.###} [{1}] {2} {3:0.#} [{4}]", ConstraintValue, GetConstraintUnit().Display(), ReferenceType.Display(), ReferenceValue, GetReferenceUnit().Display());
+                            ReturnString = string.Format("D{0:0.###} [{1}] {2} {3:0.#} [{4}]", ConstraintValue, TypeDisplay.Display(GetConstraintUnit()), TypeDisplay.Display(ReferenceType), ReferenceValue, TypeDisplay.Display(GetReferenceUnit()));
                         else
-                            ReturnString = string.Format("D{0:0.###} [{1}] {2} {3:0} [{4}]", ConstraintValue, GetConstraintUnit().Display(), ReferenceType.Display(), ReferenceValue, GetReferenceUnit().Display());
+                            ReturnString = string.Format("D{0:0.###} [{1}] {2} {3:0} [{4}]", ConstraintValue, TypeDisplay.Display(GetConstraintUnit()), TypeDisplay.Display(ReferenceType), ReferenceValue, TypeDisplay.Display(GetReferenceUnit()));
                         break;
                     }
                 case ConstraintTypes.M:
-                    ReturnString = string.Format("Mean Dose {0} {1:0} [{2}]", ReferenceType.Display(), ReferenceValue, GetReferenceUnit());
+                    ReturnString = string.Format("Mean Dose {0} {1:0} [{2}]", TypeDisplay.Display(ReferenceType), ReferenceValue, GetReferenceUnit());
                     break;
                 case ConstraintTypes.CI:
                     if (ConstraintValue == 0) // Display exception if it's the whole volume for readability
-                        ReturnString = string.Format("Total volume is {0} {1} % of {2} volume", ReferenceType.Display(), ReferenceValue, ReferenceStructureName);
+                        ReturnString = string.Format("Total volume is {0} {1} % of {2} volume", TypeDisplay.Display(ReferenceType), ReferenceValue, ReferenceStructureName);
                     else
                     {
                         if (ReferenceScale == UnitScale.Relative)
-                            ReturnString = string.Format("V{0}[{1}] {2} {3}{4} of the {5} volume", ConstraintValue, GetConstraintUnit().Display(), ReferenceType.Display(), ReferenceValue, GetReferenceUnit().Display(), ReferenceStructureName);
+                            ReturnString = string.Format("V{0}[{1}] {2} {3}{4} of the {5} volume", ConstraintValue, TypeDisplay.Display(GetConstraintUnit()), TypeDisplay.Display(ReferenceType), ReferenceValue, TypeDisplay.Display(GetReferenceUnit()), ReferenceStructureName);
                         else if (ReferenceScale == UnitScale.Absolute)
-                            ReturnString = string.Format("V{0}[{1}] {2} {3} {4} the {5} volume", ConstraintValue, GetConstraintUnit().Display(), ReferenceType.Display(), ReferenceValue, GetReferenceUnit().Display(), ReferenceStructureName);
+                            ReturnString = string.Format("V{0}[{1}] {2} {3} {4} the {5} volume", ConstraintValue, TypeDisplay.Display(GetConstraintUnit()), TypeDisplay.Display(ReferenceType), ReferenceValue, TypeDisplay.Display(GetReferenceUnit()), ReferenceStructureName);
                         break;
                     }
                     break;

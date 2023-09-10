@@ -84,8 +84,8 @@ namespace Squint.ViewModels
 
         private void OnStructureEclipseIdAssignmentChanged(StructureEclipseIdAssignmentChangedArgs args)
         {
-
-            PerformStrayVoxelChecks();
+            if (ParentView.ParentView.PlanCheckVisible)
+                PerformStrayVoxelChecks();
         }
 
 

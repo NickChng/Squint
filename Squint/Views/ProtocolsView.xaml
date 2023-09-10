@@ -369,7 +369,7 @@
                             </Grid.ColumnDefinitions>
                             <TextBlock Grid.Column="0" Text="Structures" VerticalAlignment="Center" Margin="10,0,0,0" FontWeight="Bold" FontSize="14"/>
                             <TextBlock Grid.Column="1" Text="Current structure set:" VerticalAlignment="Center" Margin="10,0,0,0" FontWeight="Bold"/>
-                            <ComboBox Grid.Column="2" Style="{StaticResource ConstraintComboBoxStyle}" ItemsSource="{Binding PatientVM.StructureSets}" VerticalContentAlignment="Center" VerticalAlignment="Center" SelectedItem="{Binding PatientVM.CurrentStructureSet, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"  DisplayMemberPath="ComboBoxDisplay" Margin="5,3,10,3"/>
+                            <ComboBox Grid.Column="2" Style="{StaticResource ConstraintComboBoxStyle}" ItemsSource="{Binding ParentView.PatientVM.StructureSets}" VerticalContentAlignment="Center" VerticalAlignment="Center" SelectedItem="{Binding ParentView.PatientVM.CurrentStructureSet, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"  DisplayMemberPath="ComboBoxDisplay" Margin="5,3,10,3"/>
                             <Button Grid.Column="3" Style="{StaticResource ButtonStyle_Small}" Command="{Binding ExpandStructuresCommand}" HorizontalAlignment="Right" Margin="0,0,10,0" Padding="10,10,10,10">
                                 <Image>
                                     <Image.Style>

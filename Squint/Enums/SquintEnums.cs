@@ -66,20 +66,6 @@ namespace Squint
         [Description("CT Device Id")] CTDeviceId
     }
 
-    //public enum TrajectoryTypes
-    //{
-    //    [Description("Unset")] Unset = 1,
-    //    [Description("Static")] Static = 2,
-    //    [Description("Clockwise")] CW = 3,
-    //    [Description("Counterclockwise")] CCW = 4,
-    //}
-    //public enum ParameterOptions
-    //{
-    //    [Description("Unset")] Unset,
-    //    [Description("Optional")] Optional,
-    //    [Description("Required")] Required,
-    //    [Description("None")] None,
-    //}
     public enum EditTypes
     {
         [Description("Unset")] Unset,
@@ -89,49 +75,6 @@ namespace Squint
         [Description("RangeValues")] RangeValues,
         [Description("AnyOfValues")] AnyOfValues,
     }
-    //public enum ImagingProtocols
-    //{
-    //    [Description("None")] Unset,
-    //    [Description("Single-kV")] kV,
-    //    [Description("2D-kV")] kV_2D,
-    //    [Description("Bolus-setup")] Bolus,
-    //    [Description("Pre-Tx CBCT")] PreCBCT,
-    //    [Description("Post-Tx CBCT")] PostCBCT,
-    //}
-
-    //public enum TreatmentIntents
-    //{
-    //    [Description("")] Unset,
-    //    [Description("Curative")] Curative,
-    //    [Description("Adjuvant")] Adjuvant,
-    //    [Description("Neo-Adjuvant")] NeoAdjuvant,
-    //    [Description("Palliative")] Palliative,
-    //}
-
-
-    //public enum AlgorithmVMATOptimizationTypes
-    //{
-    //    [Description("Unset")] Unset,
-    //    [Description("PRO_13623")] PRO_13623,
-    //    [Description("PO_13623")] PO_13623,
-    //    [Description("PO_15606")] PO_15606,
-    //}
-    //public enum AlgorithmIMRTOptimizationTypes
-    //{
-    //    [Description("Unset")] Unset,
-    //    [Description("PRO_13623")] PRO_13623,
-    //    [Description("PO_13623")] PO_13623,
-    //    [Description("PO_15606")] PO_15606,
-    //}
-
-    //public enum FieldNormalizationTypes
-    //{
-    //    [Description("Unset")] Unset,
-    //    [Description("100% to isocenter")] ISO,
-    //    [Description("100% to central axis Dmax")] CAX,
-    //    [Description("100% to field Dmax")] field,
-    //    [Description("No field normalization")] None,
-    //}
 
     public enum TestType
     {
@@ -142,20 +85,6 @@ namespace Squint
         [Description("Range")] Range,
         [Description("Multiple-choice")] MC,
     }
-
-    //public enum FieldTechniqueType
-    //{
-    //    [Description("Unidentified")] Unset,
-    //    [Description("Bolus Setup")] BolusSetup,
-    //    [Description("Left Lateral kV")] LL_kv,
-    //    [Description("Right Lateral kV")] RL_kv,
-    //    [Description("CBCT")] CBCT,
-    //    [Description("Anterior kV")] Ant_kv,
-    //    [Description("Posterior kV")] Post_kv,
-    //    [Description("Static Tx")] STATIC,
-    //    [Description("ARC Tx")] ARC,
-    //    [Description("Unload")] Unload,
-    //}
 
     public enum StructureTypes
     {
@@ -172,40 +101,6 @@ namespace Squint
         [Description("Patient reference")] PatientReference,
         [Description("Artifact")] Artifact
     }
-    //public enum StructureLabelEnum // Note: XML input/output uses the description, not the enum values
-    //{
-    //    [Description("")] Unset,
-    //    [Description("Bladder")] Bladder,
-    //    [Description("Brachial Plexus")] BrachialPlexus,
-    //    [Description("Brain")] Brain,
-    //    [Description("Brainstem")] Brainstem,
-    //    [Description("CTVn")] CTVn,
-    //    [Description("CTVp")] CTVp,
-    //    [Description("Esophagus")] Esophagus,
-    //    [Description("External Genitalia")] ExternalGenitalia,
-    //    [Description("Eye")] Eye,
-    //    [Description("Femur")] Femur,
-    //    [Description("GTV")] GTV,
-    //    [Description("Heart")] Heart,
-    //    [Description("Iliac Crest")] IliacCrest,
-    //    [Description("Laryngopharynx")] Laryngopharynx,
-    //    [Description("Lens")] Lens,
-    //    [Description("Liver")] Liver,
-    //    [Description("Mandible")] Mandible,
-    //    [Description("Optics")] Optics,
-    //    [Description("Oral Cavity")] OralCavity,
-    //    [Description("Parotid")] Parotid,
-    //    [Description("PTVn")] PTVn,
-    //    [Description("PTVp")] PTVp,
-    //    [Description("PTVp2")] PTVp2,
-    //    [Description("Rectum")] Rectum,
-    //    [Description("Small Bowel")] SmallBowel,
-    //    [Description("Spinal Cord")] SpinalCord,
-    //    [Description("Submandibular")] Submandibular,
-    //    [Description("Large Bowel")] LargeBowel,
-    //    [Description("Kidney")] Kidney,
-    //    [Description("Sacral Canal")] SacralCanal
-    //}
     public enum ComponentStatusCodes
     {
         [Description("")] NoError,

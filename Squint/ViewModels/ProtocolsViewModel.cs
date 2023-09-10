@@ -21,7 +21,6 @@ using Squint.TestFramework;
 using Squint.Interfaces;
 using Squint.Extensions;
 using System.Windows.Threading;
-using Npgsql;
 using Prism.Events;
 
 namespace Squint.ViewModels
@@ -36,7 +35,7 @@ namespace Squint.ViewModels
             _model = model;
             ea = ea_in;
             Subscribe();
-
+            isProtocolLoaded = false;
             ParentView = parentView;
             var ProtocolPreviews = new List<ProtocolSelector>();
             foreach (var PP in _model.GetProtocolPreviewList())
@@ -106,7 +105,7 @@ namespace Squint.ViewModels
         }
         public ProtocolSelector SelectedProtocol { get; set; } = new ProtocolSelector(new ProtocolPreview());
 
-        public bool isProtocolLoaded { get; set; }
+        public bool isProtocolLoaded { get; set; } = true;
 
         public bool isLoadProtocolPanelVisible { get; set; } = true;
 

@@ -7,8 +7,6 @@ using System.Collections.Generic;
 using System.Windows;
 using System.Linq;
 using System.IO;
-using Npgsql;
-using NpgsqlTypes;
 using System.Xml;
 using System.Xml.Serialization;
 using VMSTypes = VMS.TPS.Common.Model.Types;
@@ -142,7 +140,7 @@ namespace Squint
             _uiDispatcher.Invoke(DatabaseInitializing, new object[] { null, EventArgs.Empty });
             DbPaths = new DbConfigurationPaths()
             {
-                structureDefinitionPath = Config.BeamGeometryDefinitions.FirstOrDefault(x => x.Site == Config.Site.CurrentSite).Path,
+                structureDefinitionPath = Config.StructureCodes.FirstOrDefault(x => x.Site == Config.Site.CurrentSite).Path,
                 beamDefinitionPath = Config.BeamGeometryDefinitions.FirstOrDefault(x => x.Site == Config.Site.CurrentSite).Path,
             };
             var database = Config.Databases.FirstOrDefault(x => x.Site == Config.Site.CurrentSite);
@@ -609,7 +607,11 @@ namespace Squint
         public List<string> GetCurrentStructures()
         {
             if (CurrentStructureSet != null)
-                return CurrentStructureSet.GetAllStructures().Select(x => x.Id).ToList();
+            {
+                var structureIds = CurrentStructureSet.GetStructureIds().ToList();
+                structureIds.Add("");
+                return structureIds;
+            }
             else return new List<string>();
         }
         public List<string> GetAvailableStructureSetIds()
@@ -952,7 +954,8 @@ namespace Squint
                 {
                     foreach (var TxIntent in _XMLProtocol.TreatmentIntents)
                     {
-                        DbTreatmentIntent TI = LocalContext.DbTreatmentIntents.FirstOrDefault(x => x.Intent.Equals(TypeDisplay.Display(TxIntent.Id), StringComparison.OrdinalIgnoreCase));
+                        string TxIntentString = TypeDisplay.Display(TxIntent.Id); // necessary as EF can't interpret this inline qith the query
+                        DbTreatmentIntent TI = LocalContext.DbTreatmentIntents.FirstOrDefault(x => x.Intent.Equals(TxIntentString, StringComparison.OrdinalIgnoreCase));
                         if (P.TreatmentIntents == null)
                             P.TreatmentIntents = new List<DbTreatmentIntent>();
                         P.TreatmentIntents.Add(TI);
@@ -966,7 +969,7 @@ namespace Squint
                 LocalContext.DbLibraryProtocols.Add(P);
                 try
                 {
-                    //   LocalContext.SaveChanges(); // protocol key is now available
+                    LocalContext.SaveChanges(); // protocol key is now available
                 }
                 catch (Exception ex)
                 {
@@ -1067,7 +1070,7 @@ namespace Squint
                         Checklist.AlgorithmVolumeDose = (int)_XMLProtocol.ProtocolChecklist.Calculation.Algorithm;
                         Checklist.FieldNormalizationMode = (int)_XMLProtocol.ProtocolChecklist.Calculation.FieldNormalizationMode;
                         Checklist.HeterogeneityOn = _XMLProtocol.ProtocolChecklist.Calculation.HeterogeneityOn;
-                        Checklist.AlgorithmResolution = _XMLProtocol.ProtocolChecklist.Calculation.AlgorithmResolution;
+                        Checklist.AlgorithmResolution = double.IsNaN(_XMLProtocol.ProtocolChecklist.Calculation.AlgorithmResolution) ? Checklist.AlgorithmResolution : _XMLProtocol.ProtocolChecklist.Calculation.AlgorithmResolution;
                         Checklist.AlgorithmVMATOptimization = (int)_XMLProtocol.ProtocolChecklist.Calculation.VMATOptimizationAlgorithm;
                         Checklist.AlgorithmIMRTOptimization = (int)_XMLProtocol.ProtocolChecklist.Calculation.IMRTOptimizationAlgorithm;
                         Checklist.AirCavityCorrectionVMAT = _XMLProtocol.ProtocolChecklist.Calculation.VMATAirCavityCorrection;
@@ -1076,8 +1079,8 @@ namespace Squint
                     if (_XMLProtocol.ProtocolChecklist.Supports != null)
                     {
                         Checklist.SupportIndication = (int)_XMLProtocol.ProtocolChecklist.Supports.Indication;
-                        Checklist.CouchInterior = _XMLProtocol.ProtocolChecklist.Supports.CouchInterior;
-                        Checklist.CouchSurface = _XMLProtocol.ProtocolChecklist.Supports.CouchSurface;
+                        Checklist.CouchInterior = double.IsNaN(_XMLProtocol.ProtocolChecklist.Supports.CouchInterior) ? Checklist.CouchInterior : _XMLProtocol.ProtocolChecklist.Supports.CouchInterior;
+                        Checklist.CouchSurface = double.IsNaN(_XMLProtocol.ProtocolChecklist.Supports.CouchSurface) ? Checklist.CouchSurface : _XMLProtocol.ProtocolChecklist.Supports.CouchSurface;
                     }
                     if (_XMLProtocol.ProtocolChecklist.Simulation != null)
                     {
@@ -1108,8 +1111,8 @@ namespace Squint
                         {
                             DbArtifact DbA = LocalContext.DbArtifacts.Create();
                             LocalContext.DbArtifacts.Add(DbA);
-                            DbA.HU = A.HU;
-                            DbA.ToleranceHU = A.ToleranceHU;
+                            DbA.HU = double.IsNaN(A.HU) ? DbA.HU : A.HU;
+                            DbA.ToleranceHU = double.IsNaN(A.ToleranceHU) ? DbA.ToleranceHU : A.ToleranceHU;
                             DbA.DbProtocolChecklist = Checklist;
                             if (ProtocolStructureNameToID.ContainsKey(A.ProtocolStructureName))
                                 DbA.ProtocolStructure_ID = ProtocolStructureNameToID[A.ProtocolStructureName];
@@ -1123,6 +1126,14 @@ namespace Squint
                 }
 
                 int ComponentDisplayOrder = 1;
+                try
+                {
+                    LocalContext.SaveChanges(); // protocol key is now available
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show(P.ProtocolName);
+                }
                 foreach (SquintProtocolComponent comp in _XMLProtocol.Components)
                 {
                     DbComponent C = LocalContext.DbComponents.Create();
@@ -1139,13 +1150,10 @@ namespace Squint
                     {
                         C.NumFractions = comp.Prescription.NumFractions;
                         C.ReferenceDose = comp.Prescription.ReferenceDose;
-                        C.PNVMax = comp.Prescription.PNVMax;
-                        C.PNVMin = comp.Prescription.PNVMin;
-                        C.PrescribedPercentage = comp.Prescription.PrescribedPercentage;
+                        C.PNVMax = double.IsNaN(comp.Prescription.PNVMax) ? C.PNVMax : comp.Prescription.PNVMax;
+                        C.PNVMin = double.IsNaN(comp.Prescription.PNVMin) ? C.PNVMin : comp.Prescription.PNVMin;
+                        C.PrescribedPercentage = double.IsNaN(comp.Prescription.PrescribedPercentage) ? C.PrescribedPercentage : comp.Prescription.PrescribedPercentage;
                     }
-
-
-                    ComponentTypes ComponentType;
                     if (comp.Type == ComponentTypes.Unset)
                     {
                         MessageBox.Show(string.Format("Components must must specify either Plan or Sum in the Type attribute (Protocol: {0} Component: {1})", P.ProtocolName, comp.ComponentName));
@@ -1159,7 +1167,6 @@ namespace Squint
                     //Add imaging
                     if (comp.ImagingProtocols != null)
                     {
-                        ImagingProtocolTypes ProtocolType;
                         DbComponentImaging DbCI = LocalContext.DbComponentImagings.Create();
                         LocalContext.DbComponentImagings.Add(DbCI);
                         DbCI.ID = IDGenerator.GetUniqueId();
@@ -1169,7 +1176,7 @@ namespace Squint
                             DbImaging DbI = LocalContext.DbImagings.Create();
                             DbI.ImagingProtocol = (int)IP.Id;
                             if (string.IsNullOrEmpty(IP.ImagingProtocolDisplayName))
-                                DbI.ImagingProtocolName = IP.Id.ToString();
+                                DbI.ImagingProtocolName = TypeDisplay.Display(IP.Id);
                             else
                                 DbI.ImagingProtocolName = IP.ImagingProtocolDisplayName;
                             DbI.ComponentImagingID = DbCI.ID;
@@ -1189,7 +1196,7 @@ namespace Squint
                         if (comp.Beams.MinColOffset == -1) // -1 is default, which is interpreted as null, meaning no constraint
                             C.MinColOffset = null;
                         else
-                            C.MinColOffset = comp.Beams.MinColOffset;
+                            C.MinColOffset = double.IsNaN(comp.Beams.MinColOffset) ? C.MinColOffset : comp.Beams.MinColOffset;
                         C.NumIso = comp.Beams.NumIso; // default is 1   
 
                         foreach (var b in comp.Beams.Beam)
@@ -1210,9 +1217,8 @@ namespace Squint
                                 if (DbAG != null)
                                 {
                                     B.DbBeamGeometries.Add(DbAG);
-                                    DbAG.DbBeams.Add(B);
+                                    DbAG.DbBeam = B;
                                     DbAG.GeometryName = G.GeometryName;
-                                    TrajectoryTypes T;
                                     DbAG.Trajectory = (int)G.Trajectory;
                                     DbAG.StartAngle = G.StartAngle;
                                     DbAG.EndAngle = G.EndAngle;
@@ -1223,20 +1229,21 @@ namespace Squint
                             }
                             B.DbComponent = C;
                             B.ProtocolBeamName = b.ProtocolBeamName;
-                            B.CouchRotation = b.CouchRotation;
-                            B.MaxColRotation = b.MaxColRotation;
-                            B.MinColRotation = b.MinColRotation;
-                            B.MaxMUWarning = b.MaxMUWarning;
-                            B.MinMUWarning = b.MinMUWarning;
-                            B.MinX = b.MinX;
-                            B.MaxX = b.MaxX;
-                            B.MinY = b.MinY;
-                            B.MaxY = b.MaxY;
+                            B.CouchRotation = double.IsNaN(b.CouchRotation) ? B.CouchRotation : b.CouchRotation;
+                            B.MaxColRotation = double.IsNaN(b.MaxColRotation) ? B.MaxColRotation : b.MaxColRotation; 
+                            B.MinColRotation = double.IsNaN(b.MinColRotation) ? B.MinColRotation : b.MinColRotation;
+                            B.MaxMUWarning = double.IsNaN(b.MaxMUWarning) ? B.MaxMUWarning : b.MaxMUWarning;
+                            B.MinMUWarning = double.IsNaN(b.MinMUWarning) ? B.MinMUWarning : b.MinMUWarning;
+                            B.MinX = double.IsNaN(b.MinX) ? B.MinX : b.MinX;
+                            B.MaxX = double.IsNaN(b.MaxX) ? B.MaxX : b.MaxX;
+                            B.MinY = double.IsNaN(b.MinY) ? B.MinY : b.MinY;
+                            B.MaxY = double.IsNaN(b.MaxY) ? B.MaxY : b.MaxY;
                             B.ToleranceTable = b.ToleranceTable;
                             bool UnsetEnergyAdded = false;
                             foreach (var E in b.ValidEnergies)
                             {
-                                DbEnergy DbEn = LocalContext.DbEnergies.FirstOrDefault(x => x.EnergyString == TypeDisplay.Display(E.Mode));
+                                string EnergyString = TypeDisplay.Display(E.Mode);
+                                DbEnergy DbEn = LocalContext.DbEnergies.FirstOrDefault(x => x.EnergyString == EnergyString);
                                 if (DbEn != null)
                                 {
                                     if (B.DbEnergies == null)
@@ -1280,6 +1287,15 @@ namespace Squint
                     }
                 }
                 int ConDisplayOrder = 1;
+                try
+                {
+                    LocalContext.SaveChanges();
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show(string.Format("{0} {1} {2}", ex.Message, ex.InnerException, ex.StackTrace));
+                }
+
                 foreach (SquintProtocolConstraint con in _XMLProtocol.Constraints)
                 {
                     // Input error checking
@@ -1329,9 +1345,9 @@ namespace Squint
                         DbCon.ThresholdDataPath = con.DataTablePath;
                     else
                     {
-                        DbCon.MajorViolation = con.MajorViolation;
-                        DbCon.MinorViolation = con.MinorViolation;
-                        DbCon.Stop = con.Stop;
+                        DbCon.MajorViolation = double.IsNaN(con.MajorViolation) ? DbCon.MajorViolation : con.MajorViolation;
+                        DbCon.MinorViolation = double.IsNaN(con.MinorViolation) ? DbCon.MinorViolation : con.MinorViolation;
+                        DbCon.Stop = double.IsNaN(con.Stop) ? DbCon.Stop : con.Stop;
                     }
                     DbConstraintChangelog DbCC = LocalContext.DbConstraintChangelogs.Create();
 
@@ -1545,6 +1561,7 @@ namespace Squint
                                 Stop = Con.Stop == null ? double.NaN : (double)Con.Stop,
                                 ProtocolStructureName = Con.ProtocolStructureName
                             };
+
                             constraintsToSerialize.Add(XMLCon);
 
                             break;

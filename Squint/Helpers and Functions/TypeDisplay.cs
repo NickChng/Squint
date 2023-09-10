@@ -308,6 +308,47 @@ namespace Squint.Helpers
         }
 
 
+        public static string Display(ImagingProtocolTypes t)
+        {
+            switch (t)
+            {
+                case ImagingProtocolTypes.Unset:
+                    return "";
+                case ImagingProtocolTypes.kV_2D:
+                    return "2D kV";
+                case ImagingProtocolTypes.PostCBCT:
+                    return "Post-Tx CBCT";
+                case ImagingProtocolTypes.PreCBCT:
+                    return "Pre-Tx CBCT";
+                case ImagingProtocolTypes.Bolus:
+                    return "Bolus setup";
+                case ImagingProtocolTypes.Home:
+                    return "Home field";
+                default:
+                    return "Error";
+            }
+        }
+
+        public static string Display(ConstraintUnits t)
+        {
+            switch (t)
+            {
+                case ConstraintUnits.Unset:
+                    return "-";
+                case ConstraintUnits.Percent:
+                    return "%";
+                case ConstraintUnits.cGy:
+                    return "cGy";
+                case ConstraintUnits.cc:
+                    return "cc";
+                case ConstraintUnits.Multiple:
+                    return "\u00D7";
+                default:
+                    return "Error";
+            }
+        }
+        
+
         //public static string Display(ParameterOptions t)
         //{
         //    switch (t)

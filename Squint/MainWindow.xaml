@@ -14,7 +14,7 @@
         WindowStartupLocation="CenterScreen"
         x:Name="SquintWindow"
         Icon="/Resources/squint_icon.ico"
-        Title="Squint v0.8" Height="900" Width="1450" Closing="OnClosing" MinWidth="1250" 
+        Title="Squint v0.9" Height="900" Width="1450" Closing="OnClosing" MinWidth="1250" 
         Loaded="OnLoaded"
         d:DataContext="{d:DesignInstance Type=ViewModels:MainViewModel, IsDesignTimeCreatable=True}" >
     <!--Loaded="OnLoaded"-->

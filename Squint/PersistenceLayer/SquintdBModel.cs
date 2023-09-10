@@ -12,13 +12,14 @@ namespace Squint
     using System.Xml.Serialization;
     using System.IO;
     using System.Configuration;
-    using Npgsql;
-    using NpgsqlTypes;
     using Extensions;
     using System.Reflection;
     using Squint.XML_Definitions;
     using Squint.Helpers;
     using Squint.Structs;
+    using System.Data.SqlClient;
+    using System.Data.Entity.Core.Objects;
+    using Squint.PersistenceLayer;
 
     public class SquintDBModel : DbContext
     {
@@ -26,12 +27,12 @@ namespace Squint
         public SquintDBModel(DbConfigurationPaths dbConfig)
         : base(VersionContextConnection.GetDatabaseConnection(), true)
         {
-            _dbConfigPaths = dbConfig; 
+            _dbConfigPaths = dbConfig;
         }
 
         protected override void OnModelCreating(DbModelBuilder modelBuilder)
         {
-            modelBuilder.HasDefaultSchema("public"); // necessary for postGRESql
+            //modelBuilder.HasDefaultSchema("public"); // necessary for postGRESql
             //modelBuilder.Entity<DbConstituent>()
             //        .HasRequired(m => m.DbComponent)
             //        .WithMany(t => t.Constituents)
@@ -42,26 +43,74 @@ namespace Squint
             //        .WithMany(t => t.ConstituentComponents)
             //        .HasForeignKey(m => m.ConstituentCompID)
             //        .WillCascadeOnDelete(false);
-            modelBuilder.Entity<DbConstraintResult>()
-                .HasRequired(d => d.DbAssessment)
-                .WithMany(t => t.ConstraintResults)
-                .HasForeignKey(m => m.AssessmentID)
-                .WillCascadeOnDelete(true);
+
+            //modelBuilder.Entity<DbConstraintResult>()
+            //    .HasRequired(d => d.DbAssessment)
+            //    .WithMany(t => t.ConstraintResults)
+            //    .HasForeignKey(m => m.AssessmentID)
+            //    .WillCascadeOnDelete(true);
+
+            //modelBuilder.Entity<DbProtocolStructure>()
+            //    .HasRequired(d => d.DbLibraryProtocol)
+            //    .WithOptional()
+            //    .WillCascadeOnDelete(true);
+            //modelBuilder.Entity<DbProtocol>()
+            //    .HasMany(d => d.ProtocolStructures)
+            //    .WithRequired();
+
+
+
+            //modelBuilder.Entity<DbSessionProtocolStructure>()
+            //.HasRequired(d => d.DbLibraryProtocol)
+            //.WithMany()
+            //.WillCascadeOnDelete(true);
+            //modelBuilder.Entity<DbConstraintChangelog>()
+            //    .HasRequired(p => p.DbConstraintChangelog_Parent)
+            //    .WithMany()
+            //    .WillCascadeOnDelete(false);
+            //modelBuilder.Entity<DbBolus>()
+            //    .HasRequired(p => p.DbBeam)
+            //    .WithMany()
+            //    .WillCascadeOnDelete(true);
+            //modelBuilder.Entity<DbComponentImaging>()
+            //    .HasRequired(p => p.DbComponent)
+            //    .WithMany()
+            //    .WillCascadeOnDelete(true);
+            //modelBuilder.Entity<DbImaging>()
+            //    .HasRequired(p => p.DbComponentImaging)
+            //    .WithMany()
+            //    .WillCascadeOnDelete(true);
+            //modelBuilder.Entity<DbProtocolChecklist>()
+            //    .HasRequired(p => p.DbProtocol)
+            //    .WithMany()
+            //    .WillCascadeOnDelete(true);
+            //modelBuilder.Entity<DbBeam>()
+            //    .HasRequired(p => p.DbComponent)
+            //    .WithMany()
+            //    .WillCascadeOnDelete(true);
+            //modelBuilder.Entity<DbTreatmentTechnique>()
+            //    .HasRequired(p => p.DbProtocolChecklist)
+            //    .WithMany()
+            //    .WillCascadeOnDelete(true);
+            //modelBuilder.Entity<DbArtifact>()
+            //    .HasRequired(p => p.DbProtocolStructure)
+            //    .WithMany()
+            //    .WillCascadeOnDelete(true);
             modelBuilder.Entity<DbProtocolStructure>()
-                .HasRequired(d => d.DbStructureChecklist)
-                .WithRequiredPrincipal(p => p.DbProtocolStructure)
+                .HasOptional(s => s.DbStructureChecklist)
+                .WithRequired(cl => cl.DbProtocolStructure)
                 .WillCascadeOnDelete(true);
-            modelBuilder.Entity<DbConstraintChangelog>()
-                .HasRequired(p => p.DbConstraintChangelog_Parent)
-                .WithMany()
-                .WillCascadeOnDelete(false);
+            modelBuilder.Entity<DbBeam>()
+                .HasMany(b => b.DbBeamGeometries)
+                .WithRequired(bg => bg.DbBeam)
+                .WillCascadeOnDelete(true);
 
 
             Database.SetInitializer<SquintDBModel>(new InitializeLookupTables(_dbConfigPaths));
             base.OnModelCreating(modelBuilder);
         }
         public class InitializeLookupTables : CreateDatabaseIfNotExists<SquintDBModel>
-        //public class InitializeLookupTables : DropCreateDatabaseAlways<SquintdBModel>
+        //public class InitializeLookupTables : DropCreateDatabaseAlways<SquintDBModel>
         {
             private DbConfigurationPaths _dbConfigPaths;
             public InitializeLookupTables(DbConfigurationPaths paths)
@@ -246,37 +295,37 @@ namespace Squint
                 };
                 context.DbStructureLabelGroups.Add(SLG);
                 context.SaveChanges();
-                var BeamGeometryDefintionPath = _dbConfigPaths.beamDefinitionPath;
-                if (BeamGeometryDefintionPath != null)
-                {
-                    try
-                    {
-                        var BeamGeometryDefintionXMLFile = File.ReadAllText(BeamGeometryDefintionPath);
-                        Serializer ser = new Serializer();
-                        GeometryDefinitions BeamGeometryDefinitions = ser.Deserialize<GeometryDefinitions>(BeamGeometryDefintionXMLFile);
-                        foreach (var G in BeamGeometryDefinitions.Geometry)
-                        {
-                            TrajectoryTypes T = TrajectoryTypes.Unset;
-                            Enum.TryParse(G.Trajectory, out T);
-                            DbBeamGeometry DbBG = new DbBeamGeometry()
-                            {
-                                StartAngle = G.StartAngle,
-                                EndAngle = G.EndAngle,
-                                EndAngleTolerance = G.EndAngleTolerance,
-                                GeometryName = G.GeometryName,
-                                StartAngleTolerance = G.StartAngleTolerance,
-                                Trajectory = (int)T
-                            };
-                            context.DbBeamGeometries.Add(DbBG);
-                        }
-                    }
-                    catch
-                    {
-                        MessageBox.Show("Error: Cannot find Beam Geometry Definition file for this site, please check configuration file.  Important: This database will need to be manually dropped from the server so initialization can be re-attempted");
-                        throw new Exception();
-                    }
+                //var BeamGeometryDefintionPath = _dbConfigPaths.beamDefinitionPath;
+                //if (BeamGeometryDefintionPath != null)
+                //{
+                //    try
+                //    {
+                //        var BeamGeometryDefintionXMLFile = File.ReadAllText(BeamGeometryDefintionPath);
+                //        Serializer ser = new Serializer();
+                //        GeometryDefinitions BeamGeometryDefinitions = ser.Deserialize<GeometryDefinitions>(BeamGeometryDefintionXMLFile);
+                //        foreach (var G in BeamGeometryDefinitions.Geometry)
+                //        {
+                //            TrajectoryTypes T = TrajectoryTypes.Unset;
+                //            Enum.TryParse(G.Trajectory, out T);
+                //            DbBeamGeometry DbBG = new DbBeamGeometry()
+                //            {
+                //                StartAngle = G.StartAngle,
+                //                EndAngle = G.EndAngle,
+                //                EndAngleTolerance = G.EndAngleTolerance,
+                //                GeometryName = G.GeometryName,
+                //                StartAngleTolerance = G.StartAngleTolerance,
+                //                Trajectory = (int)T
+                //            };
+                //            context.DbBeamGeometries.Add(DbBG);
+                //        }
+                //    }
+                //    catch
+                //    {
+                //        MessageBox.Show("Error: Cannot find Beam Geometry Definition file for this site, please check configuration file.  Important: This database will need to be manually dropped from the server so initialization can be re-attempted");
+                //        throw new Exception();
+                //    }
 
-                }
+                //}
                 context.Configuration.AutoDetectChangesEnabled = false;
                 context.Configuration.ValidateOnSaveEnabled = false;
                 //Serializer ser = new Serializer();
@@ -296,61 +345,103 @@ namespace Squint
                 context.SaveChanges();
                 try // Use PostgreSQL "COPY" command for bulk insert.  EF uses an insert for each entity and this takes a very long time.
                 {
-                    using (NpgsqlConnection conn = new NpgsqlConnection(VersionContextConnection.ConnectionString()))
+                    var StructureLabelData = new List<StructureLabelImportData>();
+                    try
                     {
-                        conn.Open();
-                        string ID = "\"ID\"";
-                        string Description = "\"Description\"";
-                        string Designator = "\"Designator\"";
-                        string AlphaBetaRatio = "\"AlphaBetaRatio\"";
-                        string StructureType = "\"StructureType\"";
-                        string StructurelabelGroupID = "\"StructurelabelGroupID\"";
-                        string StructureLabel = "\"StructureLabel\"";
-                        string tableName = "\"DbStructureLabels\"";
-                        string Code = "\"Code\"";
-                        var StrutureCodePath = _dbConfigPaths.structureDefinitionPath;
-                        if (StrutureCodePath == null)
+                        using (StreamReader SR = new StreamReader(_dbConfigPaths.structureDefinitionPath)) // note that this assumes the CSV is organized as below
                         {
-                            MessageBox.Show("Error: Cannot find Structure Code file for this site, please check configuration file.  Important: This database will need to be manually dropped from the server so initialization can be re-attempted");
-                            throw new Exception();
-                        }
-                        try
-                        {
-                            using (var writer = conn.BeginBinaryImport(
-                                string.Format("COPY {0} ({1}, {2}, {3}, {4}, {5},{6},{7},{8}) FROM STDIN (FORMAT BINARY)",
-                                tableName, ID, StructurelabelGroupID, StructureLabel, AlphaBetaRatio, Description, StructureType, Code, Designator)))
+                            string[] data;
+                            string line;
+                            SR.ReadLine();
+                            while ((line = SR.ReadLine()) != null)
                             {
-                                using (StreamReader SR = new StreamReader(_dbConfigPaths.structureDefinitionPath)) // note that this assumes the CSV is organized as below
-                                {
-                                    string[] data;
-                                    string line;
-                                    SR.ReadLine();
-                                    while ((line = SR.ReadLine()) != null)
-                                    {
-                                        data = line.Split(',');
-                                        writer.StartRow();
-                                        writer.Write(SLabelID++, NpgsqlDbType.Integer); // enter ID
-                                        writer.Write(1, NpgsqlDbType.Integer); // StructurelabelGroupID
-                                        writer.Write(data[2].Trim(), NpgsqlDbType.Text); // StructureLabel
-                                        writer.Write(Convert.ToDouble(data[4]), NpgsqlDbType.Double); // AlphaBetaRatio
-                                        writer.Write(data[3].Trim(), NpgsqlDbType.Text); // Description
-                                        writer.Write((int)StructureTypes.Unset, NpgsqlDbType.Integer); // StructureType
-                                        writer.Write(data[1].Trim(), NpgsqlDbType.Text); // Code
-                                        writer.Write(data[0].Trim(), NpgsqlDbType.Text); // Designator
-                                    }
-                                }
-                                writer.Complete();
+                                var s = new StructureLabelImportData();
+                                data = line.Split(',');
+                                s.ID = SLabelID++;
+                                s.StructureLabelGroupID = 1;
+                                s.StructureLabel = data[2].Trim();
+                                s.AlphaBetaRatio = Convert.ToDouble(data[4]);
+                                s.Description = data[3].Trim();
+                                s.StructureType = (int)StructureTypes.Unset;
+                                s.Code = data[1].Trim();
+                                s.Designator = data[0].Trim();
+                                StructureLabelData.Add(s);
                             }
-                            conn.Close();
                         }
-                        catch
+                        using (var copy = new SqlBulkCopy(VersionContextConnection.ConnectionString()))
                         {
-                            MessageBox.Show("Error: Cannot find Structure Code file for this site, please check configuration file.  Important: This database will need to be manually dropped from the server so initialization can be re-attempted");
-                            throw new Exception();
+                            copy.DestinationTableName = "dbo.DbStructureLabels";
+                            copy.ColumnMappings.Add(nameof(StructureLabelImportData.ID), "ID");
+                            copy.ColumnMappings.Add(nameof(StructureLabelImportData.StructureType), "StructureType");
+                            copy.ColumnMappings.Add(nameof(StructureLabelImportData.Code), "Code");
+                            copy.ColumnMappings.Add(nameof(StructureLabelImportData.Description), "Description");
+                            copy.ColumnMappings.Add(nameof(StructureLabelImportData.StructureLabel), "StructureLabel");
+                            copy.ColumnMappings.Add(nameof(StructureLabelImportData.StructureLabelGroupID), "StructurelabelGroupID");
+                            copy.ColumnMappings.Add(nameof(StructureLabelImportData.Designator), "Designator");
+                            copy.ColumnMappings.Add(nameof(StructureLabelImportData.AlphaBetaRatio), "AlphaBetaRatio");
+                            var dt = DataTableHelpers.ToDataTable(StructureLabelData);
+                            copy.WriteToServer(dt);
                         }
                     }
+                    catch (SqlException ex)
+                    {
+                        MessageBox.Show(ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    }
+                    //using (SqlConnection conn = new SqlConnection(VersionContextConnection.ConnectionString()))
+                    //{
+                    //    conn.Open();
+                    //    string ID = "\"ID\"";
+                    //    string Description = "\"Description\"";
+                    //    string Designator = "\"Designator\"";
+                    //    string AlphaBetaRatio = "\"AlphaBetaRatio\"";
+                    //    string StructureType = "\"StructureType\"";
+                    //    string StructurelabelGroupID = "\"StructurelabelGroupID\"";
+                    //    string StructureLabel = "\"StructureLabel\"";
+                    //    string tableName = "\"DbStructureLabels\"";
+                    //    string Code = "\"Code\"";
+                    //    var StrutureCodePath = _dbConfigPaths.structureDefinitionPath;
+                    //    if (StrutureCodePath == null)
+                    //    {
+                    //        MessageBox.Show("Error: Cannot find Structure Code file for this site, please check configuration file.  Important: This database will need to be manually dropped from the server so initialization can be re-attempted");
+                    //        throw new Exception();
+                    //    }
+                    //    try
+                    //    {
+                    //        using (var writer = conn.BeginBinaryImport(
+                    //            string.Format("COPY {0} ({1}, {2}, {3}, {4}, {5},{6},{7},{8}) FROM STDIN (FORMAT BINARY)",
+                    //            tableName, ID, StructurelabelGroupID, StructureLabel, AlphaBetaRatio, Description, StructureType, Code, Designator)))
+                    //        {
+                    //            using (StreamReader SR = new StreamReader(_dbConfigPaths.structureDefinitionPath)) // note that this assumes the CSV is organized as below
+                    //            {
+                    //                string[] data;
+                    //                string line;
+                    //                SR.ReadLine();
+                    //                while ((line = SR.ReadLine()) != null)
+                    //                {
+                    //                    data = line.Split(',');
+                    //                    writer.StartRow();
+                    //                    writer.Write(SLabelID++, NpgsqlDbType.Integer); // enter ID
+                    //                    writer.Write(1, NpgsqlDbType.Integer); // StructurelabelGroupID
+                    //                    writer.Write(data[2].Trim(), NpgsqlDbType.Text); // StructureLabel
+                    //                    writer.Write(Convert.ToDouble(data[4]), NpgsqlDbType.Double); // AlphaBetaRatio
+                    //                    writer.Write(data[3].Trim(), NpgsqlDbType.Text); // Description
+                    //                    writer.Write((int)StructureTypes.Unset, NpgsqlDbType.Integer); // StructureType
+                    //                    writer.Write(data[1].Trim(), NpgsqlDbType.Text); // Code
+                    //                    writer.Write(data[0].Trim(), NpgsqlDbType.Text); // Designator
+                    //                }
+                    //            }
+                    //            writer.Complete();
+                    //        }
+                    //        conn.Close();
+                    //    }
+                    //    catch
+                    //    {
+                    //        MessageBox.Show("Error: Cannot find Structure Code file for this site, please check configuration file.  Important: This database will need to be manually dropped from the server so initialization can be re-attempted");
+                    //        throw new Exception();
+                    //    }
+                    //}
                 }
-                catch (NpgsqlException ex)
+                catch (SqlException ex)
                 {
                     MessageBox.Show(ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
                 }
@@ -490,7 +581,7 @@ namespace Squint
         [Key]
         public int ID { get; set; }
         [ForeignKey("DbTreatmentCentre")]
-        public int TreatmentCentreID { get; set; }
+        public int? TreatmentCentreID { get; set; }
         public virtual DbTreatmentCentre DbTreatmentCentre { get; set; }
         public string GroupDescription { get; set; }
     }
@@ -500,7 +591,7 @@ namespace Squint
         [Key]
         public int ID { get; set; }
         [ForeignKey("DbStructureLabelGroup")]
-        public int StructurelabelGroupID { get; set; }
+        public int? StructurelabelGroupID { get; set; }
         public virtual DbStructureLabelGroup DbStructureLabelGroup { get; set; }
         public string StructureLabel { get; set; }
         public double AlphaBetaRatio { get; set; }
@@ -519,10 +610,10 @@ namespace Squint
         [Key]
         public int ID { get; set; }
         [ForeignKey("DbStructureLabel")]
-        public int StructureLabelID { get; set; }
+        public int? StructureLabelID { get; set; }
         public virtual DbStructureLabel DbStructureLabel { get; set; }
         [ForeignKey("DbAssessment")]
-        public int AssessmentID { get; set; }
+        public int? AssessmentID { get; set; }
         public virtual DbAssessment DbAssessment { get; set; }
     }
 
@@ -578,7 +669,7 @@ namespace Squint
         public int ID { get; set; }
         //FK
         [ForeignKey("DbPermissionGroup")]
-        public int PermissionGroupID { get; set; }
+        public int? PermissionGroupID { get; set; }
         public virtual DbPermissionGroup DbPermissionGroup { get; set; }
         public virtual ICollection<DbProtocol> ProtocolApprovers { get; set; }
         public virtual ICollection<DbProtocol> ProtocolAuthors { get; set; }
@@ -685,22 +776,24 @@ namespace Squint
     public class DbBeamGeometry
     {
         [Key]
-        public int ID { get; set; }
+        public int BeamGeometryID { get; set; }
+        [ForeignKey("DbBeam")]
+        public int BeamID { get; set; }
         public int Trajectory { get; set; }
         public string GeometryName { get; set; }
         public double StartAngle { get; set; } = -1;
         public double EndAngle { get; set; } = -1;
         public double StartAngleTolerance { get; set; } = 1;
         public double EndAngleTolerance { get; set; } = 1;
-        public virtual ICollection<DbBeam> DbBeams { get; set; }
+        public virtual DbBeam DbBeam { get; set; }
     }
 
     public class DbTreatmentTechnique
     {
         [Key]
         public int ID { get; set; }
-        [ForeignKey("DbComponentChecklist")]
-        public int DbProtocolChecklistId { get; set; }
+        [ForeignKey("DbProtocolChecklist")]
+        public int? DbProtocolChecklistId { get; set; }
         public virtual DbProtocolChecklist DbProtocolChecklist { get; set; }
         public int TreatmentTechniqueType { get; set; }
         public double MinFields { get; set; }
@@ -741,7 +834,7 @@ namespace Squint
         public int ProtocolStructure_ID { get; set; }
         public virtual DbProtocolStructure DbProtocolStructure { get; set; }
         [ForeignKey("DbProtocolChecklist")]
-        public int DbProtocolChecklistId { get; set; }
+        public int? DbProtocolChecklistId { get; set; }
         public virtual DbProtocolChecklist DbProtocolChecklist { get; set; }
     }
 
@@ -749,10 +842,10 @@ namespace Squint
     {
         [Key]
         [ForeignKey("DbProtocolStructure")]
-        public int ProtocolStructureID { get; set; }
+        public int StructureChecklistID { get; set; }
         public virtual DbProtocolStructure DbProtocolStructure { get; set; }
         public bool isPointContourChecked { get; set; } = false;
-        public double PointContourThreshold { get; set; }
+        public double? PointContourThreshold { get; set; }
     }
 
     public class DbProtocolChecklist
@@ -807,20 +900,20 @@ namespace Squint
         public virtual ICollection<DbProtocolStructure> ProtocolStructures { get; set; }
         public virtual ICollection<DbSessionProtocol> SessionProtocols { get; set; }
         [ForeignKey("DbTreatmentSite")]
-        public int TreatmentSiteID { get; set; } // Author
+        public int? TreatmentSiteID { get; set; } // Author
         public virtual DbTreatmentSite DbTreatmentSite { get; set; }
         [ForeignKey("DbTreatmentCentre")]
         public int TreatmentCentreID { get; set; } // Author
         public virtual DbTreatmentCentre DbTreatmentCentre { get; set; }
         [ForeignKey("DbProtocolType")]
-        public int ProtocolTypeID { get; set; } // Author
+        public int? ProtocolTypeID { get; set; } // Author
         public virtual DbProtocolType DbProtocolType { get; set; }
         [ForeignKey("DbUser_ProtocolAuthor")]
-        public int AuthorID { get; set; } // Author
+        public int? AuthorID { get; set; } // Author
         [InverseProperty("ProtocolAuthors")]
         public virtual DbUser DbUser_ProtocolAuthor { get; set; }
         [ForeignKey("DbUser_Approver")]
-        public int ApproverID { get; set; } // Author
+        public int? ApproverID { get; set; } // Author
         [InverseProperty("ProtocolApprovers")]
         public virtual DbUser DbUser_Approver { get; set; }
         [ForeignKey("DbApprovalLevel")]
@@ -853,7 +946,7 @@ namespace Squint
         [Key]
         public int ID { get; set; }
         [ForeignKey("DbSession")]
-        public int SessionID { get; set; }
+        public int? SessionID { get; set; }
         public virtual DbSession DbSession { get; set; }
         public virtual ICollection<DbConstraintResult> ConstraintResults { get; set; }
         //Properties
@@ -872,13 +965,13 @@ namespace Squint
         public int ID { get; set; }
         //FK
         [ForeignKey("DbSessionComponent")]
-        public int SessionComponentID { get; set; }
+        public int? SessionComponentID { get; set; }
         public virtual DbSessionComponent DbSessionComponent { get; set; }
         [ForeignKey("DbAssessment")]
-        public int AssessmentID { get; set; }
+        public int? AssessmentID { get; set; }
         public virtual DbAssessment DbAssessment { get; set; }
         [ForeignKey("DbSession")]
-        public int SessionId { get; set; }
+        public int? SessionId { get; set; }
         public virtual DbSession DbSession { get; set; }
         //Properties
         public string UID { get; set; }
@@ -926,7 +1019,7 @@ namespace Squint
     public class DbSessionComponent : DbComponent
     {
         [ForeignKey("DbSession")]
-        public int SessionID { get; set; }
+        public int? SessionID { get; set; }
         public virtual DbSession DbSession { get; set; }
         public int ParentComponentID { get; set; }
     }
@@ -936,10 +1029,10 @@ namespace Squint
         [Key]
         public int ID { get; set; }
         [ForeignKey("DbSessionConstraint")]
-        public int SessionConstraintID { get; set; }
+        public int? SessionConstraintID { get; set; }
         public virtual DbSessionConstraint DbSessionConstraint { get; set; }
         [ForeignKey("DbAssessment")]
-        public int AssessmentID { get; set; }
+        public int? AssessmentID { get; set; }
         public virtual DbAssessment DbAssessment { get; set; }
         public virtual ICollection<DbConstraintResultCode> DbConstraintCodes { get; set; }
         //Properties
@@ -952,10 +1045,10 @@ namespace Squint
         [Key]
         public int ID { get; set; }
         [ForeignKey("DbConstraintResult")]
-        public int ConstraintResultID { get; set; }
+        public int? ConstraintResultID { get; set; }
         public virtual DbConstraintResult DbConstraintResult { get; set; }
         [ForeignKey("DbSession")]
-        public int SessionID { get; set; }
+        public int? SessionID { get; set; }
         public virtual DbSession DbSession { get; set; }
         //Data
         public int Code { get; set; }
@@ -971,10 +1064,10 @@ namespace Squint
         public int ComponentID { get; set; }
         public virtual DbComponent DbComponent { get; set; }
         [ForeignKey("DbProtocolStructure_Primary")]
-        public int PrimaryStructureID { get; set; } // the primary structure to which this constraint applies
+        public int? PrimaryStructureID { get; set; } // the primary structure to which this constraint applies
         public virtual DbProtocolStructure DbProtocolStructure_Primary { get; set; }
         [ForeignKey("DbProtocolStructure_Reference")]
-        public int ReferenceStructureId { get; set; } // the primary structure to which this constraint applies
+        public int? ReferenceStructureId { get; set; } // the primary structure to which this constraint applies
         public virtual DbProtocolStructure DbProtocolStructure_Reference { get; set; }
         public virtual ICollection<DbSessionConstraint> DbSessionConstraints { get; set; }
         public virtual ICollection<DbConstraintChangelog> DbConstraintChangelogs { get; set; }
@@ -1016,7 +1109,7 @@ namespace Squint
     public class DbSessionConstraint : DbConstraint
     {
         [ForeignKey("DbSession")]
-        public int SessionID { get; set; }
+        public int? SessionID { get; set; }
         public virtual DbSession DbSession { get; set; }
         public int ParentConstraintID { get; set; }
         public int OriginalNumFractions { get; set; }
@@ -1078,7 +1171,7 @@ namespace Squint
         [Key]
         public int ID { get; set; }
         [ForeignKey("DbStructureLabel")]
-        public int StructureLabelID { get; set; }
+        public int? StructureLabelID { get; set; }
         public virtual DbStructureLabel DbStructureLabel { get; set; }
         [ForeignKey("DbLibraryProtocol")]
         public int ProtocolID { get; set; }
@@ -1091,14 +1184,14 @@ namespace Squint
         public int DisplayOrder { get; set; }
         //
         public virtual ICollection<DbStructureAlias> DbStructureAliases { get; set; }
-        public virtual ICollection<DbSessionProtocolStructure> DbSessionProtocolStructures { get; set; }
-        public virtual ICollection<DbArtifact> DbArtifacts { get; set; }
+        //public virtual ICollection<DbSessionProtocolStructure> DbSessionProtocolStructures { get; set; }
+        //public virtual ICollection<DbArtifact> DbArtifacts { get; set; }
     }
 
     public class DbSessionProtocolStructure : DbProtocolStructure
     {
         [ForeignKey("DbSession")]
-        public int SessionId { get; set; }
+        public int? SessionId { get; set; }
         public virtual DbSession DbSession { get; set; }
         // Data
         public string AssignedEclipseId { get; set; }
